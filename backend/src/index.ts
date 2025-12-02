@@ -1,14 +1,17 @@
 import { Hono } from "hono";
-// import { upgradeWebSocket, websocket } from "hono/bun";
+import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, decode } from "hono/jwt";
-import { ServerWebSocket } from "bun";
-import type { Message } from "../../shared/types";
+import type { Connection, Join, Message, User } from "../../shared/types";
 
 import { serve } from "bun";
 
-let users = new Map();
+let users: Map<string, User> = new Map();
+function init() {
+  users.set("global", { uid: "global", username: "global" });
+}
+init();
 let userSockets = new Map();
 
 const app = new Hono();
@@ -22,20 +25,46 @@ app.use(
     credentials: true,
   })
 );
+app.use(prettyJSON());
 
 app.get("/", (c) => {
-  console.log({ users });
-  return c.text("hello world!");
+  return c.json({ users: Array.from(users.values()) });
+});
+
+app.use("/chat/*", async (c, next) => {
+  const cookie = getCookie(c, "sessionid");
+
+  if (!cookie) {
+    return c.json({ message: "not logged in" });
+  }
+  const decoded = decode(cookie);
+  const uid: string = decoded.payload.uid as string;
+  const username: string = decoded.payload.username as string;
+
+  c.set("jwtPayload", {
+    uid: uid,
+    username: username,
+  });
+
+  await next();
 });
 
 app.get("/chat/users", (c) => {
+  const user = c.get("jwtPayload");
+  const uid = user?.uid;
+  const username = user?.username;
+
+  if (!users.get(uid)) {
+    users.set(uid, { uid: uid, username: username });
+  }
+
   return c.json({ users: Array.from(users.values()) });
 });
 
 app.post("/login", async (c) => {
   const body = await c.req.json();
 
-  const payload = {
+  const payload: User = {
     uid: crypto.randomUUID(),
     username: body.username,
   };
@@ -52,22 +81,24 @@ app.post("/login", async (c) => {
   });
 
   // save user to users map
-  users.set(payload.uid, payload);
+  users.set(payload?.uid!, payload);
 
   return c.json({ uid: payload.uid, username: payload.username, token: token });
 });
 
-app.get("/logout", (c) => {
-  const cookie = getCookie(c, "sessionid");
-
-  if (!cookie) {
-    return c.json({ message: "not logged in" });
-  }
-  const decoded = decode(cookie);
-  const uid = decoded.payload.uid;
+app.get("/chat/logout", (c) => {
+  const uid: string = c.get("jwtPayload")?.uid!;
 
   // delete user from users map
   users.delete(uid);
+
+  const userSocket = userSockets.get(uid);
+  if (userSocket) {
+    userSocket.close();
+  }
+  console.log({ userSocket });
+
+  // userSockets.delete(uid);
 
   deleteCookie(c, "sessionid", {
     maxAge: 0,
@@ -109,11 +140,37 @@ serve({
     open(ws) {
       console.log(`${ws.data.username} joined`);
 
+      const connStatus = () => {
+        if (userSockets.get(ws.data.uid) !== undefined) {
+          return "reconnect";
+        } else {
+          return "join";
+        }
+      };
+      const conn = connStatus();
+
       // save the userSocket
       userSockets.set(ws.data.uid, ws);
 
+      console.log({ userSockets });
+
       // auto subscribe to the global channel
       ws.subscribe("global");
+
+      console.log({ users });
+
+      // updated connection
+      const connection: Connection = {
+        status: conn,
+        uid: ws.data.uid,
+        username: ws.data.username,
+      };
+      ws.publish(
+        "global",
+        JSON.stringify({
+          ...connection,
+        })
+      );
 
       // notify other users
       const msg: Message = {
@@ -124,6 +181,9 @@ serve({
       ws.publish("global", JSON.stringify({ message: msg }));
     },
     close(ws) {
+      console.log("closed connection");
+
+      // notify other users
       const msg: Message = {
         type: "message",
         text: `${ws.data.username} has left the chat.`,
@@ -132,16 +192,29 @@ serve({
       ws.publish("global", JSON.stringify({ message: msg }));
     },
     message(ws, message) {
-      let msg: Message | null = null;
       if (typeof message !== "string") return;
 
-      msg = JSON.parse(message);
-      if (msg) {
-        msg.senderId = ws.data.uid;
-        msg.senderName = ws.data.username;
+      let msg: Message | null = null;
+
+      try {
+        msg = JSON.parse(message);
+      } catch (error) {
+        return;
       }
 
-      ws.publish("global", JSON.stringify({ message: msg }));
+      if (!msg || typeof msg !== "object") return;
+
+      msg.senderId = ws.data.uid;
+      msg.senderName = ws.data.username;
+
+      if (msg?.recipientId === "global" || !msg?.recipientId) {
+        ws.publish("global", JSON.stringify({ message: msg }));
+      } else {
+        const recipientSocket = userSockets.get(msg?.recipientId);
+        if (recipientSocket) {
+          recipientSocket.send(JSON.stringify({ message: msg }));
+        }
+      }
     },
   },
   port: 3000,
