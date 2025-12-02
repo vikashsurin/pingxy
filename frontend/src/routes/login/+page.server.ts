@@ -16,7 +16,7 @@ export const actions = {
     const data = await request.formData();
     const username = data.get("username");
 
-    const response = await fetch("http://localhost:3000/chat/login", {
+    const response = await fetch("http://localhost:3000/login", {
       method: "POST",
       credentials: "include",
       headers: {

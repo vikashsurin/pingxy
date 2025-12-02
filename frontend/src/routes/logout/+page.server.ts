@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 
 export async function load({ cookies }) {
-  const response = await fetch("http://localhost:3000/chat/logout", {
+  const response = await fetch("http://localhost:3000/logout", {
     credentials: "include",
   });
 
@@ -14,7 +14,7 @@ export async function load({ cookies }) {
       sameSite: "lax",
     });
 
-    redirect(302, "/chat/login");
+    redirect(302, "/login");
   }
 
   return { success: true };
