@@ -21,6 +21,13 @@ export async function load({ request, cookies }) {
   });
 
   const data = await response.json();
+  const users = new Map();
 
-  return { success: true, username, uid, users: data.users };
+  data.users.forEach((user) => {
+    users.set(user.uid, user);
+  });
+
+  console.log({ users });
+
+  return { success: true, username, uid, users: users };
 }

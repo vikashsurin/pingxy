@@ -20,7 +20,9 @@ export type Join = {
 };
 
 export type Connection = {
+  type: "connection";
   status: "join" | "leave" | "reconnect";
   uid: string;
   username: string;
+  text?: string;
 };

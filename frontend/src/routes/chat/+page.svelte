@@ -1,23 +1,17 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { Message, User } from "../../../../shared/types.js";
+  import type { Connection, Message, User } from "../../../../shared/types.js";
   import { SvelteMap } from "svelte/reactivity";
 
   let { data } = $props();
+  let notification = $state("");
   let message = $state("");
   let username = $derived(data.username);
-  let newUser = $state<User>({
-    uid: null,
-    username: null,
-  });
 
-  let users = $derived.by<User[]>(() => {
-    return [...data.users, newUser];
-  });
+  let usersMap = new SvelteMap<string, User>(data.users);
+  let users = $derived(Array.from(usersMap.values()));
 
   let messages = new SvelteMap<string, Message[]>();
-
-  // $inspect({ newUser });
 
   let activeSocket = $state<User>({
     uid: "global",
@@ -28,7 +22,7 @@
     messages.get(activeSocket?.uid!)
   );
 
-  // $inspect({ users });
+  $inspect({ users });
 
   let socket = null;
 
@@ -41,21 +35,35 @@
 
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
-      console.log({ data });
 
-      if (data.type === "reconnect") return;
+      if (data.type === "connection") {
+        const c: Connection = data;
+        console.log({ c: c.text });
+        if (c.status === "reconnect") return;
 
-      if (data.type === "join") {
-        const user: User = {
-          uid: data.uid,
-          username: data.username,
-        };
-        newUser = user;
+        if (c.status === "join") {
+          const user: User = {
+            uid: c.uid,
+            username: c.username,
+          };
+          notification = c.text!;
+          usersMap.set(user.uid!, user);
+        }
+        if (c.status === "leave") {
+          const user: User = {
+            uid: c.uid,
+            username: c.username,
+          };
+          notification = c.text!;
+          usersMap.delete(user.uid!);
+        }
         return;
       }
 
+      // console.log({ out: data });
       if (data.type === "message") {
-        const message = data.message as Message;
+        const message: Message = data;
+        // console.log({ message });
 
         if (message.recipientId === "global") {
           messages.set("global", [...(messages.get("global") || []), message]);
@@ -146,8 +154,11 @@
 
     <!-- MESSAGES -->
     <ul>
-      {#each messages.get(activeSocket?.uid || "global") as message}{/each}
-
+      {#if notification}
+        <li>
+          <span>{notification}</span>
+        </li>
+      {/if}
       {#each activeMessages as message}
         <li>
           {#if message.senderName}

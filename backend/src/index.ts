@@ -28,6 +28,8 @@ app.use(
 app.use(prettyJSON());
 
 app.get("/", (c) => {
+  // const arr = Array.from(users.entries());
+  // console.log({ arr });
   return c.json({ users: Array.from(users.values()) });
 });
 
@@ -161,9 +163,11 @@ serve({
 
       // updated connection
       const connection: Connection = {
+        type: "connection",
         status: conn,
         uid: ws.data.uid,
         username: ws.data.username,
+        text: `${ws.data.username} has joined the chat.`,
       };
       ws.publish(
         "global",
@@ -171,25 +175,24 @@ serve({
           ...connection,
         })
       );
-
-      // notify other users
-      const msg: Message = {
-        type: "message",
-        text: `${ws.data.username} has joined the chat.`,
-        timestamp: Date.now(),
-      };
-      ws.publish("global", JSON.stringify({ message: msg }));
     },
     close(ws) {
       console.log("closed connection");
 
       // notify other users
-      const msg: Message = {
-        type: "message",
+      const connection: Connection = {
+        type: "connection",
+        status: "leave",
+        uid: ws.data.uid,
+        username: ws.data.username,
         text: `${ws.data.username} has left the chat.`,
-        timestamp: Date.now(),
       };
-      ws.publish("global", JSON.stringify({ message: msg }));
+      // const msg: Message = {
+      //   type: "message",
+      //   text: `${ws.data.username} has left the chat.`,
+      //   timestamp: Date.now(),
+      // };
+      ws.publish("global", JSON.stringify({ ...connection }));
     },
     message(ws, message) {
       if (typeof message !== "string") return;
@@ -208,11 +211,11 @@ serve({
       msg.senderName = ws.data.username;
 
       if (msg?.recipientId === "global" || !msg?.recipientId) {
-        ws.publish("global", JSON.stringify({ message: msg }));
+        ws.publish("global", JSON.stringify({ ...msg }));
       } else {
         const recipientSocket = userSockets.get(msg?.recipientId);
         if (recipientSocket) {
-          recipientSocket.send(JSON.stringify({ message: msg }));
+          recipientSocket.send(JSON.stringify({ ...msg }));
         }
       }
     },
