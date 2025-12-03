@@ -1,15 +1,16 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import type { Connection, Message, User } from "../../../../shared/types.js";
-  import { SvelteMap } from "svelte/reactivity";
+  import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
   let { data } = $props();
   let notification = $state("");
   let message = $state("");
   let username = $derived(data.username);
 
-  let usersMap = new SvelteMap<string, User>(data.users);
-  let users = $derived(Array.from(usersMap.values()));
+  let users = new SvelteMap<string, User>(data.users);
+
+  let unread = new SvelteSet<string>();
 
   let messages = new SvelteMap<string, Message[]>();
 
@@ -22,7 +23,7 @@
     messages.get(activeSocket?.uid!)
   );
 
-  $inspect({ users });
+  // $inspect({ unread });
 
   let socket = null;
 
@@ -36,36 +37,42 @@
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
 
+      // update user list
       if (data.type === "connection") {
         const c: Connection = data;
         console.log({ c: c.text });
         if (c.status === "reconnect") return;
 
-        if (c.status === "join") {
-          const user: User = {
-            uid: c.uid,
-            username: c.username,
-          };
-          notification = c.text!;
-          usersMap.set(user.uid!, user);
-        }
         if (c.status === "leave") {
           const user: User = {
             uid: c.uid,
             username: c.username,
           };
           notification = c.text!;
-          usersMap.delete(user.uid!);
+          users.delete(user.uid!);
+        }
+        if (c.status === "join") {
+          const user: User = {
+            uid: c.uid,
+            username: c.username,
+          };
+          notification = c.text!;
+          users.set(user.uid!, user);
         }
         return;
       }
 
-      // console.log({ out: data });
+      // update messages
       if (data.type === "message") {
         const message: Message = data;
-        // console.log({ message });
+        const recipientId = message.recipientId!;
+        const senderId = message.senderId!;
 
-        if (message.recipientId === "global") {
+        if (activeSocket?.uid !== senderId) {
+          unread.add(senderId);
+        }
+
+        if (recipientId === "global") {
           messages.set("global", [...(messages.get("global") || []), message]);
         } else {
           const senderId = message.senderId!;
@@ -105,7 +112,11 @@
   }
 
   function setactiveSocket(user: User | null) {
+    if (!user) return;
     activeSocket = user;
+
+    // reset unread
+    unread.delete(user.uid!);
   }
 </script>
 
@@ -117,7 +128,11 @@
     </span>
   </h1>
 
-  <a href="/chat/logout" class="bg-red-400 p-2">Logout</a>
+  <a
+    href="/chat/logout"
+    data-sveltekit-preload-data={false}
+    class="bg-red-400 p-2">Logout</a
+  >
 </div>
 
 <div class=" grid grid-cols-2 gap-4 p-4">
@@ -176,28 +191,29 @@
   <div>
     <h2 class="font-bold">Users</h2>
     <ul>
-      {#if users.length > 0}
-        {#each users as user}
-          <li>
-            <button
-              class="px-2 py-0.5"
-              id={user.uid}
-              style={activeSocket?.uid === user.uid
-                ? "background-color: green; color: white;"
-                : ""}
-              onclick={(e) => setactiveSocket(user)}
-            >
-              {#if user.uid === data.uid}
-                You
-              {:else}
-                {user.username}
+      {#each users as [key, value]}
+        <li>
+          <button
+            class="px-2 py-0.5 rounded relative flex gap-1 border-gray-200"
+            id={value.uid}
+            style={activeSocket?.uid === value.uid
+              ? "background-color: green; color: white;"
+              : ""}
+            onclick={(e) => setactiveSocket(value)}
+          >
+            {#if value.uid === data.uid}
+              You
+            {:else}
+              {#if unread.has(value.uid!)}
+                <div
+                  class=" w-1.5 h-1.5 rounded-full bg-green-500 absolute left-0"
+                ></div>
               {/if}
-            </button>
-          </li>
-        {/each}
-      {:else}
-        <li>no users</li>
-      {/if}
+              {value.username}
+            {/if}
+          </button>
+        </li>
+      {/each}
     </ul>
   </div>
 </div>

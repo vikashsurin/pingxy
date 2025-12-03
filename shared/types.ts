@@ -12,12 +12,12 @@ export type User = {
   username: string | null;
 };
 
-export type Join = {
-  type: "join";
-  uid: string;
-  username: string;
-  reconnecting: boolean;
-};
+// export type Join = {
+//   type: "join";
+//   uid: string;
+//   username: string;
+//   reconnecting: boolean;
+// };
 
 export type Connection = {
   type: "connection";

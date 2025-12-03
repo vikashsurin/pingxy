@@ -3,7 +3,7 @@ import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, decode } from "hono/jwt";
-import type { Connection, Join, Message, User } from "../../shared/types";
+import type { Connection, Message, User } from "../../shared/types";
 
 import { serve } from "bun";
 
@@ -98,9 +98,8 @@ app.get("/chat/logout", (c) => {
   if (userSocket) {
     userSocket.close();
   }
-  console.log({ userSocket });
 
-  // userSockets.delete(uid);
+  userSockets.delete(uid);
 
   deleteCookie(c, "sessionid", {
     maxAge: 0,
@@ -142,32 +141,25 @@ serve({
     open(ws) {
       console.log(`${ws.data.username} joined`);
 
-      const connStatus = () => {
-        if (userSockets.get(ws.data.uid) !== undefined) {
-          return "reconnect";
-        } else {
-          return "join";
-        }
-      };
-      const conn = connStatus();
-
-      // save the userSocket
-      userSockets.set(ws.data.uid, ws);
-
-      console.log({ userSockets });
-
       // auto subscribe to the global channel
       ws.subscribe("global");
 
-      console.log({ users });
+      function getConnectionStatus() {
+        return userSockets.get(ws.data.uid) ? "reconnect" : "join";
+      }
 
+      function getConnectionText(status: Connection["status"]) {
+        return `${ws.data.username} has ${
+          status === "reconnect" ? "reconnected" : "connected"
+        }.`;
+      }
       // updated connection
       const connection: Connection = {
         type: "connection",
-        status: conn,
+        status: getConnectionStatus(),
         uid: ws.data.uid,
         username: ws.data.username,
-        text: `${ws.data.username} has joined the chat.`,
+        text: getConnectionText(getConnectionStatus()),
       };
       ws.publish(
         "global",
@@ -175,23 +167,26 @@ serve({
           ...connection,
         })
       );
+
+      // save the userSocket
+      userSockets.set(ws.data.uid, ws);
     },
     close(ws) {
       console.log("closed connection");
+      const uid = ws.data.uid;
 
-      // notify other users
+      // dont sent connection msg if,
+      // user has not really logged out
+      if (users.has(uid)) return;
+
       const connection: Connection = {
         type: "connection",
         status: "leave",
-        uid: ws.data.uid,
+        uid: uid,
         username: ws.data.username,
         text: `${ws.data.username} has left the chat.`,
       };
-      // const msg: Message = {
-      //   type: "message",
-      //   text: `${ws.data.username} has left the chat.`,
-      //   timestamp: Date.now(),
-      // };
+
       ws.publish("global", JSON.stringify({ ...connection }));
     },
     message(ws, message) {
