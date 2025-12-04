@@ -1,6 +1,6 @@
 import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
 
-import type { Connection, Message, User } from "../../../shared/types";
+import type { Connection, Message, User } from "../../../shared/src/types";
 
 export let socket: WebSocket | null = null;
 

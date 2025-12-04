@@ -1,5 +1,5 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import type { Message, User } from "../../../shared/types";
+import type { Message, User } from "../../../shared/src/validation";
 
 export let users = new SvelteMap<string, User>();
 

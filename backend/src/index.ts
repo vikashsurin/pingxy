@@ -1,18 +1,23 @@
+import { serve } from "bun";
+
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, decode } from "hono/jwt";
-import type { Connection, Message, User } from "../../shared/types";
+import { type User } from "../../shared/src/validation";
 
-import { serve } from "bun";
+import { getUserDataFromReq } from "./utils";
 
-let users: Map<string, User> = new Map();
+import { socketHandlers } from "./socketHandlers";
+
+export let users: Map<string, User> = new Map();
+export let userSockets = new Map();
+
 function init() {
   users.set("global", { uid: "global", username: "global" });
 }
 init();
-let userSockets = new Map();
 
 const app = new Hono();
 
@@ -97,8 +102,10 @@ app.get("/chat/logout", (c) => {
     userSocket.close();
   }
 
+  // delete user socket
   userSockets.delete(uid);
 
+  // delete session cookie
   deleteCookie(c, "sessionid", {
     maxAge: 0,
     httpOnly: false,
@@ -111,6 +118,8 @@ app.get("/chat/logout", (c) => {
 });
 
 serve({
+  websocket: socketHandlers,
+
   fetch(req, server) {
     const url = new URL(req.url);
     if (url.pathname === "/ws") {
@@ -131,110 +140,6 @@ serve({
     }
     return app.fetch(req);
   },
-  websocket: {
-    data: {
-      uid: "string",
-      username: "string",
-    },
-    open(ws) {
-      console.log(`${ws.data.username} joined`);
 
-      // auto subscribe to the global channel
-      ws.subscribe("global");
-
-      function getConnectionStatus() {
-        return userSockets.get(ws.data.uid) ? "reconnect" : "join";
-      }
-
-      function getConnectionText(status: Connection["status"]) {
-        return `${ws.data.username} has ${
-          status === "reconnect" ? "reconnected" : "joined the chat"
-        }.`;
-      }
-      // updated connection
-      const connection: Connection = {
-        type: "connection",
-        status: getConnectionStatus(),
-        uid: ws.data.uid,
-        username: ws.data.username,
-        text: getConnectionText(getConnectionStatus()),
-      };
-      ws.publish(
-        "global",
-        JSON.stringify({
-          ...connection,
-        })
-      );
-
-      // save the userSocket
-      userSockets.set(ws.data.uid, ws);
-    },
-    close(ws) {
-      console.log("closed connection");
-      const uid = ws.data.uid;
-
-      // dont sent connection msg if,
-      // user has not really logged out
-      if (users.has(uid)) return;
-
-      const connection: Connection = {
-        type: "connection",
-        status: "leave",
-        uid: uid,
-        username: ws.data.username,
-        text: `${ws.data.username} has left the chat.`,
-      };
-
-      ws.publish("global", JSON.stringify({ ...connection }));
-    },
-    message(ws, message) {
-      if (typeof message !== "string") return;
-
-      let msg: Message | null = null;
-
-      try {
-        msg = JSON.parse(message);
-      } catch (error) {
-        return;
-      }
-
-      if (!msg || typeof msg !== "object") return;
-
-      msg.senderId = ws.data.uid;
-      msg.senderName = ws.data.username;
-
-      if (msg?.recipientId === "global" || !msg?.recipientId) {
-        ws.publish("global", JSON.stringify({ ...msg }));
-      } else {
-        const recipientSocket = userSockets.get(msg?.recipientId);
-        if (recipientSocket) {
-          recipientSocket.send(JSON.stringify({ ...msg }));
-        }
-      }
-    },
-  },
   port: 3000,
 });
-
-function getUserDataFromReq(req: Request) {
-  const cookieHeader = req.headers.get("cookie");
-  if (!cookieHeader) return null;
-
-  const cookies = new Bun.CookieMap(cookieHeader);
-  const sessionid = cookies.get("sessionid")?.toString();
-
-  if (!sessionid) return null;
-
-  try {
-    const decoded = decode(sessionid);
-    if (!decoded?.payload?.uid || !decoded?.payload?.username) return null;
-
-    return {
-      uid: decoded.payload.uid as string,
-      username: decoded.payload.username as string,
-    };
-  } catch (error) {
-    console.error("Error decoding sessionid:", error);
-    return null;
-  }
-}

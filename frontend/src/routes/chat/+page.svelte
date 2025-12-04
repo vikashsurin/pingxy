@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { Message, User } from "../../../../shared/types.js";
+  import type { Message, User } from "../../../../shared/src/types.js";
 
   import { initSocket, getSocket } from "$lib/socket.svelte.js";
   import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
+  import Users from "./Users.svelte";
+  import Messages from "./Messages.svelte";
+  import { messageSchema } from "../../../../shared/src/validation.js";
 
   let socket: WebSocket | null = null;
 
@@ -12,6 +15,7 @@
   let username = $derived(data.username);
 
   onMount(() => {
+
     data.users.forEach((user: User) => {
       users.set(user.uid as string, {
         uid: user.uid,
@@ -46,9 +50,19 @@
       timestamp: Date.now(),
     };
 
+    //validation
+    const validateMessage = messageSchema.safeParse(msg);
+
+    if (!validateMessage.success) {
+      console.error("validation error", validateMessage.error);
+      return;
+    }
+
+    const validMessage = validateMessage.data;
+
     messages.set(activeSocket?.uid!, [
       ...(messages.get(activeSocket?.uid!) || []),
-      msg,
+      validMessage,
     ]);
 
     if (!socket) return;
@@ -81,9 +95,39 @@
   >
 </div>
 
-<div class=" grid grid-cols-2 gap-4 p-4">
-  <div>
-    <form action="" class="grid gap-2">
+<div class="  gap-4 p-4">
+  <div class="grid grid-cols-[6fr_1fr]">
+    <!-- TOPIC  -->
+    <div>
+      <div class="bg-gray-200 py-2 px-3">
+        {#if activeSocket?.uid === "global"}
+          <h2 class="font-bold">Global chat</h2>
+        {:else}
+          <h2>
+            Private chat with
+            <span class="font-bold">
+              {activeSocket?.username}
+            </span>
+          </h2>
+        {/if}
+      </div>
+
+      <!-- chat messages -->
+      <Messages {activeMessages} />
+    </div>
+
+    <Users
+      user={{ uid: data.uid, username: data.username }}
+      {users}
+      {unread}
+      {activeSocket}
+      {setactiveSocket}
+    />
+  </div>
+
+  <!-- chat message form -->
+  <div class="bg-gray-400 absolute bottom-4">
+    <form action="" class="flex gap-2 bg-white">
       <input
         type="text"
         placeholder="message"
@@ -100,68 +144,5 @@
         >Send</button
       >
     </form>
-
-    <!-- TOPIC  -->
-    {#if activeSocket?.uid === "global"}
-      <h2 class="font-bold">Global chat</h2>
-    {:else}
-      <h2>
-        Private chat with
-        <span class="font-bold">
-          {activeSocket?.username}
-        </span>
-      </h2>
-    {/if}
-
-    <!-- MESSAGES -->
-    <ul>
-      {#each activeMessages as message}
-        <li>
-          {#if message.senderName}
-            <span class="inline-block font-medium mr-2"
-              >{message.senderName} :
-            </span>
-          {/if}
-
-          {#if message.kind === "system"}
-            <span class="inline-block font-medium mr-2 bg-amber-300">
-              {message.text}</span
-            >
-          {:else if message.kind === "chat"}
-            <span>{message.text}</span>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  </div>
-
-  <!-- USERS -->
-  <div>
-    <h2 class="font-bold">Users</h2>
-    <ul>
-      {#each users as [key, value]}
-        <li>
-          <button
-            class="px-2 py-0.5 rounded relative flex gap-1 border-gray-200"
-            id={value.uid}
-            style={activeSocket?.uid === value.uid
-              ? "background-color: green; color: white;"
-              : ""}
-            onclick={(e) => setactiveSocket(value)}
-          >
-            {#if value.uid === data.uid}
-              You
-            {:else}
-              {#if unread.has(value.uid!)}
-                <div
-                  class=" w-1.5 h-1.5 rounded-full bg-green-500 absolute left-0"
-                ></div>
-              {/if}
-              {value.username}
-            {/if}
-          </button>
-        </li>
-      {/each}
-    </ul>
   </div>
 </div>
