@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import { fail } from "@sveltejs/kit";
 
 export async function load({ cookies }) {
   const token = cookies.get("sessionid");
@@ -15,6 +16,9 @@ export const actions = {
   login: async ({ cookies, request }) => {
     const data = await request.formData();
     const username = data.get("username");
+
+    if (!username || typeof username !== "string" || username.length < 3)
+      return fail(400, { username, invalid: "Invalid username" });
 
     const response = await fetch("http://localhost:3000/login", {
       method: "POST",

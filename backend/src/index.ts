@@ -28,8 +28,6 @@ app.use(
 app.use(prettyJSON());
 
 app.get("/", (c) => {
-  // const arr = Array.from(users.entries());
-  // console.log({ arr });
   return c.json({ users: Array.from(users.values()) });
 });
 
@@ -150,7 +148,7 @@ serve({
 
       function getConnectionText(status: Connection["status"]) {
         return `${ws.data.username} has ${
-          status === "reconnect" ? "reconnected" : "connected"
+          status === "reconnect" ? "reconnected" : "joined the chat"
         }.`;
       }
       // updated connection

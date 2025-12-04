@@ -1,89 +1,32 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { Connection, Message, User } from "../../../../shared/types.js";
-  import { SvelteMap, SvelteSet } from "svelte/reactivity";
+  import type { Message, User } from "../../../../shared/types.js";
+
+  import { initSocket, getSocket } from "$lib/socket.svelte.js";
+  import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
+
+  let socket: WebSocket | null = null;
 
   let { data } = $props();
-  let notification = $state("");
   let message = $state("");
   let username = $derived(data.username);
 
-  let users = new SvelteMap<string, User>(data.users);
-
-  let unread = new SvelteSet<string>();
-
-  let messages = new SvelteMap<string, Message[]>();
-
-  let activeSocket = $state<User>({
-    uid: "global",
-    username: "global",
+  onMount(() => {
+    data.users.forEach((user: User) => {
+      users.set(user.uid as string, {
+        uid: user.uid,
+        username: user.username,
+      });
+    });
   });
 
   const activeMessages = $derived<Message[] | undefined>(
     messages.get(activeSocket?.uid!)
   );
 
-  // $inspect({ unread });
-
-  let socket = null;
-
   onMount(() => {
-    socket = new WebSocket("ws://localhost:3000/ws");
-
-    socket.addEventListener("open", (event) => {
-      console.log("connected");
-    });
-
-    socket.addEventListener("message", (event) => {
-      const data = JSON.parse(event.data);
-
-      // update user list
-      if (data.type === "connection") {
-        const c: Connection = data;
-        console.log({ c: c.text });
-        if (c.status === "reconnect") return;
-
-        if (c.status === "leave") {
-          const user: User = {
-            uid: c.uid,
-            username: c.username,
-          };
-          notification = c.text!;
-          users.delete(user.uid!);
-        }
-        if (c.status === "join") {
-          const user: User = {
-            uid: c.uid,
-            username: c.username,
-          };
-          notification = c.text!;
-          users.set(user.uid!, user);
-        }
-        return;
-      }
-
-      // update messages
-      if (data.type === "message") {
-        const message: Message = data;
-        const recipientId = message.recipientId!;
-        const senderId = message.senderId!;
-
-        if (activeSocket?.uid !== senderId) {
-          unread.add(senderId);
-        }
-
-        if (recipientId === "global") {
-          messages.set("global", [...(messages.get("global") || []), message]);
-        } else {
-          const senderId = message.senderId!;
-          messages.set(senderId, [...(messages.get(senderId) || []), message]);
-        }
-      }
-    });
-
-    socket.addEventListener("close", (event) => {
-      console.log("disconnected");
-    });
+    initSocket();
+    socket = getSocket();
   });
 
   onDestroy(() => {
@@ -95,6 +38,7 @@
   function handleSend() {
     const msg: Message = {
       type: "message",
+      kind: "chat",
       text: message,
       senderId: data.uid,
       senderName: data.username,
@@ -107,13 +51,15 @@
       msg,
     ]);
 
+    if (!socket) return;
     socket.send(JSON.stringify(msg));
     message = "";
   }
 
   function setactiveSocket(user: User | null) {
     if (!user) return;
-    activeSocket = user;
+    activeSocket.uid = user.uid;
+    activeSocket.username = user.username;
 
     // reset unread
     unread.delete(user.uid!);
@@ -169,11 +115,6 @@
 
     <!-- MESSAGES -->
     <ul>
-      {#if notification}
-        <li>
-          <span>{notification}</span>
-        </li>
-      {/if}
       {#each activeMessages as message}
         <li>
           {#if message.senderName}
@@ -181,7 +122,14 @@
               >{message.senderName} :
             </span>
           {/if}
-          <span>{message.text}</span>
+
+          {#if message.kind === "system"}
+            <span class="inline-block font-medium mr-2 bg-amber-300">
+              {message.text}</span
+            >
+          {:else if message.kind === "chat"}
+            <span>{message.text}</span>
+          {/if}
         </li>
       {/each}
     </ul>

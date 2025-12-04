@@ -2,6 +2,7 @@ import { redirect } from "@sveltejs/kit";
 import { jwtDecode } from "jwt-decode";
 
 export async function load({ request, cookies }) {
+  // initSocket();
   const token = cookies.get("sessionid");
 
   if (!token) {
@@ -21,13 +22,6 @@ export async function load({ request, cookies }) {
   });
 
   const data = await response.json();
-  const users = new Map();
 
-  data.users.forEach((user) => {
-    users.set(user.uid, user);
-  });
-
-  console.log({ users });
-
-  return { success: true, username, uid, users: users };
+  return { success: true, username, uid, users: data.users };
 }
