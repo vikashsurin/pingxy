@@ -10,4 +10,7 @@ export let messages = new SvelteMap<string, Message[]>();
 export let activeSocket = $state<User>({
   uid: "global",
   username: "global",
+  age: "0",
+  gender: "0",
+  country: "0",
 });

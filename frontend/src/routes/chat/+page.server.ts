@@ -1,15 +1,16 @@
 import { redirect } from "@sveltejs/kit";
 import { jwtDecode } from "jwt-decode";
+import type { User } from "../../../../shared/src/validation.js";
 
 export async function load({ request, cookies }) {
-  // initSocket();
   const token = cookies.get("sessionid");
 
   if (!token) {
     redirect(302, "/login");
   }
 
-  const decoded = jwtDecode(token);
+  const decoded = jwtDecode(token) as User;
+
   const username = decoded.username;
   const uid = decoded.uid;
 

@@ -15,7 +15,13 @@ export let users: Map<string, User> = new Map();
 export let userSockets = new Map();
 
 function init() {
-  users.set("global", { uid: "global", username: "global" });
+  users.set("global", {
+    uid: "global",
+    username: "global",
+    age: "0",
+    gender: "0",
+    country: "0",
+  });
 }
 init();
 
@@ -60,7 +66,7 @@ app.get("/chat/users", (c) => {
   const username = user?.username;
 
   if (!users.get(uid)) {
-    users.set(uid, { uid: uid, username: username });
+    // users.set(uid, { uid: uid, username: username });
   }
 
   return c.json({ users: Array.from(users.values()) });
@@ -68,10 +74,13 @@ app.get("/chat/users", (c) => {
 
 app.post("/login", async (c) => {
   const body = await c.req.json();
-
+  // console.log("body", body);
   const payload: User = {
-    uid: crypto.randomUUID(),
+    uid: body.uid,
     username: body.username,
+    gender: body.gender,
+    age: body.age,
+    country: body.country,
   };
 
   const secret = "mysecret";

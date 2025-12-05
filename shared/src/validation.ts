@@ -3,6 +3,9 @@ import { z } from "zod";
 export const userSchema = z.object({
   uid: z.string(),
   username: z.string(),
+  gender: z.string(),
+  age: z.string(),
+  country: z.string(),
 });
 
 export const connectionSchema = z.object({

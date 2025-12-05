@@ -1,16 +1,11 @@
 import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
 
-import type { Connection, Message, User } from "../../../shared/src/types";
+import type { Connection, Message, User } from "../../../shared/src/validation";
 
 export let socket: WebSocket | null = null;
 
-// export let socket = $state<{ value: WebSocket | null }>({
-//   value: null,
-// });
-
 export function initSocket() {
   socket = new WebSocket("ws://localhost:3000/ws");
-  console.log("socket initialized");
 
   socket.addEventListener("open", (event) => {
     console.log("connected");
@@ -22,7 +17,6 @@ export function initSocket() {
     // update user list
     if (data.type === "connection") {
       const c: Connection = data;
-      console.log({ c: c.text });
       if (c.status === "reconnect") return;
 
       if (c.status === "leave") {
@@ -31,7 +25,7 @@ export function initSocket() {
           username: c.username,
         };
 
-        // update notification message
+        // update notification message when user leaves
         const message: Message = {
           type: "message",
           kind: "system",
@@ -49,7 +43,7 @@ export function initSocket() {
           username: c.username,
         };
 
-        // update notification message
+        // update notification message when user joins
         const message: Message = {
           type: "message",
           kind: "system",
@@ -60,13 +54,12 @@ export function initSocket() {
 
         messages.set("global", [...(messages.get("global") || []), message]);
 
-        // notification = c.text!;
         users.set(user.uid!, user);
       }
       return;
     }
 
-    // update messages
+    // update with new messages
     if (data.type === "message") {
       const message: Message = data;
       const recipientId = message.recipientId!;

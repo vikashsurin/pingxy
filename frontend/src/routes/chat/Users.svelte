@@ -3,11 +3,9 @@
 </script>
 
 <!-- USERS -->
-<div
-  class="bg-gray-100 absolute right-0 min-w-[300px] top-10 bottom-0 overflow-auto"
->
-  <div class="p-4">
-    <h2 class="font-bold">Users</h2>
+<div class="bg-gray-100 min-w-[300px]">
+  <div class="">
+    <h2 class="font-bold bg-gray-200 py-2 px-3">Users</h2>
     <ul>
       {#each users as [key, value]}
         <li>
