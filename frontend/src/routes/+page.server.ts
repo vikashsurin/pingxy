@@ -1,5 +1,16 @@
-import { fail } from "@sveltejs/kit";
+import { fail, redirect } from "@sveltejs/kit";
 import { userSchema, type User } from "../../../shared/src/validation.js";
+
+export async function load({ cookies }) {
+  const token = cookies.get("sessionid");
+
+  if (token) {
+    throw redirect(302, "/chat");
+  }
+  if (!token) return { success: false };
+
+  return { success: true };
+}
 
 export const actions = {
   login: async ({ cookies, request }) => {
@@ -35,7 +46,7 @@ export const actions = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...validUser }),
+      body: JSON.stringify({ user: validUser }),
     });
 
     if (response.ok) {

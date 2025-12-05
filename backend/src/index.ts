@@ -49,24 +49,19 @@ app.use("/chat/*", async (c, next) => {
     return c.json({ message: "not logged in" });
   }
   const decoded = decode(cookie);
-  const uid: string = decoded.payload.uid as string;
-  const username: string = decoded.payload.username as string;
+  const user: User = decoded.payload.user as User;
 
-  c.set("jwtPayload", {
-    uid: uid,
-    username: username,
-  });
+  c.set("jwtPayload", { user });
 
   await next();
 });
 
 app.get("/chat/users", (c) => {
-  const user = c.get("jwtPayload");
-  const uid = user?.uid;
-  const username = user?.username;
+  const user: User = c.get("jwtPayload").user;
 
-  if (!users.get(uid)) {
-    // users.set(uid, { uid: uid, username: username });
+  if (!users.get(user.uid)) {
+    console.log({ user });
+    users.set(user.uid, user);
   }
 
   return c.json({ users: Array.from(users.values()) });
@@ -74,13 +69,10 @@ app.get("/chat/users", (c) => {
 
 app.post("/login", async (c) => {
   const body = await c.req.json();
-  // console.log("body", body);
-  const payload: User = {
-    uid: body.uid,
-    username: body.username,
-    gender: body.gender,
-    age: body.age,
-    country: body.country,
+  const user: User = body.user;
+
+  const payload: { user: User } = {
+    user: user,
   };
 
   const secret = "mysecret";
@@ -95,13 +87,17 @@ app.post("/login", async (c) => {
   });
 
   // save user to users map
-  users.set(payload?.uid!, payload);
+  users.set(user.uid, user);
 
-  return c.json({ uid: payload.uid, username: payload.username, token: token });
+  return c.json({
+    uid: payload.user.uid,
+    username: payload.user.username,
+    token: token,
+  });
 });
 
 app.get("/chat/logout", (c) => {
-  const uid: string = c.get("jwtPayload")?.uid!;
+  const uid: string = c.get("jwtPayload")?.user.uid!;
 
   // delete user from users map
   users.delete(uid);
@@ -133,13 +129,11 @@ serve({
     const url = new URL(req.url);
     if (url.pathname === "/ws") {
       const userData = getUserDataFromReq(req);
-      const username: string | undefined = userData?.username!;
-      const uid: string | undefined = userData?.uid!;
+      const user: User = userData?.user!;
 
       const success = server.upgrade(req, {
         data: {
-          uid: uid,
-          username: username,
+          user: user,
         },
       });
 

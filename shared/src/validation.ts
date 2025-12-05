@@ -11,9 +11,8 @@ export const userSchema = z.object({
 export const connectionSchema = z.object({
   type: z.literal("connection"),
   status: z.enum(["join", "leave", "reconnect"]),
-  uid: z.string(),
-  username: z.string(),
   text: z.string().optional(),
+  user: userSchema,
 });
 
 export const messageSchema = z.object({

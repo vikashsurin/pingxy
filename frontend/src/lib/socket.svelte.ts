@@ -20,10 +20,7 @@ export function initSocket() {
       if (c.status === "reconnect") return;
 
       if (c.status === "leave") {
-        const user: User = {
-          uid: c.uid,
-          username: c.username,
-        };
+        const user: User = c.user;
 
         // update notification message when user leaves
         const message: Message = {
@@ -38,10 +35,7 @@ export function initSocket() {
         users.delete(user.uid!);
       }
       if (c.status === "join") {
-        const user: User = {
-          uid: c.uid,
-          username: c.username,
-        };
+        const user: User = c.user;
 
         // update notification message when user joins
         const message: Message = {

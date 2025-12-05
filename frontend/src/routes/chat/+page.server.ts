@@ -6,15 +6,13 @@ export async function load({ request, cookies }) {
   const token = cookies.get("sessionid");
 
   if (!token) {
-    redirect(302, "/login");
+    redirect(302, "/");
   }
 
-  const decoded = jwtDecode(token) as User;
+  const decoded: { user: User } = jwtDecode(token);
+  const user: User = decoded.user as User;
 
-  const username = decoded.username;
-  const uid = decoded.uid;
-
-  // fetch users
+  // fetch loggesd in users list
   const cookie = request.headers.get("cookie");
   const response = await fetch("http://localhost:3000/chat/users", {
     headers: {
@@ -24,5 +22,5 @@ export async function load({ request, cookies }) {
 
   const data = await response.json();
 
-  return { success: true, username, uid, users: data.users };
+  return { success: true, user: user, users: data.users };
 }

@@ -13,15 +13,12 @@
 
   let { data } = $props();
   let message = $state("");
-  let username = $derived(data.username);
+  let username = $derived(data.user.username);
 
   $effect.pre(() => {
     // load users
     data.users.forEach((user: User) => {
-      users.set(user.uid as string, {
-        uid: user.uid,
-        username: user.username,
-      });
+      users.set(user.uid as string, user);
     });
   });
 
@@ -60,6 +57,7 @@
     if (socket) {
       socket.close();
     }
+    sessionStorage.removeItem("chat");
   });
 
   function handleSend() {
@@ -67,8 +65,8 @@
       type: "message",
       kind: "chat",
       text: message,
-      senderId: data.uid,
-      senderName: data.username,
+      senderId: data.user.uid,
+      senderName: data.user.username,
       recipientId: activeSocket?.uid!,
       timestamp: Date.now(),
     };
@@ -103,28 +101,20 @@
   }
 </script>
 
-<div class="flex h-dvh flex-col">
+<div class="flex h-dvh flex-col overflow-hidden">
   <Navbar {username} />
 
-  <div class="border flex h-dvh p-4 relative">
-    <Messages {activeMessages} {activeSocket} />
+  <div class="border flex flex-1 p-4 gap-4 overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <Messages {activeMessages} {activeSocket} />
 
-    <Users
-      user={{ uid: data.uid, username: data.username }}
-      {users}
-      {unread}
-      {activeSocket}
-      {setactiveSocket}
-    />
-
-    <!-- MESSAGE FORM -->
-    <div class="bg-gray-400 absolute bottom-4">
-      <form action="" class="flex gap-2 bg-white">
+      <!-- MESSAGE FORM -->
+      <form action="" class="flex gap-2 bg-white mt-4 shrink-0">
         <input
           type="text"
           placeholder="message"
           bind:value={message}
-          class="w-full border p-2"
+          class="flex-1 border p-2"
           onkeypress={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -137,5 +127,7 @@
         >
       </form>
     </div>
+
+    <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
   </div>
 </div>

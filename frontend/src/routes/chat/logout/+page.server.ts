@@ -10,9 +10,7 @@ export async function load({ request, cookies }) {
   });
 
   if (response.ok) {
-    console.log("okay");
     const data = await response.json();
-    console.log({ data });
     cookies.delete("sessionid", {
       maxAge: 0,
       httpOnly: false,
@@ -21,7 +19,7 @@ export async function load({ request, cookies }) {
       sameSite: "lax",
     });
 
-    redirect(302, "/login");
+    redirect(302, "/");
   }
 
   return { success: true };

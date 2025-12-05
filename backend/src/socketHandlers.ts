@@ -1,28 +1,27 @@
 import type { WebSocketHandler } from "bun";
 import { validateConnection, validateMessage } from "./utils";
-import { Connection, Message } from "../../shared/src/validation";
+import { Connection, Message, User } from "../../shared/src/validation";
 
 import { users, userSockets } from "./index";
 
 type WebSocketData = {
-  uid: string;
-  username: string;
+  user: User;
 };
 
 export const socketHandlers: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
   open(ws) {
-    console.log(`${ws.data.username} joined`);
+    console.log(`${ws.data.user.username} joined`);
 
     // auto subscribe to the global channel
     ws.subscribe("global");
 
     function getConnectionStatus() {
-      return userSockets.get(ws.data.uid) ? "reconnect" : "join";
+      return userSockets.get(ws.data.user.uid) ? "reconnect" : "join";
     }
 
     function getConnectionText(status: Connection["status"]) {
-      return `${ws.data.username} has ${
+      return `${ws.data.user.username} has ${
         status === "reconnect" ? "reconnected" : "joined the chat"
       }.`;
     }
@@ -31,9 +30,9 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     const connection: Connection = {
       type: "connection",
       status: getConnectionStatus(),
-      uid: ws.data.uid,
-      username: ws.data.username,
+
       text: getConnectionText(getConnectionStatus()),
+      user: ws.data.user,
     };
 
     // connection object
@@ -47,7 +46,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     );
 
     // save the userSocket
-    userSockets.set(ws.data.uid, ws);
+    userSockets.set(ws.data.user.uid, ws);
   },
 
   message(ws, message) {
@@ -63,8 +62,8 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     if (!msg || typeof msg !== "object") return;
 
-    msg.senderId = ws.data.uid;
-    msg.senderName = ws.data.username;
+    msg.senderId = ws.data.user.uid;
+    msg.senderName = ws.data.user.username;
 
     const validMessage = validateMessage(msg);
 
@@ -79,7 +78,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
   },
   close(ws) {
     console.log("closed connection");
-    const uid = ws.data.uid;
+    const uid = ws.data.user.uid;
 
     // dont sent connection msg if,
     // user has not really logged out
@@ -88,9 +87,8 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     const connection: Connection = {
       type: "connection",
       status: "leave",
-      uid: uid,
-      username: ws.data.username,
-      text: `${ws.data.username} has left the chat.`,
+      text: `${ws.data.user.username} has left the chat.`,
+      user: ws.data.user,
     };
 
     const validConnection = validateConnection(connection);

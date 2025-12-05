@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import countries from "$lib/countires.json";
   onMount(() => {
-    console.log({ countries });
   });
   const range = (start: number, end: number) =>
     Array.from({ length: end - start + 1 }, (_, i) => i + start);

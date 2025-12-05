@@ -3,6 +3,7 @@ import {
   connectionSchema,
   Message,
   messageSchema,
+  User,
 } from "../../shared/src/validation";
 import { decode } from "hono/jwt";
 
@@ -43,12 +44,12 @@ export function getUserDataFromReq(req: Request) {
 
   try {
     const decoded = decode(sessionid);
-    if (!decoded?.payload?.uid || !decoded?.payload?.username) return null;
 
-    return {
-      uid: decoded.payload.uid as string,
-      username: decoded.payload.username as string,
-    };
+    if (!decoded?.payload.user) return null;
+
+    const user: User = decoded.payload.user as User;
+
+    return { user };
   } catch (error) {
     console.error("Error decoding sessionid:", error);
     return null;
