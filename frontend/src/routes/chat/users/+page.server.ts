@@ -1,6 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 import { jwtDecode } from "jwt-decode";
-import type { User } from "../../../../shared/src/index";
+import type { User } from "../../../../../shared/src/index";
 
 export async function load({ request, cookies }) {
   const token = cookies.get("sessionid");
@@ -14,7 +14,7 @@ export async function load({ request, cookies }) {
 
   // fetch loggesd in users list
   const cookie = request.headers.get("cookie");
-  const response = await fetch("http://localhost:8080/api/chat/users", {
+  const response = await fetch("/", {
     headers: {
       cookie: cookie as string,
     },

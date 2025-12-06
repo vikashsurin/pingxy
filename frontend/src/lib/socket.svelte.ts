@@ -5,7 +5,7 @@ import type { Connection, Message, User } from "../../../shared/src/index";
 export let socket: WebSocket | null = null;
 
 export function initSocket() {
-  socket = new WebSocket("ws://localhost:3000/ws");
+  socket = new WebSocket("ws://localhost:8080/ws");
 
   socket.addEventListener("open", (event) => {
     console.log("connected");

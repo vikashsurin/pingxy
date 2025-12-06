@@ -13,7 +13,7 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-  login: async ({ cookies, request }) => {
+  login: async ({ cookies, request, fetch }) => {
     const data = await request.formData();
     const username = data.get("username");
     const gender = data.get("gender");
@@ -24,7 +24,7 @@ export const actions = {
       uid: crypto.randomUUID(),
       username: username as string,
       gender: gender as string,
-      age: age as string,
+      age: Number(age),
       country: country as string,
     };
 
@@ -40,7 +40,10 @@ export const actions = {
     if (!username || typeof username !== "string" || username.length < 3)
       return fail(400, { username, invalid: "Invalid username" });
 
-    const response = await fetch("http://localhost:3000/login", {
+    const url = "http://localhost:8080/api/login";
+    // const url = "/api/login";
+
+    const response = await fetch(url, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -49,6 +52,7 @@ export const actions = {
       body: JSON.stringify({ user: validUser }),
     });
 
+    console.log({ response });
     if (response.ok) {
       const { token } = await response.json();
       if (!token) return;

@@ -38,11 +38,14 @@ app.use(
 );
 app.use(prettyJSON());
 
-app.get("/", (c) => {
-  return c.json({ users: Array.from(users.values()) });
+app.get("/api/", (c) => {
+  return c.json({ app: "chat" });
+});
+app.get("/api/health", (c) => {
+  return c.json({ status: "ok" });
 });
 
-app.use("/chat/*", async (c, next) => {
+app.use("/api/chat/*", async (c, next) => {
   const cookie = getCookie(c, "sessionid");
 
   if (!cookie) {
@@ -56,7 +59,7 @@ app.use("/chat/*", async (c, next) => {
   await next();
 });
 
-app.get("/chat/users", (c) => {
+app.get("/api/chat/users", (c) => {
   const user: User = c.get("jwtPayload").user;
 
   if (!users.get(user.uid)) {
@@ -67,7 +70,7 @@ app.get("/chat/users", (c) => {
   return c.json({ users: Array.from(users.values()) });
 });
 
-app.post("/login", async (c) => {
+app.post("/api/login", async (c) => {
   const body = await c.req.json();
   const user: User = body.user;
 
@@ -96,7 +99,7 @@ app.post("/login", async (c) => {
   });
 });
 
-app.get("/chat/logout", (c) => {
+app.get("/api/chat/logout", (c) => {
   const uid: string = c.get("jwtPayload")?.user.uid!;
 
   // delete user from users map

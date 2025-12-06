@@ -4,7 +4,7 @@ export const userSchema = z.object({
   uid: z.string(),
   username: z.string(),
   gender: z.string(),
-  age: z.string(),
+  age: z.number(),
   country: z.string(),
 });
 

@@ -5,6 +5,12 @@ services:
       dockerfile: backend/Dockerfile
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend:/app/backend
+      - ./shared:/app/shared
+      - /app/backend/node_modules
+      - /app/shared/node_modules
+
 
   frontend:
     build:
@@ -12,6 +18,12 @@ services:
       dockerfile: frontend/Dockerfile
     ports:
       - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - ./shared:/app/shared
+      - /app/frontend/node_modules
+      - /app/shared/node_modules
+
 
   nginx:
     image: nginx:alpine

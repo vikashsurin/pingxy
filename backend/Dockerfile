@@ -9,5 +9,11 @@ COPY shared ./shared
 WORKDIR /app/backend
 RUN bun install
 
+# Install dependencies
+WORKDIR /app/shared
+RUN bun install
+
+WORKDIR /app/backend
+
 EXPOSE 3000
 CMD ["bun", "run", "dev"]
