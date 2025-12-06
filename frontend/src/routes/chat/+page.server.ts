@@ -1,6 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 import { jwtDecode } from "jwt-decode";
-import type { User } from "../../../../shared/src/validation.js";
+import type { User } from "../../../../shared/src/index";
 
 export async function load({ request, cookies }) {
   const token = cookies.get("sessionid");

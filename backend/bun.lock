@@ -1,8 +1,9 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "websock",
+      "name": "chat",
       "dependencies": {
         "hono": "^4.10.7",
       },

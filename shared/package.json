@@ -1,7 +1,4 @@
 {
-  "dependencies": {
-    "zod": "^4.1.13"
-  },
   "name": "shared",
   "module": "src/index.ts",
   "type": "module",
@@ -11,5 +8,8 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "zod": "^4.1.13"
   }
 }

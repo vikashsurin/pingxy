@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { Message, User } from "../../../../shared/src/validation.js";
-  import { messageSchema } from "../../../../shared/src/validation.js";
+  import {
+    type Message,
+    type User,
+    messageSchema,
+  } from "../../../../shared/src/index";
 
   import { initSocket, getSocket } from "$lib/socket.svelte.js";
   import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";

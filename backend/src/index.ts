@@ -5,7 +5,7 @@ import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, decode } from "hono/jwt";
-import { type User } from "../../shared/src/validation";
+import { type User } from "../../shared/src/index";
 
 import { getUserDataFromReq } from "./utils";
 

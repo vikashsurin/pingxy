@@ -1,5 +1,5 @@
 import { fail, redirect } from "@sveltejs/kit";
-import { userSchema, type User } from "../../../shared/src/validation.js";
+import { userSchema, type User } from "../../../shared/src/index";
 
 export async function load({ cookies }) {
   const token = cookies.get("sessionid");

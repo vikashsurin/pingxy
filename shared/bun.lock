@@ -3,6 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
+      "name": "shared",
       "dependencies": {
         "zod": "^4.1.13",
       },

@@ -1,7 +1,10 @@
 import type { WebSocketHandler } from "bun";
 import { validateConnection, validateMessage } from "./utils";
-import { Connection, Message, User } from "../../shared/src/validation";
-
+import {
+  type Connection,
+  type Message,
+  type User,
+} from "../../shared/src/index";
 import { users, userSockets } from "./index";
 
 type WebSocketData = {

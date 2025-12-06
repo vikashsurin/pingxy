@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Mars } from "@lucide/svelte";
   import { Venus } from "@lucide/svelte";
-  import type { User } from "../../../../shared/src/validation";
+  import type { User } from "../../../../shared/src";
 
   let { user: me, users, activeSocket, setactiveSocket, unread } = $props();
 

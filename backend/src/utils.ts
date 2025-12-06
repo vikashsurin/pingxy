@@ -4,7 +4,7 @@ import {
   Message,
   messageSchema,
   User,
-} from "../../shared/src/validation";
+} from "../../shared/src/index";
 import { decode } from "hono/jwt";
 
 // function to validate connections
