@@ -130,7 +130,7 @@ serve({
 
   fetch(req, server) {
     const url = new URL(req.url);
-    if (url.pathname === "/ws") {
+    if (url.pathname === "/ws/") {
       const userData = getUserDataFromReq(req);
       const user: User = userData?.user!;
 

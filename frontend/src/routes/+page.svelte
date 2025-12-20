@@ -13,7 +13,7 @@
   async function handleClick() {
     const response = await fetch("http://localhost:8080/api/health", {});
     const data = await response.json();
-    console.log({ data });
+    ({ data });
   }
 
   let username = $state("");
@@ -58,7 +58,7 @@
 
     const data = await response.json();
 
-    console.log({ response: data });
+    ({ response: data });
 
     // if (response.ok) {
     //   window.location.href = "/chat";

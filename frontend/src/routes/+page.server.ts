@@ -52,7 +52,7 @@ export const actions = {
       body: JSON.stringify({ user: validUser }),
     });
 
-    console.log({ response });
+    ({ response });
     if (response.ok) {
       const { token } = await response.json();
       if (!token) return;
