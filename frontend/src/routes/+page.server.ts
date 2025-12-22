@@ -40,7 +40,7 @@ export const actions = {
     if (!username || typeof username !== "string" || username.length < 3)
       return fail(400, { username, invalid: "Invalid username" });
 
-    const url = "http://localhost:8080/api/login";
+    const url = "http://backend:3000/api/login";
     // const url = "/api/login";
 
     const response = await fetch(url, {

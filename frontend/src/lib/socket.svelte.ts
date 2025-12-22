@@ -4,8 +4,16 @@ import type { Connection, Message, User } from "../../../shared/src/index";
 
 export let socket: WebSocket | null = null;
 
+function getWebSocketUrl() {
+  // Use current host (works in dev and production)
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/ws/`;
+}
+
 export function initSocket() {
-  socket = new WebSocket("ws://localhost:8080/ws/");
+  // the browser will only connect to the websocket  port
+  // which is accesible via browser not inside the container
+  socket = new WebSocket(getWebSocketUrl());
 
   socket.addEventListener("open", (event) => {
     console.log("connected");

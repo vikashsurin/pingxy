@@ -11,6 +11,7 @@
   import Users from "./Users.svelte";
   import Messages from "./Messages.svelte";
   import Navbar from "./Navbar.svelte";
+  import { browser } from "$app/environment";
 
   let socket: WebSocket | null = null;
 
@@ -60,7 +61,9 @@
     if (socket) {
       socket.close();
     }
-    sessionStorage.removeItem("chat");
+    if (browser) {
+      sessionStorage.removeItem("chat");
+    }
   });
 
   function handleSend() {

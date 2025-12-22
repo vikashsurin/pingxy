@@ -11,7 +11,7 @@
   const ageRange = range(18, 70); // from 18 to 50
 
   async function handleClick() {
-    const response = await fetch("http://localhost:8080/api/health", {});
+    const response = await fetch("http://backend:3000/api/health", {});
     const data = await response.json();
     ({ data });
   }
@@ -47,7 +47,7 @@
 
     const validUser = validateUser.data;
 
-    const response = await fetch("http://localhost:8080/api/login", {
+    const response = await fetch("http://backend:3000/api/login", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -133,8 +133,8 @@
     </div>
   </div>
 
-  <button onclick={handleClick}>test</button>
-  <button onclick={handleLogin} class="bg-amber-300">Login</button>
+  <!-- <button onclick={handleClick}>test</button> -->
+  <!-- <button onclick={handleLogin} class="bg-amber-300">Login</button> -->
 
   <!-- FOOTER -->
   <div class=" mb-6 p-4">
