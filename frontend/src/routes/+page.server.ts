@@ -1,5 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit";
 import { userSchema, type User } from "../../../shared/src/index";
+import { capitalizeFirst } from "../../../shared/src/lib/utils/string.js";
 
 export async function load({ cookies }) {
   const token = cookies.get("sessionid");
@@ -20,9 +21,12 @@ export const actions = {
     const age = data.get("age");
     const country = data.get("country");
 
+    // Correct username
+    const displayName = capitalizeFirst(username as string);
+
     const user: User = {
       uid: crypto.randomUUID(),
-      username: username as string,
+      username: displayName,
       gender: gender as string,
       age: Number(age),
       country: country as string,
@@ -39,8 +43,9 @@ export const actions = {
 
     if (!username || typeof username !== "string" || username.length < 3)
       return fail(400, { username, invalid: "Invalid username" });
-
-    const url = "http://backend:3000/api/login";
+    // for docker
+    // const url = "http://backend:3000/api/login";
+    const url = "http://localhost:3000/api/login";
     // const url = "/api/login";
 
     const response = await fetch(url, {

@@ -6,19 +6,21 @@ import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, decode } from "hono/jwt";
 import { type User } from "../../shared/src/index";
+import { capitalizeFirst } from "../../shared/src/lib/utils/string.js";
 
 import { getUserDataFromReq } from "./utils";
 
 import { socketHandlers } from "./socketHandlers";
 
 export let users: Map<string, User> = new Map();
+export let existingUsernames: Set<string> = new Set();
 export let userSockets = new Map();
 
 function init() {
   users.set("global", {
     uid: "global",
     username: "global",
-    age: "0",
+    age: 0,
     gender: "0",
     country: "0",
   });
@@ -64,10 +66,37 @@ app.get("/api/chat/users", (c) => {
 
   if (!users.get(user.uid)) {
     console.log({ user });
+    // on page reload save the logged in user
     users.set(user.uid, user);
+    existingUsernames.add(user.username);
   }
 
   return c.json({ users: Array.from(users.values()) });
+});
+
+app.get("/api/users/check", async (c) => {
+  const name: string = c.req.query("username") as string;
+
+  const username = capitalizeFirst(name);
+
+  if (!username) {
+    return c.json(
+      {
+        error: "No username provided",
+      },
+      400
+    );
+  }
+  const exists = existingUsernames.has(username);
+
+  return c.json(
+    {
+      username,
+      exists,
+      available: !exists,
+    },
+    200
+  );
 });
 
 app.post("/api/login", async (c) => {
@@ -92,6 +121,9 @@ app.post("/api/login", async (c) => {
   // save user to users map
   users.set(user.uid, user);
 
+  // save username to existingUsernames set
+  existingUsernames.add(user.username);
+
   return c.json({
     uid: payload.user.uid,
     username: payload.user.username,
@@ -100,10 +132,14 @@ app.post("/api/login", async (c) => {
 });
 
 app.get("/api/chat/logout", (c) => {
-  const uid: string = c.get("jwtPayload")?.user.uid!;
+  const user: User = c.get("jwtPayload")?.user;
+  const uid = user.uid;
 
   // delete user from users map
   users.delete(uid);
+
+  // delete username from existingUsernames set
+  existingUsernames.delete(user.username);
 
   const userSocket = userSockets.get(uid);
   if (userSocket) {

@@ -2,7 +2,7 @@
   import Navbar from "./Navbar.svelte";
 
   let { children, data } = $props();
-  let username = $derived(data.user.username);
+  let username = $derived(data?.user?.username);
 
   $inspect({ username });
 </script>

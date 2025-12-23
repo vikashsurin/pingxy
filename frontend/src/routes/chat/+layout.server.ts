@@ -14,7 +14,7 @@ export async function load({ request, cookies }) {
 
   // fetch loggesd in users list
   const cookie = request.headers.get("cookie");
-  const response = await fetch("http://backend:3000/api/chat/users", {
+  const response = await fetch("http://localhost:3000/api/chat/users", {
     headers: {
       cookie: cookie as string,
     },

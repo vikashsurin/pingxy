@@ -8,9 +8,8 @@
 
   import { initSocket, getSocket } from "$lib/socket.svelte.js";
   import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
-  import Users from "./Users.svelte";
-  import Messages from "./Messages.svelte";
-  import Navbar from "./Navbar.svelte";
+  import Users from "./OnlineUsers.svelte";
+  import Messages from "./ChatMessages.svelte";
   import { browser } from "$app/environment";
 
   let socket: WebSocket | null = null;
@@ -18,7 +17,7 @@
   let { data } = $props();
   let message = $state("");
   let username = $derived(data.user.username);
-
+  $inspect({ data });
   $effect.pre(() => {
     // load users
     data.users.forEach((user: User) => {
@@ -114,8 +113,12 @@
       ...(messages.get(activeSocket.uid) || []),
       validMessage,
     ]);
-
     message = ""; // Clear input immediately for better UX
+
+    // If sending to self, ignore socket send and rollback
+    if (validMessage.senderId === validMessage.recipientId) {
+      return;
+    }
 
     // Send with error handling
     try {
@@ -152,7 +155,7 @@
 
     <!-- MESSAGE LIST and FORM -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <Messages {activeMessages} {activeSocket} />
+      <Messages user={data.user} {activeMessages} {activeSocket} />
 
       <form action="" class="flex gap-2 bg-white mt-4 shrink-0 p-2">
         <input

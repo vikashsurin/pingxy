@@ -1,7 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import type { Message, User } from "../../../../shared/src";
 
-  let { activeMessages, activeSocket } = $props();
+  let {
+    activeMessages,
+    activeSocket,
+    user: me,
+  }: {
+    activeMessages: Message[] | undefined;
+    activeSocket: User;
+    user: User;
+  } = $props();
   let messagesList: HTMLUListElement;
 
   function scrollToBottom() {
@@ -30,6 +39,8 @@
         Private chat with
         <span class="font-bold">
           {activeSocket?.username}
+
+          {activeSocket?.uid === me?.uid ? " (You)" : ""}
         </span>
       </h2>
     {/if}

@@ -13,7 +13,8 @@ function getWebSocketUrl() {
 export function initSocket() {
   // the browser will only connect to the websocket  port
   // which is accesible via browser not inside the container
-  socket = new WebSocket(getWebSocketUrl());
+  // socket = new WebSocket(getWebSocketUrl());
+  socket = new WebSocket("ws://localhost:3000/ws/");
 
   socket.addEventListener("open", (event) => {
     console.log("connected");
@@ -32,6 +33,7 @@ export function initSocket() {
 
         // update notification message when user leaves
         const message: Message = {
+          id: crypto.randomUUID(),
           type: "message",
           kind: "system",
           text: c.text!,
@@ -47,6 +49,7 @@ export function initSocket() {
 
         // update notification message when user joins
         const message: Message = {
+          id: crypto.randomUUID(),
           type: "message",
           kind: "system",
           text: c.text!,

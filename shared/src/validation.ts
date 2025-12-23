@@ -2,7 +2,11 @@ import { z } from "zod";
 
 export const userSchema = z.object({
   uid: z.string(),
-  username: z.string(),
+  username: z
+    .string()
+    .min(3, "Username must be 3 characters or more")
+    .max(20, "Username must be 20 characters or less")
+    .regex(/^[a-zA-Z0-9]+$/, "Username must be alphanumeric"),
   gender: z.string(),
   age: z.number(),
   country: z.string(),

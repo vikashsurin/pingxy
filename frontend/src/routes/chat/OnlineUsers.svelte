@@ -37,6 +37,7 @@
             onchange={(e) => handleGenderFilter(e)}
             type="radio"
             value="all"
+            checked
           />
           All
         </label>
@@ -67,22 +68,28 @@
             class="px-2 py-0.5 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
             id={user.uid}
             style={activeSocket?.uid === user.uid
-              ? "background-color: gray; color: white;"
+              ? "background-color: #4b5563; color: white;"
               : ""}
             onclick={(e) => setactiveSocket(user)}
           >
-            {#if user.uid === me.uid}
-              <!-- You -->
-            {:else}
-              <div class="flex items-center gap-1 w-full">
-                {@render genderIcon(user.gender)}
-                <span>
+            <div class="flex items-center gap-1 w-full">
+              {@render genderIcon(user.gender)}
+              <span>
+                {#if user.uid === me.uid}
+                  You
+                {:else}
                   {user.username}
-                </span>
+                {/if}
+              </span>
 
-                {@render unreaStatus(user.uid!)}
-              </div>
-            {/if}
+              <span class="font-bold ml-auto text-xs">
+                {user.country}
+                <span class={`fi fi-${user.country.toLocaleLowerCase()}`}>
+                </span>
+              </span>
+
+              {@render unreaStatus(user.uid!)}
+            </div>
           </button>
         </li>
       {/each}
@@ -102,6 +109,9 @@
 
 {#snippet unreaStatus(uid: string)}
   {#if unread.has(uid!)}
-    <span class=" w-1.5 h-1.5 rounded-full bg-green-500 flex ml-auto"></span>
+    <span class=" w-1.5 h-1.5 rounded-full bg-blue-500 flex ml-2 animate-pulse"
+    ></span>
+  {:else}
+    <span class=" w-1.5 h-1.5 rounded-full flex ml-2"></span>
   {/if}
 {/snippet}
