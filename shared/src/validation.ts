@@ -16,6 +16,7 @@ export const connectionSchema = z.object({
 });
 
 export const messageSchema = z.object({
+  id: z.string(),
   type: z.literal("message"),
   kind: z.enum(["chat", "system"]),
   text: z.string(),

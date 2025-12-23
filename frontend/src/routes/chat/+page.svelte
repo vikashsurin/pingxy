@@ -65,36 +65,74 @@
       sessionStorage.removeItem("chat");
     }
   });
-
   function handleSend() {
+    // Pre-validation checks
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) return;
+
+    if (trimmedMessage.length > 5000) {
+      // toast.error("Message too long (max 5000 characters)");
+      return;
+    }
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      // toast.error("Not connected. Please reconnect.");
+      return;
+    }
+
+    if (!activeSocket?.uid) {
+      // toast.error("No active chat selected");
+      return;
+    }
+
+    // Create message
     const msg: Message = {
+      id: crypto.randomUUID(),
       type: "message",
       kind: "chat",
-      text: message,
+      text: trimmedMessage,
       senderId: data.user.uid,
       senderName: data.user.username,
-      recipientId: activeSocket?.uid!,
+      recipientId: activeSocket.uid,
       timestamp: Date.now(),
     };
 
-    //validation
+    // Schema validation
     const validateMessage = messageSchema.safeParse(msg);
-
     if (!validateMessage.success) {
-      console.error("validation error", validateMessage.error);
+      const firstError = validateMessage.error.issues[0]?.message;
+      console.error("Validation error:", validateMessage.error);
+      // toast.error(firstError || "Invalid message format");
       return;
     }
 
     const validMessage = validateMessage.data;
 
-    messages.set(activeSocket?.uid!, [
-      ...(messages.get(activeSocket?.uid!) || []),
+    // Optimistic UI update
+    messages.set(activeSocket.uid, [
+      ...(messages.get(activeSocket.uid) || []),
       validMessage,
     ]);
 
-    if (!socket) return;
-    socket.send(JSON.stringify(msg));
-    message = "";
+    message = ""; // Clear input immediately for better UX
+
+    // Send with error handling
+    try {
+      socket.send(JSON.stringify(validMessage));
+    } catch (error) {
+      console.error("Send failed:", error);
+      // toast.error("Failed to send message");
+
+      // Rollback on failure
+      const currentMessages = messages.get(activeSocket.uid) || [];
+      messages.set(
+        activeSocket.uid,
+        currentMessages.filter((m) => m.id !== validMessage.id)
+      );
+
+      message = trimmedMessage; // Restore message to input
+    }
   }
 
   function setactiveSocket(user: User | null) {
@@ -107,20 +145,21 @@
   }
 </script>
 
-<div class="flex h-dvh flex-col overflow-hidden">
-  <Navbar {username} />
+<div class="flex flex-col h-full overflow-hidden">
+  <div class=" grid grid-cols-[auto_1fr_auto] h-full gap-2 m-4">
+    <!-- ONLINE USERS -->
+    <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
 
-  <div class="border flex flex-1 p-4 gap-4 overflow-hidden">
+    <!-- MESSAGE LIST and FORM -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <Messages {activeMessages} {activeSocket} />
 
-      <!-- MESSAGE FORM -->
-      <form action="" class="flex gap-2 bg-white mt-4 shrink-0">
+      <form action="" class="flex gap-2 bg-white mt-4 shrink-0 p-2">
         <input
           type="text"
           placeholder="message"
           bind:value={message}
-          class="flex-1 border p-2"
+          class="flex-1 outline p-2 focus:outline-1 focus:outline-blue-500"
           onkeypress={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -134,6 +173,7 @@
       </form>
     </div>
 
-    <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
+    <!-- ADS SECTION -->
+    <div class="w-80 bg-gray-100">ADS</div>
   </div>
 </div>

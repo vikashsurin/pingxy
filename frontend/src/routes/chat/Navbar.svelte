@@ -2,7 +2,8 @@
   let { username } = $props();
 </script>
 
-<div class="flex justify-between items-center">
+<div class="flex justify-between items-center mx-4">
+  <div>Logo</div>
   <h1 class="p-2">
     Logged in as
     <span class="text-green-600 font-bold">

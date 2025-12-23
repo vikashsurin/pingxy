@@ -8,18 +8,16 @@
   let filterGender = $state("all");
 
   const filteredUsers = $derived.by<User[]>(() => {
-    const allUsers = Array.from(users.values());
-
-    switch (filterGender) {
-      case "all":
-        return allUsers;
-      case "female":
-        return allUsers.filter((usr: User) => usr.gender === "female");
-      case "male":
-        return allUsers.filter((usr: User) => usr.gender === "male");
-      default:
-        return allUsers;
+    if (!users || users.size === 0) {
+      return [];
     }
+    const allUsers: User[] = Array.from(users.values());
+
+    if (filterGender === "all") {
+      return allUsers;
+    }
+
+    return allUsers.filter((usr) => usr.gender === filterGender);
   });
 
   function handleGenderFilter(e) {
@@ -74,21 +72,16 @@
             onclick={(e) => setactiveSocket(user)}
           >
             {#if user.uid === me.uid}
-              You
+              <!-- You -->
             {:else}
-              {#if unread.has(user.uid!)}
-                <div
-                  class=" w-1.5 h-1.5 rounded-full bg-green-500 absolute left-0"
-                ></div>
-              {/if}
-              <span class="flex items-center gap-1">
-                {#if user.gender === "male"}
-                  <Mars size={16} class="text-blue-500" />
-                {:else if user.gender === "female"}
-                  <Venus size={17} class="text-pink-500" />
-                {/if}
-                {user.username}
-              </span>
+              <div class="flex items-center gap-1 w-full">
+                {@render genderIcon(user.gender)}
+                <span>
+                  {user.username}
+                </span>
+
+                {@render unreaStatus(user.uid!)}
+              </div>
             {/if}
           </button>
         </li>
@@ -96,3 +89,19 @@
     </ul>
   </div>
 </div>
+
+{#snippet genderIcon(gender: string)}
+  <span>
+    {#if gender === "male"}
+      <Mars size={14} class="text-blue-500" strokeWidth={3} />
+    {:else if gender === "female"}
+      <Venus size={14} class="text-pink-500" strokeWidth={3} />
+    {/if}
+  </span>
+{/snippet}
+
+{#snippet unreaStatus(uid: string)}
+  {#if unread.has(uid!)}
+    <span class=" w-1.5 h-1.5 rounded-full bg-green-500 flex ml-auto"></span>
+  {/if}
+{/snippet}
