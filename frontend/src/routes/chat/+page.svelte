@@ -7,19 +7,30 @@
   } from "../../../../shared/src/index";
 
   import { initSocket, getSocket } from "$lib/socket.svelte.js";
-  import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
-  import Users from "./OnlineUsers.svelte";
+  import {
+    users,
+    unread,
+    getRecentChats,
+    messages,
+    activeSocket,
+  } from "$lib/store.svelte.js";
+  import OnlineUsers from "./OnlineUsers.svelte";
   import Messages from "./ChatMessages.svelte";
   import { browser } from "$app/environment";
+  import GenderIcon from "$lib/components/GenderIcon.svelte";
 
   let socket: WebSocket | null = null;
 
   let { data } = $props();
   let message = $state("");
   let username = $derived(data.user.username);
-  let tab = $state(1);
+  let tab = $state(1); // for mobile screen
 
-  $inspect({ tab });
+  $effect.pre(() => {
+    const recentChats = getRecentChats();
+    console.log({ recentChats });
+  });
+
   $effect.pre(() => {
     // load users
     data.users.forEach((user: User) => {
@@ -158,7 +169,7 @@
   <div class="flex justify-between p-2 font-bold text-sm text-gray-400">
     <button
       onclick={() => (tab = 0)}
-      class={`${tab === 0 ? "text-blue-500" : ""}`}>Users</button
+      class={`${tab === 0 ? "text-blue-500" : ""}`}>OnlineUsers</button
     >
     <button
       onclick={() => (tab = 1)}
@@ -170,8 +181,15 @@
     >
   </div>
   {#if tab === 0}
-    <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
+    <OnlineUsers
+      user={data.user}
+      {users}
+      {unread}
+      {activeSocket}
+      {setactiveSocket}
+    />
   {:else if tab === 1}
+    <!-- Chatting with -->
     <div class="flex bg-gray-200 py-1 px-2 shrink-0 text-sm">
       {#if activeSocket?.uid === "global"}
         <span class="font-bold">Global chat</span>
@@ -180,7 +198,7 @@
           Chatting with
           <span class="font-bold">
             {activeSocket?.username}
-
+            <GenderIcon gender={activeSocket?.gender} />
             {activeSocket?.uid === data.user.uid ? " (You)" : ""}
           </span>
         </span>
@@ -222,9 +240,30 @@
     class="grid lg:grid-cols-[auto_1fr_auto] md:grid-cols-[auto_3fr] sm:grid-cols-1 h-full gap-2"
   >
     <!-- ONLINE USERS -->
-    <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
-
+    <OnlineUsers
+      user={data.user}
+      {users}
+      {unread}
+      {activeSocket}
+      {setactiveSocket}
+    />
     <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Chatting with -->
+      <div class="flex bg-gray-200 py-1 px-2 shrink-0 text-sm">
+        {#if activeSocket?.uid === "global"}
+          <span class="font-bold">Global chat</span>
+        {:else}
+          <span>
+            Chatting with
+            <span class="font-bold">
+              {activeSocket?.gender}
+              {activeSocket?.username}
+
+              {activeSocket?.uid === data.user.uid ? " (You)" : ""}
+            </span>
+          </span>
+        {/if}
+      </div>
       <!-- CHAT MESSAGES -->
       <Messages user={data.user} {activeMessages} {activeSocket} />
 

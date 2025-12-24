@@ -2,6 +2,7 @@
   import { Mars } from "@lucide/svelte";
   import { Venus } from "@lucide/svelte";
   import type { User } from "../../../../shared/src";
+  import GenderIcon from "$lib/components/GenderIcon.svelte";
 
   let { user: me, users, activeSocket, setactiveSocket, unread } = $props();
 
@@ -73,7 +74,7 @@
             onclick={(e) => setactiveSocket(user)}
           >
             <div class="flex items-center gap-1 w-full">
-              {@render genderIcon(user.gender)}
+              <GenderIcon gender={user.gender} />
               <span>
                 {#if user.uid === me.uid}
                   You
@@ -96,16 +97,6 @@
     </ul>
   </div>
 </div>
-
-{#snippet genderIcon(gender: string)}
-  <span>
-    {#if gender === "male"}
-      <Mars size={14} class="text-blue-500" strokeWidth={3} />
-    {:else if gender === "female"}
-      <Venus size={14} class="text-pink-500" strokeWidth={3} />
-    {/if}
-  </span>
-{/snippet}
 
 {#snippet unreaStatus(uid: string)}
   {#if unread.has(uid!)}

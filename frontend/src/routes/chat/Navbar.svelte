@@ -2,8 +2,6 @@
   import { Menu, X } from "@lucide/svelte";
   let { username } = $props();
   let expandMenu = $state(false);
-
-  $inspect({ expandMenu });
 </script>
 
 <!-- FOR MOBILE -->
