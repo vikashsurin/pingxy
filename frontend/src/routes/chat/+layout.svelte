@@ -4,7 +4,6 @@
   let { children, data } = $props();
   let username = $derived(data?.user?.username);
 
-  $inspect({ username });
 </script>
 
 <div class="h-dvh flex flex-col">

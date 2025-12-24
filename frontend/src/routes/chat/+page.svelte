@@ -17,7 +17,9 @@
   let { data } = $props();
   let message = $state("");
   let username = $derived(data.user.username);
-  $inspect({ data });
+  let tab = $state(1);
+
+  $inspect({ tab });
   $effect.pre(() => {
     // load users
     data.users.forEach((user: User) => {
@@ -148,16 +150,86 @@
   }
 </script>
 
-<div class="flex flex-col h-full overflow-hidden">
-  <div class=" grid grid-cols-[auto_1fr_auto] h-full gap-2 m-4">
+<!-- FOR SMALL SCREEN -->
+<div
+  class="flex lg:hidden flex-col h-full border-3 border-red-500 overflow-hidden"
+>
+  <!-- TAB GROUP -->
+  <div class="flex justify-between p-2 font-bold text-sm text-gray-400">
+    <button
+      onclick={() => (tab = 0)}
+      class={`${tab === 0 ? "text-blue-500" : ""}`}>Users</button
+    >
+    <button
+      onclick={() => (tab = 1)}
+      class={`${tab === 1 ? "text-blue-500" : ""}`}>Messages</button
+    >
+    <button
+      onclick={() => (tab = 2)}
+      class={`${tab === 2 ? "text-blue-500" : ""}`}>Recent</button
+    >
+  </div>
+  {#if tab === 0}
+    <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
+  {:else if tab === 1}
+    <div class="flex bg-gray-200 py-1 px-2 shrink-0 text-sm">
+      {#if activeSocket?.uid === "global"}
+        <span class="font-bold">Global chat</span>
+      {:else}
+        <span>
+          Chatting with
+          <span class="font-bold">
+            {activeSocket?.username}
+
+            {activeSocket?.uid === data.user.uid ? " (You)" : ""}
+          </span>
+        </span>
+      {/if}
+    </div>
+    <div class="flex h-screen flex-col overflow-hidden">
+      <!-- CHAT MESSAGES -->
+      <Messages user={data.user} {activeMessages} {activeSocket} />
+
+      <!-- MESSAGE INPUT BOX -->
+      <form action="" class="flex gap-2 bg-white shrink-0 p-2">
+        <input
+          type="text"
+          placeholder="message"
+          bind:value={message}
+          class="flex-1 outline p-2 focus:outline-1 focus:outline-blue-500"
+          onkeypress={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <button class="bg-blue-500 text-white px-3 py-2" onclick={handleSend}
+          >Send</button
+        >
+      </form>
+    </div>
+  {:else if tab === 2}
+    <Messages user={data.user} {activeMessages} {activeSocket} />
+  {/if}
+</div>
+
+<!-- FOR LARGE SCREEN -->
+<div
+  class=" flex-col h-full overflow-hidden lg:flex sm:hidden md:hidden hidden"
+>
+  <div
+    class="grid lg:grid-cols-[auto_1fr_auto] md:grid-cols-[auto_3fr] sm:grid-cols-1 h-full gap-2"
+  >
     <!-- ONLINE USERS -->
     <Users user={data.user} {users} {unread} {activeSocket} {setactiveSocket} />
 
-    <!-- MESSAGE LIST and FORM -->
     <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- CHAT MESSAGES -->
       <Messages user={data.user} {activeMessages} {activeSocket} />
 
-      <form action="" class="flex gap-2 bg-white mt-4 shrink-0 p-2">
+      <!-- MESSAGE INPUT BOX -->
+      <form action="" class="flex gap-2 bg-white shrink-0 p-2">
         <input
           type="text"
           placeholder="message"

@@ -29,9 +29,9 @@
 <div class="bg-gray-100 min-w-[300px] flex flex-col overflow-hidden">
   <div class="flex flex-col overflow-hidden flex-1">
     <div class=" bg-gray-200 py-2 px-3 shrink-0">
-      <h2 class="font-bold">Users</h2>
-      <form action="">
-        <label>
+      <!-- <h2 class="font-bold">Users</h2> -->
+      <form action="" class="text-xs flex items-center gap-2">
+        <label class="flex items-center gap-1">
           <input
             name="gender"
             onchange={(e) => handleGenderFilter(e)}
@@ -41,7 +41,7 @@
           />
           All
         </label>
-        <label>
+        <label class="flex items-center gap-1">
           <input
             name="gender"
             onchange={(e) => handleGenderFilter(e)}
@@ -50,7 +50,7 @@
           />
           Female
         </label>
-        <label>
+        <label class="flex items-center gap-1">
           <input
             name="gender"
             onchange={(e) => handleGenderFilter(e)}
