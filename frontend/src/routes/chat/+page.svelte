@@ -9,15 +9,16 @@
   import { initSocket, getSocket } from "$lib/socket.svelte.js";
   import {
     users,
-    unread,
-    getRecentChats,
     messages,
-    activeSocket,
+    activeChat,
+    recentChats,
   } from "$lib/store.svelte.js";
   import OnlineUsers from "./OnlineUsers.svelte";
   import Messages from "./ChatMessages.svelte";
   import { browser } from "$app/environment";
   import GenderIcon from "$lib/components/GenderIcon.svelte";
+  import { EllipsisVertical } from "@lucide/svelte";
+  import ChatboxHeader from "$lib/components/ChatboxHeader.svelte";
 
   let socket: WebSocket | null = null;
 
@@ -26,10 +27,7 @@
   let username = $derived(data.user.username);
   let tab = $state(1); // for mobile screen
 
-  $effect.pre(() => {
-    const recentChats = getRecentChats();
-    console.log({ recentChats });
-  });
+  let activeChatUser = activeChat.value;
 
   $effect.pre(() => {
     // load users
@@ -59,7 +57,7 @@
   });
 
   const activeMessages = $derived<Message[] | undefined>(
-    messages.get(activeSocket?.uid!)
+    messages.get(activeChatUser?.uid!)
   );
 
   onMount(() => {
@@ -93,7 +91,7 @@
       return;
     }
 
-    if (!activeSocket?.uid) {
+    if (!activeChatUser?.uid) {
       // toast.error("No active chat selected");
       return;
     }
@@ -106,7 +104,7 @@
       text: trimmedMessage,
       senderId: data.user.uid,
       senderName: data.user.username,
-      recipientId: activeSocket.uid,
+      recipientId: activeChatUser.uid,
       timestamp: Date.now(),
     };
 
@@ -122,8 +120,8 @@
     const validMessage = validateMessage.data;
 
     // Optimistic UI update
-    messages.set(activeSocket.uid, [
-      ...(messages.get(activeSocket.uid) || []),
+    messages.set(activeChatUser.uid, [
+      ...(messages.get(activeChatUser.uid) || []),
       validMessage,
     ]);
     message = ""; // Clear input immediately for better UX
@@ -141,23 +139,14 @@
       // toast.error("Failed to send message");
 
       // Rollback on failure
-      const currentMessages = messages.get(activeSocket.uid) || [];
+      const currentMessages = messages.get(activeChatUser.uid) || [];
       messages.set(
-        activeSocket.uid,
+        activeChatUser.uid,
         currentMessages.filter((m) => m.id !== validMessage.id)
       );
 
       message = trimmedMessage; // Restore message to input
     }
-  }
-
-  function setactiveSocket(user: User | null) {
-    if (!user) return;
-    activeSocket.uid = user.uid;
-    activeSocket.username = user.username;
-
-    // reset unread
-    unread.delete(user.uid!);
   }
 </script>
 
@@ -166,7 +155,9 @@
   class="flex lg:hidden flex-col h-full border-3 border-red-500 overflow-hidden"
 >
   <!-- TAB GROUP -->
-  <div class="flex justify-between p-2 font-bold text-sm text-gray-400">
+  <div
+    class="grid grid-cols-3 justify-between p-2 font-bold text-sm text-gray-400"
+  >
     <button
       onclick={() => (tab = 0)}
       class={`${tab === 0 ? "text-blue-500" : ""}`}>OnlineUsers</button
@@ -181,32 +172,13 @@
     >
   </div>
   {#if tab === 0}
-    <OnlineUsers
-      user={data.user}
-      {users}
-      {unread}
-      {activeSocket}
-      {setactiveSocket}
-    />
+    <OnlineUsers user={data.user} {users} />
   {:else if tab === 1}
     <!-- Chatting with -->
-    <div class="flex bg-gray-200 py-1 px-2 shrink-0 text-sm">
-      {#if activeSocket?.uid === "global"}
-        <span class="font-bold">Global chat</span>
-      {:else}
-        <span>
-          Chatting with
-          <span class="font-bold">
-            {activeSocket?.username}
-            <GenderIcon gender={activeSocket?.gender} />
-            {activeSocket?.uid === data.user.uid ? " (You)" : ""}
-          </span>
-        </span>
-      {/if}
-    </div>
+    <ChatboxHeader user={data.user} />
     <div class="flex h-screen flex-col overflow-hidden">
       <!-- CHAT MESSAGES -->
-      <Messages user={data.user} {activeMessages} {activeSocket} />
+      <Messages user={data.user} {activeMessages} />
 
       <!-- MESSAGE INPUT BOX -->
       <form action="" class="flex gap-2 bg-white shrink-0 p-2">
@@ -228,7 +200,7 @@
       </form>
     </div>
   {:else if tab === 2}
-    <Messages user={data.user} {activeMessages} {activeSocket} />
+    <Messages user={data.user} {activeMessages} />
   {/if}
 </div>
 
@@ -240,32 +212,14 @@
     class="grid lg:grid-cols-[auto_1fr_auto] md:grid-cols-[auto_3fr] sm:grid-cols-1 h-full gap-2"
   >
     <!-- ONLINE USERS -->
-    <OnlineUsers
-      user={data.user}
-      {users}
-      {unread}
-      {activeSocket}
-      {setactiveSocket}
-    />
+    <OnlineUsers user={data.user} {users} />
+
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Chatting with -->
-      <div class="flex bg-gray-200 py-1 px-2 shrink-0 text-sm">
-        {#if activeSocket?.uid === "global"}
-          <span class="font-bold">Global chat</span>
-        {:else}
-          <span>
-            Chatting with
-            <span class="font-bold">
-              {activeSocket?.gender}
-              {activeSocket?.username}
+      <ChatboxHeader user={data.user} />
 
-              {activeSocket?.uid === data.user.uid ? " (You)" : ""}
-            </span>
-          </span>
-        {/if}
-      </div>
       <!-- CHAT MESSAGES -->
-      <Messages user={data.user} {activeMessages} {activeSocket} />
+      <Messages user={data.user} {activeMessages} />
 
       <!-- MESSAGE INPUT BOX -->
       <form action="" class="flex gap-2 bg-white shrink-0 p-2">

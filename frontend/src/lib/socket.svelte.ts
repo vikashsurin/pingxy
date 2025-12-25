@@ -1,4 +1,4 @@
-import { users, unread, messages, activeSocket } from "$lib/store.svelte.js";
+import { users, unread, messages, activeChat } from "$lib/store.svelte.js";
 
 import type { Connection, Message, User } from "../../../shared/src/index";
 
@@ -78,7 +78,7 @@ export function initSocket() {
       }
 
       // update unread messages
-      if (activeSocket?.uid !== senderId) {
+      if (activeChat.value?.uid !== senderId) {
         if (recipientId === "global") return;
         unread.add(senderId);
       }

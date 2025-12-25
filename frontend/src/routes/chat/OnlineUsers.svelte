@@ -1,102 +1,134 @@
 <script lang="ts">
-  import { Mars } from "@lucide/svelte";
-  import { Venus } from "@lucide/svelte";
   import type { User } from "../../../../shared/src";
   import GenderIcon from "$lib/components/GenderIcon.svelte";
+  import {
+    activeChat,
+    recentChats,
+    unread,
+    searchQuery,
+  } from "$lib/store.svelte.js";
+  import { ChevronDown, ChevronUp } from "@lucide/svelte";
+  import SidebarHeader from "$lib/components/SidebarHeader.svelte";
 
-  let { user: me, users, activeSocket, setactiveSocket, unread } = $props();
+  let { user: me, users } = $props();
 
+  let activeChatUser = activeChat.value;
+  let isExpandedRecentChats = $state(false);
   let filterGender = $state("all");
 
+  $inspect({ s: searchQuery.value });
+
   const filteredUsers = $derived.by<User[]>(() => {
+    console.log("filtering ");
     if (!users || users.size === 0) {
       return [];
     }
-    const allUsers: User[] = Array.from(users.values());
 
-    if (filterGender === "all") {
-      return allUsers;
-    }
+    const recentChatIds = new Set(recentChats.value.map((usr) => usr.uid));
+    const usersArray: User[] = Array.from(users.values());
+    const searchLower = searchQuery.value.trim().toLowerCase();
 
-    return allUsers.filter((usr) => usr.gender === filterGender);
+    return usersArray.filter((usr) => {
+      // filter recent chats
+      if (recentChatIds.has(usr.uid)) {
+        return false;
+      }
+
+      // Filter by gender
+      if (filterGender !== "all" && usr.gender !== filterGender) {
+        return false;
+      }
+
+      // Filter by search query
+      if (searchLower && !usr.username.toLowerCase().includes(searchLower)) {
+        console.log("no match");
+        return false;
+      }
+      return true;
+    });
   });
 
+  // const genderFilter
   function handleGenderFilter(e) {
     filterGender = e.target.value;
+  }
+
+  function handleClick(user: User) {
+    if (!user) return;
+    activeChat.value = user;
+
+    // reset unread
+    unread.delete(user.uid!);
   }
 </script>
 
 <!-- USERS -->
 <div class="bg-gray-100 min-w-[300px] flex flex-col overflow-hidden">
   <div class="flex flex-col overflow-hidden flex-1">
-    <div class=" bg-gray-200 py-2 px-3 shrink-0">
-      <!-- <h2 class="font-bold">Users</h2> -->
-      <form action="" class="text-xs flex items-center gap-2">
-        <label class="flex items-center gap-1">
-          <input
-            name="gender"
-            onchange={(e) => handleGenderFilter(e)}
-            type="radio"
-            value="all"
-            checked
-          />
-          All
-        </label>
-        <label class="flex items-center gap-1">
-          <input
-            name="gender"
-            onchange={(e) => handleGenderFilter(e)}
-            type="radio"
-            value="female"
-          />
-          Female
-        </label>
-        <label class="flex items-center gap-1">
-          <input
-            name="gender"
-            onchange={(e) => handleGenderFilter(e)}
-            type="radio"
-            value="male"
-          />
-          Male
-        </label>
-      </form>
-    </div>
+    <!-- Filter, Search -->
+    <SidebarHeader {handleGenderFilter} />
     <ul class="flex-1 overflow-y-auto">
+      <div>
+        <button
+          class="flex w-full text-sm items-center bg-gray-300 hover:bg-gray-400 justify-between p-2"
+          title="Toggle Recent Chats"
+          onclick={() => (isExpandedRecentChats = !isExpandedRecentChats)}
+        >
+          <span>Recent Chats</span>
+          {#if isExpandedRecentChats}
+            <ChevronUp size={16} />
+          {:else}
+            <ChevronDown size={16} />
+          {/if}
+        </button>
+        {#if isExpandedRecentChats}
+          <div class="bg-amber-50">
+            {#each recentChats.value as user (user.uid)}
+              {@render onlineUser(user)}
+            {/each}
+          </div>
+        {/if}
+      </div>
+      <!-- All users -->
+      <div class="border border-gray-700 my-2"></div>
       {#each filteredUsers as user (user.uid)}
-        <li>
-          <button
-            class="px-2 py-0.5 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
-            id={user.uid}
-            style={activeSocket?.uid === user.uid
-              ? "background-color: #4b5563; color: white;"
-              : ""}
-            onclick={(e) => setactiveSocket(user)}
-          >
-            <div class="flex items-center gap-1 w-full">
-              <GenderIcon gender={user.gender} />
-              <span>
-                {#if user.uid === me.uid}
-                  You
-                {:else}
-                  {user.username}
-                {/if}
-              </span>
-
-              <span class="font-bold ml-auto text-xs">
-                {user.country}
-                <span class={`fi fi-${user.country.toLocaleLowerCase()}`}>
-                </span>
-              </span>
-
-              {@render unreaStatus(user.uid!)}
-            </div>
-          </button>
-        </li>
+        {@render onlineUser(user)}
       {/each}
     </ul>
   </div>
 </div>
+
+<!-- SNIPPET -->
+{#snippet onlineUser(user: User)}
+  <li>
+    <button
+      class="px-2 py-0.5 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
+      id={user.uid}
+      style={activeChatUser?.uid === user.uid
+        ? "background-color: #1e1e1e; color: white;"
+        : ""}
+      onclick={(e) => handleClick(user)}
+    >
+      <div class="flex items-center gap-1 w-full">
+        <GenderIcon gender={user.gender} />
+        <span>
+          {#if user.uid === me.uid}
+            You
+          {:else}
+            {user.username}
+          {/if}
+        </span>
+
+        <span class="font-bold ml-auto text-xs">
+          {user.country}
+          <span class={`fi fi-${user.country.toLocaleLowerCase()}`}> </span>
+        </span>
+
+        {@render unreaStatus(user.uid!)}
+      </div>
+    </button>
+  </li>
+{/snippet}
 
 {#snippet unreaStatus(uid: string)}
   {#if unread.has(uid!)}

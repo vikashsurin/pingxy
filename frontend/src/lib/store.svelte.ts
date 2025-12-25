@@ -1,7 +1,5 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type { Message, User } from "../../../shared/src/index";
-import { get } from "svelte/store";
-import { set } from "zod";
 
 export let users = new SvelteMap<string, User>();
 
@@ -9,7 +7,20 @@ export let unread = new SvelteSet<string>();
 
 export let messages = new SvelteMap<string, Message[]>();
 
-export let activeSocket = $state<User>({
+let _searchQuery = $state({
+  value: "",
+});
+
+export let searchQuery = {
+  get value() {
+    return _searchQuery.value;
+  },
+  set value(query: string) {
+    _searchQuery.value = query;
+  },
+};
+
+export let _activeChat = $state<User>({
   uid: "global",
   username: "global",
   age: 18,
@@ -17,16 +28,29 @@ export let activeSocket = $state<User>({
   country: "0",
 });
 
-// export let as = {
-//   get() {
-//     return activeSocket;
-//   },
-//   set(value: User) {
-//     activeSocket = value;
-//   },
-// };
-let _recentChats = $derived(() => {
-  return Array.from(messages.keys());
-});
+export let activeChat = {
+  get value() {
+    return _activeChat;
+  },
+  set value(user: User) {
+    Object.assign(_activeChat, user);
+  },
+};
 
-export let getRecentChats = () => _recentChats();
+let _recentChats = $derived(Array.from(messages.keys()));
+
+export let recentChats = {
+  get ids() {
+    return _recentChats;
+  },
+  get value() {
+    const recentUsers: User[] = [];
+
+    for (const uid of _recentChats) {
+      const user = users.get(uid);
+      if (user) recentUsers.push(user);
+    }
+
+    return recentUsers;
+  },
+};

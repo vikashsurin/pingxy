@@ -4,13 +4,12 @@
 
   let {
     activeMessages,
-    activeSocket,
     user: me,
   }: {
     activeMessages: Message[] | undefined;
-    activeSocket: User;
     user: User;
   } = $props();
+
   let messagesList: HTMLUListElement;
 
   function scrollToBottom() {
@@ -31,20 +30,6 @@
 </script>
 
 <div class="flex-1 flex flex-col overflow-hidden">
-  <!-- <div class="bg-gray-200 py-2 px-3 shrink-0">
-    {#if activeSocket?.uid === "global"}
-      <h2 class="font-bold">Global chat</h2>
-    {:else}
-      <h2>
-        Private chat with
-        <span class="font-bold">
-          {activeSocket?.username}
-
-          {activeSocket?.uid === me?.uid ? " (You)" : ""}
-        </span>
-      </h2>
-    {/if}
-  </div> -->
   <ul
     bind:this={messagesList}
     class=" overflow-y-auto border border-gray-200 w-full"

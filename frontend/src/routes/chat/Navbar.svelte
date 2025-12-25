@@ -42,7 +42,7 @@
 </div>
 
 <!-- FOR DESKTOP -->
-<div class=" hidden justify-between items-center mx-4 lg:flex">
+<div class="hidden justify-between items-center mx-4 lg:flex py-2">
   <div class="flex gap-2 text-sm">
     <a href="/" class="font-bold">Logo</a>
     {@render link("/about", "About")}
@@ -51,19 +51,20 @@
     {@render link("/support", "Support")}
   </div>
 
-  <h1 class="p-2">
-    Logged in as
+  <div class="ml-auto">
+    You :
     <span class="text-green-600 font-bold">
       {username}
     </span>
-  </h1>
 
-  <a
-    href="/chat/logout"
-    data-sveltekit-preload-data={false}
-    class="underline p-2 text-red-600 hover:text-red-500 active:text-red-700"
-    >Logout</a
-  >
+    <a
+      title="Logout"
+      href="/chat/logout"
+      data-sveltekit-preload-data={false}
+      class="underline p-2 text-red-600 hover:text-red-500 active:text-red-700"
+      >Logout</a
+    >
+  </div>
 </div>
 
 <!-- snippet -->
