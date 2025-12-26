@@ -7,7 +7,13 @@
     unread,
     searchQuery,
   } from "$lib/store.svelte.js";
-  import { ChevronDown, ChevronUp } from "@lucide/svelte";
+  import {
+    ChevronDown,
+    ChevronUp,
+    Dot,
+    MessageSquare,
+    MessageSquareDot,
+  } from "@lucide/svelte";
   import SidebarHeader from "$lib/components/SidebarHeader.svelte";
 
   let { user: me, users } = $props();
@@ -15,37 +21,31 @@
   let activeChatUser = activeChat.value;
   let isExpandedRecentChats = $state(false);
   let filterGender = $state("all");
+  let usersCount = $derived.by(() => {
+    return users.size - 1;
+  });
 
-  $inspect({ s: searchQuery.value });
+  let sortedUsers = $derived.by(() => {
+    if (!users || users.size === 0) return [];
 
-  const filteredUsers = $derived.by<User[]>(() => {
-    console.log("filtering ");
-    if (!users || users.size === 0) {
-      return [];
-    }
-
+    // Optimization 1: Move heavy ID mapping outside the filter loop
     const recentChatIds = new Set(recentChats.value.map((usr) => usr.uid));
-    const usersArray: User[] = Array.from(users.values());
     const searchLower = searchQuery.value.trim().toLowerCase();
 
-    return usersArray.filter((usr) => {
-      // filter recent chats
-      if (recentChatIds.has(usr.uid)) {
-        return false;
-      }
+    return (
+      Array.from<User>(users.values())
+        .filter((usr) => {
+          if (recentChatIds.has(usr.uid)) return false;
+          if (filterGender !== "all" && usr.gender !== filterGender)
+            return false;
+          if (searchLower && !usr.username.toLowerCase().includes(searchLower))
+            return false;
+          return true;
+        })
 
-      // Filter by gender
-      if (filterGender !== "all" && usr.gender !== filterGender) {
-        return false;
-      }
-
-      // Filter by search query
-      if (searchLower && !usr.username.toLowerCase().includes(searchLower)) {
-        console.log("no match");
-        return false;
-      }
-      return true;
-    });
+        // Optimization 2: Use .sort() on the new filtered array
+        .sort((a, b) => a.country.localeCompare(b.country))
+    );
   });
 
   // const genderFilter
@@ -70,15 +70,21 @@
     <ul class="flex-1 overflow-y-auto">
       <div>
         <button
-          class="flex w-full text-sm items-center bg-gray-300 hover:bg-gray-400 justify-between p-2"
+          class="flex w-full text-sm items-center bg-gray-300 hover:bg-gray-400 justify-between py-2 px-3"
           title="Toggle Recent Chats"
           onclick={() => (isExpandedRecentChats = !isExpandedRecentChats)}
         >
-          <span>Recent Chats</span>
+          <div class="flex items-center gap-2">
+            <MessageSquare size={14} />
+            <span>Recent Chats</span>
+            {#if unread.size > 0}
+              <Dot class="animate-bounce text-blue-600" />
+            {/if}
+          </div>
           {#if isExpandedRecentChats}
-            <ChevronUp size={16} />
+            <ChevronUp size={24} class="p-1" />
           {:else}
-            <ChevronDown size={16} />
+            <ChevronDown size={24} class="p-1" />
           {/if}
         </button>
         {#if isExpandedRecentChats}
@@ -91,7 +97,13 @@
       </div>
       <!-- All users -->
       <div class="border border-gray-700 my-2"></div>
-      {#each filteredUsers as user (user.uid)}
+      <!-- Online Users Count -->
+      <div>
+        <span class="text-sm font-medium text-gray-400 px-3"
+          >Online {usersCount > 0 ? `(${usersCount})` : ""}</span
+        >
+      </div>
+      {#each sortedUsers as user (user.uid)}
         {@render onlineUser(user)}
       {/each}
     </ul>
@@ -119,11 +131,15 @@
           {/if}
         </span>
 
-        <span class="font-bold ml-auto text-xs">
-          {user.country}
-          <span class={`fi fi-${user.country.toLocaleLowerCase()}`}> </span>
-        </span>
-
+        <!-- COUNTRY -->
+        {#if user.country === "0"}
+          <span></span>
+        {:else}
+          <span class="font-bold ml-auto text-xs">
+            {user.country}
+            <span class={`fi fi-${user.country.toLocaleLowerCase()}`}> </span>
+          </span>
+        {/if}
         {@render unreaStatus(user.uid!)}
       </div>
     </button>
@@ -132,9 +148,8 @@
 
 {#snippet unreaStatus(uid: string)}
   {#if unread.has(uid!)}
-    <span class=" w-1.5 h-1.5 rounded-full bg-blue-500 flex ml-2 animate-pulse"
-    ></span>
+    <Dot class="text-blue-600" />
   {:else}
-    <span class=" w-1.5 h-1.5 rounded-full flex ml-2"></span>
+    <Dot class="text-blue-600 opacity-0" />
   {/if}
 {/snippet}

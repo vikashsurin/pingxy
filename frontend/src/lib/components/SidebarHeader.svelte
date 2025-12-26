@@ -7,11 +7,25 @@
 
   let isSearchExapanded = $state(false);
 
-  $inspect({ s: searchQuery.value });
+  let searchInput: HTMLInputElement | undefined = $state();
+
+  $effect(() => {
+    if (isSearchExapanded) {
+      searchInput?.focus();
+    }
+  });
 
   function handleInput(e: InputEvent) {
     const target = e.target as HTMLInputElement;
     searchQuery.value = target.value;
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      if (searchQuery.value === "") {
+        isSearchExapanded = false;
+      }
+    }
   }
 </script>
 
@@ -55,7 +69,9 @@
     class="text-gray-400 hover:text-blue-500 active:text-white active:bg-blue-600 {isSearchExapanded
       ? 'bg-blue-500 text-white hover:text-white '
       : ''} p-1 rounded-full"
-    onclick={() => (isSearchExapanded = !isSearchExapanded)}
+    onclick={() => {
+      isSearchExapanded = !isSearchExapanded;
+    }}
   />
 </div>
 
@@ -64,9 +80,11 @@
   <div>
     <form action="" class="p-1">
       <input
+        bind:this={searchInput}
         type="search"
         oninput={(e) => handleInput(e)}
         class="border-2 w-full p-1 border-blue-600"
+        onkeydown={(e) => handleKeydown(e)}
       />
     </form>
   </div>

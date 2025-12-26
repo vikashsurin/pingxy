@@ -30,6 +30,6 @@ export const messageSchema = z.object({
   timestamp: z.number(),
 });
 
-export type Message = z.infer<typeof messageSchema>;
-export type Connection = z.infer<typeof connectionSchema>;
 export type User = z.infer<typeof userSchema>;
+export type Connection = z.infer<typeof connectionSchema>;
+export type Message = z.infer<typeof messageSchema>;

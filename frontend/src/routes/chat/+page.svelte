@@ -155,21 +155,21 @@
   class="flex lg:hidden flex-col h-full border-3 border-red-500 overflow-hidden"
 >
   <!-- TAB GROUP -->
-  <div
-    class="grid grid-cols-3 justify-between p-2 font-bold text-sm text-gray-400"
-  >
+  <div class="grid grid-cols-2 justify-between font-bold text-sm text-gray-400">
     <button
       onclick={() => (tab = 0)}
-      class={`${tab === 0 ? "text-blue-500" : ""}`}>OnlineUsers</button
+      class={` p-2 ${tab === 0 ? "text-blue-500 bg-gray-200" : "bg-gray-100"} `}
+      >OnlineUsers</button
     >
     <button
       onclick={() => (tab = 1)}
-      class={`${tab === 1 ? "text-blue-500" : ""}`}>Messages</button
+      class={`p-2 ${tab === 1 ? "text-blue-500 bg-gray-200" : "bg-gray-100"} `}
+      >Messages</button
     >
-    <button
+    <!-- <button
       onclick={() => (tab = 2)}
       class={`${tab === 2 ? "text-blue-500" : ""}`}>Recent</button
-    >
+    > -->
   </div>
   {#if tab === 0}
     <OnlineUsers user={data.user} {users} />

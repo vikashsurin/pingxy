@@ -19,7 +19,7 @@ export let userSockets = new Map();
 function init() {
   users.set("global", {
     uid: "global",
-    username: "global",
+    username: "Global chat",
     age: 0,
     gender: "0",
     country: "0",

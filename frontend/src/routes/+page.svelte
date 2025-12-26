@@ -35,7 +35,7 @@
       hint.error = true;
       hint.text = "Username too short, min 3 characters";
       return;
-    } else if (username.length > 12) {
+    } else if (username.length > 20) {
       hint.error = true;
       hint.text = "Username too long, max 20 characters";
       return;

@@ -30,10 +30,7 @@
 </script>
 
 <div class="flex-1 flex flex-col overflow-hidden">
-  <ul
-    bind:this={messagesList}
-    class=" overflow-y-auto border border-gray-200 w-full"
-  >
+  <ul bind:this={messagesList} class=" overflow-y-auto w-full">
     {#each activeMessages as message}
       <li class="px-2 py-0.5">
         {#if message.senderName}

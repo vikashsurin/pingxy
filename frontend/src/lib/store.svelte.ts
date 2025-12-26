@@ -37,7 +37,9 @@ export let activeChat = {
   },
 };
 
-let _recentChats = $derived(Array.from(messages.keys()));
+let _recentChats = $derived.by(() => {
+  return Array.from(messages.keys());
+});
 
 export let recentChats = {
   get ids() {
@@ -48,6 +50,10 @@ export let recentChats = {
 
     for (const uid of _recentChats) {
       const user = users.get(uid);
+      1;
+
+      // dont push global to recent chats
+      if (user?.uid === "global") continue;
       if (user) recentUsers.push(user);
     }
 
