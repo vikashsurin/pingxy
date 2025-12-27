@@ -45,7 +45,7 @@ export const actions = {
       return fail(400, { username, invalid: "Invalid username" });
     // for docker
     // const url = "http://backend:3000/api/login";
-    const url = "http://localhost:3000/api/login";
+    const url = "http://localhost:3000/api/auth/login";
     // const url = "/api/login";
 
     const response = await fetch(url, {

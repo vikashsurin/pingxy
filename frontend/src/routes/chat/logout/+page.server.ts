@@ -3,7 +3,8 @@ import { redirect } from "@sveltejs/kit";
 export async function load({ request, cookies }) {
   const cookie = request.headers.get("cookie");
 
-  const response = await fetch("http://localhost:3000/api/chat/logout", {
+  const response = await fetch("http://localhost:3000/api/auth/logout", {
+    method: "POST",
     headers: {
       cookie: cookie as string,
     },

@@ -14,11 +14,16 @@ export async function load({ request, cookies }) {
 
   // fetch loggesd in users list
   const cookie = request.headers.get("cookie");
-  const response = await fetch("http://localhost:3000/api/chat/users", {
+  const response = await fetch("http://localhost:3000/api/users", {
     headers: {
       cookie: cookie as string,
     },
   });
+
+  if (!response.ok) {
+    cookies.delete("sessionid", { path: "/" });
+    redirect(302, "/");
+  }
 
   const data = await response.json();
 

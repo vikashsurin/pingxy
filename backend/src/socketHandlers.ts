@@ -2,10 +2,11 @@ import type { WebSocketHandler } from "bun";
 import { validateConnection, validateMessage } from "./utils";
 import {
   type Connection,
-  type Message,
   type User,
+  readReceiptSchema,
+  typingEventSchema,
 } from "../../shared/src/lib/utils/validation.js";
-import { users, userSockets } from "./state";
+import { users, userSockets, announcedUsers } from "./state";
 
 type WebSocketData = {
   user: User;
@@ -19,35 +20,42 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     // auto subscribe to the global channel
     ws.subscribe("global");
 
+    const uid = ws.data.user.uid;
+    const isAnnounced = announcedUsers.has(uid);
 
+    if (!isAnnounced) {
+      const status = getConnectionStatus(uid);
+      const text = getConnectionText(ws.data.user.username, status);
 
-    function getConnectionStatus() {
-      return userSockets.get(ws.data.user.uid) ? "reconnect" : "join";
+      // updated connection
+      const connection: Connection = {
+        type: "connection",
+        status,
+        text,
+        user: ws.data.user,
+      };
+
+      // connection object
+      const validConnection = validateConnection(connection);
+      if (!validConnection) return;
+
+      ws.publish("global", JSON.stringify(validConnection));
+      announcedUsers.add(uid);
+    } else {
+      // Just send to the user so they know they are connected
+      // We can reuse the connection structure or just a simpleack?
+      // Let's send a "reconnect" status just to them.
+      const connection: Connection = {
+        type: "connection",
+        status: "reconnect",
+        text: `Welcome back ${ws.data.user.username}`,
+        user: ws.data.user,
+      };
+      const validConnection = validateConnection(connection);
+      if (validConnection) {
+        ws.send(JSON.stringify(validConnection));
+      }
     }
-
-    function getConnectionText(status: Connection["status"]) {
-      return `${ws.data.user.username} has ${status === "reconnect" ? "reconnected" : "joined the chat"
-        }.`;
-    }
-
-    // updated connection
-    const connection: Connection = {
-      type: "connection",
-      status: getConnectionStatus(),
-
-      text: getConnectionText(getConnectionStatus()),
-      user: ws.data.user,
-    };
-
-    // connection object
-    const validConnection = validateConnection(connection);
-
-    ws.publish(
-      "global",
-      JSON.stringify({
-        ...validConnection,
-      })
-    );
 
     // save the userSocket
     userSockets.set(ws.data.user.uid, ws);
@@ -56,22 +64,23 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
   message(ws, message) {
     if (typeof message !== "string") return;
 
-    let msg: Message | any = null;
-
+    let msg: any;
     try {
       msg = JSON.parse(message);
-    } catch (error) {
+    } catch {
       return;
     }
 
     if (!msg || typeof msg !== "object") return;
 
     // Handle read receipts and typing events
-    if (msg.type === "read_receipt" || msg.type === "typing") {
-      const recipientSocket = userSockets.get(msg.recipientId);
-      if (recipientSocket) {
-        recipientSocket.send(JSON.stringify(msg));
-      }
+    if (msg.type === "read_receipt") {
+      handleReadReceipt(msg);
+      return;
+    }
+
+    if (msg.type === "typing") {
+      handleTypingEvent(msg);
       return;
     }
 
@@ -80,26 +89,29 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     msg.senderName = ws.data.user.username;
 
     const validMessage = validateMessage(msg);
-
     if (!validMessage) return;
 
     const recipientSocket = userSockets.get(validMessage.recipientId);
 
     if (recipientSocket) {
-      recipientSocket.send(JSON.stringify({ ...validMessage }));
+      recipientSocket.send(JSON.stringify(validMessage));
     } else {
       // Assume channel (global)
       if (validMessage.recipientId) {
-        ws.publish(validMessage.recipientId, JSON.stringify({ ...validMessage }));
+        ws.publish(validMessage.recipientId, JSON.stringify(validMessage));
       }
     }
   },
+
   close(ws) {
     console.log("closed connection");
     const uid = ws.data.user.uid;
 
-    // dont sent connection msg if,
-    // user has not really logged out
+    // Always clean up the socket
+    userSockets.delete(uid);
+
+    // Only broadcast "leave" if the user is truly gone (logged out)
+    // This prevents "flickering" presence when reloading or closing tabs but staying logged in.
     if (users.has(uid)) return;
 
     const connection: Connection = {
@@ -110,9 +122,40 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     };
 
     const validConnection = validateConnection(connection);
-
-    ws.publish("global", JSON.stringify({ ...validConnection }));
+    if (validConnection) {
+      ws.publish("global", JSON.stringify(validConnection));
+    }
   },
 };
+
+// --- Helpers ---
+
+function getConnectionStatus(uid: string): Connection["status"] {
+  return userSockets.has(uid) ? "reconnect" : "join";
+}
+
+function getConnectionText(username: string, status: Connection["status"]) {
+  return `${username} has ${status === "reconnect" ? "reconnected" : "joined the chat"}.`;
+}
+
+function handleReadReceipt(msg: any) {
+  const result = readReceiptSchema.safeParse(msg);
+  if (!result.success) return;
+  const validMsg = result.data;
+  const recipientSocket = userSockets.get(validMsg.recipientId);
+  if (recipientSocket) {
+    recipientSocket.send(JSON.stringify(validMsg));
+  }
+}
+
+function handleTypingEvent(msg: any) {
+  const result = typingEventSchema.safeParse(msg);
+  if (!result.success) return;
+  const validMsg = result.data;
+  const recipientSocket = userSockets.get(validMsg.recipientId);
+  if (recipientSocket) {
+    recipientSocket.send(JSON.stringify(validMsg));
+  }
+}
 
 

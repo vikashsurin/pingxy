@@ -16,7 +16,7 @@
   let usersCount = $derived.by(() => {
     return users.size - 1;
   });
-  $inspect({ users });
+
   let sortedUsers = $derived.by(() => {
     if (!users || users.size === 0) return [];
 
