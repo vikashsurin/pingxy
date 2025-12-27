@@ -24,7 +24,6 @@
 
   let { data } = $props();
   let message = $state("");
-  let username = $derived(data.user.username);
   let tab = $state(1); // for mobile screen
 
   let activeChatUser = activeChat.value;
