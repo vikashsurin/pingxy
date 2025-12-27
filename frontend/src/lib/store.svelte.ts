@@ -7,18 +7,11 @@ export let unread = new SvelteSet<string>();
 
 export let messages = new SvelteMap<string, Message[]>();
 
-let _searchQuery = $state({
+export let searchQuery = $state({
   value: "",
 });
 
-export let searchQuery = {
-  get value() {
-    return _searchQuery.value;
-  },
-  set value(query: string) {
-    _searchQuery.value = query;
-  },
-};
+
 
 export let _activeChat = $state<User>({
   uid: "global",
@@ -50,7 +43,6 @@ export let recentChats = {
 
     for (const uid of _recentChats) {
       const user = users.get(uid);
-      1;
 
       // dont push global to recent chats
       if (user?.uid === "global") continue;

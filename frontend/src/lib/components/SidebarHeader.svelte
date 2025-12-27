@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Search } from "@lucide/svelte";
   import { searchQuery } from "$lib/store.svelte";
-  import { ta } from "zod/locales";
 
   let { handleGenderFilter = $bindable() } = $props();
 
