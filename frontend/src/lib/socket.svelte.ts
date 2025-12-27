@@ -1,4 +1,4 @@
-import { users, unread, messages, activeChat } from "$lib/store.svelte.js";
+import { chatStore } from "$lib/store.svelte.js";
 
 import type { Connection, Message, User } from "../../../shared/src/index";
 
@@ -40,9 +40,12 @@ export function initSocket() {
           recipientId: "global",
           timestamp: Date.now(),
         };
-        messages.set("global", [...(messages.get("global") || []), message]);
+        chatStore.messages.set("global", [
+          ...(chatStore.messages.get("global") || []),
+          message,
+        ]);
 
-        users.delete(user.uid!);
+        chatStore.users.delete(user.uid!);
       }
       if (c.status === "join") {
         const user: User = c.user;
@@ -57,9 +60,12 @@ export function initSocket() {
           timestamp: Date.now(),
         };
 
-        messages.set("global", [...(messages.get("global") || []), message]);
+        chatStore.messages.set("global", [
+          ...(chatStore.messages.get("global") || []),
+          message,
+        ]);
 
-        users.set(user.uid!, user);
+        chatStore.users.set(user.uid!, user);
       }
       return;
     }
@@ -71,16 +77,22 @@ export function initSocket() {
       const senderId = message.senderId!;
 
       if (recipientId === "global") {
-        messages.set("global", [...(messages.get("global") || []), message]);
+        chatStore.messages.set("global", [
+          ...(chatStore.messages.get("global") || []),
+          message,
+        ]);
       } else {
         const senderId = message.senderId!;
-        messages.set(senderId, [...(messages.get(senderId) || []), message]);
+        chatStore.messages.set(senderId, [
+          ...(chatStore.messages.get(senderId) || []),
+          message,
+        ]);
       }
 
       // update unread messages
-      if (activeChat.value?.uid !== senderId) {
+      if (chatStore.activeChat?.uid !== senderId) {
         if (recipientId === "global") return;
-        unread.add(senderId);
+        chatStore.unread.add(senderId);
       }
     }
   });

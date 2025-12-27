@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Search } from "@lucide/svelte";
-  import { searchQuery } from "$lib/store.svelte";
+  import { chatStore } from "$lib/store.svelte";
 
   let { handleGenderFilter = $bindable() } = $props();
 
@@ -16,12 +16,12 @@
 
   function handleInput(e: InputEvent) {
     const target = e.target as HTMLInputElement;
-    searchQuery.value = target.value;
+    chatStore.searchQuery.value = target.value;
   }
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
-      if (searchQuery.value === "") {
+      if (chatStore.searchQuery.value === "") {
         isSearchExapanded = false;
       }
     }

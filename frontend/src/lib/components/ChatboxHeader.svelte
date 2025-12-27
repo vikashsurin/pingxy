@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { activeChat } from "$lib/store.svelte";
+  import { chatStore } from "$lib/store.svelte";
   import {
     Ban,
     EllipsisVertical,
@@ -14,17 +14,17 @@
 </script>
 
 <div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
-  {#if activeChat.value?.uid === "global"}
+  {#if chatStore.activeChat?.uid === "global"}
     <span class="font-bold">Global chat</span>
   {:else}
     <div class="flex w-full items-center gap-2">
       <span> Chatting with : </span>
-      <GenderIcon gender={activeChat.value?.gender} />
+      <GenderIcon gender={chatStore.activeChat?.gender} />
       <span class=" font-bold">
-        {activeChat.value?.username}
-        {activeChat.value?.uid === user.uid ? " (You)" : ""}
+        {chatStore.activeChat?.username}
+        {chatStore.activeChat?.uid === user.uid ? " (You)" : ""}
       </span>
-      <span class={`fi fi-${activeChat.value.country.toLocaleLowerCase()}`}
+      <span class={`fi fi-${chatStore.activeChat.country.toLocaleLowerCase()}`}
       ></span>
       <EllipsisVertical
         size={24}

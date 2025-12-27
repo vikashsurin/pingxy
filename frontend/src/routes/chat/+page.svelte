@@ -7,17 +7,10 @@
   } from "../../../../shared/src/index";
 
   import { initSocket, getSocket } from "$lib/socket.svelte.js";
-  import {
-    users,
-    messages,
-    activeChat,
-    recentChats,
-  } from "$lib/store.svelte.js";
+  import { chatStore } from "$lib/store.svelte.js";
   import OnlineUsers from "./OnlineUsers.svelte";
   import Messages from "./ChatMessages.svelte";
   import { browser } from "$app/environment";
-  import GenderIcon from "$lib/components/GenderIcon.svelte";
-  import { EllipsisVertical } from "@lucide/svelte";
   import ChatboxHeader from "$lib/components/ChatboxHeader.svelte";
 
   let socket: WebSocket | null = null;
@@ -26,12 +19,10 @@
   let message = $state("");
   let tab = $state(1); // for mobile screen
 
-  let activeChatUser = activeChat.value;
-
   $effect.pre(() => {
     // load users
     data.users.forEach((user: User) => {
-      users.set(user.uid as string, user);
+      chatStore.users.set(user.uid as string, user);
     });
   });
 
@@ -43,12 +34,12 @@
     const data: Record<string, Message[]> = JSON.parse(raw);
 
     Object.entries(data).forEach(([key, value]) => {
-      messages.set(key, value);
+      chatStore.messages.set(key, value);
     });
   });
 
   $effect(() => {
-    const data = Object.fromEntries(messages);
+    const data = Object.fromEntries(chatStore.messages);
 
     if (sessionStorage !== undefined) {
       sessionStorage.setItem("chat", JSON.stringify(data));
@@ -56,7 +47,7 @@
   });
 
   const activeMessages = $derived<Message[] | undefined>(
-    messages.get(activeChatUser?.uid!)
+    chatStore.messages.get(chatStore.activeChat?.uid!),
   );
 
   onMount(() => {
@@ -90,7 +81,7 @@
       return;
     }
 
-    if (!activeChatUser?.uid) {
+    if (!chatStore.activeChat?.uid) {
       // toast.error("No active chat selected");
       return;
     }
@@ -103,7 +94,7 @@
       text: trimmedMessage,
       senderId: data.user.uid,
       senderName: data.user.username,
-      recipientId: activeChatUser.uid,
+      recipientId: chatStore.activeChat.uid,
       timestamp: Date.now(),
     };
 
@@ -119,8 +110,8 @@
     const validMessage = validateMessage.data;
 
     // Optimistic UI update
-    messages.set(activeChatUser.uid, [
-      ...(messages.get(activeChatUser.uid) || []),
+    chatStore.messages.set(chatStore.activeChat.uid, [
+      ...(chatStore.messages.get(chatStore.activeChat.uid) || []),
       validMessage,
     ]);
     message = ""; // Clear input immediately for better UX
@@ -138,10 +129,11 @@
       // toast.error("Failed to send message");
 
       // Rollback on failure
-      const currentMessages = messages.get(activeChatUser.uid) || [];
-      messages.set(
-        activeChatUser.uid,
-        currentMessages.filter((m) => m.id !== validMessage.id)
+      const currentMessages =
+        chatStore.messages.get(chatStore.activeChat.uid) || [];
+      chatStore.messages.set(
+        chatStore.activeChat.uid,
+        currentMessages.filter((m) => m.id !== validMessage.id),
       );
 
       message = trimmedMessage; // Restore message to input
@@ -171,7 +163,7 @@
     > -->
   </div>
   {#if tab === 0}
-    <OnlineUsers user={data.user} {users} />
+    <OnlineUsers user={data.user} users={chatStore.users} />
   {:else if tab === 1}
     <!-- Chatting with -->
     <ChatboxHeader user={data.user} />
@@ -211,7 +203,7 @@
     class="grid lg:grid-cols-[auto_1fr_auto] md:grid-cols-[auto_3fr] sm:grid-cols-1 h-full gap-2"
   >
     <!-- ONLINE USERS -->
-    <OnlineUsers user={data.user} {users} />
+    <OnlineUsers user={data.user} users={chatStore.users} />
 
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Chatting with -->

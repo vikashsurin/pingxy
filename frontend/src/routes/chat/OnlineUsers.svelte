@@ -1,24 +1,12 @@
 <script lang="ts">
   import type { User } from "../../../../shared/src";
   import GenderIcon from "$lib/components/GenderIcon.svelte";
-  import {
-    activeChat,
-    recentChats,
-    unread,
-    searchQuery,
-  } from "$lib/store.svelte.js";
-  import {
-    ChevronDown,
-    ChevronUp,
-    Dot,
-    MessageSquare,
-    MessageSquareDot,
-  } from "@lucide/svelte";
+  import { chatStore } from "$lib/store.svelte.js";
+  import { ChevronDown, ChevronUp, Dot, MessageSquare } from "@lucide/svelte";
   import SidebarHeader from "$lib/components/SidebarHeader.svelte";
 
   let { user: me, users } = $props();
 
-  let activeChatUser = activeChat.value;
   let isExpandedRecentChats = $state(false);
   let filterGender = $state("all");
   let usersCount = $derived.by(() => {
@@ -28,24 +16,17 @@
   let sortedUsers = $derived.by(() => {
     if (!users || users.size === 0) return [];
 
-    // Optimization 1: Move heavy ID mapping outside the filter loop
-    const recentChatIds = new Set(recentChats.value.map((usr) => usr.uid));
-    const searchLower = searchQuery.value.trim().toLowerCase();
+    const searchLower = chatStore.searchQuery.value.trim().toLowerCase();
 
-    return (
-      Array.from<User>(users.values())
-        .filter((usr) => {
-          if (recentChatIds.has(usr.uid)) return false;
-          if (filterGender !== "all" && usr.gender !== filterGender)
-            return false;
-          if (searchLower && !usr.username.toLowerCase().includes(searchLower))
-            return false;
-          return true;
-        })
-
-        // Optimization 2: Use .sort() on the new filtered array
-        .sort((a, b) => a.country.localeCompare(b.country))
-    );
+    return Array.from<User>(users.values())
+      .filter((usr) => {
+        if (chatStore.recentChatIds.has(usr.uid)) return false;
+        if (filterGender !== "all" && usr.gender !== filterGender) return false;
+        if (searchLower && !usr.username.toLowerCase().includes(searchLower))
+          return false;
+        return true;
+      })
+      .sort((a, b) => a.country.localeCompare(b.country));
   });
 
   // const genderFilter
@@ -55,10 +36,10 @@
 
   function handleClick(user: User) {
     if (!user) return;
-    activeChat.value = user;
+    chatStore.activeChat = user;
 
     // reset unread
-    unread.delete(user.uid!);
+    chatStore.unread.delete(user.uid!);
   }
 </script>
 
@@ -77,7 +58,7 @@
           <div class="flex items-center gap-2">
             <MessageSquare size={14} />
             <span>Recent Chats</span>
-            {#if unread.size > 0}
+            {#if chatStore.unread.size > 0}
               <Dot class="animate-bounce text-blue-600" />
             {/if}
           </div>
@@ -88,8 +69,9 @@
           {/if}
         </button>
         {#if isExpandedRecentChats}
+          <!-- RECENT CHATS -->
           <div class="bg-amber-50">
-            {#each recentChats.value as user (user.uid)}
+            {#each chatStore.recentChats as user (user.uid)}
               {@render onlineUser(user)}
             {/each}
           </div>
@@ -116,7 +98,7 @@
     <button
       class="px-2 py-0.5 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
       id={user.uid}
-      style={activeChatUser?.uid === user.uid
+      style={chatStore.activeChat?.uid === user.uid
         ? "background-color: #1e1e1e; color: white;"
         : ""}
       onclick={(e) => handleClick(user)}
@@ -147,7 +129,7 @@
 {/snippet}
 
 {#snippet unreaStatus(uid: string)}
-  {#if unread.has(uid!)}
+  {#if chatStore.unread.has(uid!)}
     <Dot class="text-blue-600" />
   {:else}
     <Dot class="text-blue-600 opacity-0" />
