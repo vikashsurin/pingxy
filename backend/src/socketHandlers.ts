@@ -81,14 +81,17 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     const validMessage = validateMessage(msg);
 
-    const recipientSocket = userSockets.get(validMessage?.recipientId);
+    if (!validMessage) return;
+
+    const recipientSocket = userSockets.get(validMessage.recipientId);
 
     if (recipientSocket) {
       recipientSocket.send(JSON.stringify({ ...validMessage }));
     } else {
       // Assume channel (global)
-      ws.publish(validMessage.recipientId, JSON.stringify({ ...validMessage }));
-
+      if (validMessage.recipientId) {
+        ws.publish(validMessage.recipientId, JSON.stringify({ ...validMessage }));
+      }
     }
   },
   close(ws) {

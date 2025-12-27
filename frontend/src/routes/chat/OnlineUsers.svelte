@@ -16,7 +16,7 @@
   let usersCount = $derived.by(() => {
     return users.size - 1;
   });
-
+  $inspect({ users });
   let sortedUsers = $derived.by(() => {
     if (!users || users.size === 0) return [];
 
@@ -108,9 +108,9 @@
         <div class="flex items-center gap-2 w-full overflow-hidden">
           {#if isRoom}
             <div
-              class="w-6 h-6 rounded flex items-center justify-center shrink-0 bg-gray-200 text-gray-700"
+              class=" p-0.5 rounded-xs flex items-center justify-center shrink-0 bg-gray-200 text-gray-700"
             >
-              <Hash size={14} />
+              <Hash size={12} />
             </div>
             <span class="font-medium truncate">{target.name}</span>
           {:else}

@@ -16,16 +16,16 @@ import { socketHandlers } from "./socketHandlers";
 import { users, existingUsernames, userSockets } from "./state";
 export { users, existingUsernames, userSockets };
 
-function init() {
-  users.set("global", {
-    uid: "global",
-    username: "Global chat",
-    age: 0,
-    gender: "0",
-    country: "0",
-  });
-}
-init();
+// function init() {
+//   users.set("global", {
+//     uid: "global",
+//     username: "Global chat",
+//     age: 0,
+//     gender: "0",
+//     country: "0",
+//   });
+// }
+// init();
 
 const app = new Hono();
 
