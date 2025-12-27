@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Message, User } from "../../../../shared/src";
+  import type { Message, User } from "../../../../shared/src/lib/utils/validation.js";
+  import { Check, CheckCheck } from "@lucide/svelte";
+  import { chatStore } from "$lib/store.svelte";
+  import { getSocket } from "$lib/socket.svelte";
 
   let {
     activeMessages,
@@ -24,8 +27,50 @@
     setTimeout(() => scrollToBottom(), 0);
   });
 
+  let previousMessageCount = 0;
+  let activeChatId = $derived(chatStore.activeChat?.uid);
+
+  $effect(() => {
+    if (!activeMessages) return;
+
+    // SCENARIO 2: INCOMING MESSAGES WHILE CHAT IS OPEN
+    if (activeMessages.length > previousMessageCount) {
+      // Just update the previous count, no divider logic needed
+    }
+    previousMessageCount = activeMessages.length;
+  });
+
   onMount(() => {
     scrollToBottom();
+    if (!activeMessages) return;
+
+    // SCENARIO 1: OPENING CHAT WITH UNREAD MESSAGES
+    const currentUnreadCount = chatStore.unread.get(activeChatId!) ?? 0;
+
+    if (currentUnreadCount > 0 && activeMessages.length > 0) {
+      chatStore.unread.delete(activeChatId!);
+
+      const socket = getSocket();
+      const shouldSendObj = socket && socket.readyState === WebSocket.OPEN;
+
+      activeMessages.forEach((msg) => {
+        if (msg.senderId === activeChatId && msg.status !== "read") {
+          if (shouldSendObj) {
+            socket.send(
+              JSON.stringify({
+                type: "read_receipt",
+                messageId: msg.id,
+                senderId: me.uid,
+                recipientId: activeChatId!,
+              }),
+            );
+          }
+          msg.status = "read";
+        }
+      });
+    }
+
+    if (activeMessages) previousMessageCount = activeMessages.length;
   });
 </script>
 
@@ -62,8 +107,15 @@
             <span>
               {message.text}
             </span>
-            <span class="text-xs text-gray-500">
+            <span
+              class="text-xs text-gray-500 flex items-center gap-1 justify-end"
+            >
               {new Date(message.timestamp).toLocaleTimeString()}
+              {#if message.status === "read"}
+                <CheckCheck size={14} class="text-blue-500" />
+              {:else}
+                <Check size={14} class="text-gray-400" />
+              {/if}
             </span>
           </div>
         {:else}

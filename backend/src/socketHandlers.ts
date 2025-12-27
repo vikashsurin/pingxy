@@ -4,8 +4,8 @@ import {
   type Connection,
   type Message,
   type User,
-} from "../../shared/src/index";
-import { users, userSockets } from "./index";
+} from "../../shared/src/lib/utils/validation.js";
+import { users, userSockets } from "./state";
 
 type WebSocketData = {
   user: User;
@@ -19,14 +19,15 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     // auto subscribe to the global channel
     ws.subscribe("global");
 
+
+
     function getConnectionStatus() {
       return userSockets.get(ws.data.user.uid) ? "reconnect" : "join";
     }
 
     function getConnectionText(status: Connection["status"]) {
-      return `${ws.data.user.username} has ${
-        status === "reconnect" ? "reconnected" : "joined the chat"
-      }.`;
+      return `${ws.data.user.username} has ${status === "reconnect" ? "reconnected" : "joined the chat"
+        }.`;
     }
 
     // updated connection
@@ -55,7 +56,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
   message(ws, message) {
     if (typeof message !== "string") return;
 
-    let msg: Message | null = null;
+    let msg: Message | any = null;
 
     try {
       msg = JSON.parse(message);
@@ -65,18 +66,29 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     if (!msg || typeof msg !== "object") return;
 
+    // Handle read receipts and typing events
+    if (msg.type === "read_receipt" || msg.type === "typing") {
+      const recipientSocket = userSockets.get(msg.recipientId);
+      if (recipientSocket) {
+        recipientSocket.send(JSON.stringify(msg));
+      }
+      return;
+    }
+
+    // Handle regular messages
     msg.senderId = ws.data.user.uid;
     msg.senderName = ws.data.user.username;
 
     const validMessage = validateMessage(msg);
 
-    if (validMessage?.recipientId === "global" || !validMessage?.recipientId) {
-      ws.publish("global", JSON.stringify({ ...validMessage }));
+    const recipientSocket = userSockets.get(validMessage?.recipientId);
+
+    if (recipientSocket) {
+      recipientSocket.send(JSON.stringify({ ...validMessage }));
     } else {
-      const recipientSocket = userSockets.get(validMessage?.recipientId);
-      if (recipientSocket) {
-        recipientSocket.send(JSON.stringify({ ...validMessage }));
-      }
+      // Assume channel (global)
+      ws.publish(validMessage.recipientId, JSON.stringify({ ...validMessage }));
+
     }
   },
   close(ws) {
@@ -99,3 +111,5 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     ws.publish("global", JSON.stringify({ ...validConnection }));
   },
 };
+
+

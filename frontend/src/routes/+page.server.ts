@@ -1,5 +1,5 @@
 import { fail, redirect } from "@sveltejs/kit";
-import { userSchema, type User } from "../../../shared/src/index";
+import { userSchema, type User } from "../../../shared/src/lib/utils/validation.js";
 import { capitalizeFirst } from "../../../shared/src/lib/utils/string.js";
 
 export async function load({ cookies }) {

@@ -14,9 +14,9 @@
 </script>
 
 <div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
-  {#if chatStore.activeChat?.uid === "global"}
-    <span class="font-bold">Global chat</span>
-  {:else}
+  {#if "type" in chatStore.activeChat && chatStore.activeChat.uid === "global"}
+    <span class="font-bold">{chatStore.activeChat.name}</span>
+  {:else if "username" in chatStore.activeChat}
     <div class="flex w-full items-center gap-2">
       <span> Chatting with : </span>
       <GenderIcon gender={chatStore.activeChat?.gender} />
@@ -24,8 +24,15 @@
         {chatStore.activeChat?.username}
         {chatStore.activeChat?.uid === user.uid ? " (You)" : ""}
       </span>
-      <span class={`fi fi-${chatStore.activeChat.country.toLocaleLowerCase()}`}
-      ></span>
+      {#if chatStore.typingUsers.has(chatStore.activeChat.uid)}
+        <span class="text-xs text-blue-500 animate-pulse font-bold ml-1"
+          >Typing...</span
+        >
+      {:else}
+        <span
+          class={`fi fi-${chatStore.activeChat.country.toLocaleLowerCase()}`}
+        ></span>
+      {/if}
       <EllipsisVertical
         size={24}
         class="hover:bg-gray-300 active:bg-gray-400 {toggleMenu

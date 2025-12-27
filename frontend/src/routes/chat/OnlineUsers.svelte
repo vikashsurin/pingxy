@@ -1,14 +1,18 @@
 <script lang="ts">
-  import type { User } from "../../../../shared/src";
+  import type {
+    User,
+    ChatTarget,
+  } from "../../../../shared/src/lib/utils/validation.js";
   import GenderIcon from "$lib/components/GenderIcon.svelte";
   import { chatStore } from "$lib/store.svelte.js";
-  import { ChevronDown, ChevronUp, Dot, MessageSquare } from "@lucide/svelte";
+  import { ChevronDown, ChevronUp, MessageSquare, Hash } from "@lucide/svelte";
   import SidebarHeader from "$lib/components/SidebarHeader.svelte";
 
   let { user: me, users } = $props();
 
   let isExpandedRecentChats = $state(false);
   let filterGender = $state("all");
+
   let usersCount = $derived.by(() => {
     return users.size - 1;
   });
@@ -28,23 +32,19 @@
       })
       .sort((a, b) => a.country.localeCompare(b.country));
   });
-
   // const genderFilter
-  function handleGenderFilter(e) {
+  function handleGenderFilter(e: Event & { target: HTMLInputElement }) {
     filterGender = e.target.value;
   }
 
-  function handleClick(user: User) {
-    if (!user) return;
-    chatStore.activeChat = user;
-
-    // reset unread
-    chatStore.unread.delete(user.uid!);
+  function handleClick(target: ChatTarget) {
+    if (!target) return;
+    chatStore.activeChat = target;
   }
 </script>
 
 <!-- USERS -->
-<div class="bg-gray-100 min-w-[300px] flex flex-col overflow-hidden">
+<div class="bg-gray-100 min-w-75 flex flex-col overflow-hidden">
   <div class="flex flex-col overflow-hidden flex-1">
     <!-- Filter, Search -->
     <SidebarHeader {handleGenderFilter} />
@@ -59,7 +59,8 @@
             <MessageSquare size={14} />
             <span>Recent Chats</span>
             {#if chatStore.unread.size > 0}
-              <Dot class="animate-bounce text-blue-600" />
+              <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"
+              ></span>
             {/if}
           </div>
           {#if isExpandedRecentChats}
@@ -71,67 +72,81 @@
         {#if isExpandedRecentChats}
           <!-- RECENT CHATS -->
           <div class="bg-amber-50">
-            {#each chatStore.recentChats as user (user.uid)}
-              {@render onlineUser(user)}
+            {#each chatStore.recentChats as target (target.uid)}
+              {@render itemRow(target)}
             {/each}
           </div>
         {/if}
       </div>
-      <!-- All users -->
+      <!-- Separator -->
       <div class="border border-gray-700 my-2"></div>
-      <!-- Online Users Count -->
-      <div>
-        <span class="text-sm font-medium text-gray-400 px-3"
-          >Online {usersCount > 0 ? `(${usersCount})` : ""}</span
-        >
-      </div>
+
+      <!-- Online Users -->
       {#each sortedUsers as user (user.uid)}
-        {@render onlineUser(user)}
+        {@render itemRow(user)}
       {/each}
     </ul>
   </div>
 </div>
 
-<!-- SNIPPET -->
-{#snippet onlineUser(user: User)}
-  <li>
-    <button
-      class="px-2 py-0.5 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
-      id={user.uid}
-      style={chatStore.activeChat?.uid === user.uid
-        ? "background-color: #1e1e1e; color: white;"
-        : ""}
-      onclick={(e) => handleClick(user)}
-    >
-      <div class="flex items-center gap-1 w-full">
-        <GenderIcon gender={user.gender} />
-        <span>
-          {#if user.uid === me.uid}
-            You
-          {:else}
-            {user.username}
-          {/if}
-        </span>
+<!-- ---------------------------SNIPPETS--------------------------------------------------- -->
 
-        <!-- COUNTRY -->
-        {#if user.country === "0"}
-          <span></span>
-        {:else}
-          <span class="font-bold ml-auto text-xs">
-            {user.country}
-            <span class={`fi fi-${user.country.toLocaleLowerCase()}`}> </span>
-          </span>
-        {/if}
-        {@render unreaStatus(user.uid!)}
-      </div>
-    </button>
+{#snippet itemRow(target: ChatTarget)}
+  {@const isRoom = "type" in target}
+  <li>
+    <div class="flex items-center gap-1 w-full relative group">
+      <button
+        class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
+        id={target.uid}
+        style={chatStore.activeChat?.uid === target.uid
+          ? "background-color: #1e1e1e; color: white;"
+          : ""}
+        onclick={(e) => {
+          handleClick(target);
+        }}
+      >
+        <div class="flex items-center gap-2 w-full overflow-hidden">
+          {#if isRoom}
+            <div
+              class="w-6 h-6 rounded flex items-center justify-center shrink-0 bg-gray-200 text-gray-700"
+            >
+              <Hash size={14} />
+            </div>
+            <span class="font-medium truncate">{target.name}</span>
+          {:else}
+            <GenderIcon gender={target.gender} />
+            <span class="truncate">
+              {#if target.uid === me.uid}
+                You
+              {:else}
+                {target.username}
+              {/if}
+            </span>
+
+            {#if target.country && target.country !== "0"}
+              <span
+                class="font-bold ml-auto text-xs shrink-0 flex items-center gap-1"
+              >
+                {target.country}
+                <span class={`fi fi-${target.country.toLocaleLowerCase()}`}>
+                </span>
+              </span>
+            {/if}
+          {/if}
+
+          {@render unreaStatus(target.uid!)}
+        </div>
+      </button>
+    </div>
   </li>
 {/snippet}
 
 {#snippet unreaStatus(uid: string)}
-  {#if chatStore.unread.has(uid!)}
-    <Dot class="text-blue-600" />
-  {:else}
-    <Dot class="text-blue-600 opacity-0" />
+  {#if (chatStore.unread.get(uid!) ?? 0) > 0}
+    <span
+      class="w-4 h-4 rounded-full bg-red-600 animate-pulse text-[10px] flex items-center justify-center text-white ml-auto"
+    >
+      {chatStore.unread.get(uid!) ?? 0}
+    </span>
   {/if}
 {/snippet}

@@ -5,16 +5,16 @@ import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, decode } from "hono/jwt";
-import { type User } from "../../shared/src/index";
+// Re-export shared types
+import { type User, type Room } from "../../shared/src/lib/utils/validation.js";
 import { capitalizeFirst } from "../../shared/src/lib/utils/string.js";
 
 import { getUserDataFromReq } from "./utils";
 
 import { socketHandlers } from "./socketHandlers";
 
-export let users: Map<string, User> = new Map();
-export let existingUsernames: Set<string> = new Set();
-export let userSockets = new Map();
+import { users, existingUsernames, userSockets } from "./state";
+export { users, existingUsernames, userSockets };
 
 function init() {
   users.set("global", {

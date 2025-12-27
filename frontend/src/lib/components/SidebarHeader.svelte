@@ -14,7 +14,9 @@
     }
   });
 
-  function handleInput(e: InputEvent) {
+  function handleInput(
+    e: Event & { currentTarget: EventTarget & HTMLInputElement }
+  ) {
     const target = e.target as HTMLInputElement;
     chatStore.searchQuery.value = target.value;
   }
