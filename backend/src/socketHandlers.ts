@@ -7,6 +7,7 @@ import {
   typingEventSchema,
 } from "../../shared/src/lib/utils/validation.js";
 import { userSockets, announcedUsers } from "./state";
+import { createMessage, getGlobalMessages, getDirectMessages } from "./db";
 
 type WebSocketData = {
   user: User;
@@ -19,6 +20,25 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     // auto subscribe to the global channel
     ws.subscribe("global");
+
+    // Send history for global chat
+    // This might be better as a separate request, but for now we send it on join.
+    // The frontend should handle receiving a list of messages?
+    // Or we send them one by one? 
+    // Usually bulk is better but requires frontend support for "history" type.
+    // Given the current frontend structure, sending one by one might be easier BUT efficient.
+    // Let's assume we can send them one by one for now or just wait for frontend "fetch_history".
+
+    // Actually, let's just trigger a history send. 
+    const globalMsgs = getGlobalMessages(20); // Last 20
+    // Send in reverse order (oldest first) so they append correctly? 
+    // getGlobalMessages returns oldest first (ASC) based on query mod.
+    // Wait, query in db.ts: ORDER BY m.timestamp ASC. So yes.
+
+    // We send them as individual messages.
+    for (const msg of globalMsgs) {
+      ws.send(JSON.stringify(msg));
+    }
 
     const uid = ws.data.user.uid;
     const isAnnounced = announcedUsers.has(uid);
@@ -88,17 +108,31 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     msg.senderId = ws.data.user.uid;
     msg.senderName = ws.data.user.username;
 
+    // Ensure ID exists (if not provided by frontend)
+    if (!msg.id) {
+      msg.id = crypto.randomUUID();
+    }
+
     const validMessage = validateMessage(msg);
     if (!validMessage) return;
+
+    // Persist message
+    createMessage(validMessage);
 
     const recipientSocket = userSockets.get(validMessage.recipientId);
 
     if (recipientSocket) {
       recipientSocket.send(JSON.stringify(validMessage));
+      // Also send to self (sender) if it wasn't optimistic?
+      // Usually sender has it.
     } else {
       // Assume channel (global)
       if (validMessage.recipientId) {
-        ws.publish(validMessage.recipientId, JSON.stringify(validMessage));
+        // DM but user offline
+        // Do nothing, they will fetch on load.
+      } else {
+        // Global message
+        ws.publish("global", JSON.stringify(validMessage));
       }
     }
   },
@@ -142,6 +176,7 @@ function handleReadReceipt(msg: any) {
   const result = readReceiptSchema.safeParse(msg);
   if (!result.success) return;
   const validMsg = result.data;
+  // TODO: Update read status in DB?
   const recipientSocket = userSockets.get(validMsg.recipientId);
   if (recipientSocket) {
     recipientSocket.send(JSON.stringify(validMsg));
