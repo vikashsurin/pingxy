@@ -6,7 +6,7 @@ import {
   readReceiptSchema,
   typingEventSchema,
 } from "../../shared/src/lib/utils/validation.js";
-import { users, userSockets, announcedUsers } from "./state";
+import { userSockets, announcedUsers } from "./state";
 
 type WebSocketData = {
   user: User;
@@ -112,7 +112,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     // Only broadcast "leave" if the user is truly gone (logged out)
     // This prevents "flickering" presence when reloading or closing tabs but staying logged in.
-    if (users.has(uid)) return;
+    if (announcedUsers.has(uid)) return;
 
     const connection: Connection = {
       type: "connection",

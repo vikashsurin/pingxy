@@ -1,21 +1,20 @@
 import { Hono } from "hono";
 import type { User } from "../../../shared/src/lib/utils/validation.js";
 import { capitalizeFirst } from "../../../shared/src/lib/utils/string.js";
-import { users, existingUsernames } from "../state";
+import { createUser, getAllUsers, getUserByUsername, getUser } from "../db";
 
 const app = new Hono();
 
 app.get("/", (c) => {
     const user: User = c.get("jwtPayload").user;
 
-    if (!users.get(user.uid)) {
-        console.log({ user });
-        // on page reload save the logged in user
-        users.set(user.uid, user);
-        existingUsernames.add(user.username);
+    // Ensure the current user is in the DB (recovery from inconsistent state)
+    if (!getUser(user.uid)) {
+        console.log("Restoring user to DB:", user);
+        createUser(user);
     }
 
-    return c.json({ users: Array.from(users.values()) });
+    return c.json({ users: getAllUsers() });
 });
 
 app.get("/check", async (c) => {
@@ -31,7 +30,10 @@ app.get("/check", async (c) => {
             400
         );
     }
-    const exists = existingUsernames.has(username);
+
+    // Check DB for username existence
+    const existingUser = getUserByUsername(username);
+    const exists = !!existingUser;
 
     return c.json(
         {
