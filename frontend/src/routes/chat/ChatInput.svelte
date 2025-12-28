@@ -13,7 +13,12 @@
     }
 </script>
 
-<div class="flex gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
+<div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
+    {#if chatStore.typingUsers.has(chatStore.activeChat.uid)}
+        <span class="absolute bottom-full px-2 text-xs text-gray-500"
+            >Typing...</span
+        >
+    {/if}
     <input
         type="text"
         placeholder="Message"

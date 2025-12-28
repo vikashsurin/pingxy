@@ -1,13 +1,20 @@
 <script lang="ts">
   import Navbar from "./Navbar.svelte";
+  import { chatStore } from "$lib/store.svelte.js";
 
   let { children, data } = $props();
-  let username = $derived(data?.user?.username);
 
+  $effect.pre(() => {
+    chatStore.currentUser = data.user;
+  });
+
+  $inspect({ dd: chatStore.currentUser });
+
+  let username = $derived(data?.user?.username);
 </script>
 
 <div class="h-dvh flex flex-col">
-  <div class="banner">AD Display</div>
+  <div class="banner">AD Display</div>  
 
   <Navbar {username} />
   {@render children()}

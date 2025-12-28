@@ -18,9 +18,11 @@
   let { data } = $props();
   let tab = $state(1); // for mobile screen
 
+  $inspect({ dd: chatStore.currentUser });
+
   $effect.pre(() => {
     // load users
-    chatStore.currentUser = data.user;
+    // chatStore.currentUser = chatStore.currentUser;
     data.users.forEach((user: User) => {
       chatStore.users.set(user.uid as string, user);
     });
@@ -57,7 +59,6 @@
   });
 
   onDestroy(() => {
-    console.log("destroy");
     if (socket) {
       socket.close();
     }
@@ -85,14 +86,14 @@
     >
   </div>
   {#if tab === 0}
-    <OnlineUsers user={data.user} users={chatStore.users} />
+    <OnlineUsers user={chatStore.currentUser} users={chatStore.users} />
   {:else if tab === 1}
     <!-- Chatting with -->
-    <ChatboxHeader user={data.user} />
+    <ChatboxHeader user={chatStore.currentUser} />
     <div class="flex h-screen flex-col overflow-hidden">
       <!-- CHAT MESSAGES -->
       {#key chatStore.activeChat?.uid}
-        <Messages user={data.user} {activeMessages} />
+        <Messages user={chatStore.currentUser} {activeMessages} />
       {/key}
 
       <!-- MESSAGE INPUT BOX -->
@@ -100,12 +101,13 @@
     </div>
   {:else if tab === 2}
     {#key chatStore.activeChat?.uid}
-      <Messages user={data.user} {activeMessages} />
+      <Messages user={chatStore.currentUser} {activeMessages} />
     {/key}
   {/if}
 </div>
 
 <!-- FOR LARGE SCREEN -->
+<div>{chatStore.currentUser?.bio}</div>
 <div
   class=" flex-col h-full overflow-hidden lg:flex sm:hidden md:hidden hidden"
 >
@@ -113,15 +115,15 @@
     class="grid lg:grid-cols-[auto_1fr_auto] md:grid-cols-[auto_3fr] sm:grid-cols-1 h-full gap-2"
   >
     <!-- ONLINE USERS -->
-    <OnlineUsers user={data.user} users={chatStore.users} />
+    <OnlineUsers user={chatStore.currentUser} users={chatStore.users} />
 
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Chatting with -->
-      <ChatboxHeader user={data.user} />
+      <ChatboxHeader user={chatStore.currentUser} />
 
       <!-- CHAT MESSAGES -->
       {#key chatStore.activeChat?.uid}
-        <Messages user={data.user} {activeMessages} />
+        <Messages user={chatStore.currentUser} {activeMessages} />
       {/key}
 
       <!-- MESSAGE INPUT BOX -->

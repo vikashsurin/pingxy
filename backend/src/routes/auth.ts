@@ -37,7 +37,7 @@ app.post("/register", async (c) => {
     }
 
     // Auto-login after register
-    const payload = { user: { ...user, username } };
+    const payload = { uid: user.uid };
     const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
     const token = await sign(payload, secret);
 
@@ -80,7 +80,7 @@ app.post("/login", async (c) => {
         return c.json({ error: "Invalid credentials" }, 401);
     }
 
-    const payload = { user };
+    const payload = { uid: user.uid };
     const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
     const token = await sign(payload, secret);
 
@@ -134,7 +134,7 @@ app.post("/guest", async (c) => {
     // Re-fetch user to get stored data (if we want to be safe) or use passed data
     // existing might rely on stored data.
 
-    const payload = { user };
+    const payload = { uid: user.uid };
     const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
     const token = await sign(payload, secret);
 
@@ -154,6 +154,9 @@ app.post("/guest", async (c) => {
 });
 
 app.post("/logout", (c) => {
+    // We try to get the user from the context.
+    // If authMiddleware ran, it populated this.
+    // If not (e.g. invalid token), we just proceed to clear cookie.
     const user: User = c.get("jwtPayload")?.user;
 
     if (user) {

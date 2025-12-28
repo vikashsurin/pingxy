@@ -24,15 +24,10 @@
         {chatStore.activeChat?.username}
         {chatStore.activeChat?.uid === user.uid ? " (You)" : ""}
       </span>
-      {#if chatStore.typingUsers.has(chatStore.activeChat.uid)}
-        <span class="text-xs text-blue-500 animate-pulse font-bold ml-1"
-          >Typing...</span
-        >
-      {:else}
-        <span
-          class={`fi fi-${chatStore.activeChat.country.toLocaleLowerCase()}`}
-        ></span>
-      {/if}
+
+      <span class={`fi fi-${chatStore.activeChat.country.toLocaleLowerCase()}`}
+      ></span>
+
       <EllipsisVertical
         size={24}
         class="hover:bg-gray-300 active:bg-gray-400 {toggleMenu

@@ -1,26 +1,2 @@
-// import { redirect } from "@sveltejs/kit";
-// import { jwtDecode } from "jwt-decode";
-// import type { User } from "../../../../shared/src/index";
-
-// export async function load({ request, cookies }) {
-//   const token = cookies.get("sessionid");
-
-//   if (!token) {
-//     redirect(302, "/");
-//   }
-
-//   const decoded: { user: User } = jwtDecode(token);
-//   const user: User = decoded.user as User;
-
-//   // fetch loggesd in users list
-//   const cookie = request.headers.get("cookie");
-//   const response = await fetch("http://localhost:3000/api/chat/users", {
-//     headers: {
-//       cookie: cookie as string,
-//     },
-//   });
-
-//   const data = await response.json();
-
-//   return { success: true, user: user, users: data.users };
-// }
+// This file can be empty or removed if no specific page data is needed beyond the layout data.
+// The authentication check and user fetching is handled in +layout.server.ts

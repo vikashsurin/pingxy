@@ -1,7 +1,16 @@
 <script lang="ts">
-  import { Menu, X } from "@lucide/svelte";
+  import { clickOutside } from "$lib/utils/clickOutside";
+  import {
+    ChevronDown,
+    CircleChevronDown,
+    CircleUserRound,
+    Menu,
+    X,
+  } from "@lucide/svelte";
   let { username } = $props();
   let expandMenu = $state(false);
+
+  let isMenuExpanded = $state(true);
 </script>
 
 <!-- FOR MOBILE -->
@@ -26,6 +35,7 @@
           <p class="text-md mt-4">
             Logged in as
             <span class="text-green-600 font-bold">
+              <CircleUserRound />
               {username}
             </span>
           </p>
@@ -51,19 +61,35 @@
     {@render link("/support", "Support")}
   </div>
 
-  <div class="ml-auto">
+  <div class="flex items-center gap-2 ml-auto">
     You :
-    <span class="text-green-600 font-bold">
-      {username}
-    </span>
-
-    <a
-      title="Logout"
-      href="/chat/logout"
-      data-sveltekit-preload-data={false}
-      class="underline p-2 text-red-600 hover:text-red-500 active:text-red-700"
-      >Logout</a
-    >
+    <div class="flex relative items-center gap-1 font-medium">
+      <button
+        use:clickOutside={() => (isMenuExpanded = false)}
+        class="flex items-center gap-1 hover:bg-gray-200 px-3 py-2 rounded active:bg-gray-300"
+        onclick={() => (isMenuExpanded = !isMenuExpanded)}
+      >
+        {username}
+        <CircleChevronDown size={16} strokeWidth={2} />
+      </button>
+      <!-- MENU POPUP -->
+      {#if isMenuExpanded}
+        <div
+          class="absolute py-1 flex flex-col top-full min-w-[200px] right-0 bg-white border border-gray-200 rounded"
+        >
+          {@render menuItem("/chat/view-details/me", "View details")}
+          {@render menuItem("/chat/upgrade-to-pro", "Upgrade to Pro")}
+          {@render menuItem("/chat/settings", "Settings")}
+          <a
+            title="Logout"
+            href="/chat/logout"
+            data-sveltekit-preload-data={false}
+            class="py-1 px-3 text-red-500 text-sm hover:bg-gray-100 active:text-red-600"
+            >Logout</a
+          >
+        </div>
+      {/if}
+    </div>
   </div>
 </div>
 
@@ -75,4 +101,14 @@
   >
     {label}
   </a>
+{/snippet}
+
+{#snippet menuItem(path: string, label: string)}
+  <a
+    title="Logout"
+    href={path}
+    data-sveltekit-preload-data={false}
+    class="py-1 px-3 text-gray-700 text-sm hover:bg-gray-100 active:text-blue-800"
+    >{label}</a
+  >
 {/snippet}

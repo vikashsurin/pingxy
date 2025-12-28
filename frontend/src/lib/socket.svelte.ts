@@ -138,7 +138,6 @@ export function initSocket() {
 
     // handle typing events
     if (data.type === "typing") {
-      console.log('[DEBUG] Received typing event:', data);
       const { isTyping, senderId } = data;
       chatStore.setTyping(senderId, isTyping);
     }

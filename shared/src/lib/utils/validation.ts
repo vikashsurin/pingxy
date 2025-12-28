@@ -10,6 +10,8 @@ export const userSchema = z.object({
   gender: z.string(),
   age: z.number(),
   country: z.string(),
+  bio: z.string().optional(),
+  isPaused: z.boolean().optional(),
 });
 
 export const connectionSchema = z.object({

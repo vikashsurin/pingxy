@@ -88,6 +88,25 @@ export const deleteUser = (uid: string): void => {
     db.query("DELETE FROM users WHERE uid = $uid").run({ $uid: uid });
 };
 
+export const updateUser = (uid: string, updates: Partial<User>): boolean => {
+    const user = getUser(uid);
+    if (!user) return false;
+
+    const updatedUser = { ...user, ...updates };
+
+    try {
+        const query = db.query("UPDATE users SET data = $data WHERE uid = $uid");
+        query.run({
+            $data: JSON.stringify(updatedUser),
+            $uid: uid
+        });
+        return true;
+    } catch (error) {
+        console.error("Error updating user:", error);
+        return false;
+    }
+};
+
 // Message Helpers
 
 export const createMessage = (msg: Message): boolean => {

@@ -16,6 +16,8 @@ type WebSocketData = {
 export const socketHandlers: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
   open(ws) {
+
+
     console.log(`${ws.data.user.username} joined`);
 
     // auto subscribe to the global channel
@@ -140,6 +142,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
   close(ws) {
     console.log("closed connection");
     const uid = ws.data.user.uid;
+
 
     // Always clean up the socket
     userSockets.delete(uid);

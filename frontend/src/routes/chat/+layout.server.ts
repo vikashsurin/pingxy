@@ -1,6 +1,4 @@
 import { redirect } from "@sveltejs/kit";
-import { jwtDecode } from "jwt-decode";
-import type { User } from "../../../../shared/src/lib/utils/validation.js";
 
 export async function load({ request, cookies }) {
   const token = cookies.get("sessionid");
@@ -9,23 +7,20 @@ export async function load({ request, cookies }) {
     redirect(302, "/");
   }
 
-  const decoded: { user: User } = jwtDecode(token);
-  const user: User = decoded.user as User;
-
-  // fetch loggesd in users list
+  // fetch logged in users list and current user profile
   const cookie = request.headers.get("cookie");
-  const response = await fetch("http://localhost:3000/api/users", {
-    headers: {
-      cookie: cookie as string,
-    },
-  });
+  const [usersRes, meRes] = await Promise.all([
+      fetch("http://localhost:3000/api/users", { headers: { cookie: cookie as string } }),
+      fetch("http://localhost:3000/api/users/me", { headers: { cookie: cookie as string } })
+  ]);
 
-  if (!response.ok) {
+  if (!usersRes.ok || !meRes.ok) {
     cookies.delete("sessionid", { path: "/" });
     redirect(302, "/");
   }
 
-  const data = await response.json();
+  const usersData = await usersRes.json();
+  const meData = await meRes.json();
 
-  return { success: true, user: user, users: data.users };
+  return { success: true, user: meData.user, users: usersData.users };
 }

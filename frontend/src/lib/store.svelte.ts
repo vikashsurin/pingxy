@@ -3,6 +3,8 @@ import { type Message, type User, messageSchema, type ChatTarget, type Room } fr
 import { getSocket } from "./socket.svelte";
 
 class ChatStore {
+  currentUser = $state<User | null>(null);
+  
   users = new SvelteMap<string, User>();
   rooms = new SvelteMap<string, Room>([
     ["global", { uid: "global", name: "Global Chat", type: "public" }]
@@ -23,7 +25,6 @@ class ChatStore {
     type: "public"
   } as Room);
 
-  currentUser = $state<User | null>(null);
 
   recentChatIds = $derived(new Set(this.messages.keys()));
 

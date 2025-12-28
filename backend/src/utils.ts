@@ -6,6 +6,7 @@ import {
   User,
 } from "../../shared/src/lib/utils/validation.js";
 import { verify } from "hono/jwt";
+import { getUser } from "./db";
 
 // function to validate connections
 export function validateConnection(connection: Connection) {
@@ -44,9 +45,11 @@ export async function getUserDataFromReq(req: Request) {
     const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
     const decoded = await verify(sessionid, secret);
 
-    if (!decoded?.user) return null;
+    const uid = decoded.uid as string;
+    if (!uid) return null;
 
-    const user: User = decoded.user as User;
+    const user = getUser(uid);
+    if (!user) return null;
 
     return { user };
   } catch (error) {
