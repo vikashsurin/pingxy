@@ -62,7 +62,10 @@ export function initSocket() {
       const { roomId, roomName } = data;
       if (chatStore.activeChat?.uid === roomId) {
         // Force switch to global
-        chatStore.activeChat = chatStore.rooms.get("global")!;
+        const globalRoom = chatStore.rooms.get("global");
+        if (globalRoom) {
+          chatStore.activeChat = globalRoom;
+        }
       }
       // Maybe show alert "You were kicked from roomName"
       alert(`You were kicked from ${roomName}`);

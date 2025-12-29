@@ -19,7 +19,14 @@ export const authMiddleware = async (c: Context, next: Next) => {
     // Extract UID and SID from the simplified payload
     const uid = decoded.uid as string;
     const sid = decoded.sid as string;
-    const session = getSession(sid, getConnInfo(c).remote.address!);
+    const connInfo = getConnInfo(c);
+    const ipAddress = connInfo?.remote?.address;
+
+    if (!ipAddress) {
+      return c.json({ message: "Unable to retrieve client IP" }, 400);
+    }
+
+    const session = getSession(sid, ipAddress);
 
     // If the session is expired due to inactivity, delete the cookie
     if (!session) {
