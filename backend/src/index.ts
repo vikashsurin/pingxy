@@ -12,6 +12,7 @@ import { socketHandlers } from "./socketHandlers";
 import { authMiddleware } from "./middlewares/auth";
 import authRouter from "./routes/auth";
 import userRouter from "./routes/users";
+import { getActiveUsers } from "./db/users.js";
 
 const app = new Hono();
 
@@ -25,11 +26,6 @@ app.use(
   })
 );
 app.use(prettyJSON());
-
-// app.get("/", (c) => {
-//   const info = getConnInfo(c);
-//   return c.json(info);
-// });
 
 app.onError((err, c) => {
   console.error("Global Error:", err);

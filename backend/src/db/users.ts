@@ -86,3 +86,51 @@ export const updateUser = (uid: string, updates: Partial<User>): boolean => {
     return false;
   }
 };
+
+export const getActiveUsers = (): User[] => {
+  // Example in your TypeScript context
+  // SQLite UNIXEPOCH() uses seconds, so we convert JS milliseconds to seconds
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  const activeThresholdSeconds = nowInSeconds - 30 * 60; // 30 mins ago in seconds
+
+  const results = db
+    .query(
+      `
+      SELECT u.data
+      FROM users u
+      JOIN sessions s ON u.uid = s.uid
+      WHERE s.expires_at > ?        -- Must not be expired
+        AND s.last_activity > ?    -- Must have recent activity
+      GROUP BY u.uid
+      ORDER BY s.last_activity DESC
+  `
+    )
+    .all(nowInSeconds, activeThresholdSeconds) as { data: string }[];
+
+  return results.map((row) => JSON.parse(row.data) as User);
+};
+
+// NOT IMPLEMENTED YET
+export const getGuests = (): User[] => {
+  const query = db.query("SELECT data FROM users WHERE is_guest = 1");
+  const results = query.all() as { data: string }[];
+  return results.map((row) => JSON.parse(row.data) as User);
+};
+
+export const getAdmins = (): User[] => {
+  const query = db.query("SELECT data FROM users WHERE is_admin = 1");
+  const results = query.all() as { data: string }[];
+  return results.map((row) => JSON.parse(row.data) as User);
+};
+
+export const getModerators = (): User[] => {
+  const query = db.query("SELECT data FROM users WHERE is_moderator = 1");
+  const results = query.all() as { data: string }[];
+  return results.map((row) => JSON.parse(row.data) as User);
+};
+
+export const getBannedUsers = (): User[] => {
+  const query = db.query("SELECT data FROM users WHERE is_banned = 1");
+  const results = query.all() as { data: string }[];
+  return results.map((row) => JSON.parse(row.data) as User);
+};

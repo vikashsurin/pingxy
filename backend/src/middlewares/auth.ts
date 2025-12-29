@@ -1,10 +1,10 @@
-import { getCookie } from "hono/cookie";
+import { deleteCookie, getCookie } from "hono/cookie";
 import { getUser } from "../db/users";
 import { verify } from "hono/jwt";
 import type { Context, Next } from "hono";
 import type { User } from "../../../shared/src/lib/utils/validation";
 import { getConnInfo } from "hono/bun";
-import { getSession } from "../db/sessions";
+import { getSession, updateSessionActivity } from "../db/sessions";
 
 export const authMiddleware = async (c: Context, next: Next) => {
   const cookie = getCookie(c, "sessionid");
@@ -23,7 +23,16 @@ export const authMiddleware = async (c: Context, next: Next) => {
     const info = getConnInfo(c);
     const session = getSession(sid, info.remote.address!);
 
-    if (!uid || !sid || !session) {
+    // If the session is expired due to inactivity, delete the cookie
+    if (!session) {
+      deleteCookie(c, "sessionid", {});
+      return c.json({ message: "Session expired! Relogin" }, 401);
+    }
+
+    // Update session activity
+    updateSessionActivity(sid);
+
+    if (!uid || !sid) {
       return c.json({ message: "invalid token payload" }, 401);
     }
 

@@ -49,7 +49,6 @@ app.post("/register", async (c) => {
   // Create session and add it to payload
   const info = getConnInfo(c);
   const ip_address = info.remote.address!;
-  console.log({ ip: ip_address });
   const sid = createSession({ user, ip_address });
   const payload = { uid: user.uid, sid };
   const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";

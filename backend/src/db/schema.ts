@@ -82,6 +82,7 @@ try {
 try {
   // Create an index for faster 'online users' lookups
   db.run(
-    `CREATE INDEX IF NOT EXISTS idx_sessions_activity ON sessions(last_activity)`
+    `CREATE INDEX idx_sessions_active ON sessions(expires_at, last_activity, uid);
+    `
   );
 } catch (error) {}
