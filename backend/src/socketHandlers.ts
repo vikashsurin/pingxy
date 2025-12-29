@@ -10,7 +10,8 @@ import {
   kickUserSchema,
 } from "../../shared/src/lib/utils/validation.js";
 import { userSockets, announcedUsers, roomUsers } from "./state";
-import { createMessage, getGlobalMessages, getDirectMessages, getAllRooms, createRoom, getRoomMessages, updateRoom, deleteRoom, getRoom } from "./db";
+import { createMessage, getGlobalMessages, getDirectMessages, getRoomMessages } from "./db/messages";
+import { getAllRooms, createRoom, updateRoom, deleteRoom, getRoom } from "./db/rooms";
 
 type WebSocketData = {
   user: User;

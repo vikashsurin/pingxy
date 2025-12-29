@@ -3,7 +3,7 @@ import { verify } from "hono/jwt";
 import type { Context, Next } from "hono";
 import type { User } from "../../../shared/src/lib/utils/validation";
 
-import { getUser } from "../db";
+import { getUser } from "../db/users";
 
 export const authMiddleware = async (c: Context, next: Next) => {
     const cookie = getCookie(c, "sessionid");

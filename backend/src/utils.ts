@@ -6,7 +6,7 @@ import {
   User,
 } from "../../shared/src/lib/utils/validation.js";
 import { verify } from "hono/jwt";
-import { getUser } from "./db";
+import { getUser } from "./db/users";
 
 // function to validate connections
 export function validateConnection(connection: Connection) {

@@ -3,7 +3,7 @@ import { deleteCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import type { User } from "../../../shared/src/lib/utils/validation";
 import { userSockets, announcedUsers } from "../state";
-import { createUser, deleteUser, getUserByUsername, getUser, getUserWithAuth } from "../db";
+import { createUser, deleteUser, getUserByUsername, getUser, getUserWithAuth } from "../db/users";
 
 const app = new Hono();
 
