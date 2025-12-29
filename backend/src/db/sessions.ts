@@ -2,7 +2,7 @@ import type { User } from "../../../shared/src/lib/utils/validation";
 import db from "./client";
 import "./schema";
 
-const validateSession = db.prepare(`
+const validateSession = db.query(`
     SELECT * FROM sessions 
     WHERE sid = ? 
       AND last_activity > (UNIXEPOCH() - 1800)  -- 30 minutes
@@ -13,29 +13,34 @@ const validateSession = db.prepare(`
 export const createSession = ({
   user,
   ip_address,
+  user_agent,
 }: {
   user: User;
   ip_address: string;
+  user_agent?: string;
 }) => {
   const sid = crypto.randomUUID();
   const uid = user.uid;
-  const expires_at = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 1 day
+  const now = Math.floor(Date.now() / 1000);
+  const expires_at = now + 24 * 60 * 60; // 1 day
 
   try {
     const query = db.query(
       "INSERT INTO sessions (sid, uid, last_activity, expires_at, ip_address, user_agent) VALUES ($sid, $uid, $last_activity, $expires_at, $ip_address, $user_agent)"
     );
+
     query.run({
       $sid: sid,
       $uid: uid,
-      $last_activity: Math.floor(Date.now() / 1000),
+      $last_activity: now,
       $expires_at: expires_at,
       $ip_address: ip_address,
-      $user_agent: navigator.userAgent,
+      $user_agent: user_agent ?? "unknown",
     });
   } catch (error) {
     console.error("Error creating session:", error);
   }
+
   return sid;
 };
 

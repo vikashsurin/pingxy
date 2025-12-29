@@ -25,7 +25,7 @@
   let loading = $state(false); // let geoLocation = $state();
 
   function handleGender(
-    e: Event & { currentTarget: EventTarget & HTMLInputElement },
+    e: Event & { currentTarget: EventTarget & HTMLInputElement }
   ) {
     const target = e.target as HTMLInputElement;
     gender = target.value;
@@ -51,7 +51,7 @@
     }
 
     const response = await fetch(
-      "http://localhost:3000/api/users/check?username=" + username,
+      "http://localhost:3000/api/users/check?username=" + username
     );
     const data = await response.json();
 

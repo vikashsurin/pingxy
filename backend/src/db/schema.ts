@@ -64,7 +64,7 @@ db.run(`
 
 // Migrations
 try {
-  db.run("ALTER TABLE messages ADD COLUMN room_id TEXT REFERENCES rooms(id)");
+  // db.run("ALTER TABLE messages ADD COLUMN room_id TEXT REFERENCES rooms(id)");
   // Migrate existing global messages
   db.run(
     "UPDATE messages SET room_id = 'global' WHERE recipient_id IS NULL AND room_id IS NULL"

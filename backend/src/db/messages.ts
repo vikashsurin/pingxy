@@ -24,13 +24,31 @@ try {
 
 export const createMessage = (msg: Message): boolean => {
   try {
-    const query = db.query(`
-            INSERT INTO messages (id, sender_id, recipient_id, content, timestamp, read) 
-            VALUES ($id, $sender_id, $recipient_id, $room_id, $content, $timestamp, $read)
-        `);
     if (!msg.senderId) {
       throw new Error("Cannot save message without senderId");
     }
+
+    const query = db.query(`
+      INSERT INTO messages (
+        id,
+        sender_id,
+        recipient_id,
+        room_id,
+        content,
+        timestamp,
+        read
+      )
+      VALUES (
+        $id,
+        $sender_id,
+        $recipient_id,
+        $room_id,
+        $content,
+        $timestamp,
+        $read
+      )
+    `);
+
     query.run({
       $id: msg.id,
       $sender_id: msg.senderId,
@@ -40,6 +58,7 @@ export const createMessage = (msg: Message): boolean => {
       $timestamp: msg.timestamp,
       $read: msg.status === "read" ? 1 : 0,
     });
+
     return true;
   } catch (error) {
     console.error("Error creating message:", error);
