@@ -1,6 +1,11 @@
 import { chatStore } from "$lib/store.svelte.js";
 
-import type { Connection, Message, User, Room } from "../../../shared/src/lib/utils/validation.js";
+import type {
+  Connection,
+  Message,
+  User,
+  Room,
+} from "../../../shared/src/lib/utils/validation.js";
 
 export let socket: WebSocket | null = null;
 
@@ -28,41 +33,39 @@ export function initSocket() {
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
-
-
     if (data.type === "room_list") {
       const rooms: Room[] = data.rooms;
       chatStore.setRooms(rooms);
     }
-    
+
     if (data.type === "room_created") {
       const room: Room = data.room;
       chatStore.addRoom(room);
     }
-    
+
     if (data.type === "room_updated") {
-       const room: Room = data.room;
-       chatStore.updateRoom(room);
+      const room: Room = data.room;
+      chatStore.updateRoom(room);
     }
 
     if (data.type === "room_deleted") {
-        const { roomId } = data;
-        chatStore.removeRoom(roomId);
+      const { roomId } = data;
+      chatStore.removeRoom(roomId);
     }
 
     if (data.type === "error") {
-        console.error("Socket Error:", data.message);
-        // TODO: Show toast
+      console.error("Socket Error:", data.message);
+      // TODO: Show toast
     }
 
     if (data.type === "kicked") {
-        const { roomId, roomName } = data;
-        if (chatStore.activeChat?.uid === roomId) {
-            // Force switch to global
-            chatStore.activeChat = chatStore.rooms.get('global')!;
-        }
-        // Maybe show alert "You were kicked from roomName"
-        alert(`You were kicked from ${roomName}`);
+      const { roomId, roomName } = data;
+      if (chatStore.activeChat?.uid === roomId) {
+        // Force switch to global
+        chatStore.activeChat = chatStore.rooms.get("global")!;
+      }
+      // Maybe show alert "You were kicked from roomName"
+      alert(`You were kicked from ${roomName}`);
     }
 
     // update user list
@@ -114,19 +117,17 @@ export function initSocket() {
       return;
     }
 
-
-
     // update with new messages
     if (data.type === "message") {
       const message: Message = data;
-      
+
       // Check if it is a Room Message
       if (message.roomId) {
-         const roomId = message.roomId;
-         // Ensure we have the room in store? Maybe auto-add if missing?
-         // For now assume room_list populated it or we don't care about metadata yet.
-         
-         chatStore.messages.set(roomId, [
+        const roomId = message.roomId;
+        // Ensure we have the room in store? Maybe auto-add if missing?
+        // For now assume room_list populated it or we don't care about metadata yet.
+
+        chatStore.messages.set(roomId, [
           ...(chatStore.messages.get(roomId) || []),
           message,
         ]);
@@ -137,10 +138,10 @@ export function initSocket() {
       } else {
         // Direct Message
         const senderId = message.senderId!;
-        // If I sent it, it should go to recipient's conversation? 
+        // If I sent it, it should go to recipient's conversation?
         // But incoming message is usually from someone else.
         // Unless it's a sync from other session.
-        
+
         chatStore.messages.set(senderId, [
           ...(chatStore.messages.get(senderId) || []),
           message,
@@ -149,15 +150,20 @@ export function initSocket() {
         // update unread messages
         if (chatStore.activeChat?.uid !== senderId) {
           chatStore.addUnread(senderId);
-        } else if (chatStore.activeChat?.uid === senderId && chatStore.currentUser) {
+        } else if (
+          chatStore.activeChat?.uid === senderId &&
+          chatStore.currentUser
+        ) {
           // Send read receipt if active
           if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-              type: 'read_receipt',
-              messageId: message.id,
-              senderId: chatStore.currentUser.uid,
-              recipientId: senderId
-            }));
+            socket.send(
+              JSON.stringify({
+                type: "read_receipt",
+                messageId: message.id,
+                senderId: chatStore.currentUser.uid,
+                recipientId: senderId,
+              })
+            );
           }
         }
       }

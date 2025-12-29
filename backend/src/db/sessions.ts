@@ -1,4 +1,4 @@
-import type { Session, User } from "../../../shared/src/lib/utils/validation";
+import type { User } from "../../../shared/src/lib/utils/validation";
 import db from "./client";
 import "./schema";
 
@@ -39,14 +39,14 @@ export const createSession = ({
   return sid;
 };
 
-export const getSession = (sid: string, ip_address: string): Session | null => {
+export const getSession = (sid: string, ip_address: string) => {
   try {
     const session = validateSession.get(sid, ip_address);
     if (!session) {
       deleteSession(sid);
       return null;
     }
-    return session as Session;
+    return session;
   } catch (error) {
     console.error("Error validating session:", error);
 

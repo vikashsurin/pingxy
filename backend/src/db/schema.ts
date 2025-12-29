@@ -21,8 +21,8 @@ db.run(`
   CREATE TABLE IF NOT EXISTS messages (
     id TEXT PRIMARY KEY,
     sender_id TEXT NOT NULL,
-    recipient_id TEXT, -- NULL for global/room chat (legacy), or specific user for DM
-    room_id TEXT,      -- NULL for DM, Set for Room
+    recipient_id TEXT,
+    room_id TEXT,
     content TEXT NOT NULL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     read BOOLEAN DEFAULT 0,

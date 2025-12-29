@@ -2,7 +2,6 @@ import { deleteCookie, getCookie } from "hono/cookie";
 import { getUser } from "../db/users";
 import { verify } from "hono/jwt";
 import type { Context, Next } from "hono";
-import type { User } from "../../../shared/src/lib/utils/validation";
 import { getConnInfo } from "hono/bun";
 import { getSession, updateSessionActivity } from "../db/sessions";
 
@@ -20,8 +19,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
     // Extract UID and SID from the simplified payload
     const uid = decoded.uid as string;
     const sid = decoded.sid as string;
-    const info = getConnInfo(c);
-    const session = getSession(sid, info.remote.address!);
+    const session = getSession(sid, getConnInfo(c).remote.address!);
 
     // If the session is expired due to inactivity, delete the cookie
     if (!session) {

@@ -75,10 +75,10 @@ export const kickUserSchema = z.object({
 export const sessionSchema = z.object({
   sid: z.uuid(),
   uid: z.string(),
-  last_activity: z.number(),
-  expires_at: z.number(),
-  ip_address: z.union([z.ipv4(), z.ipv6()]).optional(),
-  user_agent: z.string().optional(),
+  lastActivity: z.number(),
+  expiresAt: z.number(),
+  ipAddress: z.union([z.ipv4(), z.ipv6()]).optional(),
+  userAgent: z.string().optional(),
 });
 
 export type User = z.infer<typeof userSchema>;

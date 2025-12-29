@@ -10,19 +10,16 @@ import {
   updateUser,
   getActiveUsers,
 } from "../db/users";
-import { userSockets } from "../state.js";
 
 const app = new Hono();
 
 app.get("/", (c) => {
   const user: User = c.get("jwtPayload").user;
-  const activeUsers = getActiveUsers();
-  console.log({ activeUsers });
   // Ensure the current user is in the DB (recovery from inconsistent state)
   if (!getUser(user.uid)) {
     createUser(user);
   }
-  return c.json({ users: getAllUsers() });
+  return c.json({ users: getActiveUsers() });
 });
 
 app.get("/check", async (c) => {
