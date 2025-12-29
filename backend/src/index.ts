@@ -12,7 +12,6 @@ import { socketHandlers } from "./socketHandlers";
 import { authMiddleware } from "./middlewares/auth";
 import authRouter from "./routes/auth";
 import userRouter from "./routes/users";
-import { getActiveUsers } from "./db/users.js";
 
 const app = new Hono();
 
@@ -21,7 +20,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    exposeHeaders: ["Content-Type', 'Authorization"],
+    exposeHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -69,11 +68,15 @@ serve({
     const url = new URL(req.url);
     if (url.pathname === "/ws/") {
       const userData = await getUserDataFromReq(req);
-      const user: User = userData?.user!;
+      if (!userData || !userData.user) {
+        return new Response("Unauthorized WebSocket", { status: 401 });
+      }
+
+      const user: User = userData.user;
 
       const success = server.upgrade(req, {
         data: {
-          user: user,
+          user,
         },
       });
 

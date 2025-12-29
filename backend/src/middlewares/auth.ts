@@ -9,7 +9,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
   const cookie = getCookie(c, "sessionid");
 
   if (!cookie) {
-    return c.json({ message: "not logged in" });
+    return c.json({ message: "not logged in" }, 401);
   }
 
   try {
