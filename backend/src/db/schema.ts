@@ -45,6 +45,23 @@ db.run(`
   )
 `);
 
+// Session table
+db.run(`
+  CREATE TABLE IF NOT EXISTS sessions (
+    sid TEXT PRIMARY KEY,
+    uid TEXT NOT NULL,
+    last_activity INTEGER NOT NULL, -- Sliding timeout (30 mins)
+    expires_at INTEGER NOT NULL,    -- Absolute timeout (e.g., 24 hours)
+    created_at INTEGER DEFAULT (UNIXEPOCH()),
+    
+    -- Security Metadata
+    ip_address TEXT,                -- Detect location/network changes
+    user_agent TEXT,                -- Detect device/browser changes
+    
+    FOREIGN KEY (uid) REFERENCES users (uid) ON DELETE CASCADE
+  );
+`);
+
 // Migrations
 try {
   db.run("ALTER TABLE messages ADD COLUMN room_id TEXT REFERENCES rooms(id)");
@@ -61,3 +78,10 @@ try {
 } catch (e) {
   // Column likely exists
 }
+
+try {
+  // Create an index for faster 'online users' lookups
+  db.run(
+    `CREATE INDEX IF NOT EXISTS idx_sessions_activity ON sessions(last_activity)`
+  );
+} catch (error) {}

@@ -10,6 +10,9 @@ import {
   getUser,
   getUserWithAuth,
 } from "../db/users";
+import { createSession, deleteSession } from "../db/sessions";
+import { authMiddleware } from "../middlewares/auth";
+import { getConnInfo } from "hono/bun";
 
 const app = new Hono();
 
@@ -43,7 +46,12 @@ app.post("/register", async (c) => {
   }
 
   // Auto-login after register
-  const payload = { uid: user.uid };
+  // Create session and add it to payload
+  const info = getConnInfo(c);
+  const ip_address = info.remote.address!;
+  console.log({ ip: ip_address });
+  const sid = createSession({ user, ip_address });
+  const payload = { uid: user.uid, sid };
   const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
   const token = await sign(payload, secret);
 
@@ -62,6 +70,7 @@ app.post("/register", async (c) => {
   });
 });
 
+// LOGIN
 app.post("/login", async (c) => {
   const body = await c.req.json();
   const { username, password } = body;
@@ -86,7 +95,11 @@ app.post("/login", async (c) => {
     return c.json({ error: "Invalid credentials" }, 401);
   }
 
-  const payload = { uid: user.uid };
+  //  Generate session id
+  //  Add it to paylod
+  const ip_address = getConnInfo(c).remote.address!;
+  const sid = createSession({ user, ip_address });
+  const payload = { uid: user.uid, sid };
   const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
   const token = await sign(payload, secret);
 
@@ -97,6 +110,8 @@ app.post("/login", async (c) => {
     path: "/",
     sameSite: "lax",
   });
+
+  c.set("jwtPayload", { user, sid });
 
   return c.json({
     uid: user.uid,
@@ -159,11 +174,13 @@ app.post("/guest", async (c) => {
   });
 });
 
-app.post("/logout", (c) => {
+app.post("/logout", authMiddleware, (c) => {
   // We try to get the user from the context.
   // If authMiddleware ran, it populated this.
   // If not (e.g. invalid token), we just proceed to clear cookie.
+
   const user: User = c.get("jwtPayload")?.user;
+  const sid: string = c.get("jwtPayload")?.sid;
 
   if (user) {
     const uid = user.uid;
@@ -182,6 +199,11 @@ app.post("/logout", (c) => {
     secure: false,
     sameSite: "lax",
   });
+
+  // Delete Session
+  if (sid) {
+    deleteSession(sid);
+  }
 
   return c.json({ message: "logged out" });
 });

@@ -20,13 +20,11 @@ app.get("/", (c) => {
   if (!getUser(user.uid)) {
     createUser(user);
   }
-  console.log({ userSockets });
   return c.json({ users: getAllUsers() });
 });
 
 app.get("/check", async (c) => {
   const name: string = c.req.query("username") as string;
-
   const username = capitalizeFirst(name);
 
   if (!username) {

@@ -26,6 +26,11 @@ app.use(
 );
 app.use(prettyJSON());
 
+// app.get("/", (c) => {
+//   const info = getConnInfo(c);
+//   return c.json(info);
+// });
+
 app.onError((err, c) => {
   console.error("Global Error:", err);
   return c.json(
@@ -40,10 +45,6 @@ app.onError((err, c) => {
 app.get("/api/", (c) => {
   return c.json({ app: "chat" });
 });
-app.get("/api/health", (c) => {
-  return c.json({ status: "ok" });
-});
-
 app.get("/api/health", (c) => {
   return c.json({ status: "ok" });
 });
@@ -84,7 +85,7 @@ serve({
         ? undefined
         : new Response("WebSocket upgrade error", { status: 400 });
     }
-    return app.fetch(req);
+    return app.fetch(req, { server });
   },
 
   port: 3000,

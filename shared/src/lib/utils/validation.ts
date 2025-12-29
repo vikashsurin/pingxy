@@ -72,6 +72,14 @@ export const kickUserSchema = z.object({
   userId: z.string(),
 });
 
+export const sessionSchema = z.object({
+  sid: z.uuid(),
+  uid: z.string(),
+  last_activity: z.number(),
+  expires_at: z.number(),
+  ip_address: z.union([z.ipv4(), z.ipv6()]).optional(),
+  user_agent: z.string().optional(),
+});
 
 export type User = z.infer<typeof userSchema>;
 export type Connection = z.infer<typeof connectionSchema>;
@@ -79,5 +87,6 @@ export type Message = z.infer<typeof messageSchema>;
 export type ReadReceipt = z.infer<typeof readReceiptSchema>;
 export type TypingEvent = z.infer<typeof typingEventSchema>;
 export type Room = z.infer<typeof roomSchema>;
+export type Session = z.infer<typeof sessionSchema>;
 
 export type ChatTarget = User | Room;
