@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { User } from "../../../shared/src/lib/utils/validation.js";
 import { capitalizeFirst } from "../../../shared/src/lib/utils/string.js";
 import { createUser, deleteUser, getAllUsers, getUserByUsername, getUser, updateUser } from "../db";
+import { userSockets } from "../state.js";
 
 const app = new Hono();
 
@@ -12,7 +13,7 @@ app.get("/", (c) => {
     if (!getUser(user.uid)) {
         createUser(user);
     }
-
+    console.log({userSockets})
     return c.json({ users: getAllUsers() });
 });
 

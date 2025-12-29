@@ -11,18 +11,18 @@
   import Messages from "./ChatMessages.svelte";
   import ChatInput from "./ChatInput.svelte";
   import { browser } from "$app/environment";
-  import ChatboxHeader from "$lib/components/ChatboxHeader.svelte";
+  import ChatboxHeader from "./ChatboxHeader.svelte";
 
   let socket: WebSocket | null = null;
 
   let { data } = $props();
   let tab = $state(1); // for mobile screen
 
-  $inspect({ dd: chatStore.currentUser });
+  $inspect({ dd: chatStore.currentUser! });
 
   $effect.pre(() => {
     // load users
-    // chatStore.currentUser = chatStore.currentUser;
+    // chatStore.currentUser! = chatStore.currentUser!;
     data.users.forEach((user: User) => {
       chatStore.users.set(user.uid as string, user);
     });
@@ -49,7 +49,7 @@
   });
 
   const activeMessages = $derived<Message[] | undefined>(
-    chatStore.messages.get(chatStore.activeChat?.uid!),
+    chatStore.messages.get(chatStore.activeChat?.uid!)
   );
 
   onMount(() => {
@@ -86,14 +86,14 @@
     >
   </div>
   {#if tab === 0}
-    <OnlineUsers user={chatStore.currentUser} users={chatStore.users} />
+    <OnlineUsers user={chatStore.currentUser!} users={chatStore.users} />
   {:else if tab === 1}
     <!-- Chatting with -->
-    <ChatboxHeader user={chatStore.currentUser} />
+    <ChatboxHeader user={chatStore.currentUser!} />
     <div class="flex h-screen flex-col overflow-hidden">
       <!-- CHAT MESSAGES -->
       {#key chatStore.activeChat?.uid}
-        <Messages user={chatStore.currentUser} {activeMessages} />
+        <Messages user={chatStore.currentUser!} {activeMessages} />
       {/key}
 
       <!-- MESSAGE INPUT BOX -->
@@ -101,13 +101,13 @@
     </div>
   {:else if tab === 2}
     {#key chatStore.activeChat?.uid}
-      <Messages user={chatStore.currentUser} {activeMessages} />
+      <Messages user={chatStore.currentUser!} {activeMessages} />
     {/key}
   {/if}
 </div>
 
 <!-- FOR LARGE SCREEN -->
-<div>{chatStore.currentUser?.bio}</div>
+<div>{chatStore.currentUser!?.bio}</div>
 <div
   class=" flex-col h-full overflow-hidden lg:flex sm:hidden md:hidden hidden"
 >
@@ -115,15 +115,15 @@
     class="grid lg:grid-cols-[auto_1fr_auto] md:grid-cols-[auto_3fr] sm:grid-cols-1 h-full gap-2"
   >
     <!-- ONLINE USERS -->
-    <OnlineUsers user={chatStore.currentUser} users={chatStore.users} />
+    <OnlineUsers user={chatStore.currentUser!} users={chatStore.users} />
 
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Chatting with -->
-      <ChatboxHeader user={chatStore.currentUser} />
+      <ChatboxHeader user={chatStore.currentUser!} />
 
       <!-- CHAT MESSAGES -->
       {#key chatStore.activeChat?.uid}
-        <Messages user={chatStore.currentUser} {activeMessages} />
+        <Messages user={chatStore.currentUser!} {activeMessages} />
       {/key}
 
       <!-- MESSAGE INPUT BOX -->

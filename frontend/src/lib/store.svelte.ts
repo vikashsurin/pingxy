@@ -6,9 +6,7 @@ class ChatStore {
   currentUser = $state<User | null>(null);
   
   users = new SvelteMap<string, User>();
-  rooms = new SvelteMap<string, Room>([
-    ["global", { uid: "global", name: "Global Chat", type: "public" }]
-  ]);
+  rooms = new SvelteMap<string, Room>();
   unread = new SvelteMap<string, number>();
   messages = new SvelteMap<string, Message[]>();
   typingUsers = new SvelteSet<string>();
@@ -78,9 +76,42 @@ class ChatStore {
   setTyping(uid: string, isTyping: boolean) {
     if (isTyping) {
       this.typingUsers.add(uid);
-    } else {
       this.typingUsers.delete(uid);
     }
+  }
+
+  setRooms(rooms: Room[]) {
+    this.rooms.clear();
+    rooms.forEach(room => this.rooms.set(room.uid, room));
+    
+    // Ensure activeChat is valid or reset to global if it exists
+    if (!this.rooms.has(this.activeChat?.uid) && this.activeChat?.uid === 'global') {
+        // if global is missing for some reason, we might want to re-add it or wait
+    }
+  }
+
+  addRoom(room: Room) {
+    this.rooms.set(room.uid, room);
+  }
+
+  updateRoom(room: Room) {
+      if (this.rooms.has(room.uid)) {
+          this.rooms.set(room.uid, room);
+          // If active chat usage relies on room object, it should be reactive if we used the object from map.
+          // But activeChat is a separate reference.
+          if (this.activeChat?.uid === room.uid) {
+              this.activeChat = room;
+          }
+      }
+  }
+
+  removeRoom(roomId: string) {
+      this.rooms.delete(roomId);
+      if (this.activeChat?.uid === roomId) {
+          // Switch to global or empty
+          const global = this.rooms.get('global');
+          if (global) this.activeChat = global;
+      }
   }
 
   // --- Business Logic ---
@@ -149,7 +180,9 @@ class ChatStore {
       text: trimmedMessage,
       senderId: this.currentUser.uid,
       senderName: this.currentUser.username,
-      recipientId: this.activeChat.uid,
+      // Logic for Room vs DM
+      recipientId: this.rooms.has(this.activeChat.uid) ? undefined : this.activeChat.uid,
+      roomId: this.rooms.has(this.activeChat.uid) ? this.activeChat.uid : undefined,
       timestamp: Date.now(),
       status: "sent",
     };

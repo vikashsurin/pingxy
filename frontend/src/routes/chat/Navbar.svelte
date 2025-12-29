@@ -10,7 +10,7 @@
   let { username } = $props();
   let expandMenu = $state(false);
 
-  let isMenuExpanded = $state(true);
+  let isMenuExpanded = $state(false);
 </script>
 
 <!-- FOR MOBILE -->

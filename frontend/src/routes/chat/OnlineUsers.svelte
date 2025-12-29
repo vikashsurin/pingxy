@@ -3,15 +3,21 @@
     User,
     ChatTarget,
   } from "../../../../shared/src/lib/utils/validation.js";
-  import GenderIcon from "$lib/components/GenderIcon.svelte";
   import { chatStore } from "$lib/store.svelte.js";
+  import GenderIcon from "./GenderIcon.svelte";
   import { ChevronDown, ChevronUp, MessageSquare, Hash } from "@lucide/svelte";
-  import SidebarHeader from "$lib/components/SidebarHeader.svelte";
+  import SidebarHeader from "./SidebarHeader.svelte";
+  import CreateRoomModal from "./CreateRoomModal.svelte";
+  import RoomManagementModal from "./RoomManagementModal.svelte";
+  import { getSocket } from "$lib/socket.svelte.js";
 
   let { user: me, users } = $props();
 
   let isExpandedRecentChats = $state(false);
   let filterGender = $state("all");
+  let showCreateRoomModal = $state(false);
+  let selectedRoomForManagement = $state<ChatTarget | null>(null);
+  let selectedTab = $state("0");
 
   let usersCount = $derived.by(() => {
     return users.size - 1;
@@ -32,6 +38,15 @@
       })
       .sort((a, b) => a.country.localeCompare(b.country));
   });
+
+  let sortedRooms = $derived.by(() => {
+    return Array.from(chatStore.rooms.values()).sort((a, b) => {
+      if (a.uid === "global") return -1;
+      if (b.uid === "global") return 1;
+      return a.name.localeCompare(b.name);
+    });
+  });
+
   // const genderFilter
   function handleGenderFilter(e: Event & { target: HTMLInputElement }) {
     filterGender = e.target.value;
@@ -40,8 +55,27 @@
   function handleClick(target: ChatTarget) {
     if (!target) return;
     chatStore.activeChat = target;
+
+    // If room, ensure we join/fetch history
+    if ("type" in target) {
+      const socket = getSocket();
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: "join_room", roomId: target.uid }));
+      }
+    }
   }
 </script>
+
+{#if showCreateRoomModal}
+  <CreateRoomModal onClose={() => (showCreateRoomModal = false)} />
+{/if}
+
+{#if selectedRoomForManagement && "type" in selectedRoomForManagement}
+  <RoomManagementModal
+    room={selectedRoomForManagement}
+    onClose={() => (selectedRoomForManagement = null)}
+  />
+{/if}
 
 <!-- USERS -->
 <div class="bg-gray-100 min-w-75 flex flex-col overflow-hidden">
@@ -81,15 +115,61 @@
       <!-- Separator -->
       <div class="border border-gray-700 my-2"></div>
 
-      <!-- Online Users -->
-      {#each sortedUsers as user (user.uid)}
-        {@render itemRow(user)}
-      {/each}
+      <!-- TABS -->
+      <div class="flex items-center">
+        <div class="flex w-full items-center justify-center">
+          <button
+            class="px-2 py-1 w-full hover:bg-gray-300 relative border-gray-200 {selectedTab ===
+            '0'
+              ? 'bg-gray-400'
+              : ''}"
+            onclick={() => (selectedTab = "0")}>Users</button
+          >
+        </div>
+        <div class="flex w-full items-center justify-center">
+          <button
+            class="px-2 py-1 w-full hover:bg-gray-300 relative border-gray-200 {selectedTab ===
+            '1'
+              ? 'bg-gray-400'
+              : ''}"
+            onclick={() => (selectedTab = "1")}>Rooms</button
+          >
+        </div>
+      </div>
+
+      {#if selectedTab === "0"}
+        <!-- Online Users -->
+        {#each sortedUsers as user (user.uid)}
+          {@render itemRow(user)}
+        {/each}
+        <!-- ROOMS -->
+      {:else if selectedTab === "1"}
+        <div class="w-full">
+          <div class="w-full p-1 flex items-center">
+            <button
+              title="Create Room"
+              class="p-1 border-2 text-blue-800 w-full box-border border-blue-600 rounded"
+              onclick={(e) => {
+                e.stopPropagation();
+                showCreateRoomModal = true;
+              }}
+            >
+              CREATE ROOM
+            </button>
+          </div>
+
+          <div class="bg-gray-50">
+            {#each sortedRooms as room (room.uid)}
+              {@render itemRow(room)}
+            {/each}
+          </div>
+        </div>
+      {/if}
     </ul>
   </div>
 </div>
 
-<!-- ---------------------------SNIPPETS--------------------------------------------------- -->
+<!-- ---------------------------SNIPPETS-------------------------------- -->
 
 {#snippet itemRow(target: ChatTarget)}
   {@const isRoom = "type" in target}
@@ -113,6 +193,22 @@
               <Hash size={12} />
             </div>
             <span class="font-medium truncate">{target.name}</span>
+            <span class="text-xs text-gray-500 ml-auto">
+              {target.userCount || 0}
+              {#if target.maxUsers}/ {target.maxUsers}{/if}
+            </span>
+            {#if target.createdBy === me?.uid}
+              <button
+                class="ml-1 p-1 hover:text-blue-500 rounded"
+                title="Manage Room"
+                onclick={(e) => {
+                  e.stopPropagation();
+                  selectedRoomForManagement = target;
+                }}
+              >
+                ⚙️
+              </button>
+            {/if}
           {:else}
             <GenderIcon gender={target.gender} />
             <span class="truncate">

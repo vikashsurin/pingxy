@@ -28,6 +28,7 @@ export const messageSchema = z.object({
   text: z.string(),
   senderId: z.string().optional(),
   recipientId: z.string().optional(),
+  roomId: z.string().optional(),
   senderName: z.string().optional(),
   timestamp: z.number(),
   status: z.enum(["sent", "delivered", "read"]).default("sent"),
@@ -44,14 +45,33 @@ export const typingEventSchema = z.object({
   type: z.literal("typing"),
   isTyping: z.boolean(),
   senderId: z.string(),
-  recipientId: z.string(),
+  recipientId: z.string().optional(),
+  roomId: z.string().optional(),
 });
 
 export const roomSchema = z.object({
   uid: z.string(),
   name: z.string(),
+  description: z.string().optional(),
+  createdBy: z.string().optional(),
+  createdAt: z.number().optional(),
   type: z.enum(["public", "private"]),
+  maxUsers: z.number().optional(),
+  userCount: z.number().optional(),
 });
+
+export const editRoomSchema = z.object({
+  roomId: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  maxUsers: z.number().optional(),
+});
+
+export const kickUserSchema = z.object({
+  roomId: z.string(),
+  userId: z.string(),
+});
+
 
 export type User = z.infer<typeof userSchema>;
 export type Connection = z.infer<typeof connectionSchema>;

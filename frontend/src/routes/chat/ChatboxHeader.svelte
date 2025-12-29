@@ -6,7 +6,7 @@
     Eye,
     type Icon as IconType,
   } from "@lucide/svelte";
-  import GenderIcon from "./GenderIcon.svelte";
+  import GenderIcon from "../../routes/chat/GenderIcon.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
   let { user } = $props();
 

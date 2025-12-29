@@ -1,6 +1,6 @@
 import { chatStore } from "$lib/store.svelte.js";
 
-import type { Connection, Message, User } from "../../../shared/src/lib/utils/validation.js";
+import type { Connection, Message, User, Room } from "../../../shared/src/lib/utils/validation.js";
 
 export let socket: WebSocket | null = null;
 
@@ -29,6 +29,41 @@ export function initSocket() {
     const data = JSON.parse(event.data);
 
 
+
+    if (data.type === "room_list") {
+      const rooms: Room[] = data.rooms;
+      chatStore.setRooms(rooms);
+    }
+    
+    if (data.type === "room_created") {
+      const room: Room = data.room;
+      chatStore.addRoom(room);
+    }
+    
+    if (data.type === "room_updated") {
+       const room: Room = data.room;
+       chatStore.updateRoom(room);
+    }
+
+    if (data.type === "room_deleted") {
+        const { roomId } = data;
+        chatStore.removeRoom(roomId);
+    }
+
+    if (data.type === "error") {
+        console.error("Socket Error:", data.message);
+        // TODO: Show toast
+    }
+
+    if (data.type === "kicked") {
+        const { roomId, roomName } = data;
+        if (chatStore.activeChat?.uid === roomId) {
+            // Force switch to global
+            chatStore.activeChat = chatStore.rooms.get('global')!;
+        }
+        // Maybe show alert "You were kicked from roomName"
+        alert(`You were kicked from ${roomName}`);
+    }
 
     // update user list
     if (data.type === "connection") {
@@ -84,23 +119,28 @@ export function initSocket() {
     // update with new messages
     if (data.type === "message") {
       const message: Message = data;
-      const recipientId = message.recipientId!;
-      const senderId = message.senderId!;
-
-      // Check if recipient is a local room 
-      // (Global is a room, but we might have other rooms too)
-      if (chatStore.rooms.has(recipientId)) {
-        chatStore.messages.set(recipientId, [
-          ...(chatStore.messages.get(recipientId) || []),
+      
+      // Check if it is a Room Message
+      if (message.roomId) {
+         const roomId = message.roomId;
+         // Ensure we have the room in store? Maybe auto-add if missing?
+         // For now assume room_list populated it or we don't care about metadata yet.
+         
+         chatStore.messages.set(roomId, [
+          ...(chatStore.messages.get(roomId) || []),
           message,
         ]);
 
-        if (chatStore.activeChat?.uid !== recipientId) {
-          chatStore.addUnread(recipientId);
+        if (chatStore.activeChat?.uid !== roomId) {
+          chatStore.addUnread(roomId);
         }
       } else {
         // Direct Message
         const senderId = message.senderId!;
+        // If I sent it, it should go to recipient's conversation? 
+        // But incoming message is usually from someone else.
+        // Unless it's a sync from other session.
+        
         chatStore.messages.set(senderId, [
           ...(chatStore.messages.get(senderId) || []),
           message,

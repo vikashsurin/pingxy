@@ -5,9 +5,12 @@ import {
   type User,
   readReceiptSchema,
   typingEventSchema,
+  roomSchema,
+  editRoomSchema,
+  kickUserSchema,
 } from "../../shared/src/lib/utils/validation.js";
-import { userSockets, announcedUsers } from "./state";
-import { createMessage, getGlobalMessages, getDirectMessages } from "./db";
+import { userSockets, announcedUsers, roomUsers } from "./state";
+import { createMessage, getGlobalMessages, getDirectMessages, getAllRooms, createRoom, getRoomMessages, updateRoom, deleteRoom, getRoom } from "./db";
 
 type WebSocketData = {
   user: User;
@@ -23,19 +26,22 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     // auto subscribe to the global channel
     ws.subscribe("global");
 
-    // Send history for global chat
-    // This might be better as a separate request, but for now we send it on join.
-    // The frontend should handle receiving a list of messages?
-    // Or we send them one by one? 
-    // Usually bulk is better but requires frontend support for "history" type.
-    // Given the current frontend structure, sending one by one might be easier BUT efficient.
-    // Let's assume we can send them one by one for now or just wait for frontend "fetch_history".
+    // Send available rooms with user counts
+    const rooms = getAllRooms();
+    // Populate user counts
+    const roomsWithCounts = rooms.map(r => ({
+      ...r,
+      userCount: roomUsers.get(r.uid)?.size || 0
+    }));
 
-    // Actually, let's just trigger a history send. 
-    const globalMsgs = getGlobalMessages(20); // Last 20
-    // Send in reverse order (oldest first) so they append correctly? 
-    // getGlobalMessages returns oldest first (ASC) based on query mod.
-    // Wait, query in db.ts: ORDER BY m.timestamp ASC. So yes.
+    ws.send(JSON.stringify({
+      type: "room_list",
+      rooms: roomsWithCounts
+    }));
+
+    // Send history for global chat
+    // Use getRoomMessages for 'global'
+    const globalMsgs = getRoomMessages('global', 20); 
 
     // We send them as individual messages.
     for (const msg of globalMsgs) {
@@ -102,8 +108,145 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     }
 
     if (msg.type === "typing") {
-      handleTypingEvent(msg);
+      handleTypingEvent(msg, ws);
       return;
+    }
+
+    // Handle Room Events
+    if (msg.type === "create_room") {
+       const result = roomSchema.safeParse(msg.room);
+       if (result.success) {
+          const room = result.data;
+          room.createdBy = ws.data.user.uid;
+          if (createRoom(room)) {
+             // Broadcast to global that a new room exists
+             const event = JSON.stringify({ type: "room_created", room });
+             ws.publish("global", event);
+             ws.send(event); // Send to self too
+             
+             // Auto-join creator
+             ws.subscribe(room.uid);
+          }
+       }
+       return;
+    }
+
+    if (msg.type === "join_room") {
+        const { roomId } = msg;
+        if (roomId && typeof roomId === "string") {
+            const userId = ws.data.user.uid;
+            
+            // Check limits
+            const room = getRoom(roomId);
+            if (room && room.maxUsers && room.maxUsers > 0) {
+                const currentCount = roomUsers.get(roomId)?.size || 0;
+                if (currentCount >= room.maxUsers) {
+                    // Send error - maybe toast type?
+                    ws.send(JSON.stringify({
+                        type: "error",
+                        message: "Room is full"
+                    }));
+                    return;
+                }
+            }
+
+            // Track user
+            if (!roomUsers.has(roomId)) {
+                roomUsers.set(roomId, new Set());
+            }
+            roomUsers.get(roomId)?.add(userId);
+
+            ws.subscribe(roomId);
+            // Send history
+            const history = getRoomMessages(roomId, 20);
+            for (const m of history) {
+                ws.send(JSON.stringify(m));
+            }
+
+            // Broadcast update count?
+            broadcastRoomUpdate(roomId);
+        }
+        return;
+    }
+
+    if (msg.type === "leave_room") {
+        const { roomId } = msg;
+        if (roomId && typeof roomId === "string") {
+            const userId = ws.data.user.uid;
+            
+            ws.unsubscribe(roomId);
+            
+            // Remove tracking
+            if (roomUsers.has(roomId)) {
+                roomUsers.get(roomId)?.delete(userId);
+                broadcastRoomUpdate(roomId);
+            }
+        }
+        return;
+    }
+
+    if (msg.type === "edit_room") {
+        const result = editRoomSchema.safeParse(msg);
+        if (result.success) {
+            const { roomId, ...updates } = result.data;
+            const room = getRoom(roomId);
+            
+            // Authorization: Only owner can edit
+            if (room && room.createdBy === ws.data.user.uid) {
+                if (updateRoom(roomId, updates)) {
+                    broadcastRoomUpdate(roomId);
+                }
+            }
+        }
+        return;
+    }
+
+    if (msg.type === "delete_room") {
+        const { roomId } = msg;
+        const room = getRoom(roomId);
+        
+        if (room && room.createdBy === ws.data.user.uid) {
+            if (deleteRoom(roomId)) {
+                // Remove from memory
+                roomUsers.delete(roomId);
+                
+                // Broadcast deletion
+                const event = JSON.stringify({ type: "room_deleted", roomId });
+                ws.publish("global", event); // Announce to everyone
+                ws.publish(roomId, event); // Announce to those inside (to kick them out basically)
+                // Everyone in "global" should remove it from list.
+                // Clients should handle activeChat switch.
+            }
+        }
+        return;
+    }
+
+    if (msg.type === "kick_user") {
+        const result = kickUserSchema.safeParse(msg);
+        if (result.success) {
+            const { roomId, userId } = result.data;
+            const room = getRoom(roomId);
+            
+            // Auth check
+            if (room && room.createdBy === ws.data.user.uid) {
+                const targetSocket = userSockets.get(userId);
+                
+                // Remove from room tracking
+                roomUsers.get(roomId)?.delete(userId);
+                
+                if (targetSocket) {
+                    targetSocket.unsubscribe(roomId);
+                    targetSocket.send(JSON.stringify({
+                        type: "kicked",
+                        roomId,
+                        roomName: room.name
+                    }));
+                }
+
+                broadcastRoomUpdate(roomId);
+            }
+        }
+        return;
     }
 
     // Handle regular messages
@@ -128,13 +271,18 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
       // Also send to self (sender) if it wasn't optimistic?
       // Usually sender has it.
     } else {
-      // Assume channel (global)
-      if (validMessage.recipientId) {
+      // Check if it is a Room Message
+      if (validMessage.roomId) {
+         ws.publish(validMessage.roomId, JSON.stringify(validMessage));
+         // Note: publish does not send to self.
+      } else if (validMessage.recipientId) {
         // DM but user offline
         // Do nothing, they will fetch on load.
       } else {
-        // Global message
-        ws.publish("global", JSON.stringify(validMessage));
+         // Fallback to global if no roomId and no recipientId (should handle by roomId='global')
+         // But for now, if roomId is missing, we might assume global or error.
+         // Since we migrated, roomId should be sent.
+         // If validMessage.roomId is set to 'global' above, it falls into previous block.
       }
     }
   },
@@ -146,6 +294,14 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     // Always clean up the socket
     userSockets.delete(uid);
+
+    // Clean up room tracking
+    // Clean up room tracking
+    Array.from(roomUsers.entries()).forEach(([roomId, users]) => {
+        if (users.delete(uid)) {
+            broadcastRoomUpdate(roomId);
+        }
+    });
 
     // Only broadcast "leave" if the user is truly gone (logged out)
     // This prevents "flickering" presence when reloading or closing tabs but staying logged in.
@@ -186,14 +342,40 @@ function handleReadReceipt(msg: any) {
   }
 }
 
-function handleTypingEvent(msg: any) {
+function handleTypingEvent(msg: any, ws: any) { // ws passed for room broadcast
   const result = typingEventSchema.safeParse(msg);
   if (!result.success) return;
   const validMsg = result.data;
-  const recipientSocket = userSockets.get(validMsg.recipientId);
-  if (recipientSocket) {
-    recipientSocket.send(JSON.stringify(validMsg));
+  
+  if (validMsg.roomId) {
+      // Broadcast to room
+      ws.publish(validMsg.roomId, JSON.stringify(validMsg));
+  } else if (validMsg.recipientId) {
+      const recipientSocket = userSockets.get(validMsg.recipientId);
+      if (recipientSocket) {
+        recipientSocket.send(JSON.stringify(validMsg));
+      }
   }
 }
 
 
+
+function broadcastRoomUpdate(roomId: string) {
+    const room = getRoom(roomId);
+    if (!room) return;
+    
+    // Add dynamic count
+    // roomUsers iteration needs downlevelIteration or simpler loop if spread unavailable
+    // But map.get returns Set, so .size is safe.
+    room.userCount = roomUsers.get(roomId)?.size || 0;
+    
+    // Send to everyone (so they see updated count in list, or name change)
+    // "global" channel is best for list updates
+    userSockets.forEach((ws: any) => {
+        // Optimally, only send if something relevant changed.
+        ws.send(JSON.stringify({
+            type: "room_updated",
+            room
+        }));
+    });
+}
