@@ -3,17 +3,56 @@ import db from "./client";
 // Enable foreign keys
 db.run("PRAGMA foreign_keys = ON;");
 
-// Create tables if not exist
 // Users table
 db.run(`
   CREATE TABLE IF NOT EXISTS users (
     uid TEXT PRIMARY KEY,
+    roles TEXT DEFAULT '["guest"]',
     username TEXT UNIQUE NOT NULL,
     data JSON NOT NULL,
     passhash TEXT,
-    is_guest BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
+`);
+
+// Roles table
+db.run(`
+  CREATE TABLE IF NOT EXISTS roles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role_name TEXT NOT NULL UNIQUE
+  );
+`);
+
+// Seed default roles
+const rolesToSeed = ["admin", "moderator", "user", "guest"];
+rolesToSeed.forEach((role) => {
+  db.run("INSERT OR IGNORE INTO roles (role_name) VALUES (?)", [role]);
+});
+
+// Banned Users table
+db.run(`
+  CREATE TABLE IF NOT EXISTS banned_users (
+    uid TEXT PRIMARY KEY,
+    reason TEXT NOT NULL,
+    banned_by TEXT NOT NULL,
+    expires_at INTEGER, -- Nullable for permanent bans
+    scope TEXT DEFAULT 'global', -- 'global' or 'room'
+    room_id TEXT, -- Nullable if global
+    created_at INTEGER DEFAULT (UNIXEPOCH()),
+    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE,
+    FOREIGN KEY (banned_by) REFERENCES users(uid)
+  );
+`);
+
+// User Roles table (many-to-many relationship between users and roles)
+db.run(`
+  CREATE TABLE IF NOT EXISTS user_roles (
+    uid TEXT NOT NULL,
+    role_id INTEGER NOT NULL,
+    PRIMARY KEY (uid, role_id),
+    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+  );
 `);
 
 // Messages table
@@ -64,7 +103,6 @@ db.run(`
 
 // Migrations
 try {
-  // db.run("ALTER TABLE messages ADD COLUMN room_id TEXT REFERENCES rooms(id)");
   // Migrate existing global messages
   db.run(
     "UPDATE messages SET room_id = 'global' WHERE recipient_id IS NULL AND room_id IS NULL"
@@ -85,4 +123,4 @@ try {
     `CREATE INDEX idx_sessions_active ON sessions(expires_at, last_activity, uid);
     `
   );
-} catch (error) {}
+} catch (error) { }

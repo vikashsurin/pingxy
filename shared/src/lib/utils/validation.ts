@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const userSchema = z.object({
   uid: z.string(),
+  roles: z.array(z.enum(["admin", "moderator", "user", "guest"])).default(["user"]),
   username: z
     .string()
     .min(3, "Username must be 3 characters or more")
@@ -11,7 +12,25 @@ export const userSchema = z.object({
   age: z.number(),
   country: z.string(),
   bio: z.string().optional(),
-  isPaused: z.boolean().optional(),
+});
+
+export interface BanDetails {
+  uid: string;
+  reason: string;
+  bannedBy: string;
+  expiresAt: number | null; // null for permanent
+  scope: "global" | "room";
+  roomId?: string;
+  createdAt: number;
+}
+
+export const sessionSchema = z.object({
+  sid: z.uuid(),
+  uid: z.string(),
+  lastActivity: z.number(),
+  expiresAt: z.number(),
+  ipAddress: z.union([z.ipv4(), z.ipv6()]).optional(),
+  userAgent: z.string().optional(),
 });
 
 export const connectionSchema = z.object({
@@ -70,15 +89,6 @@ export const editRoomSchema = z.object({
 export const kickUserSchema = z.object({
   roomId: z.string(),
   userId: z.string(),
-});
-
-export const sessionSchema = z.object({
-  sid: z.uuid(),
-  uid: z.string(),
-  lastActivity: z.number(),
-  expiresAt: z.number(),
-  ipAddress: z.union([z.ipv4(), z.ipv6()]).optional(),
-  userAgent: z.string().optional(),
 });
 
 export type User = z.infer<typeof userSchema>;

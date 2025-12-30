@@ -12,6 +12,7 @@ import { socketHandlers } from "./socketHandlers";
 import { authMiddleware } from "./middlewares/auth";
 import authRouter from "./routes/auth";
 import userRouter from "./routes/users";
+import moderationRouter from "./routes/moderation";
 
 const app = new Hono();
 
@@ -60,6 +61,7 @@ app.use("/api/users/*", async (c, next) => {
 
 app.route("/api/auth", authRouter);
 app.route("/api/users", userRouter);
+app.route("/api/mod", moderationRouter);
 
 serve({
   websocket: socketHandlers,

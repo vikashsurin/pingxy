@@ -47,6 +47,17 @@ export const authMiddleware = async (c: Context, next: Next) => {
       return c.json({ message: "user not found" }, 401);
     }
 
+    // Check Global Ban
+    const { isBanned } = await import("../db/users"); // Lazy import to avoid circular dep if needed, or just import at top
+    const banStatus = isBanned(user.uid);
+    if (banStatus.banned && (!banStatus.expires_at || banStatus.expires_at * 1000 > Date.now())) {
+      return c.json({
+        error: "Account Suspended",
+        reason: banStatus.reason,
+        expiresAt: banStatus.expires_at
+      }, 403);
+    }
+
     c.set("jwtPayload", { user, sid });
 
     await next();
