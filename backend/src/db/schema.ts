@@ -80,7 +80,8 @@ db.run(`
     created_by TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     type TEXT DEFAULT 'public',
-    max_users INTEGER DEFAULT 0
+    max_users INTEGER DEFAULT 0,
+    password TEXT
   )
 `);
 
@@ -113,6 +114,12 @@ try {
 
 try {
   db.run("ALTER TABLE rooms ADD COLUMN max_users INTEGER DEFAULT 0");
+} catch (e) {
+  // Column likely exists
+}
+
+try {
+  db.run("ALTER TABLE rooms ADD COLUMN password TEXT");
 } catch (e) {
   // Column likely exists
 }

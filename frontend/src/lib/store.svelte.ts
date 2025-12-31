@@ -1,28 +1,37 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import { type Message, type User, messageSchema, type ChatTarget, type Room } from "../../../shared/src/lib/utils/validation.js";
+import {
+  type Message,
+  type User,
+  messageSchema,
+  type ChatTarget,
+  type Room,
+} from "../../../shared/src/lib/utils/validation.js";
 import { getSocket } from "./socket.svelte";
 
 class ChatStore {
   currentUser = $state<User | null>(null);
-  
+
   users = new SvelteMap<string, User>();
   rooms = new SvelteMap<string, Room>();
   unread = new SvelteMap<string, number>();
   messages = new SvelteMap<string, Message[]>();
   typingUsers = new SvelteSet<string>();
+  unlockedRooms = new SvelteMap<string, string>();
+  joinedRooms = new SvelteSet<string>();
 
-
+  //TODO: create different state for room chats and user chats
+  // userChatMessages = new SvelteMap<string, Message[]>();
+  // roomChatMessages = new SvelteMap<string, Message[]>();
 
   searchQuery = $state({
     value: "",
   });
 
-  activeChat = $state<ChatTarget>({
+  activeChatTarget = $state<ChatTarget>({
     uid: "global",
     name: "Global Chat",
-    type: "public"
+    type: "public",
   } as Room);
-
 
   recentChatIds = $derived(new Set(this.messages.keys()));
 
@@ -36,7 +45,7 @@ class ChatStore {
       recentTargets.push(globalRoom);
     }
 
-    // In current simplified logic, rooms are "joined" if they are in availableRooms AND we have messages? 
+    // In current simplified logic, rooms are "joined" if they are in availableRooms AND we have messages?
     // Or do we want to explicitly double check rooms we've chatted in.
     // Let's stick to the previous recent logic but filter out duplicates.
 
@@ -50,7 +59,7 @@ class ChatStore {
 
       const user = this.users.get(uid);
       if (user) {
-        if (user.uid === 'global') continue;
+        if (user.uid === "global") continue;
         recentTargets.push(user);
       }
     }
@@ -61,8 +70,6 @@ class ChatStore {
   // Alias for backward compatibility if needed, using "rooms" to store active/known rooms
   // "availableRooms" could be the list of ALL public rooms fetched from server.
   // For this refactor, let's keep "rooms" as the set of rooms we know about/have joined.
-
-
 
   addUnread(uid: string) {
     const count = this.unread.get(uid) || 0;
@@ -82,11 +89,14 @@ class ChatStore {
 
   setRooms(rooms: Room[]) {
     this.rooms.clear();
-    rooms.forEach(room => this.rooms.set(room.uid, room));
-    
-    // Ensure activeChat is valid or reset to global if it exists
-    if (!this.rooms.has(this.activeChat?.uid) && this.activeChat?.uid === 'global') {
-        // if global is missing for some reason, we might want to re-add it or wait
+    rooms.forEach((room) => this.rooms.set(room.uid, room));
+
+    // Ensure activeChatTarget is valid or reset to global if it exists
+    if (
+      !this.rooms.has(this.activeChatTarget?.uid) &&
+      this.activeChatTarget?.uid === "global"
+    ) {
+      // if global is missing for some reason, we might want to re-add it or wait
     }
   }
 
@@ -95,30 +105,35 @@ class ChatStore {
   }
 
   updateRoom(room: Room) {
-      if (this.rooms.has(room.uid)) {
-          this.rooms.set(room.uid, room);
-          // If active chat usage relies on room object, it should be reactive if we used the object from map.
-          // But activeChat is a separate reference.
-          if (this.activeChat?.uid === room.uid) {
-              this.activeChat = room;
-          }
+    if (this.rooms.has(room.uid)) {
+      this.rooms.set(room.uid, room);
+      // If active chat usage relies on room object, it should be reactive if we used the object from map.
+      // But activeChatTarget is a separate reference.
+      if (this.activeChatTarget?.uid === room.uid) {
+        this.activeChatTarget = room;
       }
+    }
   }
 
   removeRoom(roomId: string) {
-      this.rooms.delete(roomId);
-      if (this.activeChat?.uid === roomId) {
-          // Switch to global or empty
-          const global = this.rooms.get('global');
-          if (global) this.activeChat = global;
-      }
+    this.rooms.delete(roomId);
+    if (this.activeChatTarget?.uid === roomId) {
+      // Switch to global or empty
+      const global = this.rooms.get("global");
+      if (global) this.activeChatTarget = global;
+    }
   }
 
   // --- Business Logic ---
   typingTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   handleTyping() {
-    if (!this.activeChat?.uid || this.activeChat.uid === "global" || !this.currentUser) return;
+    if (
+      !this.activeChatTarget?.uid ||
+      this.activeChatTarget.uid === "global" ||
+      !this.currentUser
+    )
+      return;
 
     const socket = getSocket();
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
@@ -129,7 +144,7 @@ class ChatStore {
         type: "typing",
         isTyping: true,
         senderId: this.currentUser.uid,
-        recipientId: this.activeChat.uid,
+        recipientId: this.activeChatTarget.uid,
       })
     );
 
@@ -138,13 +153,18 @@ class ChatStore {
 
     // Set new timeout to stop typing
     this.typingTimeout = setTimeout(() => {
-      if (socket && socket.readyState === WebSocket.OPEN && this.currentUser && this.activeChat) {
+      if (
+        socket &&
+        socket.readyState === WebSocket.OPEN &&
+        this.currentUser &&
+        this.activeChatTarget
+      ) {
         socket.send(
           JSON.stringify({
             type: "typing",
             isTyping: false,
             senderId: this.currentUser.uid,
-            recipientId: this.activeChat.uid,
+            recipientId: this.activeChatTarget.uid,
           })
         );
       }
@@ -167,7 +187,7 @@ class ChatStore {
       return; // TODO: Add toast
     }
 
-    if (!this.activeChat?.uid || !this.currentUser) {
+    if (!this.activeChatTarget?.uid || !this.currentUser) {
       console.error("No active chat or user");
       return;
     }
@@ -181,8 +201,12 @@ class ChatStore {
       senderId: this.currentUser.uid,
       senderName: this.currentUser.username,
       // Logic for Room vs DM
-      recipientId: this.rooms.has(this.activeChat.uid) ? undefined : this.activeChat.uid,
-      roomId: this.rooms.has(this.activeChat.uid) ? this.activeChat.uid : undefined,
+      recipientId: this.rooms.has(this.activeChatTarget.uid)
+        ? undefined
+        : this.activeChatTarget.uid,
+      roomId: this.rooms.has(this.activeChatTarget.uid)
+        ? this.activeChatTarget.uid
+        : undefined,
       timestamp: Date.now(),
       status: "sent",
     };
@@ -197,8 +221,11 @@ class ChatStore {
     const validMessage = validateMessage.data;
 
     // Optimistic UI update
-    const currentList = this.messages.get(this.activeChat.uid) || [];
-    this.messages.set(this.activeChat.uid, [...currentList, validMessage]);
+    const currentList = this.messages.get(this.activeChatTarget.uid) || [];
+    this.messages.set(this.activeChatTarget.uid, [
+      ...currentList,
+      validMessage,
+    ]);
 
     // If sending to self, ignore socket send
     if (validMessage.senderId === validMessage.recipientId) {
@@ -212,10 +239,10 @@ class ChatStore {
       console.error("Send failed:", error);
 
       // Rollback
-      const rolledBackList = (this.messages.get(this.activeChat.uid) || []).filter(
-        (m) => m.id !== validMessage.id
-      );
-      this.messages.set(this.activeChat.uid, rolledBackList);
+      const rolledBackList = (
+        this.messages.get(this.activeChatTarget.uid) || []
+      ).filter((m) => m.id !== validMessage.id);
+      this.messages.set(this.activeChatTarget.uid, rolledBackList);
     }
   }
 }

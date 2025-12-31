@@ -8,10 +8,24 @@ import {
   roomSchema,
   editRoomSchema,
   kickUserSchema,
+  joinRoomSchema,
 } from "../../shared/src/lib/utils/validation.js";
+
 import { userSockets, announcedUsers, roomUsers } from "./state";
-import { createMessage, getGlobalMessages, getDirectMessages, getRoomMessages } from "./db/messages";
-import { getAllRooms, createRoom, updateRoom, deleteRoom, getRoom } from "./db/rooms";
+import {
+  createMessage,
+  getGlobalMessages,
+  getDirectMessages,
+  getRoomMessages,
+} from "./db/messages";
+import {
+  getAllRooms,
+  createRoom,
+  updateRoom,
+  deleteRoom,
+  getRoom,
+  getRoomInternal,
+} from "./db/rooms";
 
 type WebSocketData = {
   user: User;
@@ -20,16 +34,19 @@ type WebSocketData = {
 export const socketHandlers: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
   open(ws) {
-
-
     // Check for Ban
     const { isBanned } = require("./db/users"); // Lazy require/import
     const banStatus = isBanned(ws.data.user.uid);
-    if (banStatus.banned && (!banStatus.expires_at || banStatus.expires_at * 1000 > Date.now())) {
-      ws.send(JSON.stringify({
-        type: "system",
-        text: "You are banned: " + banStatus.reason
-      }));
+    if (
+      banStatus.banned &&
+      (!banStatus.expires_at || banStatus.expires_at * 1000 > Date.now())
+    ) {
+      ws.send(
+        JSON.stringify({
+          type: "system",
+          text: "You are banned: " + banStatus.reason,
+        })
+      );
       ws.close();
       return;
     }
@@ -42,19 +59,21 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     // Send available rooms with user counts
     const rooms = getAllRooms();
     // Populate user counts
-    const roomsWithCounts = rooms.map(r => ({
+    const roomsWithCounts = rooms.map((r) => ({
       ...r,
-      userCount: roomUsers.get(r.uid)?.size || 0
+      userCount: roomUsers.get(r.uid)?.size || 0,
     }));
 
-    ws.send(JSON.stringify({
-      type: "room_list",
-      rooms: roomsWithCounts
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "room_list",
+        rooms: roomsWithCounts,
+      })
+    );
 
     // Send history for global chat
     // Use getRoomMessages for 'global'
-    const globalMsgs = getRoomMessages('global', 20);
+    const globalMsgs = getRoomMessages("global", 20);
 
     // We send them as individual messages.
     for (const msg of globalMsgs) {
@@ -102,7 +121,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     userSockets.set(ws.data.user.uid, ws);
   },
 
-  message(ws, message) {
+  async message(ws, message) {
     if (typeof message !== "string") return;
 
     let msg: any;
@@ -140,54 +159,125 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
       if (result.success) {
         const room = result.data;
         room.createdBy = ws.data.user.uid;
-        if (createRoom(room)) {
-          // Broadcast to global that a new room exists
-          const event = JSON.stringify({ type: "room_created", room });
-          ws.publish("global", event);
-          ws.send(event); // Send to self too
 
-          // Auto-join creator
+        if (room.type === "private" && room.password) {
+          const hash = await Bun.password.hash(room.password);
+          room.password = hash;
+        }
+
+        if (createRoom(room)) {
+          const { password, ...safeRoom } = room;
+          const event = JSON.stringify({
+            type: "room_created",
+            room: safeRoom,
+          });
+          ws.publish("global", event);
+          ws.send(event);
           ws.subscribe(room.uid);
+
+          // Track creator in the room
+          if (!roomUsers.has(room.uid)) {
+            roomUsers.set(room.uid, new Set());
+          }
+          roomUsers.get(room.uid)?.add(ws.data.user.uid);
         }
       }
       return;
     }
 
     if (msg.type === "join_room") {
-      const { roomId } = msg;
-      if (roomId && typeof roomId === "string") {
-        const userId = ws.data.user.uid;
+      const result = joinRoomSchema.safeParse(msg);
+      console.log({ result });
+      if (!result.success) return;
 
-        // Check limits
-        const room = getRoom(roomId);
-        if (room && room.maxUsers && room.maxUsers > 0) {
-          const currentCount = roomUsers.get(roomId)?.size || 0;
-          if (currentCount >= room.maxUsers) {
-            // Send error - maybe toast type?
-            ws.send(JSON.stringify({
-              type: "error",
-              message: "Room is full"
-            }));
+      const { roomId, password } = result.data;
+      const room = getRoomInternal(roomId);
+
+      if (!room) return;
+
+      console.log({ room });
+
+      // Check Password for private rooms
+      // Allow joining your own private rooms, without password.
+      if (room.type === "private" && room.createdBy !== ws.data.user.uid) {
+        if (room.password) {
+          const isMatch = await Bun.password.verify(
+            password || "",
+            room.password
+          );
+          if (!password || !isMatch) {
+            console.log("Invalid password");
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: "Invalid password",
+              })
+            );
             return;
           }
         }
-
-        // Track user
-        if (!roomUsers.has(roomId)) {
-          roomUsers.set(roomId, new Set());
-        }
-        roomUsers.get(roomId)?.add(userId);
-
-        ws.subscribe(roomId);
-        // Send history
-        const history = getRoomMessages(roomId, 20);
-        for (const m of history) {
-          ws.send(JSON.stringify(m));
-        }
-
-        // Broadcast update count?
-        broadcastRoomUpdate(roomId);
       }
+
+      const userId = ws.data.user.uid;
+
+      // Check limits
+      if (room.maxUsers && room.maxUsers > 0) {
+        const currentCount = roomUsers.get(roomId)?.size || 0;
+        if (currentCount >= room.maxUsers) {
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Room is full",
+            })
+          );
+          return;
+        }
+      }
+
+      // Track user
+      if (!roomUsers.has(roomId)) {
+        roomUsers.set(roomId, new Set());
+      }
+      roomUsers.get(roomId)?.add(userId);
+
+      ws.subscribe(roomId);
+
+      // Notify user
+      ws.send(
+        JSON.stringify({
+          type: "join_room",
+          success: true,
+          roomId,
+        })
+      );
+
+      // Send history
+      const history = getRoomMessages(roomId, 20);
+      for (const m of history) {
+        ws.send(JSON.stringify(m));
+      }
+
+      // Broadcast update count?
+      broadcastRoomUpdate(roomId);
+      return;
+    }
+
+    if (msg.type === "rejoin_room") {
+      // TODO may require auth check
+      const { roomId } = msg;
+      const room = getRoomInternal(roomId);
+      if (!room) return;
+
+      const userId = ws.data.user.uid;
+
+      // Track user
+      if (!roomUsers.has(roomId)) {
+        roomUsers.set(roomId, new Set());
+      }
+      roomUsers.get(roomId)?.add(userId);
+
+      ws.subscribe(roomId);
+
       return;
     }
 
@@ -197,7 +287,14 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
         const userId = ws.data.user.uid;
 
         ws.unsubscribe(roomId);
-
+        // Update client
+        ws.send(
+          JSON.stringify({
+            type: "leave_room",
+            success: true,
+            roomId,
+          })
+        );
         // Remove tracking
         if (roomUsers.has(roomId)) {
           roomUsers.get(roomId)?.delete(userId);
@@ -208,13 +305,27 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     }
 
     if (msg.type === "edit_room") {
-      const result = editRoomSchema.safeParse(msg);
+      const result = editRoomSchema.safeParse(msg.updates);
       if (result.success) {
         const { roomId, ...updates } = result.data;
         const room = getRoom(roomId);
 
         // Authorization: Only owner can edit
         if (room && room.createdBy === ws.data.user.uid) {
+          // Handle Password Update
+          if (updates.password && updates.password.trim() !== "") {
+            const hash = await Bun.password.hash(updates.password);
+            updates.password = hash;
+          } else {
+            delete updates.password; // Don't wipe it out if empty, unless we interpret empty as "remove password"?
+            // If switching to private, we need a password.
+            // If switching to public, we should probably clear it.
+
+            if (updates.type === "public") {
+              updates.password = null as any; // Clear it
+            }
+          }
+
           if (updateRoom(roomId, updates)) {
             broadcastRoomUpdate(roomId);
           }
@@ -237,7 +348,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
           ws.publish("global", event); // Announce to everyone
           ws.publish(roomId, event); // Announce to those inside (to kick them out basically)
           // Everyone in "global" should remove it from list.
-          // Clients should handle activeChat switch.
+          // Clients should handle activeChatTarget switch.
         }
       }
       return;
@@ -258,11 +369,13 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
           if (targetSocket) {
             targetSocket.unsubscribe(roomId);
-            targetSocket.send(JSON.stringify({
-              type: "kicked",
-              roomId,
-              roomName: room.name
-            }));
+            targetSocket.send(
+              JSON.stringify({
+                type: "kicked",
+                roomId,
+                roomName: room.name,
+              })
+            );
           }
 
           broadcastRoomUpdate(roomId);
@@ -313,7 +426,6 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     console.log("closed connection");
     const uid = ws.data.user.uid;
 
-
     // Always clean up the socket
     userSockets.delete(uid);
 
@@ -350,7 +462,8 @@ function getConnectionStatus(uid: string): Connection["status"] {
 }
 
 function getConnectionText(username: string, status: Connection["status"]) {
-  return `${username} has ${status === "reconnect" ? "reconnected" : "joined the chat"}.`;
+  return `${username} has ${status === "reconnect" ? "reconnected" : "joined the chat"
+    }.`;
 }
 
 function handleReadReceipt(msg: any) {
@@ -364,7 +477,8 @@ function handleReadReceipt(msg: any) {
   }
 }
 
-function handleTypingEvent(msg: any, ws: any) { // ws passed for room broadcast
+function handleTypingEvent(msg: any, ws: any) {
+  // ws passed for room broadcast
   const result = typingEventSchema.safeParse(msg);
   if (!result.success) return;
   const validMsg = result.data;
@@ -380,8 +494,6 @@ function handleTypingEvent(msg: any, ws: any) { // ws passed for room broadcast
   }
 }
 
-
-
 function broadcastRoomUpdate(roomId: string) {
   const room = getRoom(roomId);
   if (!room) return;
@@ -395,9 +507,11 @@ function broadcastRoomUpdate(roomId: string) {
   // "global" channel is best for list updates
   userSockets.forEach((ws: any) => {
     // Optimally, only send if something relevant changed.
-    ws.send(JSON.stringify({
-      type: "room_updated",
-      room
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "room_updated",
+        room,
+      })
+    );
   });
 }

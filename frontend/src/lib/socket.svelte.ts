@@ -33,6 +33,17 @@ export function initSocket() {
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
+    if (data.type === "join_room") {
+      console.log("joined room");
+      chatStore.joinedRooms.add(data.roomId);
+    }
+    if (data.type === "rejoin_room") {
+      console.log("Rejoined room:", data.roomId);
+    }
+
+    if (data.type === "leave_room") {
+      chatStore.joinedRooms.delete(data.roomId);
+    }
     if (data.type === "room_list") {
       const rooms: Room[] = data.rooms;
       chatStore.setRooms(rooms);
@@ -60,11 +71,11 @@ export function initSocket() {
 
     if (data.type === "kicked") {
       const { roomId, roomName } = data;
-      if (chatStore.activeChat?.uid === roomId) {
+      if (chatStore.activeChatTarget?.uid === roomId) {
         // Force switch to global
         const globalRoom = chatStore.rooms.get("global");
         if (globalRoom) {
-          chatStore.activeChat = globalRoom;
+          chatStore.activeChatTarget = globalRoom;
         }
       }
       // Maybe show alert "You were kicked from roomName"
@@ -135,7 +146,7 @@ export function initSocket() {
           message,
         ]);
 
-        if (chatStore.activeChat?.uid !== roomId) {
+        if (chatStore.activeChatTarget?.uid !== roomId) {
           chatStore.addUnread(roomId);
         }
       } else {
@@ -151,10 +162,10 @@ export function initSocket() {
         ]);
 
         // update unread messages
-        if (chatStore.activeChat?.uid !== senderId) {
+        if (chatStore.activeChatTarget?.uid !== senderId) {
           chatStore.addUnread(senderId);
         } else if (
-          chatStore.activeChat?.uid === senderId &&
+          chatStore.activeChatTarget?.uid === senderId &&
           chatStore.currentUser
         ) {
           // Send read receipt if active

@@ -14,6 +14,8 @@
     let roomName = $state(room.name);
     let description = $state(room.description || "");
     let maxUsers = $state(room.maxUsers || 0);
+    let type = $state<"public" | "private">(room.type || "public");
+    let password = $state("");
 
     // Members State
     // For now, we don't have a list of room members in store.
@@ -30,10 +32,14 @@
             socket.send(
                 JSON.stringify({
                     type: "edit_room",
-                    roomId: room.uid,
-                    name: roomName,
-                    description,
-                    maxUsers: Number(maxUsers),
+                    updates: {
+                        roomId: room.uid,
+                        name: roomName,
+                        description,
+                        maxUsers: Number(maxUsers),
+                        type,
+                        password: password || undefined, // Only send if changed/set
+                    },
                 }),
             );
             onClose();
@@ -92,6 +98,31 @@
                 bind:value={maxUsers}
                 class="w-full p-2 border rounded mb-4"
             />
+
+            <!-- Privacy Settings -->
+            <label class="block mb-2 text-sm font-bold">Privacy</label>
+            <div class="flex gap-4 mb-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" value="public" bind:group={type} />
+                    Public
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" value="private" bind:group={type} />
+                    Private
+                </label>
+            </div>
+
+            {#if type === "private"}
+                <label class="block mb-2 text-sm font-bold"
+                    >New Password (leave blank to keep current)</label
+                >
+                <input
+                    type="password"
+                    bind:value={password}
+                    class="w-full p-2 border rounded mb-4"
+                    placeholder="Enter new password to change"
+                />
+            {/if}
 
             <div class="flex justify-between mt-6">
                 <button

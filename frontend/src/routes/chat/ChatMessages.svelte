@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Message, User } from "../../../../shared/src/lib/utils/validation.js";
+  import type {
+    Message,
+    User,
+  } from "../../../../shared/src/lib/utils/validation.js";
   import { Check, CheckCheck } from "@lucide/svelte";
   import { chatStore } from "$lib/store.svelte";
   import { getSocket } from "$lib/socket.svelte";
@@ -28,7 +31,7 @@
   });
 
   let previousMessageCount = 0;
-  let activeChatId = $derived(chatStore.activeChat?.uid);
+  let activeChatId = $derived(chatStore.activeChatTarget?.uid);
 
   $effect(() => {
     if (!activeMessages) return;
@@ -62,7 +65,7 @@
                 messageId: msg.id,
                 senderId: me.uid,
                 recipientId: activeChatId!,
-              }),
+              })
             );
           }
           msg.status = "read";

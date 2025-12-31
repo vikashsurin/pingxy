@@ -49,7 +49,7 @@
   });
 
   const activeMessages = $derived<Message[] | undefined>(
-    chatStore.messages.get(chatStore.activeChat?.uid!)
+    chatStore.messages.get(chatStore.activeChatTarget?.uid!)
   );
 
   onMount(() => {
@@ -92,7 +92,7 @@
     <ChatboxHeader user={chatStore.currentUser!} />
     <div class="flex h-screen flex-col overflow-hidden">
       <!-- CHAT MESSAGES -->
-      {#key chatStore.activeChat?.uid}
+      {#key chatStore.activeChatTarget?.uid}
         <Messages user={chatStore.currentUser!} {activeMessages} />
       {/key}
 
@@ -100,7 +100,7 @@
       <ChatInput />
     </div>
   {:else if tab === 2}
-    {#key chatStore.activeChat?.uid}
+    {#key chatStore.activeChatTarget?.uid}
       <Messages user={chatStore.currentUser!} {activeMessages} />
     {/key}
   {/if}
@@ -122,7 +122,7 @@
       <ChatboxHeader user={chatStore.currentUser!} />
 
       <!-- CHAT MESSAGES -->
-      {#key chatStore.activeChat?.uid}
+      {#key chatStore.activeChatTarget?.uid}
         <Messages user={chatStore.currentUser!} {activeMessages} />
       {/key}
 

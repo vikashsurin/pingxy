@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const userSchema = z.object({
   uid: z.string(),
-  roles: z.array(z.enum(["admin", "moderator", "user", "guest"])).default(["user"]),
+  roles: z
+    .array(z.enum(["admin", "moderator", "user", "guest"]))
+    .default(["user"]),
   username: z
     .string()
     .min(3, "Username must be 3 characters or more")
@@ -77,6 +79,7 @@ export const roomSchema = z.object({
   type: z.enum(["public", "private"]),
   maxUsers: z.number().optional(),
   userCount: z.number().optional(),
+  password: z.string().optional(),
 });
 
 export const editRoomSchema = z.object({
@@ -84,6 +87,13 @@ export const editRoomSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   maxUsers: z.number().optional(),
+  password: z.string().optional(),
+  type: z.enum(["public", "private"]).optional(),
+});
+
+export const joinRoomSchema = z.object({
+  roomId: z.string(),
+  password: z.string().optional(),
 });
 
 export const kickUserSchema = z.object({

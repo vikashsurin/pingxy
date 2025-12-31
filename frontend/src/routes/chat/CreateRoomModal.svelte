@@ -1,11 +1,13 @@
 <script lang="ts">
     import { getSocket } from "$lib/socket.svelte.js";
+    import { chatStore } from "$lib/store.svelte.js";
     import type { Room } from "../../../../shared/src/lib/utils/validation.js";
 
     let { onClose } = $props();
     let roomName = $state("");
     let description = $state("");
     let type = $state<"public" | "private">("public");
+    let password = $state("");
 
     function createRoom() {
         if (!roomName.trim()) return;
@@ -17,7 +19,12 @@
                 name: roomName,
                 description: description,
                 type: type,
+                password: type === "private" ? password : undefined,
             };
+
+            if (type === "private" && password && room.uid) {
+                chatStore.unlockedRooms.set(room.uid, password);
+            }
 
             socket.send(
                 JSON.stringify({
@@ -47,6 +54,38 @@
             class="w-full p-2 border rounded mb-4"
             placeholder="Optional description"
         />
+
+        <label class="block mb-2 text-sm font-bold">Privacy</label>
+        <div class="flex gap-4 mb-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="radio"
+                    name="type"
+                    value="public"
+                    bind:group={type}
+                />
+                Public
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="radio"
+                    name="type"
+                    value="private"
+                    bind:group={type}
+                />
+                Private
+            </label>
+        </div>
+
+        {#if type === "private"}
+            <label class="block mb-2 text-sm font-bold">Password</label>
+            <input
+                type="password"
+                bind:value={password}
+                class="w-full p-2 border rounded mb-4"
+                placeholder="Room Password"
+            />
+        {/if}
 
         <div class="flex justify-end gap-2">
             <button

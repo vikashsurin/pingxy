@@ -14,18 +14,19 @@
 </script>
 
 <div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
-  {#if "type" in chatStore.activeChat && chatStore.activeChat.uid === "global"}
-    <span class="font-bold">{chatStore.activeChat.name}</span>
-  {:else if "username" in chatStore.activeChat}
+  {#if "type" in chatStore.activeChatTarget}
+    <span class="font-bold">{chatStore.activeChatTarget.name}</span>
+  {:else if "username" in chatStore.activeChatTarget}
     <div class="flex w-full items-center gap-2">
       <span> Chatting with : </span>
-      <GenderIcon gender={chatStore.activeChat?.gender} />
+      <GenderIcon gender={chatStore.activeChatTarget?.gender} />
       <span class=" font-bold">
-        {chatStore.activeChat?.username}
-        {chatStore.activeChat?.uid === user.uid ? " (You)" : ""}
+        {chatStore.activeChatTarget?.username}
+        {chatStore.activeChatTarget?.uid === user.uid ? " (You)" : ""}
       </span>
 
-      <span class={`fi fi-${chatStore.activeChat.country.toLocaleLowerCase()}`}
+      <span
+        class={`fi fi-${chatStore.activeChatTarget.country.toLocaleLowerCase()}`}
       ></span>
 
       <EllipsisVertical

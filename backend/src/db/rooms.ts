@@ -5,8 +5,8 @@ import "./schema"; // ensure schema & migrations are applied
 export const createRoom = (room: Room): boolean => {
   try {
     const query = db.query(`
-            INSERT INTO rooms (id, name, description, created_by, type, max_users)
-            VALUES ($id, $name, $desc, $createdBy, $type, $maxUsers)
+            INSERT INTO rooms (id, name, description, created_by, type, max_users, password)
+            VALUES ($id, $name, $desc, $createdBy, $type, $maxUsers, $password)
         `);
     query.run({
       $id: room.uid,
@@ -15,6 +15,7 @@ export const createRoom = (room: Room): boolean => {
       $createdBy: room.createdBy || null,
       $type: room.type,
       $maxUsers: room.maxUsers || 0,
+      $password: room.password || null,
     });
     return true;
   } catch (error) {
@@ -25,20 +26,22 @@ export const createRoom = (room: Room): boolean => {
 
 export const updateRoom = (id: string, updates: Partial<Room>): boolean => {
   try {
-    const current = getRoom(id);
+    const current = getRoomInternal(id);
     if (!current) return false;
 
     const updated = { ...current, ...updates };
 
     const query = db.query(`
             UPDATE rooms 
-            SET name = $name, description = $desc, max_users = $maxUsers
+            SET name = $name, description = $desc, max_users = $maxUsers, password = $password, type = $type
             WHERE id = $id
         `);
     query.run({
       $name: updated.name,
       $desc: updated.description || null,
       $maxUsers: updated.maxUsers || 0,
+      $password: updated.password || null,
+      $type: updated.type || current.type,
       $id: id,
     });
     return true;
@@ -73,6 +76,23 @@ export const getRoom = (id: string): Room | null => {
     createdAt: new Date(row.created_at).getTime(),
     type: row.type as "public" | "private",
     maxUsers: row.max_users,
+    // Explicitly NO password here
+  };
+};
+
+export const getRoomInternal = (id: string): Room | null => {
+  const query = db.query("SELECT * FROM rooms WHERE id = $id");
+  const row = query.get({ $id: id }) as any;
+  if (!row) return null;
+  return {
+    uid: row.id,
+    name: row.name,
+    description: row.description,
+    createdBy: row.created_by,
+    createdAt: new Date(row.created_at).getTime(),
+    type: row.type as "public" | "private",
+    maxUsers: row.max_users,
+    password: row.password,
   };
 };
 
