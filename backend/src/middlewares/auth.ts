@@ -5,6 +5,14 @@ import type { Context, Next } from "hono";
 import { getConnInfo } from "hono/bun";
 import { getSession, updateSessionActivity } from "../db/sessions";
 
+function getJwtSecret(): string {
+  const fromEnv = process.env.JWT_SECRET;
+  const isProd = process.env.NODE_ENV === "production";
+  if (fromEnv) return fromEnv;
+  if (!isProd) return "fallback_secret_for_dev";
+  throw new Error("JWT_SECRET is not configured in production environment");
+}
+
 export const authMiddleware = async (c: Context, next: Next) => {
   const cookie = getCookie(c, "sessionid");
 
@@ -13,7 +21,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
   }
 
   try {
-    const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
+    const secret = getJwtSecret();
     const decoded = await verify(cookie, secret);
 
     // Extract UID and SID from the simplified payload

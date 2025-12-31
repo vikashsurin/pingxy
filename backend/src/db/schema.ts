@@ -54,6 +54,7 @@ db.run(`
 `);
 
 // Messages table
+// Note: includes a dedicated `read` flag; keep in sync with queries/messages.ts
 db.run(`
   CREATE TABLE IF NOT EXISTS messages (
     id TEXT PRIMARY KEY,
@@ -63,11 +64,17 @@ db.run(`
     room_id TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     status TEXT DEFAULT 'sent',
+    read INTEGER DEFAULT 0,
     FOREIGN KEY(sender_id) REFERENCES users(uid),
     FOREIGN KEY(recipient_id) REFERENCES users(uid),
     FOREIGN KEY(room_id) REFERENCES rooms(id) ON DELETE CASCADE
   )
 `);
+
+// Backfill for existing databases that might be missing the `read` column
+try {
+  db.run(`ALTER TABLE messages ADD COLUMN read INTEGER DEFAULT 0;`);
+} catch (error) {}
 
 // Session table
 db.run(`
@@ -107,7 +114,7 @@ db.run(`
     is_active INTEGER DEFAULT 1,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE,
-    UNIQUE(room_id, uid)  -- MISSING: Prevents duplicate memberships
+    UNIQUE(room_id, uid)  -- Prevents duplicate memberships
   )
 `);
 
@@ -147,7 +154,7 @@ try {
 
 try {
   db.run(
-    `CREATE INDEX IF NOT EXISTS idx_messages_room_time ON messages(room_id, created_at DESC);`
+    `CREATE INDEX IF NOT EXISTS idx_messages_room_time ON messages(room_id, timestamp DESC);`
   );
 } catch (error) {}
 

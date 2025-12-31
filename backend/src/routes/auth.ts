@@ -15,6 +15,17 @@ import { authMiddleware } from "../middlewares/auth";
 import { getConnInfo } from "hono/bun";
 
 const app = new Hono();
+
+function getJwtSecret(): string {
+  const fromEnv = process.env.JWT_SECRET;
+  const isProd = process.env.NODE_ENV === "production";
+  if (fromEnv) return fromEnv;
+  if (!isProd) return "fallback_secret_for_dev";
+  throw new Error("JWT_SECRET is not configured in production environment");
+}
+
+const isProd = process.env.NODE_ENV === "production";
+
 //  TODO: include email
 app.post("/register", async (c) => {
   const body = await c.req.json();
@@ -52,13 +63,13 @@ app.post("/register", async (c) => {
   const newUser = getUser(user.uid) || { ...user, username };
   const sid = createSession({ user: newUser, ip_address });
   const payload = { uid: user.uid, sid };
-  const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
+  const secret = getJwtSecret();
   const token = await sign(payload, secret);
 
   setCookie(c, "sessionid", token, {
     maxAge: 60 * 60 * 24 * 7,
-    httpOnly: false,
-    secure: false, // Set true in production
+    httpOnly: true,
+    secure: isProd,
     path: "/",
     sameSite: "lax",
   });
@@ -100,13 +111,13 @@ app.post("/login", async (c) => {
   const ip_address = getConnInfo(c).remote.address!;
   const sid = createSession({ user, ip_address });
   const payload = { uid: user.uid, sid };
-  const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
+  const secret = getJwtSecret();
   const token = await sign(payload, secret);
 
   setCookie(c, "sessionid", token, {
     maxAge: 60 * 60 * 24 * 7,
-    httpOnly: false,
-    secure: false,
+    httpOnly: true,
+    secure: isProd,
     path: "/",
     sameSite: "lax",
   });
@@ -148,25 +159,23 @@ app.post("/guest", async (c) => {
   const guestUser = getUser(user.uid) || user;
 
   const ip_address = getConnInfo(c).remote.address!;
-  const sid = createSession({ user, ip_address });
-  const payload = { uid: user.uid, sid: sid };
-  const secret = process.env.JWT_SECRET || "fallback_secret_for_dev";
+  const sid = createSession({ user: guestUser, ip_address });
+  const payload = { uid: guestUser.uid, sid };
+  const secret = getJwtSecret();
   const token = await sign(payload, secret);
-
 
   setCookie(c, "sessionid", token, {
     maxAge: 60 * 60 * 24 * 7,
-    httpOnly: false,
-    secure: false,
+    httpOnly: true,
+    secure: isProd,
     path: "/",
     sameSite: "lax",
   });
 
-
   //  TODO: check what data to return after login
   return c.json({
-    uid: user.uid,
-    username: user.username,
+    uid: guestUser.uid,
+    username: guestUser.username,
     token: token,
   });
 });
@@ -203,12 +212,11 @@ app.post("/logout", authMiddleware, (c) => {
   // Delete cookie
   deleteCookie(c, "sessionid", {
     maxAge: 0,
-    httpOnly: false,
+    httpOnly: true,
     path: "/",
-    secure: false,
+    secure: isProd,
     sameSite: "lax",
   });
-
 
   return c.json({ message: "logged out" });
 });
