@@ -18,7 +18,6 @@
   let { data } = $props();
   let tab = $state(1); // for mobile screen
 
-  $inspect({ dd: chatStore.currentUser! });
 
   $effect.pre(() => {
     // load users

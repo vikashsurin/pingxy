@@ -60,10 +60,12 @@ db.run(`
     sender_id TEXT NOT NULL,
     recipient_id TEXT,
     content TEXT NOT NULL,
+    room_id TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    read BOOLEAN DEFAULT 0,
+    status TEXT DEFAULT 'sent',
     FOREIGN KEY(sender_id) REFERENCES users(uid),
-    FOREIGN KEY(recipient_id) REFERENCES users(uid)
+    FOREIGN KEY(recipient_id) REFERENCES users(uid),
+    FOREIGN KEY(room_id) REFERENCES rooms(id) ON DELETE CASCADE
   )
 `);
 
@@ -72,22 +74,98 @@ db.run(`
   CREATE TABLE IF NOT EXISTS sessions (
     sid TEXT PRIMARY KEY,
     uid TEXT NOT NULL,
-    last_activity INTEGER NOT NULL, -- Sliding timeout (30 mins)
-    expires_at INTEGER NOT NULL,    -- Absolute timeout (e.g., 24 hours)
-    created_at INTEGER DEFAULT (UNIXEPOCH()),
-    
-    -- Security Metadata
-    ip_address TEXT,                -- Detect location/network changes
-    user_agent TEXT,                -- Detect device/browser changes
-    
+    last_activity INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    created_at ,
+    ip_address TEXT,
+    user_agent TEXT,
     FOREIGN KEY (uid) REFERENCES users (uid) ON DELETE CASCADE
   );
 `);
 
+// Rooms table
+db.run(`
+  CREATE TABLE IF NOT EXISTS rooms (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    is_private INTEGER DEFAULT 0,
+    created_by TEXT NOT NULL,
+    created_at INTEGER DEFAULT (UNIXEPOCH()),
+    updated_at INTEGER DEFAULT (UNIXEPOCH()),
+    FOREIGN KEY (created_by) REFERENCES users(uid)
+  )
+`);
+
+// Room Members table
+db.run(`
+  CREATE TABLE IF NOT EXISTS room_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_id TEXT NOT NULL,
+    uid TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'member',
+    joined_at INTEGER DEFAULT (UNIXEPOCH()),
+    is_active INTEGER DEFAULT 1,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE,
+    UNIQUE(room_id, uid)  -- MISSING: Prevents duplicate memberships
+  )
+`);
+
+// user rooms table to track last message and unread counts
+db.run(`
+  CREATE TABLE IF NOT EXISTS user_rooms (
+    user_id TEXT NOT NULL,
+    room_id TEXT NOT NULL,
+    last_message_at DATETIME,
+    unread_count INTEGER DEFAULT 0,
+    UNIQUE(user_id, room_id),
+    FOREIGN KEY(user_id) REFERENCES users(uid),
+    FOREIGN KEY(room_id) REFERENCES rooms(id)
+  )
+`);
+
+// Fast online users lookup
 try {
-  // Create an index for faster 'online users' lookups
   db.run(
-    `CREATE INDEX idx_sessions_active ON sessions(expires_at, last_activity, uid);
+    `CREATE INDEX idx_sessions_active ON sessions(expires_at, last_activity DESC, uid);
     `
   );
-} catch (error) { }
+} catch (error) {}
+try {
+  db.run(
+    `CREATE INDEX IF NOT EXISTS idx_room_members_user ON room_members(uid);
+    `
+  );
+} catch (error) {}
+
+try {
+  db.run(
+    `CREATE INDEX IF NOT EXISTS idx_room_members_room ON room_members(room_id, is_active);
+    `
+  );
+} catch (error) {}
+
+try {
+  db.run(
+    `CREATE INDEX IF NOT EXISTS idx_messages_room_time ON messages(room_id, created_at DESC);`
+  );
+} catch (error) {}
+
+//  user_rooms performance (sidebar sorting)
+try {
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_user_rooms_last_msg ON user_rooms(user_id, last_message_at DESC);`);
+} catch (error) {}
+
+// Add missing index for user_rooms
+try {
+  db.run(
+    `CREATE INDEX IF NOT EXISTS idx_user_rooms_user ON user_rooms(user_id)`
+  );
+} catch (error) {}
+
+// Index for banned users lookup
+try {
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_banned_users_active ON banned_users(expires_at, uid);`);
+} catch (error) {}

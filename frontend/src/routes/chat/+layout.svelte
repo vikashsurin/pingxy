@@ -8,7 +8,6 @@
     chatStore.currentUser = data.user;
   });
 
-  $inspect({ dd: chatStore.currentUser });
 
   let username = $derived(data?.user?.username);
 </script>

@@ -48,6 +48,7 @@ export const messageSchema = z.object({
   senderId: z.string().optional(),
   recipientId: z.string().optional(),
   senderName: z.string().optional(),
+  roomId: z.string().optional(),
   timestamp: z.number(),
   status: z.enum(["sent", "delivered", "read"]).default("sent"),
 });
@@ -66,11 +67,21 @@ export const typingEventSchema = z.object({
   recipientId: z.string().optional(),
 });
 
+export const roomSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  isPrivate: z.boolean().default(false),
+  createdBy: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
 export type User = z.infer<typeof userSchema>;
 export type Connection = z.infer<typeof connectionSchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type ReadReceipt = z.infer<typeof readReceiptSchema>;
 export type TypingEvent = z.infer<typeof typingEventSchema>;
 export type Session = z.infer<typeof sessionSchema>;
+export type Room = z.infer<typeof roomSchema>;
 
 export type ChatTarget = User;
