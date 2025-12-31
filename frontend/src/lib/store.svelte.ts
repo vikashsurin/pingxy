@@ -50,6 +50,7 @@ class ChatStore {
   setTyping(uid: string, isTyping: boolean) {
     if (isTyping) {
       this.typingUsers.add(uid);
+    } else {
       this.typingUsers.delete(uid);
     }
   }
@@ -58,11 +59,7 @@ class ChatStore {
   typingTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   handleTyping() {
-    if (
-      !this.activeChatTarget?.uid ||
-      !this.currentUser
-    )
-      return;
+    if (!this.activeChatTarget?.uid || !this.currentUser) return;
 
     const socket = getSocket();
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
