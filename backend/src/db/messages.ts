@@ -11,14 +11,7 @@ export const createMessage = (msg: Message): boolean => {
     insertMessage(
       msg.id,
       msg.senderId,
-      msg.recipientId || "", // msg.recipientId is optional string, insertMessage takes string. But logic says recipient_id | null.
-      // Wait, insertMessage signature: recipient_id: string. logic: $recipient_id: recipient_id || null.
-      // If I pass "", it becomes null in query? No.
-      // logic in insertMessage: `$recipient_id: recipient_id || null`. If "" passed, it becomes null.
-      // So passing "" is safe if I intend null.
-      // HOWEVER, recipient_id might be undefined in msg.
-      // So msg.recipientId || "" works.
-
+      msg.recipientId || "",
       msg.text,
       msg.timestamp,
       msg.roomId || null,
