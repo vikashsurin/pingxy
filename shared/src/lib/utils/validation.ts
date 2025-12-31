@@ -21,8 +21,6 @@ export interface BanDetails {
   reason: string;
   bannedBy: string;
   expiresAt: number | null; // null for permanent
-  scope: "global" | "room";
-  roomId?: string;
   createdAt: number;
 }
 
@@ -49,7 +47,6 @@ export const messageSchema = z.object({
   text: z.string(),
   senderId: z.string().optional(),
   recipientId: z.string().optional(),
-  roomId: z.string().optional(),
   senderName: z.string().optional(),
   timestamp: z.number(),
   status: z.enum(["sent", "delivered", "read"]).default("sent"),
@@ -67,38 +64,6 @@ export const typingEventSchema = z.object({
   isTyping: z.boolean(),
   senderId: z.string(),
   recipientId: z.string().optional(),
-  roomId: z.string().optional(),
-});
-
-export const roomSchema = z.object({
-  uid: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-  createdBy: z.string().optional(),
-  createdAt: z.number().optional(),
-  type: z.enum(["public", "private"]),
-  maxUsers: z.number().optional(),
-  userCount: z.number().optional(),
-  password: z.string().optional(),
-});
-
-export const editRoomSchema = z.object({
-  roomId: z.string(),
-  name: z.string().optional(),
-  description: z.string().optional(),
-  maxUsers: z.number().optional(),
-  password: z.string().optional(),
-  type: z.enum(["public", "private"]).optional(),
-});
-
-export const joinRoomSchema = z.object({
-  roomId: z.string(),
-  password: z.string().optional(),
-});
-
-export const kickUserSchema = z.object({
-  roomId: z.string(),
-  userId: z.string(),
 });
 
 export type User = z.infer<typeof userSchema>;
@@ -106,7 +71,6 @@ export type Connection = z.infer<typeof connectionSchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type ReadReceipt = z.infer<typeof readReceiptSchema>;
 export type TypingEvent = z.infer<typeof typingEventSchema>;
-export type Room = z.infer<typeof roomSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 
-export type ChatTarget = User | Room;
+export type ChatTarget = User;

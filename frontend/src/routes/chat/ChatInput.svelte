@@ -14,7 +14,7 @@
 </script>
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
-  {#if chatStore.typingUsers.has(chatStore.activeChatTarget.uid)}
+  {#if chatStore.activeChatTarget && chatStore.typingUsers.has(chatStore.activeChatTarget.uid)}
     <span class="absolute bottom-full px-2 text-xs text-gray-500"
       >Typing...</span
     >

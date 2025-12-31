@@ -36,8 +36,6 @@ db.run(`
     reason TEXT NOT NULL,
     banned_by TEXT NOT NULL,
     expires_at INTEGER, -- Nullable for permanent bans
-    scope TEXT DEFAULT 'global', -- 'global' or 'room'
-    room_id TEXT, -- Nullable if global
     created_at INTEGER DEFAULT (UNIXEPOCH()),
     FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE,
     FOREIGN KEY (banned_by) REFERENCES users(uid)
@@ -61,27 +59,11 @@ db.run(`
     id TEXT PRIMARY KEY,
     sender_id TEXT NOT NULL,
     recipient_id TEXT,
-    room_id TEXT,
     content TEXT NOT NULL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     read BOOLEAN DEFAULT 0,
     FOREIGN KEY(sender_id) REFERENCES users(uid),
-    FOREIGN KEY(recipient_id) REFERENCES users(uid),
-    FOREIGN KEY(room_id) REFERENCES rooms(id)
-  )
-`);
-
-// Rooms table
-db.run(`
-  CREATE TABLE IF NOT EXISTS rooms (
-    id TEXT PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    description TEXT,
-    created_by TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    type TEXT DEFAULT 'public',
-    max_users INTEGER DEFAULT 0,
-    password TEXT
+    FOREIGN KEY(recipient_id) REFERENCES users(uid)
   )
 `);
 
@@ -101,28 +83,6 @@ db.run(`
     FOREIGN KEY (uid) REFERENCES users (uid) ON DELETE CASCADE
   );
 `);
-
-// Migrations
-try {
-  // Migrate existing global messages
-  db.run(
-    "UPDATE messages SET room_id = 'global' WHERE recipient_id IS NULL AND room_id IS NULL"
-  );
-} catch (e) {
-  // Column likely exists, ignore
-}
-
-try {
-  db.run("ALTER TABLE rooms ADD COLUMN max_users INTEGER DEFAULT 0");
-} catch (e) {
-  // Column likely exists
-}
-
-try {
-  db.run("ALTER TABLE rooms ADD COLUMN password TEXT");
-} catch (e) {
-  // Column likely exists
-}
 
 try {
   // Create an index for faster 'online users' lookups

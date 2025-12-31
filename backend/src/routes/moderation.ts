@@ -19,7 +19,7 @@ app.post("/ban", async (c) => {
         return c.json({ error: "Unauthorized" }, 403);
     }
 
-    const { uid, reason, duration, scope, roomId } = await c.req.json();
+    const { uid, reason, duration } = await c.req.json();
 
     if (!uid || !reason) {
         return c.json({ error: "Missing required fields" }, 400);

@@ -70,6 +70,7 @@ export const actions = {
       gender: gender,
       age: Number(age),
       country: country,
+      roles: ["user"],
     };
 
     const validateUser = userSchema.safeParse(user);
@@ -113,6 +114,7 @@ export const actions = {
       gender: gender,
       age: Number(age),
       country: country,
+      roles: ["user"],
     };
 
     // Validation

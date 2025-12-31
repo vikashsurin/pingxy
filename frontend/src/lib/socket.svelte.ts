@@ -4,7 +4,6 @@ import type {
   Connection,
   Message,
   User,
-  Room,
 } from "../../../shared/src/lib/utils/validation.js";
 
 export let socket: WebSocket | null = null;
@@ -33,53 +32,9 @@ export function initSocket() {
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
-    if (data.type === "join_room") {
-      console.log("joined room");
-      chatStore.joinedRooms.add(data.roomId);
-    }
-    if (data.type === "rejoin_room") {
-      console.log("Rejoined room:", data.roomId);
-    }
-
-    if (data.type === "leave_room") {
-      chatStore.joinedRooms.delete(data.roomId);
-    }
-    if (data.type === "room_list") {
-      const rooms: Room[] = data.rooms;
-      chatStore.setRooms(rooms);
-    }
-
-    if (data.type === "room_created") {
-      const room: Room = data.room;
-      chatStore.addRoom(room);
-    }
-
-    if (data.type === "room_updated") {
-      const room: Room = data.room;
-      chatStore.updateRoom(room);
-    }
-
-    if (data.type === "room_deleted") {
-      const { roomId } = data;
-      chatStore.removeRoom(roomId);
-    }
-
     if (data.type === "error") {
       console.error("Socket Error:", data.message);
       // TODO: Show toast
-    }
-
-    if (data.type === "kicked") {
-      const { roomId, roomName } = data;
-      if (chatStore.activeChatTarget?.uid === roomId) {
-        // Force switch to global
-        const globalRoom = chatStore.rooms.get("global");
-        if (globalRoom) {
-          chatStore.activeChatTarget = globalRoom;
-        }
-      }
-      // Maybe show alert "You were kicked from roomName"
-      alert(`You were kicked from ${roomName}`);
     }
 
     // update user list
@@ -90,41 +45,10 @@ export function initSocket() {
       if (c.status === "leave") {
         const user: User = c.user;
 
-        // update notification message when user leaves
-        const message: Message = {
-          id: crypto.randomUUID(),
-          type: "message",
-          kind: "system",
-          text: c.text!,
-          recipientId: "global",
-          timestamp: Date.now(),
-          status: "sent",
-        };
-        chatStore.messages.set("global", [
-          ...(chatStore.messages.get("global") || []),
-          message,
-        ]);
-
         chatStore.users.delete(user.uid!);
       }
       if (c.status === "join") {
         const user: User = c.user;
-
-        // update notification message when user joins
-        const message: Message = {
-          id: crypto.randomUUID(),
-          type: "message",
-          kind: "system",
-          text: c.text!,
-          recipientId: "global",
-          timestamp: Date.now(),
-          status: "sent",
-        };
-
-        chatStore.messages.set("global", [
-          ...(chatStore.messages.get("global") || []),
-          message,
-        ]);
 
         chatStore.users.set(user.uid!, user);
       }
@@ -135,50 +59,34 @@ export function initSocket() {
     if (data.type === "message") {
       const message: Message = data;
 
-      // Check if it is a Room Message
-      if (message.roomId) {
-        const roomId = message.roomId;
-        // Ensure we have the room in store? Maybe auto-add if missing?
-        // For now assume room_list populated it or we don't care about metadata yet.
+      // Direct Message
+      const senderId = message.senderId!;
+      // If I sent it, it should go to recipient's conversation?
+      // But incoming message is usually from someone else.
+      // Unless it's a sync from other session.
 
-        chatStore.messages.set(roomId, [
-          ...(chatStore.messages.get(roomId) || []),
-          message,
-        ]);
+      chatStore.messages.set(senderId, [
+        ...(chatStore.messages.get(senderId) || []),
+        message,
+      ]);
 
-        if (chatStore.activeChatTarget?.uid !== roomId) {
-          chatStore.addUnread(roomId);
-        }
-      } else {
-        // Direct Message
-        const senderId = message.senderId!;
-        // If I sent it, it should go to recipient's conversation?
-        // But incoming message is usually from someone else.
-        // Unless it's a sync from other session.
-
-        chatStore.messages.set(senderId, [
-          ...(chatStore.messages.get(senderId) || []),
-          message,
-        ]);
-
-        // update unread messages
-        if (chatStore.activeChatTarget?.uid !== senderId) {
-          chatStore.addUnread(senderId);
-        } else if (
-          chatStore.activeChatTarget?.uid === senderId &&
-          chatStore.currentUser
-        ) {
-          // Send read receipt if active
-          if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(
-              JSON.stringify({
-                type: "read_receipt",
-                messageId: message.id,
-                senderId: chatStore.currentUser.uid,
-                recipientId: senderId,
-              })
-            );
-          }
+      // update unread messages
+      if (chatStore.activeChatTarget?.uid !== senderId) {
+        chatStore.addUnread(senderId);
+      } else if (
+        chatStore.activeChatTarget?.uid === senderId &&
+        chatStore.currentUser
+      ) {
+        // Send read receipt if active
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(
+            JSON.stringify({
+              type: "read_receipt",
+              messageId: message.id,
+              senderId: chatStore.currentUser.uid,
+              recipientId: senderId,
+            })
+          );
         }
       }
     }

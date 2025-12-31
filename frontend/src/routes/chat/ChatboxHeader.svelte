@@ -14,9 +14,7 @@
 </script>
 
 <div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
-  {#if "type" in chatStore.activeChatTarget}
-    <span class="font-bold">{chatStore.activeChatTarget.name}</span>
-  {:else if "username" in chatStore.activeChatTarget}
+  {#if chatStore.activeChatTarget}
     <div class="flex w-full items-center gap-2">
       <span> Chatting with : </span>
       <GenderIcon gender={chatStore.activeChatTarget?.gender} />
@@ -25,9 +23,11 @@
         {chatStore.activeChatTarget?.uid === user.uid ? " (You)" : ""}
       </span>
 
-      <span
-        class={`fi fi-${chatStore.activeChatTarget.country.toLocaleLowerCase()}`}
-      ></span>
+      {#if chatStore.activeChatTarget?.country && chatStore.activeChatTarget.country !== "0"}
+        <span
+          class={`fi fi-${chatStore.activeChatTarget.country.toLocaleLowerCase()}`}
+        ></span>
+      {/if}
 
       <EllipsisVertical
         size={24}
