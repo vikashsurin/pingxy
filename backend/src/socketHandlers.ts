@@ -2,15 +2,14 @@ import type { WebSocketHandler } from "bun";
 import { validateConnection, validateMessage } from "./utils";
 import {
   type Connection,
+  ReadReceipt,
   type User,
   readReceiptSchema,
   typingEventSchema,
 } from "../../shared/src/lib/utils/validation.js";
 
 import { userSockets, announcedUsers } from "./state";
-import {
-  createMessage,
-} from "./db/messages";
+import { createMessage, markMessagesAsRead } from "./db/messages";
 
 type WebSocketData = {
   user: User;
@@ -105,7 +104,14 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
     // Handle read receipts and typing events
     if (msg.type === "read_receipt") {
-      handleReadReceipt(msg);
+      const success = handleReadReceipt(msg);
+      console.log("Read receipt handled:", success);
+      // if (!success) {
+      //   ws.send(
+      //     JSON.stringify({ type: "error", message: "Invalid read receipt." })
+      //   );
+      // }
+
       return;
     }
 
@@ -173,19 +179,25 @@ function getConnectionStatus(uid: string): Connection["status"] {
 }
 
 function getConnectionText(username: string, status: Connection["status"]) {
-  return `${username} has ${status === "reconnect" ? "reconnected" : "joined the chat"
-    }.`;
+  return `${username} has ${
+    status === "reconnect" ? "reconnected" : "joined the chat"
+  }.`;
 }
 
-function handleReadReceipt(msg: any) {
+function handleReadReceipt(msg: ReadReceipt): boolean {
   const result = readReceiptSchema.safeParse(msg);
-  if (!result.success) return;
-  const validMsg = result.data;
-  // TODO: Update read status in DB?
-  const recipientSocket = userSockets.get(validMsg.recipientId);
-  if (recipientSocket) {
-    recipientSocket.send(JSON.stringify(validMsg));
+  console.log("Read receipt parse result:", result);
+  if (!result.success) return false;
+
+  const success = markMessagesAsRead(
+    result.data.recipientId,
+    result.data.senderId
+  );
+  const recipientSocket = userSockets.get(result.data.recipientId);
+  if (success && recipientSocket) {
+    recipientSocket.send(JSON.stringify(result.data));
   }
+  return true;
 }
 
 function handleTypingEvent(msg: any, ws: any) {

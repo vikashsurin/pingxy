@@ -56,21 +56,21 @@
       const socket = getSocket();
       const shouldSendObj = socket && socket.readyState === WebSocket.OPEN;
 
-      activeMessages.forEach((msg) => {
-        if (msg.senderId === activeChatId && msg.status !== "read") {
-          if (shouldSendObj) {
-            socket.send(
-              JSON.stringify({
-                type: "read_receipt",
-                messageId: msg.id,
-                senderId: me.uid,
-                recipientId: activeChatId!,
-              })
-            );
-          }
-          msg.status = "read";
-        }
-      });
+      // activeMessages.forEach((msg) => {
+      //   if (msg.senderId === activeChatId && msg.status !== "read") {
+      //     if (shouldSendObj) {
+      //       socket.send(
+      //         JSON.stringify({
+      //           type: "read_receipt",
+      //           messageId: msg.id,
+      //           senderId: me.uid,
+      //           recipientId: activeChatId!,
+      //         })
+      //       );
+      //     }
+      //     msg.status = "read";
+      //   }
+      // });
     }
 
     if (activeMessages) previousMessageCount = activeMessages.length;
@@ -114,7 +114,7 @@
               class="text-xs text-gray-500 flex items-center gap-1 justify-end"
             >
               {new Date(message.timestamp).toLocaleTimeString()}
-              {#if message.status === "read"}
+              {#if message.read}
                 <CheckCheck size={14} class="text-blue-500" />
               {:else}
                 <Check size={14} class="text-gray-400" />

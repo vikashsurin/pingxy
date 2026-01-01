@@ -58,14 +58,36 @@ export const getDirectMessagesQuery = (
   limit: number = 50
 ): MessageRow[] => {
   const query = db.query(`
-        SELECT m.id, m.sender_id, u.username as sender_name, m.recipient_id, m.content, m.timestamp, m.read
-        FROM messages m
-        JOIN users u ON m.sender_id = u.uid
-        WHERE (m.sender_id = $ua AND m.recipient_id = $ub)
-           OR (m.sender_id = $ub AND m.recipient_id = $ua)
-        ORDER BY m.timestamp ASC
+        SELECT * 
+        FROM messages 
+        WHERE (sender_id = $ua AND recipient_id = $ub)
+           OR (sender_id = $ub AND recipient_id = $ua)
+        ORDER BY timestamp DESC
         LIMIT $limit
     `);
 
   return query.all({ $ua: userA, $ub: userB, $limit: limit }) as MessageRow[];
+};
+
+export const updateReadStatus = (
+  senderId: string,
+  recipientId: string
+): boolean => {
+  try {
+    const query = db.query(`
+      UPDATE messages
+      SET read = 1
+      WHERE sender_id = $senderId AND recipient_id = $recipientId AND read = 0
+    `);
+
+    query.run({
+      $senderId: senderId,
+      $recipientId: recipientId,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating read status:", error);
+    return false;
+  }
 };

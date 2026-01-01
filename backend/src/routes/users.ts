@@ -108,4 +108,5 @@ app.delete("/me", async (c) => {
   }
 });
 
+// Get messages
 export default app;

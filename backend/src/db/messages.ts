@@ -1,13 +1,17 @@
 import type { Message } from "../../../shared/src/lib/utils/validation";
 import "./schema"; // ensure schema & migrations are applied
-import { insertMessage, getDirectMessagesQuery } from "./queries/messages";
+import {
+  insertMessage,
+  getDirectMessagesQuery,
+  updateReadStatus,
+} from "./queries/messages";
 
 export const createMessage = (msg: Message): boolean => {
   try {
     if (!msg.senderId) {
       throw new Error("Cannot save message without senderId");
     }
-
+    console.log("Inserting message:", msg);
     insertMessage(
       msg.id,
       msg.senderId,
@@ -15,7 +19,7 @@ export const createMessage = (msg: Message): boolean => {
       msg.text,
       msg.timestamp,
       msg.roomId || null,
-      msg.status === "read"
+      msg.read === 0
     );
 
     return true;
@@ -41,6 +45,19 @@ export const getDirectMessages = (
     senderName: row.sender_name,
     recipientId: row.recipient_id,
     timestamp: row.timestamp,
-    status: row.read ? "read" : "sent",
+    read: row.read,
   }));
+};
+
+export const markMessagesAsRead = (
+  senderId: string,
+  recipientId: string
+): boolean => {
+  try {
+    updateReadStatus(senderId, recipientId);
+    return true;
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    return false;
+  }
 };

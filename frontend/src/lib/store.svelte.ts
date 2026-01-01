@@ -23,6 +23,16 @@ class ChatStore {
     value: "",
   });
 
+  reset() {
+    this.currentUser = null;
+    this.users.clear();
+    this.unread.clear();
+    this.messages.clear();
+    this.typingUsers.clear();
+    this.searchQuery.value = "";
+    this.activeChatTarget = null;
+  }
+
   activeChatTarget = $state<ChatTarget | null>(null);
 
   recentChatIds = $derived(new Set(this.messages.keys()));

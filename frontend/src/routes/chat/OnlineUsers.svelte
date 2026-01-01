@@ -5,11 +5,7 @@
   } from "../../../../shared/src/lib/utils/validation.js";
   import { chatStore } from "$lib/store.svelte.js";
   import GenderIcon from "./GenderIcon.svelte";
-  import {
-    ChevronDown,
-    ChevronUp,
-    MessageSquare,
-  } from "@lucide/svelte";
+  import { ChevronDown, ChevronUp, MessageSquare } from "@lucide/svelte";
   import SidebarHeader from "./SidebarHeader.svelte";
   import { getSocket } from "$lib/socket.svelte.js";
   import { onMount } from "svelte";
@@ -42,6 +38,53 @@
   // const genderFilter
   function handleGenderFilter(e: Event & { target: HTMLInputElement }) {
     filterGender = e.target.value;
+  }
+
+  async function loadMessagesFor(target: ChatTarget) {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/messages/history/${me.uid}/${target.uid}?limit=50`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        console.error(
+          "Failed to load messages for ",
+          target.username,
+          data.message
+        );
+        return;
+      }
+      const reversedMessages = data.messages.reverse();
+      console.log("Loaded messages for ", target.username, data.messages);
+      chatStore.messages.set(target.uid, reversedMessages);
+    } catch (error) {
+      console.error("Error loading messages for ", target.username, error);
+      return;
+    }
+  }
+
+  // TODO Handle read receipts when opening a chat
+  function initChat(user: User) {
+    chatStore.activeChatTarget = user;
+    const socket = getSocket();
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(
+        JSON.stringify({
+          type: "read_receipt",
+          senderId: me.uid,
+          recipientId: user.uid,
+        })
+      );
+    }
+
+    loadMessagesFor(user);
   }
 </script>
 
@@ -102,9 +145,7 @@
         style={chatStore.activeChatTarget?.uid === user.uid
           ? "background-color: #1e1e1e; color: white;"
           : ""}
-        onclick={(e) => {
-          chatStore.activeChatTarget = user;
-        }}
+        onclick={(e) => initChat(user)}
       >
         <div class="flex items-center gap-2 w-full overflow-hidden">
           <GenderIcon gender={user.gender} />

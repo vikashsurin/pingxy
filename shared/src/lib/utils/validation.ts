@@ -50,12 +50,13 @@ export const messageSchema = z.object({
   senderName: z.string().optional(),
   roomId: z.string().optional(),
   timestamp: z.number(),
-  status: z.enum(["sent", "delivered", "read"]).default("sent"),
+  read: z.number().optional(),
+  // status: z.enum(["sent", "delivered", "read"]).default("sent"),
 });
 
 export const readReceiptSchema = z.object({
   type: z.literal("read_receipt"),
-  messageId: z.string(),
+  messageId: z.string().optional(),
   senderId: z.string(),
   recipientId: z.string(),
 });

@@ -55,6 +55,7 @@ db.run(`
 
 // Messages table
 // Note: includes a dedicated `read` flag; keep in sync with queries/messages.ts
+// status TEXT DEFAULT 'sent', include later
 db.run(`
   CREATE TABLE IF NOT EXISTS messages (
     id TEXT PRIMARY KEY,
@@ -63,7 +64,6 @@ db.run(`
     content TEXT NOT NULL,
     room_id TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status TEXT DEFAULT 'sent',
     read INTEGER DEFAULT 0,
     FOREIGN KEY(sender_id) REFERENCES users(uid),
     FOREIGN KEY(recipient_id) REFERENCES users(uid),
@@ -175,4 +175,10 @@ try {
 try {
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_banned_users_active ON banned_users(expires_at, uid);`);
+} catch (error) {}
+
+// Index for messages sender and recipient
+try {
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_messages_sender_recipient ON messages(sender_id, recipient_id);`);
 } catch (error) {}

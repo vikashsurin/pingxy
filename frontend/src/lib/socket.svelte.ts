@@ -79,6 +79,7 @@ export function initSocket() {
       ) {
         // Send read receipt if active
         if (socket && socket.readyState === WebSocket.OPEN) {
+          console.log("sending read receipt for message:", message.id);
           socket.send(
             JSON.stringify({
               type: "read_receipt",
@@ -93,15 +94,33 @@ export function initSocket() {
 
     // handle read receipts
     if (data.type === "read_receipt") {
-      const { messageId, senderId, recipientId } = data; // senderId here is who READ the message
+      console.log("Received read receipt:", data);
+      const { messageId, senderId } = data; // senderId here is who READ the message
 
-      // Find the message in our local store and update status
-      const chatMessages = chatStore.messages.get(senderId) || [];
-      const updatedMessages = chatMessages.map((msg) =>
-        msg.id === messageId ? { ...msg, status: "read" } : msg
-      );
-      // @ts-ignore
-      chatStore.messages.set(senderId, updatedMessages);
+      // The user who sent the receipt (senderId) is the one we are chatting with
+      const chatPartnerId = senderId;
+      const chatMessages = chatStore.messages.get(chatPartnerId) || [];
+
+      let updatedMessages;
+
+      if (messageId) {
+        // Update specific message
+        updatedMessages = chatMessages.map((msg) =>
+          msg.id === messageId ? { ...msg, read: 1 } : msg
+        );
+      } else {
+        // Mark ALL messages sent by ME as read
+        // The receipt means the other user (senderId) has read our messages
+        updatedMessages = chatMessages.map((msg) => {
+          // We only care about updating messages WE sent
+          if (msg.senderId === chatStore.currentUser?.uid) {
+            return { ...msg, read: 1 };
+          }
+          return msg;
+        });
+      }
+
+      chatStore.messages.set(chatPartnerId, updatedMessages);
     }
 
     // handle typing events

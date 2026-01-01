@@ -75,7 +75,7 @@
       <!-- MENU POPUP -->
       {#if isMenuExpanded}
         <div
-          class="absolute py-1 flex flex-col top-full min-w-[200px] right-0 bg-white border border-gray-200 rounded"
+          class="absolute py-1 flex flex-col top-full min-w-50 right-0 bg-white border border-gray-200 rounded"
         >
           {@render menuItem("/chat/view-details/me", "View details")}
           {@render menuItem("/chat/upgrade-to-pro", "Upgrade to Pro")}

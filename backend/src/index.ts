@@ -13,6 +13,7 @@ import { authMiddleware } from "./middlewares/auth";
 import authRouter from "./routes/auth";
 import userRouter from "./routes/users";
 import moderationRouter from "./routes/moderation";
+import messageRouter from "./routes/messages";
 
 const app = new Hono();
 
@@ -62,6 +63,7 @@ app.use("/api/users/*", async (c, next) => {
 app.route("/api/auth", authRouter);
 app.route("/api/users", userRouter);
 app.route("/api/mod", moderationRouter);
+app.route("/api/messages", messageRouter);
 
 serve({
   websocket: socketHandlers,
