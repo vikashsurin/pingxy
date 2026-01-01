@@ -74,7 +74,7 @@ db.run(`
 // Backfill for existing databases that might be missing the `read` column
 try {
   db.run(`ALTER TABLE messages ADD COLUMN read INTEGER DEFAULT 0;`);
-} catch (error) {}
+} catch (error) { }
 
 // Session table
 db.run(`
@@ -95,7 +95,10 @@ db.run(`
   CREATE TABLE IF NOT EXISTS rooms (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    is_private INTEGER DEFAULT 0,
+    description TEXT,
+    max_users INTEGER DEFAULT 5,
+    type TEXT CHECK (type IN ('public', 'private')) DEFAULT 'public',
+    password TEXT,
     created_by TEXT NOT NULL,
     created_at INTEGER DEFAULT (UNIXEPOCH()),
     updated_at INTEGER DEFAULT (UNIXEPOCH()),
@@ -137,48 +140,48 @@ try {
     `CREATE INDEX idx_sessions_active ON sessions(expires_at, last_activity DESC, uid);
     `,
   );
-} catch (error) {}
+} catch (error) { }
 try {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_room_members_user ON room_members(uid);
     `,
   );
-} catch (error) {}
+} catch (error) { }
 
 try {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_room_members_room ON room_members(room_id, is_active);
     `,
   );
-} catch (error) {}
+} catch (error) { }
 
 try {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_messages_room_time ON messages(room_id, timestamp DESC);`,
   );
-} catch (error) {}
+} catch (error) { }
 
 //  user_rooms performance (sidebar sorting)
 try {
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_user_rooms_last_msg ON user_rooms(user_id, last_message_at DESC);`);
-} catch (error) {}
+} catch (error) { }
 
 // Add missing index for user_rooms
 try {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_user_rooms_user ON user_rooms(user_id)`,
   );
-} catch (error) {}
+} catch (error) { }
 
 // Index for banned users lookup
 try {
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_banned_users_active ON banned_users(expires_at, uid);`);
-} catch (error) {}
+} catch (error) { }
 
 // Index for messages sender and recipient
 try {
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_messages_sender_recipient ON messages(sender_id, recipient_id);`);
-} catch (error) {}
+} catch (error) { }

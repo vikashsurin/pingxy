@@ -71,7 +71,10 @@ export const typingEventSchema = z.object({
 export const roomSchema = z.object({
   id: z.string(),
   name: z.string(),
-  isPrivate: z.boolean().default(false),
+  description: z.string().optional(),
+  maxUsers: z.number().optional(),
+  type: z.enum(["public", "private"]).default("public"),
+  password: z.string().optional(),
   createdBy: z.string(),
   createdAt: z.number(),
   updatedAt: z.number().optional(),
