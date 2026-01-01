@@ -135,26 +135,26 @@ db.run(`
 try {
   db.run(
     `CREATE INDEX idx_sessions_active ON sessions(expires_at, last_activity DESC, uid);
-    `
+    `,
   );
 } catch (error) {}
 try {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_room_members_user ON room_members(uid);
-    `
+    `,
   );
 } catch (error) {}
 
 try {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_room_members_room ON room_members(room_id, is_active);
-    `
+    `,
   );
 } catch (error) {}
 
 try {
   db.run(
-    `CREATE INDEX IF NOT EXISTS idx_messages_room_time ON messages(room_id, timestamp DESC);`
+    `CREATE INDEX IF NOT EXISTS idx_messages_room_time ON messages(room_id, timestamp DESC);`,
   );
 } catch (error) {}
 
@@ -167,7 +167,7 @@ try {
 // Add missing index for user_rooms
 try {
   db.run(
-    `CREATE INDEX IF NOT EXISTS idx_user_rooms_user ON user_rooms(user_id)`
+    `CREATE INDEX IF NOT EXISTS idx_user_rooms_user ON user_rooms(user_id)`,
   );
 } catch (error) {}
 

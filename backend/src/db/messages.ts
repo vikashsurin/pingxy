@@ -16,7 +16,7 @@ export const createMessage = (msg: Message): boolean => {
       msg.id,
       msg.senderId,
       msg.recipientId || "",
-      msg.text,
+      msg.content,
       msg.timestamp,
       msg.roomId || null,
       msg.read === 0
@@ -40,7 +40,7 @@ export const getDirectMessages = (
     id: row.id,
     type: "message",
     kind: "chat",
-    text: row.content,
+    content: row.content,
     senderId: row.sender_id,
     senderName: row.sender_name,
     recipientId: row.recipient_id,

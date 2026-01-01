@@ -79,7 +79,6 @@ export function initSocket() {
       ) {
         // Send read receipt if active
         if (socket && socket.readyState === WebSocket.OPEN) {
-          console.log("sending read receipt for message:", message.id);
           socket.send(
             JSON.stringify({
               type: "read_receipt",
@@ -94,7 +93,6 @@ export function initSocket() {
 
     // handle read receipts
     if (data.type === "read_receipt") {
-      console.log("Received read receipt:", data);
       const { messageId, senderId } = data; // senderId here is who READ the message
 
       // The user who sent the receipt (senderId) is the one we are chatting with

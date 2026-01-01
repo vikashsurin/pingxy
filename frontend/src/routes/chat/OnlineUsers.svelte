@@ -62,7 +62,6 @@
         return;
       }
       const reversedMessages = data.messages.reverse();
-      console.log("Loaded messages for ", target.username, data.messages);
       chatStore.messages.set(target.uid, reversedMessages);
     } catch (error) {
       console.error("Error loading messages for ", target.username, error);

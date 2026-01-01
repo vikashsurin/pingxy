@@ -92,7 +92,7 @@
         class="flex w-full justify-between gap-10 text-gray-400 mr-2 bg-gray-100 px-2 py-0.5 text-xs"
       >
         <span>
-          {message.text}
+          {message.content}
         </span>
         <span>
           <!-- {new Date(message.timestamp).toLocaleString()} -->
@@ -108,7 +108,7 @@
             class="flex flex-col rounded-l-lg bg-yellow-100 ml-auto py-2 px-3 max-w-4/5"
           >
             <span>
-              {message.text}
+              {message.content}
             </span>
             <span
               class="text-xs text-gray-500 flex items-center gap-1 justify-end"
@@ -133,7 +133,7 @@
             class="flex flex-col rounded-r-lg bg-gray-100 px-2 py-1 max-w-4/5"
           >
             <span>
-              {message.text}
+              {message.content}
             </span>
             <span class="text-xs text-gray-500">
               {new Date(message.timestamp).toLocaleTimeString()}

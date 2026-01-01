@@ -105,12 +105,11 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     // Handle read receipts and typing events
     if (msg.type === "read_receipt") {
       const success = handleReadReceipt(msg);
-      console.log("Read receipt handled:", success);
-      // if (!success) {
-      //   ws.send(
-      //     JSON.stringify({ type: "error", message: "Invalid read receipt." })
-      //   );
-      // }
+      if (!success) {
+        ws.send(
+          JSON.stringify({ type: "error", message: "Invalid read receipt." })
+        );
+      }
 
       return;
     }
@@ -186,7 +185,6 @@ function getConnectionText(username: string, status: Connection["status"]) {
 
 function handleReadReceipt(msg: ReadReceipt): boolean {
   const result = readReceiptSchema.safeParse(msg);
-  console.log("Read receipt parse result:", result);
   if (!result.success) return false;
 
   const success = markMessagesAsRead(

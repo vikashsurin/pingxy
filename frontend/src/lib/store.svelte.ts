@@ -107,9 +107,9 @@ class ChatStore {
     }, 2000);
   }
 
-  sendMessage(text: string) {
+  sendMessage(content: string) {
     // Pre-validation checks
-    const trimmedMessage = text.trim();
+    const trimmedMessage = content.trim();
     if (!trimmedMessage) return;
 
     if (trimmedMessage.length > 5000) {
@@ -133,13 +133,12 @@ class ChatStore {
       id: crypto.randomUUID(),
       type: "message",
       kind: "chat",
-      text: trimmedMessage,
+      content: trimmedMessage,
       senderId: this.currentUser.uid,
       senderName: this.currentUser.username,
       // Logic for Room vs DM
       recipientId: this.activeChatTarget.uid,
       timestamp: Date.now(),
-      status: "sent",
     };
 
     // Schema validation
