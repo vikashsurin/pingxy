@@ -1,6 +1,9 @@
-import { Database } from "bun:sqlite";
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/bun-sql';
 
-// Initialize and export the shared database instance
-export const db = new Database("chat.db");
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not set');
+}
 
+export const db = drizzle(process.env.DATABASE_URL);
 export default db;

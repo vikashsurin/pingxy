@@ -1,93 +1,86 @@
+import { eq } from "drizzle-orm";
 import db from "../client";
-
-export interface MessageRow {
-  id: string;
-  sender_id: string;
-  sender_name: string;
-  recipient_id: string;
-  content: string;
-  timestamp: number;
-  read: number;
-}
+import { messages, NewMessage } from "../schema";
 
 export const insertMessage = (
-  id: string,
-  sender_id: string,
-  recipient_id: string,
-  content: string,
-  timestamp: number,
-  room_id: string | null,
-  read: boolean
-): boolean => {
-  const query = db.query(`
-      INSERT INTO messages (
-        id,
-        sender_id,
-        recipient_id,
-        content,
-        timestamp,
-        room_id,
-        read
-      )
-      VALUES (
-        $id,
-        $sender_id,
-        $recipient_id,
-        $content,
-        $timestamp,
-        $room_id,
-        $read
-      )
-    `);
+  message: NewMessage) => {
+  return db
+    .insert(messages)
+    .values({
+      conversation_id: message.conversation_id,
+      sender_id: message.sender_id,
+      content: message.content,
+      created_at: message.created_at,
+      updated_at: message.updated_at,
+      deleted_at: message.deleted_at,
+    }).returning();
+}
 
-  query.run({
-    $id: id,
-    $sender_id: sender_id,
-    $recipient_id: recipient_id || null,
-    $content: content,
-    $timestamp: timestamp,
-    $read: read ? 1 : 0,
-    $room_id: room_id,
-  });
-  return true;
-};
+export const updateMessage = (
+  message_id: number,
+  message: Partial<NewMessage>) => {
+  return db
+    .update(messages)
+    .set({
+      conversation_id: message.conversation_id,
+      sender_id: message.sender_id,
+      content: message.content,
+      updated_at: message.updated_at,
+      deleted_at: message.deleted_at,
+    })
+    .where(eq(messages.message_id, message_id))
+    .returning();
+}
 
-export const getDirectMessagesQuery = (
-  userA: string,
-  userB: string,
-  limit: number = 50
-): MessageRow[] => {
-  const query = db.query(`
-        SELECT * 
-        FROM messages 
-        WHERE (sender_id = $ua AND recipient_id = $ub)
-           OR (sender_id = $ub AND recipient_id = $ua)
-        ORDER BY timestamp DESC
-        LIMIT $limit
-    `);
+export const deleteMessage = (message_id: number) => {
+  return db
+    .delete(messages)
+    .where(eq(messages.message_id, message_id))
+    .returning();
+}
 
-  return query.all({ $ua: userA, $ub: userB, $limit: limit }) as MessageRow[];
-};
 
-export const updateReadStatus = (
-  senderId: string,
-  recipientId: string
-): boolean => {
-  try {
-    const query = db.query(`
-      UPDATE messages
-      SET read = 1
-      WHERE sender_id = $senderId AND recipient_id = $recipientId AND read = 0
-    `);
+export const getMessageById = (message_id: number) => {
+  return db
+    .select({
+      message_id: messages.message_id,
+      conversation_id: messages.conversation_id,
+      sender_id: messages.sender_id,
+      content: messages.content,
+      created_at: messages.created_at,
+      updated_at: messages.updated_at,
+      deleted_at: messages.deleted_at,
+    })
+    .from(messages)
+    .where(eq(messages.message_id, message_id));
+}
 
-    query.run({
-      $senderId: senderId,
-      $recipientId: recipientId,
-    });
+export const getMessagesByConversationId = (conversation_id: number) => {
+  return db
+    .select({
+      message_id: messages.message_id,
+      conversation_id: messages.conversation_id,
+      sender_id: messages.sender_id,
+      content: messages.content,
+      created_at: messages.created_at,
+      updated_at: messages.updated_at,
+      deleted_at: messages.deleted_at,
+    })
+    .from(messages)
+    .where(eq(messages.conversation_id, conversation_id));
+}
 
-    return true;
-  } catch (error) {
-    console.error("Error updating read status:", error);
-    return false;
-  }
-};
+export const getMessagesBySenderId = (sender_id: string) => {
+  return db
+    .select({
+      message_id: messages.message_id,
+      conversation_id: messages.conversation_id,
+      sender_id: messages.sender_id,
+      content: messages.content,
+      created_at: messages.created_at,
+      updated_at: messages.updated_at,
+      deleted_at: messages.deleted_at,
+    })
+    .from(messages)
+    .where(eq(messages.sender_id, sender_id));
+}

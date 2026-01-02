@@ -1,0 +1,95 @@
+import { and, eq, aliasedTable } from "drizzle-orm";
+import db from "../client";
+import { NewParticipant, participants, conversations } from "../schema";
+
+
+export const insertParticipant =
+    async (participant: NewParticipant) => {
+        return await db
+            .insert(participants)
+            .values({
+                conversation_id: participant.conversation_id,
+                user_id: participant.user_id,
+                role: participant.role,
+                joined_at: participant.joined_at,
+                left_at: participant.left_at,
+                is_active: participant.is_active,
+
+            })
+            .onConflictDoUpdate({
+                target: [participants.conversation_id, participants.user_id],
+                set: {
+
+                    left_at: null,
+                    is_active: true,
+                }
+            })
+            .returning();
+    }
+
+
+export const updateParticipantRole =
+    async (conversationId: number, userId: string, role: 'admin' | 'moderator' | 'member') => {
+        return await db
+            .update(participants)
+            .set({ role })
+            .where(and(
+                eq(participants.conversation_id, conversationId),
+                eq(participants.user_id, userId)))
+            .returning();
+    }
+
+export const removeParticipant =
+    async (conversationId: number, userId: string) => {
+        return await db
+            .delete(participants)
+            .where(and(
+                eq(participants.conversation_id, conversationId),
+                eq(participants.user_id, userId)))
+            .returning();
+    }
+
+export const getActiveParticipants =
+    async (conversationId: number) => {
+        return await db
+            .select()
+            .from(participants)
+            .where(and(
+                eq(participants.conversation_id, conversationId),
+                eq(participants.is_active, true)))
+            ;
+    }
+
+
+
+export const isUserInConversation =
+    async (conversationId: number, userId: string) => {
+        return await db
+            .select()
+            .from(participants)
+            .where(and(
+                eq(participants.conversation_id, conversationId),
+                eq(participants.user_id, userId)))
+            .limit(1);
+    }
+
+export const findDirectMessageConversationId =
+    async (userId: string, otherUserId: string) => {
+        const p1 = aliasedTable(participants, 'p1');
+        const p2 = aliasedTable(participants, 'p2');
+
+        return await db
+            .select({
+                conversation_id: p1.conversation_id,
+                conversation_type: conversations.conversation_type
+            })
+            .from(p1)
+            .innerJoin(p2, eq(p1.conversation_id, p2.conversation_id))
+            .innerJoin(conversations, eq(p1.conversation_id, conversations.conversation_id))
+            .where(and(
+                eq(p1.user_id, userId),
+                eq(p2.user_id, otherUserId),
+                eq(conversations.conversation_type, 'direct')
+            ))
+            .limit(1);
+    }
