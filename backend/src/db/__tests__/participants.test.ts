@@ -1,9 +1,8 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../../client";
-import { NewParticipant, participants } from "../../schema";
+import { db } from "../client";
+import { NewParticipant, participants } from "../schema";
 
-import { insertParticipant } from "../participants";
-
+import * as queries from "../queries/participants.query";
 
 describe('Participants Table Schema', () => {
     beforeAll(async () => {
@@ -23,7 +22,7 @@ describe('Participants Table Schema', () => {
             left_at: Math.floor(Date.now() / 1000),
             is_active: true,
         }
-        const result = await insertParticipant(newParticipant)
+        const result = await queries.insertParticipant(newParticipant)
         expect(result).toHaveLength(1)
     })
 })

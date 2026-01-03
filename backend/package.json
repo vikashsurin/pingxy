@@ -1,7 +1,8 @@
 {
   "name": "chat",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

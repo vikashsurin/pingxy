@@ -6,7 +6,7 @@ import { createInsertSchema, createSelectSchema, createUpdateSchema } from "driz
 
 
 
-const userTypesEnum = pgEnum('user_type', ['admin', 'moderator', 'user', 'guest'])
+export const userTypesEnum = pgEnum('user_type', ['admin', 'moderator', 'user', 'guest'])
 
 export const users = table("users", {
   id: t.text().primaryKey(),
@@ -23,7 +23,7 @@ export const users = table("users", {
   ]
 )
 
-const conversationTypesEnum = pgEnum('conversation_type', ['direct', 'group']);
+export const conversationTypesEnum = pgEnum('conversation_type', ['direct', 'group']);
 
 export const conversations = table("conversations", {
   conversation_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -38,13 +38,14 @@ export const conversations = table("conversations", {
       name: 'author_fk',
       columns: [table.created_by],
       foreignColumns: [users.id],
-    }).onDelete('cascade'),
+    }).onDelete('cascade')
+      .onUpdate('cascade'),
 
     t.uniqueIndex('conversations_created_by_idx').on(table.created_by)
   ]
 )
 
-const rolesEnum = pgEnum('role', ['admin', 'moderator', 'member'])
+export const rolesEnum = pgEnum('role', ['admin', 'moderator', 'member'])
 
 export const participants = table("participants", {
   participant_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -104,7 +105,7 @@ export const messages = table("messages", {
   ]
 )
 
-const messageReceiptStatusEnum = pgEnum('status', ['sent', 'delivered', 'read'])
+export const messageReceiptStatusEnum = pgEnum('status', ['sent', 'delivered', 'read'])
 
 export const message_receipts = table("message_receipts", {
   receipt_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -193,7 +194,61 @@ export const blocked_users = table("blocked_users", {
   ]
 )
 
+export const sessions = table("sessions", {
+  session_id: t.text().primaryKey(),
+  user_id: t.text().notNull(),
+  ip_address: t.text().notNull(),
+  user_agent: t.text(),
+  refresh_token: t.text(),
+  is_active: t.boolean().default(true),
+  last_activity: t.integer().default(sql`extract(epoch from now())`),
+  created_at: t.integer().default(sql`extract(epoch from now())`),
+  updated_at: t.integer().default(sql`extract(epoch from now())`),
+  expires_at: t.integer(),
+},
+  (table) => [
+    t.foreignKey({
+      name: 'user_fk',
+      columns: [table.user_id],
+      foreignColumns: [users.id],
+    }).onDelete('cascade'),
 
+    t.index('sessions_user_id_idx').on(table.user_id),
+    t.index("session_expires_at_idx").on(table.expires_at),
+    t.index('sessions_ip_address_idx').on(table.ip_address),
+    t.index("session_is_active_last_activity_idx")
+      .on(table.is_active, table.last_activity),
+  ]
+)
+
+export const refresh_tokens = table("refresh_tokens", {
+  token_id: t.text().primaryKey(),
+  refresh_token: t.text().notNull(),
+  user_id: t.text().notNull(),
+  session_id: t.text().notNull(),
+  created_at: t.integer().default(sql`extract(epoch from now())`),
+  updated_at: t.integer().default(sql`extract(epoch from now())`),
+  expires_at: t.integer(),
+},
+  (table) => [
+    t.foreignKey({
+      name: 'user_fk',
+      columns: [table.user_id],
+      foreignColumns: [users.id],
+    }).onDelete('cascade'),
+
+    t.foreignKey({
+      name: 'session_fk',
+      columns: [table.session_id],
+      foreignColumns: [sessions.session_id],
+    }).onDelete('cascade'),
+
+    t.index('refresh_tokens_user_id_idx').on(table.user_id),
+    t.index("refresh_token_user_id_session_id_idx")
+      .on(table.user_id, table.session_id),
+    t.index("refresh_token_expires_at_idx").on(table.expires_at),
+  ]
+)
 
 export const userSelectSchema = createSelectSchema(users)
 export const userInsertSchema = createInsertSchema(users)
@@ -219,3 +274,9 @@ export type NewMessageReaction = typeof message_reactions.$inferInsert
 
 export type BlockedUser = typeof blocked_users.$inferSelect
 export type NewBlockedUser = typeof blocked_users.$inferInsert
+
+export type RefreshToken = typeof refresh_tokens.$inferSelect
+export type NewRefreshToken = typeof refresh_tokens.$inferInsert
+
+export type Session = typeof sessions.$inferSelect
+export type NewSession = typeof sessions.$inferInsert

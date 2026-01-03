@@ -19,7 +19,6 @@ export const insertParticipant =
             .onConflictDoUpdate({
                 target: [participants.conversation_id, participants.user_id],
                 set: {
-
                     left_at: null,
                     is_active: true,
                 }
@@ -27,6 +26,22 @@ export const insertParticipant =
             .returning();
     }
 
+export const selectParticipantById =
+    async (participantId: number) => {
+        return await db
+            .select()
+            .from(participants)
+            .where(eq(participants.participant_id, participantId))
+            .limit(1);
+    }
+
+export const selectParticipantsByConversationId =
+    async (conversationId: number) => {
+        return await db
+            .select()
+            .from(participants)
+            .where(eq(participants.conversation_id, conversationId));
+    }
 
 export const updateParticipantRole =
     async (conversationId: number, userId: string, role: 'admin' | 'moderator' | 'member') => {
@@ -39,7 +54,7 @@ export const updateParticipantRole =
             .returning();
     }
 
-export const removeParticipant =
+export const deleteParticipant =
     async (conversationId: number, userId: string) => {
         return await db
             .delete(participants)
@@ -49,7 +64,7 @@ export const removeParticipant =
             .returning();
     }
 
-export const getActiveParticipants =
+export const selectActiveParticipants =
     async (conversationId: number) => {
         return await db
             .select()
@@ -62,7 +77,7 @@ export const getActiveParticipants =
 
 
 
-export const isUserInConversation =
+export const selectIsUserInConversation =
     async (conversationId: number, userId: string) => {
         return await db
             .select()
@@ -73,7 +88,7 @@ export const isUserInConversation =
             .limit(1);
     }
 
-export const findDirectMessageConversationId =
+export const selectDirectMessageConversationId =
     async (userId: string, otherUserId: string) => {
         const p1 = aliasedTable(participants, 'p1');
         const p2 = aliasedTable(participants, 'p2');

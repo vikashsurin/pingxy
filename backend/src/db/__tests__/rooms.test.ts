@@ -15,7 +15,7 @@ mock.module("../../client", () => {
 
 // Import the function AFTER mocking
 // Note: We need to ensure we import the module that uses the mock
-import { deleteRoomById, fetchAllRooms, fetchRoomById, insertRoom, updateRoomSettings } from "../rooms";
+import { deleteRoomById, fetchAllRooms, fetchRoomById, insertRoom, updateRoomSettings } from "../queries/rooms.query";
 
 describe("rooms queries", () => {
     beforeAll(() => {

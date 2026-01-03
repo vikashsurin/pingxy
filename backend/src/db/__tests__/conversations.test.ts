@@ -1,9 +1,8 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../../client";
-import { conversations } from "../../schema";
+import { db } from "../client";
+import { conversations } from "../schema";
 
-import { getConversationByAuthorId, getConversationById, insertConversation } from "../conversations";
-
+import * as queries from "../queries/conversations.query"
 
 describe('Conversations Table Schema', () => {
     beforeAll(async () => {
@@ -20,19 +19,19 @@ describe('Conversations Table Schema', () => {
             created_at: Math.floor(Date.now() / 1000),
             updated_at: Math.floor(Date.now() / 1000),
         }
-        const result = await insertConversation(newConversation)
+        const result = await queries.insertConversation(newConversation)
         console.log({ result })
         expect(result).toHaveLength(1)
     })
 
-    test('should get a conversation by id', async () => {
-        const result = await getConversationById(7)
+    test('should select a conversation by id', async () => {
+        const result = await queries.selectConversationById(7)
         console.log({ result })
         expect(result).toHaveLength(1)
     })
 
-    test('should get a conversation by author id', async () => {
-        const result = await getConversationByAuthorId('user-2')
+    test('should select a conversation by author id', async () => {
+        const result = await queries.selectConversationByAuthorId('user-2')
         console.log({ result })
         expect(result).toHaveLength(1)
     })

@@ -11,7 +11,7 @@ export const insertConversation = async (conversation: NewConversation) => {
         .returning();
 }
 
-export const getConversationById = async (id: number) => {
+export const selectConversationById = async (id: number) => {
     return await db
         .select()
         .from(conversations)
@@ -19,10 +19,17 @@ export const getConversationById = async (id: number) => {
         .limit(1);
 }
 
-export const getConversationByAuthorId = async (authorId: string) => {
+export const selectConversationByAuthorId = async (authorId: string) => {
     return await db
         .select()
         .from(conversations)
         .where(eq(conversations.created_by, authorId))
         .limit(1);
+}
+
+export const deleteConversation = async (id: number) => {
+    return await db
+        .delete(conversations)
+        .where(eq(conversations.conversation_id, id))
+        .returning();
 }

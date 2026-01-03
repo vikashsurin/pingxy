@@ -1,63 +1,61 @@
-import type { Message } from "../../../shared/src/lib/utils/validation";
-import "./schema"; // ensure schema & migrations are applied
-import {
-  insertMessage,
-  getDirectMessagesQuery,
-  updateReadStatus,
-} from "./queries/messages";
+import { NewMessage } from "./schema";
+import * as queries from "./queries/messages.query"
 
-export const createMessage = (msg: Message): boolean => {
+export const createMessage = async (message: NewMessage) => {
   try {
-    if (!msg.senderId) {
-      throw new Error("Cannot save message without senderId");
-    }
-    console.log("Inserting message:", msg);
-    insertMessage(
-      msg.id,
-      msg.senderId,
-      msg.recipientId || "",
-      msg.content,
-      msg.timestamp,
-      msg.roomId || null,
-      msg.read === 0
-    );
-
-    return true;
+    return await queries.insertMessage(message);
   } catch (error) {
     console.error("Error creating message:", error);
-    return false;
+    throw new Error("Error creating message");
   }
-};
+}
 
-export const getDirectMessages = (
-  userA: string,
-  userB: string,
-  limit: number = 50
-): Message[] => {
-  const rows = getDirectMessagesQuery(userA, userB, limit);
-
-  return rows.map((row) => ({
-    id: row.id,
-    type: "message",
-    kind: "chat",
-    content: row.content,
-    senderId: row.sender_id,
-    senderName: row.sender_name,
-    recipientId: row.recipient_id,
-    timestamp: row.timestamp,
-    read: row.read,
-  }));
-};
-
-export const markMessagesAsRead = (
-  senderId: string,
-  recipientId: string
-): boolean => {
+export const getMessageById = async (message_id: number) => {
   try {
-    updateReadStatus(senderId, recipientId);
-    return true;
-  } catch (error) {
-    console.error("Error marking messages as read:", error);
-    return false;
+    return await queries.selectMessageById(message_id);
   }
-};
+  catch (error) {
+    console.error("Error getting message by id:", error);
+    throw new Error("Error getting message by id");
+  }
+}
+
+export const getMessagesByConversationId = async (conversation_id: number) => {
+  try {
+    return await queries.selectMessagesByConversationId(conversation_id);
+  }
+  catch (error) {
+    console.error("Error getting messages by conversation id:", error);
+    throw new Error("Error getting messages by conversation id");
+  }
+}
+
+export const getMessagesBySenderId = async (sender_id: string) => {
+  try {
+    return await queries.selectMessagesBySenderId(sender_id);
+  }
+  catch (error) {
+    console.error("Error getting messages by sender id:", error);
+    throw new Error("Error getting messages by sender id");
+  }
+}
+
+export const changeMessage = async (message_id: number, message: Partial<NewMessage>) => {
+  try {
+    return await queries.updateMessage(message_id, message);
+  }
+  catch (error) {
+    console.error("Error updating message:", error);
+    throw new Error("Error updating message");
+  }
+}
+
+export const removeMessage = async (message_id: number) => {
+  try {
+    return await queries.deleteMessage(message_id);
+  }
+  catch (error) {
+    console.error("Error deleting message:", error);
+    throw new Error("Error deleting message");
+  }
+}

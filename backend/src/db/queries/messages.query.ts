@@ -40,7 +40,7 @@ export const deleteMessage = (message_id: number) => {
 }
 
 
-export const getMessageById = (message_id: number) => {
+export const selectMessageById = (message_id: number) => {
   return db
     .select({
       message_id: messages.message_id,
@@ -55,7 +55,7 @@ export const getMessageById = (message_id: number) => {
     .where(eq(messages.message_id, message_id));
 }
 
-export const getMessagesByConversationId = (conversation_id: number) => {
+export const selectMessagesByConversationId = (conversation_id: number) => {
   return db
     .select({
       message_id: messages.message_id,
@@ -70,7 +70,7 @@ export const getMessagesByConversationId = (conversation_id: number) => {
     .where(eq(messages.conversation_id, conversation_id));
 }
 
-export const getMessagesBySenderId = (sender_id: string) => {
+export const selectMessagesBySenderId = (sender_id: string) => {
   return db
     .select({
       message_id: messages.message_id,

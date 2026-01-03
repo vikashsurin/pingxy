@@ -1,8 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../../client";
-import { messages, NewMessage } from "../../schema";
-
-import { deleteMessage, getMessageById, getMessagesByConversationId, getMessagesBySenderId, insertMessage, updateMessage } from "../messages";
+import { db } from "../client";
+import { messages, NewMessage } from "../schema";
+import * as queries from "../queries/messages.query";
 
 
 describe('Messages Table Schema', () => {
@@ -16,12 +15,12 @@ describe('Messages Table Schema', () => {
             sender_id: 'user-2',
             content: 'Hello',
         }
-        const result = await insertMessage(newMessage)
+        const result = await queries.insertMessage(newMessage)
         expect(result).toHaveLength(1)
     })
 
     test('should update a message', async () => {
-        const result = await updateMessage(6, { content: 'Hello World' })
+        const result = await queries.updateMessage(6, { content: 'Hello World' })
         expect(result).toHaveLength(1)
     })
 
@@ -30,19 +29,19 @@ describe('Messages Table Schema', () => {
     //     expect(result).toHaveLength(1)
     // })
 
-    test('should get a message by id', async () => {
-        const result = await getMessageById(6)
+    test('should select a message by id', async () => {
+        const result = await queries.selectMessageById(6)
         expect(result).toHaveLength(1)
     })
 
-    test('should get messages by conversation id', async () => {
-        const result = await getMessagesByConversationId(7)
+    test('should select messages by conversation id', async () => {
+        const result = await queries.selectMessagesByConversationId(7)
         console.log({ result })
         expect(result).toBeArray()
     })
 
-    test('should get messages by sender id', async () => {
-        const result = await getMessagesBySenderId('user-2')
+    test('should select messages by sender id', async () => {
+        const result = await queries.selectMessagesBySenderId('user-2')
         console.log({ result })
         expect(result).toBeArray()
     })
