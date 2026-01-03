@@ -1,0 +1,323 @@
+import { sql } from "drizzle-orm";
+import { pgTable as table, pgEnum } from "drizzle-orm/pg-core";
+import * as t from "drizzle-orm/pg-core";
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
+
+export const userTypesEnum = pgEnum("user_type", [
+  "admin",
+  "moderator",
+  "user",
+  "guest",
+]);
+
+export const users = table(
+  "users",
+  {
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    user_type: userTypesEnum("user_type").default("guest"),
+    username: t.text().notNull().unique(),
+    hashed_password: t.text(),
+    data: t.jsonb().notNull(),
+    last_seen_at: t.integer(),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+  },
+  (table) => [t.uniqueIndex("users_username_idx").on(table.username)]
+);
+
+export const conversationTypesEnum = pgEnum("conversation_type", [
+  "direct",
+  "group",
+]);
+
+export const conversations = table(
+  "conversations",
+  {
+    conversation_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversation_type:
+      conversationTypesEnum("conversation_type").default("direct"),
+    name: t.varchar("name", { length: 100 }).notNull(),
+    created_by: t.integer().notNull(),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "author_fk",
+        columns: [table.created_by],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+
+    t.uniqueIndex("conversations_created_by_idx").on(table.created_by),
+  ]
+);
+
+export const rolesEnum = pgEnum("role", ["admin", "moderator", "member"]);
+
+export const participants = table(
+  "participants",
+  {
+    participant_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversation_id: t.integer().notNull(),
+    user_id: t.integer().notNull(),
+    role: rolesEnum("role").notNull(),
+    joined_at: t.integer().default(sql`extract(epoch from now())`),
+    left_at: t.integer(),
+    is_active: t.boolean().default(true),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "conversation_fk",
+        columns: [table.conversation_id],
+        foreignColumns: [conversations.conversation_id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .foreignKey({
+        name: "user_fk",
+        columns: [table.user_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .uniqueIndex("participants_conversation_id_user_id_idx")
+      .on(table.conversation_id, table.user_id),
+  ]
+);
+
+export const messages = table(
+  "messages",
+  {
+    message_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversation_id: t.integer().notNull(),
+    sender_id: t.integer().notNull(),
+    content: t.text().notNull(),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    deleted_at: t.integer(),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "conversation_fk",
+        columns: [table.conversation_id],
+        foreignColumns: [conversations.conversation_id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .foreignKey({
+        name: "user_fk",
+        columns: [table.sender_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .uniqueIndex("messages_conversation_id_created_at_idx")
+      .on(table.conversation_id, table.created_at),
+
+    t.index("messages_conversation_id_idx").on(table.conversation_id),
+    t.index("messages_sender_id_idx").on(table.sender_id),
+    t.index("messages_created_at_idx").on(table.created_at),
+  ]
+);
+
+export const messageReceiptStatusEnum = pgEnum("status", [
+  "sent",
+  "delivered",
+  "read",
+]);
+
+export const message_receipts = table(
+  "message_receipts",
+  {
+    receipt_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    message_id: t.integer().notNull(),
+    user_id: t.integer().notNull(),
+    status: messageReceiptStatusEnum("status").notNull(),
+    delivered_at: t.integer(),
+    read_at: t.integer(),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "message_fk",
+        columns: [table.message_id],
+        foreignColumns: [messages.message_id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .foreignKey({
+        name: "user_fk",
+        columns: [table.user_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .uniqueIndex("message_receipts_message_id_user_id_idx")
+      .on(table.message_id, table.user_id),
+
+    t.index("message_receipts_message_id_idx").on(table.message_id),
+    t
+      .index("message_receipts_user_id_status_idx")
+      .on(table.user_id, table.status),
+    t.index("message_receipts_read_at_idx").on(table.read_at),
+  ]
+);
+
+export const message_reactions = table(
+  "message_reactions",
+  {
+    reaction_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    message_id: t.integer().notNull(),
+    user_id: t.integer().notNull(),
+    emoji: t.varchar("emoji", { length: 10 }).notNull(),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "message_fk",
+        columns: [table.message_id],
+        foreignColumns: [messages.message_id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .foreignKey({
+        name: "user_fk",
+        columns: [table.user_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .uniqueIndex("message_reactions_message_id_user_id_emoji_idx")
+      .on(table.message_id, table.user_id, table.emoji),
+
+    t.index("message_reactions_message_id_idx").on(table.message_id),
+  ]
+);
+
+export const blocked_users = table(
+  "blocked_users",
+  {
+    block_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    blocker_id: t.integer().notNull(),
+    blocked_id: t.integer().notNull(),
+    blocked_at: t.integer().default(sql`extract(epoch from now())`),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "blocker_fk",
+        columns: [table.blocker_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .foreignKey({
+        name: "blocked_fk",
+        columns: [table.blocked_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .uniqueIndex("blocked_users_blocker_id_blocked_id_idx")
+      .on(table.blocker_id, table.blocked_id),
+
+    t.index("blocked_users_blocker_id_idx").on(table.blocker_id),
+    t.index("blocked_users_blocked_id_idx").on(table.blocked_id),
+  ]
+);
+
+export const sessions = table(
+  "sessions",
+  {
+    session_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    hashed_token: t.text().notNull().unique(),
+    user_id: t.integer().notNull(),
+    ip_address: t.text().notNull(),
+    user_agent: t.text(),
+    refresh_token: t.text(),
+    is_active: t.boolean().default(true),
+    last_activity: t.integer().default(sql`extract(epoch from now())`),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+    expires_at: t.integer(),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "user_fk",
+        columns: [table.user_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t.index("sessions_user_id_idx").on(table.user_id),
+    t.index("session_expires_at_idx").on(table.expires_at),
+    t.index("sessions_ip_address_idx").on(table.ip_address),
+    t
+      .index("session_is_active_last_activity_idx")
+      .on(table.is_active, table.last_activity),
+  ]
+);
+
+export const refresh_tokens = table(
+  "refresh_tokens",
+  {
+    token_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    refresh_token: t.text().notNull(),
+    user_id: t.integer().notNull(),
+    session_id: t.integer().notNull(),
+    created_at: t.integer().default(sql`extract(epoch from now())`),
+    updated_at: t.integer().default(sql`extract(epoch from now())`),
+    expires_at: t.integer(),
+  },
+  (table) => [
+    t
+      .foreignKey({
+        name: "user_fk",
+        columns: [table.user_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
+    t
+      .foreignKey({
+        name: "session_fk",
+        columns: [table.session_id],
+        foreignColumns: [sessions.session_id],
+      })
+      .onDelete("cascade"),
+
+    t.index("refresh_tokens_user_id_idx").on(table.user_id),
+    t
+      .index("refresh_token_user_id_session_id_idx")
+      .on(table.user_id, table.session_id),
+    t.index("refresh_token_expires_at_idx").on(table.expires_at),
+  ]
+);
+
+export const userSelectSchema = createSelectSchema(users);
+export const userInsertSchema = createInsertSchema(users);
+export const userUpdateSchema = createUpdateSchema(users);
