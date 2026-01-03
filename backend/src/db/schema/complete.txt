@@ -1,0 +1,330 @@
+-- Users table
+CREATE TABLE users (
+    user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100),
+    avatar_url VARCHAR(500),
+    status ENUM('online', 'offline', 'away', 'busy') DEFAULT 'offline',
+    last_seen TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email)
+);
+
+-- Conversations table (for both direct messages and group chats)
+CREATE TABLE conversations (
+    conversation_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    conversation_type ENUM('direct', 'group') NOT NULL,
+    name VARCHAR(100) NULL, -- Only for group chats
+    avatar_url VARCHAR(500) NULL, -- Only for group chats
+    created_by BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_created_by (created_by)
+);
+
+-- Conversation participants
+CREATE TABLE conversation_participants (
+    participant_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    conversation_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    role ENUM('admin', 'member') DEFAULT 'member',
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    left_at TIMESTAMP NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_active_participant (conversation_id, user_id, is_active),
+    INDEX idx_conversation (conversation_id),
+    INDEX idx_user (user_id)
+);
+
+-- Messages table
+CREATE TABLE messages (
+    message_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    conversation_id BIGINT NOT NULL,
+    sender_id BIGINT NOT NULL,
+    message_type ENUM('text', 'image', 'video', 'audio', 'file', 'system') DEFAULT 'text',
+    content TEXT NULL, -- Message text content
+    file_url VARCHAR(500) NULL, -- For media/file messages
+    file_name VARCHAR(255) NULL,
+    file_size INT NULL, -- in bytes
+    reply_to_message_id BIGINT NULL, -- For threaded replies
+    is_edited BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited_at TIMESTAMP NULL,
+    deleted_at TIMESTAMP NULL,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (reply_to_message_id) REFERENCES messages(message_id) ON DELETE SET NULL,
+    INDEX idx_conversation (conversation_id, created_at),
+    INDEX idx_sender (sender_id),
+    INDEX idx_created (created_at)
+);
+
+-- Message read receipts
+CREATE TABLE message_receipts (
+    receipt_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    message_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    status ENUM('sent', 'delivered', 'read') NOT NULL,
+    delivered_at TIMESTAMP NULL,
+    read_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (message_id) REFERENCES messages(message_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_message_user (message_id, user_id),
+    INDEX idx_message (message_id),
+    INDEX idx_user_status (user_id, status),
+    INDEX idx_read_at (read_at)
+);
+
+-- Typing indicators (optional, could also be handled in-memory/cache)
+CREATE TABLE typing_indicators (
+    typing_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    conversation_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL, -- Auto-expire after a few seconds
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_conversation_user (conversation_id, user_id),
+    INDEX idx_conversation (conversation_id),
+    INDEX idx_expires (expires_at)
+);
+
+-- Message reactions (emoji reactions)
+CREATE TABLE message_reactions (
+    reaction_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    message_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    emoji VARCHAR(10) NOT NULL, -- Store emoji as unicode
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (message_id) REFERENCES messages(message_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_message_user_emoji (message_id, user_id, emoji),
+    INDEX idx_message (message_id)
+);
+
+-- User blocked list
+CREATE TABLE blocked_users (
+    block_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    blocker_id BIGINT NOT NULL,
+    blocked_id BIGINT NOT NULL,
+    blocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (blocker_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (blocked_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_block (blocker_id, blocked_id),
+    INDEX idx_blocker (blocker_id),
+    INDEX idx_blocked (blocked_id)
+);
+
+-- Sessions table (CRITICAL for tracking online users and authentication)
+CREATE TABLE sessions (
+    session_id VARCHAR(255) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    device_type ENUM('web', 'mobile', 'desktop', 'tablet') NOT NULL,
+    device_name VARCHAR(100) NULL,
+    ip_address VARCHAR(45) NOT NULL, -- IPv6 support
+    user_agent TEXT NULL,
+    refresh_token VARCHAR(500) NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_user (user_id),
+    INDEX idx_active (is_active, last_activity),
+    INDEX idx_expires (expires_at)
+);
+
+-- Refresh tokens (for JWT token rotation)
+CREATE TABLE refresh_tokens (
+    token_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    token_hash VARCHAR(255) UNIQUE NOT NULL,
+    session_id VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    revoked BOOLEAN DEFAULT FALSE,
+    revoked_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    INDEX idx_user (user_id),
+    INDEX idx_token_hash (token_hash),
+    INDEX idx_expires (expires_at)
+);
+
+-- Notifications
+CREATE TABLE notifications (
+    notification_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    notification_type ENUM('message', 'mention', 'reaction', 'group_invite', 'friend_request', 'system') NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NULL,
+    reference_id BIGINT NULL, -- ID of related message, conversation, etc.
+    reference_type VARCHAR(50) NULL, -- 'message', 'conversation', etc.
+    is_read BOOLEAN DEFAULT FALSE,
+    read_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_user_read (user_id, is_read),
+    INDEX idx_created (created_at)
+);
+
+-- Push notification tokens (for mobile push notifications)
+CREATE TABLE push_tokens (
+    token_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    device_token VARCHAR(500) UNIQUE NOT NULL,
+    platform ENUM('ios', 'android', 'web') NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_user (user_id),
+    INDEX idx_active (is_active)
+);
+
+-- Friend requests / Contacts
+CREATE TABLE friend_requests (
+    request_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    sender_id BIGINT NOT NULL,
+    receiver_id BIGINT NOT NULL,
+    status ENUM('pending', 'accepted', 'rejected', 'cancelled') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_friendship (sender_id, receiver_id),
+    INDEX idx_receiver_status (receiver_id, status),
+    INDEX idx_sender (sender_id)
+);
+
+-- User contacts/friends (bidirectional friendships)
+CREATE TABLE user_contacts (
+    contact_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    contact_user_id BIGINT NOT NULL,
+    nickname VARCHAR(100) NULL, -- Custom name for contact
+    is_favorite BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (contact_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_contact (user_id, contact_user_id),
+    INDEX idx_user (user_id),
+    INDEX idx_favorite (user_id, is_favorite)
+);
+
+-- Conversation mute settings
+CREATE TABLE conversation_mutes (
+    mute_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    conversation_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    muted_until TIMESTAMP NULL, -- NULL means muted indefinitely
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_mute (conversation_id, user_id),
+    INDEX idx_user (user_id)
+);
+
+-- User settings/preferences
+CREATE TABLE user_settings (
+    setting_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT UNIQUE NOT NULL,
+    email_notifications BOOLEAN DEFAULT TRUE,
+    push_notifications BOOLEAN DEFAULT TRUE,
+    show_online_status BOOLEAN DEFAULT TRUE,
+    show_read_receipts BOOLEAN DEFAULT TRUE,
+    show_typing_indicator BOOLEAN DEFAULT TRUE,
+    message_preview BOOLEAN DEFAULT TRUE,
+    theme ENUM('light', 'dark', 'auto') DEFAULT 'light',
+    language VARCHAR(10) DEFAULT 'en',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Audit logs (for security and compliance)
+CREATE TABLE audit_logs (
+    log_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NULL,
+    action VARCHAR(100) NOT NULL, -- 'login', 'logout', 'message_sent', 'account_deleted', etc.
+    entity_type VARCHAR(50) NULL, -- 'user', 'message', 'conversation'
+    entity_id BIGINT NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    details JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_action (action),
+    INDEX idx_created (created_at)
+);
+
+-- Rate limiting table (to prevent spam/abuse)
+CREATE TABLE rate_limits (
+    limit_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NULL,
+    ip_address VARCHAR(45) NULL,
+    action_type VARCHAR(50) NOT NULL, -- 'message_send', 'api_call', 'login_attempt'
+    attempt_count INT DEFAULT 1,
+    window_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    blocked_until TIMESTAMP NULL,
+    UNIQUE KEY unique_rate_limit (user_id, ip_address, action_type),
+    INDEX idx_user_action (user_id, action_type),
+    INDEX idx_ip_action (ip_address, action_type),
+    INDEX idx_blocked (blocked_until)
+);
+
+-- Message attachments (separate table for better organization)
+CREATE TABLE message_attachments (
+    attachment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    message_id BIGINT NOT NULL,
+    file_url VARCHAR(500) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(50) NOT NULL, -- MIME type
+    file_size BIGINT NOT NULL,
+    thumbnail_url VARCHAR(500) NULL,
+    width INT NULL, -- For images/videos
+    height INT NULL, -- For images/videos
+    duration INT NULL, -- For audio/video in seconds
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (message_id) REFERENCES messages(message_id) ON DELETE CASCADE,
+    INDEX idx_message (message_id)
+);
+
+-- Password reset tokens
+CREATE TABLE password_reset_tokens (
+    token_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    token_hash VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    used_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_token_hash (token_hash),
+    INDEX idx_expires (expires_at)
+);
+
+-- Email verification tokens
+CREATE TABLE email_verification_tokens (
+    token_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    token_hash VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    verified BOOLEAN DEFAULT FALSE,
+    verified_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_token_hash (token_hash),
+    INDEX idx_expires (expires_at)
+);
