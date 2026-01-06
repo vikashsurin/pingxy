@@ -1,4 +1,4 @@
-import { NewMessage } from "./schema/_schema";
+import { NewMessage } from '@chat/shared/src/lib/utils/validation';
 import * as queries from "./queries/messages.query"
 
 export const createMessage = async (message: NewMessage) => {

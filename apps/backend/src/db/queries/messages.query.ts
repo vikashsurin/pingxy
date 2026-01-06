@@ -1,13 +1,14 @@
 import { eq } from "drizzle-orm";
 import db from "../client";
 import { messages } from "../schema/index";
-import { NewMessage } from "@chat/shared/src/lib/utils/temp";
+import { NewMessage } from "@chat/shared/src/lib/utils/validation";
 
 export const insertMessage = (message: NewMessage) => {
   return db
     .insert(messages)
     .values({
       conversation_id: message.conversation_id,
+      client_message_id: message.client_message_id,
       sender_id: message.sender_id,
       content: message.content,
       created_at: message.created_at,

@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { db } from "../client";
 import { participants } from "../schema/_schema";
-import { NewParticipant } from "@chat/shared/src/lib/utils/temp";
+import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
 import * as queries from "../queries/participants.query";
 
 describe("Participants Table Schema", () => {

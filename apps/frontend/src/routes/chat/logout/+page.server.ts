@@ -12,7 +12,7 @@ export async function load({ request, cookies }) {
 
   if (response.ok) {
     const data = await response.json();
-    cookies.delete("sessionid", {
+    cookies.delete("_Host-session", {
       maxAge: 0,
       httpOnly: false,
       secure: false,

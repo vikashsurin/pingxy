@@ -3,21 +3,22 @@ import {
   connectionSchema,
   Message,
   messageSchema,
-  User,
-} from "../../../packages/shared/src/lib/utils/validation.js";
-import { verify } from "hono/jwt";
-import { getUser } from "./db/users.js";
-import { getSessionById, updateSessionActivity } from "./db/sessions.js";
+} from "@chat/shared/src/lib/utils/tempp.js";
+import { HTTPException } from "hono/http-exception";
+import * as db from "./db";
+// import { verify } from "hono/jwt";
+// import { getUser } from "./db/users.js";
+// import { getSessionById, updateSessionActivity } from "./db/sessions.js";
 
-function getJwtSecret(): string {
-  const fromEnv = process.env.JWT_SECRET;
-  const isProd = process.env.NODE_ENV === "production";
-  if (fromEnv) return fromEnv;
-  if (!isProd) return "fallback_secret_for_dev";
-  throw new Error("JWT_SECRET is not configured in production environment");
-}
+// function getJwtSecret(): string {
+//   const fromEnv = process.env.JWT_SECRET;
+//   const isProd = process.env.NODE_ENV === "production";
+//   if (fromEnv) return fromEnv;
+//   if (!isProd) return "fallback_secret_for_dev";
+//   throw new Error("JWT_SECRET is not configured in production environment");
+// }
 
-// function to validate connections
+// // function to validate connections
 export function validateConnection(connection: Connection) {
   const validateConnection = connectionSchema.safeParse(connection);
 
@@ -40,37 +41,20 @@ export function validateMessage(message: Message) {
   return validMessage;
 }
 
-// function to get user data from req
-// Used by the WebSocket upgrade path; enforces that the session is still valid.
-export async function getUserDataFromReq(req: Request) {
+export async function getAuthUserFromReq(req: Request) {
   const cookieHeader = req.headers.get("cookie");
   if (!cookieHeader) return null;
 
   const cookies = new Bun.CookieMap(cookieHeader);
-  const sessionid = cookies.get("sessionid")?.toString();
+  const cookie = cookies.get("_Host-session")?.toString();
 
-  if (!sessionid) return null;
+  if (!cookie) return null;
 
-  try {
-    const secret = getJwtSecret();
-    const decoded: any = await verify(sessionid, secret);
+  const user = await db.getSessionUser(cookie);
 
-    const uid = decoded.uid as string | undefined;
-    const sid = decoded.sid as string | undefined;
-    if (!uid || !sid) return null;
-
-    // Ensure the session is still active (time-bound)
-    const session = getSessionById(sid);
-    if (!session) return null;
-
-    // Refresh activity for this session so it stays alive while the socket is connected
-    updateSessionActivity(sid);
-
-    const user = getUser(uid);
-    if (!user) return null;
-
-    return { user, sid };
-  } catch (error) {
-    return null;
+  if (!user) {
+    throw new Error("Error while getting user from  session");
   }
+  await db.extendSessionAcitivity(cookie);
+  return user;
 }

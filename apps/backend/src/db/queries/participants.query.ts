@@ -1,11 +1,16 @@
 import { and, eq, aliasedTable } from "drizzle-orm";
 import db from "../client";
-import { participants, conversations } from "../schema/_schema";
+import { participants, conversations } from "../schema/index";
 
-import { NewParticipant } from "@chat/shared/src/lib/utils/temp";
+import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
+import { PgTransaction } from "drizzle-orm/pg-core";
+import { BunSQLDatabase } from "drizzle-orm/bun-sql";
 
-export const insertParticipant = async (participant: NewParticipant) => {
-  return await db
+export const insertParticipant = async (
+  participant: NewParticipant,
+  tx: BunSQLDatabase | PgTransaction<any, any, any> = db
+) => {
+  return await tx
     .insert(participants)
     .values({
       conversation_id: participant.conversation_id,

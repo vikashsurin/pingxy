@@ -13,12 +13,17 @@ import { sign } from "hono/jwt";
 // import { createSession, deleteSession } from "../db/sessions";
 // import { authMiddleware } from "../middlewares/auth";
 import { getConnInfo } from "hono/bun";
+import { getCookie } from "hono/cookie";
+import * as db from "../db/index.js";
+import {
+  User,
+  NewUser,
+  PublicUser,
+} from "@chat/shared/src/lib/utils/validation";
+import { authMiddleware } from "../middlewares/auth.js";
+import { factory } from "../db/factory/index.js";
 
-import * as db from '../db/index.js'
-import { User, NewUser } from "../db/schema/_schema.js";
-
-
-const app = new Hono();
+const app = factory.createApp();
 
 // function getJwtSecret(): string {
 //   const fromEnv = process.env.JWT_SECRET;
@@ -225,11 +230,15 @@ const app = new Hono();
 //   return c.json({ message: "logged out" });
 // });
 
+app.get("/verify", authMiddleware, async (c) => {
+  return c.json({ message: "test" }, 200);
+});
 
 
 
-
+// Register route
 app.post("/register", async (c) => {
+  console.log("incoming request");
   const body = await c.req.json();
 
   // Check this if user is needed here!
@@ -239,45 +248,35 @@ app.post("/register", async (c) => {
     return c.json({ error: "Missing required fields" }, 400);
   }
 
-  const existingUser = await db.getUserByUsername(username);
-  if (existingUser) {
-    return c.json({ error: "Username taken" }, 409);
-  }
-
   const hashed_password = await Bun.password.hash(password);
 
   const newUser: NewUser = {
     username: username,
-    user_type: 'user' as const,
+    user_type: "user" as const,
     hashed_password: hashed_password,
     data: { ...user },
-  }
+  };
 
   const success = await db.createUser(newUser);
-  if (!success) {
+  if (success.length < 0) {
     return c.json({ error: "Failed to create user" }, 500);
   }
 
-  // Auto login the user
+  // Create session and auto login the user
   const info = getConnInfo(c);
   const ip_address = info.remote.address!;
   const [dbUser] = await db.getUserByUsername(username);
-  const userAgent = c.req.header('User-Agent')!;
+  const userAgent = c.req.header("User-Agent")!;
   if (!dbUser) {
     return c.json({ error: "User not found" }, 404);
   }
   const token = crypto.randomUUID();
 
   // Create session
-  await db.createSession(
-    token,
-    dbUser.id,
-    ip_address,
-    userAgent
-  );
+  await db.createSession(token, dbUser.id, ip_address, userAgent);
 
   // Set cookie
-  setCookie(c, "sessionid", token, {
+  setCookie(c, "_Host-session", token, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,
     secure: false,
@@ -286,34 +285,140 @@ app.post("/register", async (c) => {
   });
 
   return c.json({
-    uid: dbUser.id,
-    username: dbUser.username,
+    user: dbUser,
+    token: token,
+  });
+});
+
+
+
+// Login route
+app.post("/login", async (c) => {
+  const body = await c.req.json();
+
+  const { username, password } = body;
+
+  if (!username || !password) {
+    return c.json({ error: "Missing required fields" }, 400);
+  }
+
+  const { hashed_password, ...user } = await db.getAuthUserByUsername(username);
+  if (!user) {
+    return c.json({ error: "Invalid credentials" }, 401);
+  }
+
+  const valid = await Bun.password.verify(password, hashed_password ?? "");
+  if (!valid) {
+    return c.json({ error: "Invalid credentials" }, 401);
+  }
+
+  const info = getConnInfo(c);
+  const ip_address = info.remote.address!;
+  const userAgent = c.req.header("User-Agent")!;
+  const token = crypto.randomUUID();
+
+  // Create session
+  await db.createSession(token, user.id, ip_address, userAgent);
+
+  // Set cookie
+  setCookie(c, "_Host-session", token, {
+    maxAge: 60 * 60 * 24 * 7,
+    httpOnly: true,
+    secure: false,
+    path: "/",
+    sameSite: "lax",
+  });
+
+  return c.json({
+    user: user,
+    token: token,
+  });
+});
+
+
+// Guest
+app.post("/guest", async (c) => {
+  const body = await c.req.json();
+
+  const { user } = body;
+
+  if (!user) {
+    return c.json({ error: "Missing required fields" }, 400);
+  }
+
+
+  const newUser: NewUser = {
+    username: user.username,
+    user_type: "guest" as const,
+    data: { ...user },
+  };
+
+  const success = await db.createUser(newUser);
+  if (success.length < 0) {
+    return c.json({ error: "Failed to create user" }, 500);
+  }
+
+  // Create session and auto login the user
+  const info = getConnInfo(c);
+  const ip_address = info.remote.address!;
+  const [dbUser] = await db.getUserByUsername(user.username);
+  const userAgent = c.req.header("User-Agent")!;
+  if (!dbUser) {
+    return c.json({ error: "User not found" }, 404);
+  }
+  const token = crypto.randomUUID();
+
+  // Create session
+  await db.createSession(token, dbUser.id, ip_address, userAgent);
+
+  // Set cookie
+  setCookie(c, "_Host-session", token, {
+    maxAge: 60 * 60 * 24 * 7,
+    httpOnly: true,
+    secure: false,
+    path: "/",
+    sameSite: "lax",
+  });
+
+  return c.json({
+    user: dbUser,
     token: token,
   });
 
-  // Only minimal refresh of user object with ID
-  // const u = getUser(user.uid) || { ...user, username };
-  // const sid = createSession({ user: u, ip_address });
-  // const payload = { uid: u.uid, sid };
-  // const secret = getJwtSecret();
-  // const token = await sign(payload, secret);
-
-  // setCookie(c, "sessionid", token, {
-  //   maxAge: 60 * 60 * 24 * 7,
-  //   httpOnly: true,
-  //   secure: isProd,
-  //   path: "/",
-  //   sameSite: "lax",
-  // });
-
-  // // TODO: check if this is needed
-  // c.set("jwtPayload", { user, sid });
-
-  // return c.json({
-  //   uid: user.uid,
-  //   username: username,
-  //   token: token,
-  // });
-
 })
+
+
+// Logout route
+app.post("/logout", async (c) => {
+  const cookie = getCookie(c, "_Host-session");
+  if (!cookie) {
+    return c.json({ error: "Missing Auth token" }, 401);
+  }
+  const user = await db.getSessionUser(cookie);
+  const success = await db.revokeSession(cookie);
+  if (!success) {
+    throw new Error("Failed to Logout user");
+  }
+
+  deleteCookie(c, "_Host-session");
+
+  // Remove user from db, if the user is a guest
+  if (user.user_type === 'guest') {
+    const removed = db.removeUser(user.id)
+    if (!removed) {
+      throw new Error("Error removing Guest user")
+    }
+
+  }
+  return c.json({ message: "Logged out successfully" });
+});
+
+
+
+// me
+app.get("/me", authMiddleware, async (c) => {
+  const user = c.get("user");
+  return c.json({ user });
+});
+
 export default app;

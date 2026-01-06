@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 
 export async function load({ request, cookies }) {
-  const token = cookies.get("sessionid");
+  const token = cookies.get("_Host-session");
 
   if (!token) {
     redirect(302, "/");
@@ -9,18 +9,27 @@ export async function load({ request, cookies }) {
 
   // fetch logged in users list and current user profile
   const cookie = request.headers.get("cookie");
-  const [usersRes, meRes] = await Promise.all([
-      fetch("http://localhost:3000/api/users", { headers: { cookie: cookie as string } }),
-      fetch("http://localhost:3000/api/users/me", { headers: { cookie: cookie as string } })
-  ]);
+  await fetch("http://localhost:3000/api/auth/verify", {
+    headers: { cookie: cookie as string },
+  });
+  // const [usersRes, meRes] = await Promise.all([
+  //   fetch("http://localhost:3000/api/users", {
+  //     headers: { cookie: cookie as string },
+  //   }),
+  //   fetch("http://localhost:3000/api/users/me", {
+  //     headers: { cookie: cookie as string },
+  //   }),
+  // ]);
 
-  if (!usersRes.ok || !meRes.ok) {
-    cookies.delete("sessionid", { path: "/" });
+  const response = await fetch("http://localhost:3000/api/auth/me", {
+    headers: { cookie: cookie as string },
+  });
+
+  const { user } = await response.json();
+  if (!user) {
+    cookies.delete("_Host-session", { path: "/" });
     redirect(302, "/");
   }
 
-  const usersData = await usersRes.json();
-  const meData = await meRes.json();
-
-  return { success: true, user: meData.user, users: usersData.users };
+  return { success: true, user };
 }

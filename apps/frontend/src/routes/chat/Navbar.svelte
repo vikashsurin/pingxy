@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { getSocket } from "$lib/socket.svelte";
+  import { chatStore } from "$lib/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
+  import type { SocketMessage } from "@chat/shared/src/lib/utils/validation";
   import {
     ChevronDown,
     CircleChevronDown,
@@ -11,6 +14,26 @@
   let expandMenu = $state(false);
 
   let isMenuExpanded = $state(false);
+
+  function handleLogout() {
+    const message: SocketMessage = {
+      type: "user_offline",
+      id: crypto.randomUUID(),
+      sender: {
+        id: chatStore.currentUser!.id,
+        username: chatStore.currentUser!.username,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    const socket = getSocket();
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message));
+    }
+
+    chatStore.reset();
+  }
 </script>
 
 <!-- FOR MOBILE -->
@@ -84,6 +107,7 @@
             title="Logout"
             href="/chat/logout"
             data-sveltekit-preload-data={false}
+            onclick={handleLogout}
             class="py-1 px-3 text-red-500 text-sm hover:bg-gray-100 active:text-red-600"
             >Logout</a
           >

@@ -1,91 +1,133 @@
-import { z } from "zod";
+import * as schema from "../../../../../apps/backend/src/db/schema/index";
+import z from "zod";
 
-export const userSchema = z.object({
-  uid: z.string(),
-  roles: z
-    .array(z.enum(["admin", "moderator", "user", "guest"]))
-    .default(["user"]),
-  username: z
-    .string()
-    .min(3, "Username must be 3 characters or more")
-    .max(20, "Username must be 20 characters or less")
-    .regex(/^[a-zA-Z][a-zA-Z0-9]*$/, "Username must be alphanumeric"),
-  gender: z.string(),
-  age: z.number(),
-  country: z.string(),
-  bio: z.string().optional(),
-});
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
 
-export interface BanDetails {
-  uid: string;
-  reason: string;
-  bannedBy: string;
-  expiresAt: number | null; // null for permanent
-  createdAt: number;
-}
+export const userInsertSchema = createInsertSchema(schema.users);
+export const userSelectSchema = createSelectSchema(schema.users);
+export const userUpdateSchema = createUpdateSchema(schema.users);
 
-export const sessionSchema = z.object({
-  sid: z.uuid(),
-  uid: z.string(),
-  lastActivity: z.number(),
-  expiresAt: z.number(),
-  ipAddress: z.union([z.ipv4(), z.ipv6()]).optional(),
-  userAgent: z.string().optional(),
-});
+export const conversationInsertSchema = createInsertSchema(
+  schema.conversations
+);
+export const conversationSelectSchema = createSelectSchema(
+  schema.conversations
+);
+export const conversationUpdateSchema = createUpdateSchema(
+  schema.conversations
+);
 
-export const connectionSchema = z.object({
-  type: z.literal("connection"),
-  status: z.enum(["join", "leave", "reconnect"]),
-  text: z.string().optional(),
-  user: userSchema,
-});
+export const participantInsertSchema = createInsertSchema(schema.participants);
+export const participantSelectSchema = createSelectSchema(schema.participants);
+export const participantUpdateSchema = createUpdateSchema(schema.participants);
 
+export const messageInsertSchema = createInsertSchema(schema.messages);
+export const messageSelectSchema = createSelectSchema(schema.messages);
+export const messageUpdateSchema = createUpdateSchema(schema.messages);
+
+export type User = typeof schema.users.$inferSelect;
+export type PublicUser = Omit<User, "hashed_password">;
+export type NewUser = typeof schema.users.$inferInsert;
+export type UpdateUser = Partial<typeof schema.users.$inferInsert>;
+
+export type Conversation = typeof schema.conversations.$inferSelect;
+export type NewConversation = typeof schema.conversations.$inferInsert;
+export type UpdateConversation = Partial<
+  typeof schema.conversations.$inferInsert
+>;
+
+export type Participant = typeof schema.participants.$inferSelect;
+export type NewParticipant = typeof schema.participants.$inferInsert;
+export type UpdateParticipant = Partial<
+  typeof schema.participants.$inferInsert
+>;
+
+export type Message = typeof schema.messages.$inferSelect;
+export type NewMessage = typeof schema.messages.$inferInsert;
+export type UpdateMessage = Partial<typeof schema.messages.$inferInsert>;
+
+export type MessageReceipt = typeof schema.message_receipts.$inferSelect;
+export type NewMessageReceipt = typeof schema.message_receipts.$inferInsert;
+export type UpdateMessageReceipt = Partial<
+  typeof schema.message_receipts.$inferInsert
+>;
+
+export type MessageReaction = typeof schema.message_reactions.$inferSelect;
+export type NewMessageReaction = typeof schema.message_reactions.$inferInsert;
+export type UpdateMessageReaction = Partial<
+  typeof schema.message_reactions.$inferInsert
+>;
+
+export type BlockedUser = typeof schema.blocked_users.$inferSelect;
+export type NewBlockedUser = typeof schema.blocked_users.$inferInsert;
+export type UpdateBlockedUser = Partial<
+  typeof schema.blocked_users.$inferInsert
+>;
+
+export type RefreshToken = typeof schema.refresh_tokens.$inferSelect;
+export type NewRefreshToken = typeof schema.refresh_tokens.$inferInsert;
+export type UpdateRefreshToken = Partial<
+  typeof schema.refresh_tokens.$inferInsert
+>;
+
+export type Session = typeof schema.sessions.$inferSelect;
+export type NewSession = typeof schema.sessions.$inferInsert;
+export type UpdateSession = Partial<typeof schema.sessions.$inferInsert>;
+
+const messageType = z.enum([
+  "system",
+  "message",
+  "user_join",
+  "user_leave",
+  'new_conversation',
+  'subscribe',
+  'unsubscribe',
+  "users_online",
+  "user_online",
+  "user_offline",
+  "message_receipt",
+  "typing",
+  "error",
+]);
 export const messageSchema = z.object({
-  id: z.string(),
-  type: z.literal("message"),
-  kind: z.enum(["chat", "system"]),
-  content: z.string(),
-  senderId: z.string().optional(),
-  recipientId: z.string().optional(),
-  senderName: z.string().optional(),
-  roomId: z.string().optional(),
-  timestamp: z.number(),
-  read: z.number().optional(),
-  // status: z.enum(["sent", "delivered", "read"]).default("sent"),
+  type: messageType,
+  id: z.uuid(),
+  conversationId: z.number().optional(), // auto generated.
+  clientMessageId: z.uuid().optional(),
+  timestamp: z.iso.datetime({ offset: true }),
+  sender: z
+    .object({
+      id: z.number(),
+      username: z.string().min(1).max(100),
+      avatarUrl: z.url().optional(),
+    })
+    .optional(),
+  content: z
+    .object({
+      text: z.string().min(1).max(5000),
+      media: z.array(z.url()).optional(),
+    })
+    .optional(),
+  roomId: z.uuid().optional(),
+  threadId: z.uuid().optional(),
+  metadata: z
+    .object({
+      isEdited: z.boolean().optional(),
+      replyToId: z.string().optional(),
+      mentions: z.array(z.uuid()).optional(),
+      reactions: z.array(z.string()).optional(),
+    })
+    .optional(),
+  status: z
+    .enum(["sending", "sent", "delivered", "read", "failed"])
+    .default("sent")
+    .optional(),
+  users: z.any().optional(),
+  data: z.any().optional(),
 });
 
-export const readReceiptSchema = z.object({
-  type: z.literal("read_receipt"),
-  messageId: z.string().optional(),
-  senderId: z.string(),
-  recipientId: z.string(),
-});
-
-export const typingEventSchema = z.object({
-  type: z.literal("typing"),
-  isTyping: z.boolean(),
-  senderId: z.string(),
-  recipientId: z.string().optional(),
-});
-
-export const roomSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-  maxUsers: z.number().optional(),
-  type: z.enum(["public", "private"]).default("public"),
-  password: z.string().optional(),
-  createdBy: z.string(),
-  createdAt: z.number(),
-  updatedAt: z.number().optional(),
-});
-
-export type User = z.infer<typeof userSchema>;
-export type Connection = z.infer<typeof connectionSchema>;
-export type Message = z.infer<typeof messageSchema>;
-export type ReadReceipt = z.infer<typeof readReceiptSchema>;
-export type TypingEvent = z.infer<typeof typingEventSchema>;
-export type Session = z.infer<typeof sessionSchema>;
-export type Room = z.infer<typeof roomSchema>;
-
-export type ChatTarget = User | Room;
+export type SocketMessage = z.infer<typeof messageSchema>;

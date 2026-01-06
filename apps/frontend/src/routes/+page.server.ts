@@ -1,9 +1,12 @@
 import { fail, redirect } from "@sveltejs/kit";
-import { userSchema, type User } from "../../../shared/src/lib/utils/validation.js";
-import { capitalizeFirst } from "../../../shared/src/lib/utils/string.js";
+import {
+  userInsertSchema,
+  type User,
+} from "@chat/shared/src/lib/utils/validation";
+import { capitalizeFirst } from "@chat/shared/src/lib/utils/string";
 
 export async function load({ cookies }) {
-  const token = cookies.get("sessionid");
+  const token = cookies.get("_Host-session");
 
   if (token) {
     throw redirect(302, "/chat");
@@ -36,17 +39,16 @@ export const actions = {
       return fail(401, { username, invalid: error.error || "Login failed" });
     }
 
-    const { token } = await response.json();
-    cookies.set("sessionid", token, {
+    const { user, token } = await response.json();
+    cookies.set("_Host-session", token, {
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: false,
       secure: false,
       path: "/",
       sameSite: "lax",
     });
-
-    // Redirect handled by page reload or client logic, but actions usually redirect on success or return success
-    // If we just return, form success.
+    console.log({ user });
+    return { success: true, user };
   },
 
   register: async ({ cookies, request, fetch }) => {
@@ -64,8 +66,7 @@ export const actions = {
     // Capitalize for display consistency
     const displayName = capitalizeFirst(username);
 
-    const user: User = {
-      uid: crypto.randomUUID(),
+    const user = {
       username: displayName,
       gender: gender,
       age: Number(age),
@@ -73,10 +74,11 @@ export const actions = {
       roles: ["user"],
     };
 
-    const validateUser = userSchema.safeParse(user);
-    if (!validateUser.success) {
-      return fail(400, { username, invalid: "Invalid user data" });
-    }
+    // const validateUser = user
+    // console.log({validateUser: validateUser.})
+    // if (!validateUser.success) {
+    //   return fail(400, { username, invalid:"Invalid user data" });
+    // }
 
     const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
@@ -86,11 +88,14 @@ export const actions = {
 
     if (!response.ok) {
       const error = await response.json();
-      return fail(400, { username, invalid: error.error || "Registration failed" });
+      return fail(400, {
+        username,
+        invalid: error.error || "Registration failed",
+      });
     }
 
     const { token } = await response.json();
-    cookies.set("sessionid", token, {
+    cookies.set("_Host-session", token, {
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: false,
       secure: false,
@@ -108,18 +113,17 @@ export const actions = {
 
     const displayName = capitalizeFirst(username);
 
-    const user: User = {
-      uid: crypto.randomUUID(),
+    const user = {
       username: displayName,
       gender: gender,
       age: Number(age),
       country: country,
-      roles: ["user"],
     };
 
     // Validation
-    const validateUser = userSchema.safeParse(user);
-    if (!validateUser.success) return fail(400, { username, invalid: "Invalid data" });
+    // const validateUser = userInsertSchema.safeParse(user);
+    // if (!validateUser.success)
+    //   return fail(400, { username, invalid: "Invalid data" });
 
     const response = await fetch("http://localhost:3000/api/auth/guest", {
       method: "POST",
@@ -129,16 +133,19 @@ export const actions = {
 
     if (!response.ok) {
       const error = await response.json();
-      return fail(400, { username, invalid: error.error || "Guest login failed" });
+      return fail(400, {
+        username,
+        invalid: error.error || "Guest login failed",
+      });
     }
 
     const { token } = await response.json();
-    cookies.set("sessionid", token, {
+    cookies.set("_Host-session", token, {
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: false,
       secure: false,
       path: "/",
       sameSite: "lax",
     });
-  }
+  },
 };

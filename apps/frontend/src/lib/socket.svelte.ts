@@ -1,10 +1,5 @@
 import { chatStore } from "$lib/store.svelte.js";
-
-import type {
-  Connection,
-  Message,
-  User,
-} from "../../../shared/src/lib/utils/validation.js";
+import type { SocketMessage } from "@chat/shared/src/lib/utils/validation";
 
 export let socket: WebSocket | null = null;
 
@@ -27,111 +22,52 @@ export function initSocket() {
 
   socket.addEventListener("open", (event) => {
     console.log("connected");
+    chatStore.isConnected = true;
   });
 
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
-    if (data.type === "error") {
-      console.error("Socket Error:", data.message);
-      // TODO: Show toast
-    }
-
-    // update user list
-    if (data.type === "connection") {
-      const c: Connection = data;
-      if (c.status === "reconnect") return;
-
-      if (c.status === "leave") {
-        const user: User = c.user;
-
-        chatStore.users.delete(user.uid!);
-      }
-      if (c.status === "join") {
-        const user: User = c.user;
-
-        chatStore.users.set(user.uid!, user);
-      }
-      return;
-    }
-
-    // update with new messages
-    if (data.type === "message") {
-      const message: Message = data;
-
-      // Direct Message
-      const senderId = message.senderId!;
-      // If I sent it, it should go to recipient's conversation?
-      // But incoming message is usually from someone else.
-      // Unless it's a sync from other session.
-
-      chatStore.messages.set(senderId, [
-        ...(chatStore.messages.get(senderId) || []),
-        message,
-      ]);
-
-      // update unread messages
-      if (chatStore.activeChatTarget?.uid !== senderId) {
-        chatStore.addUnread(senderId);
-      } else if (
-        chatStore.activeChatTarget?.uid === senderId &&
-        chatStore.currentUser
-      ) {
-        // Send read receipt if active
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(
-            JSON.stringify({
-              type: "read_receipt",
-              messageId: message.id,
-              senderId: chatStore.currentUser.uid,
-              recipientId: senderId,
-            })
-          );
-        }
-      }
-    }
-
-    // handle read receipts
-    if (data.type === "read_receipt") {
-      const { messageId, senderId } = data; // senderId here is who READ the message
-
-      // The user who sent the receipt (senderId) is the one we are chatting with
-      const chatPartnerId = senderId;
-      const chatMessages = chatStore.messages.get(chatPartnerId) || [];
-
-      let updatedMessages;
-
-      if (messageId) {
-        // Update specific message
-        updatedMessages = chatMessages.map((msg) =>
-          msg.id === messageId ? { ...msg, read: 1 } : msg
-        );
-      } else {
-        // Mark ALL messages sent by ME as read
-        // The receipt means the other user (senderId) has read our messages
-        updatedMessages = chatMessages.map((msg) => {
-          // We only care about updating messages WE sent
-          if (msg.senderId === chatStore.currentUser?.uid) {
-            return { ...msg, read: 1 };
-          }
-          return msg;
-        });
-      }
-
-      chatStore.messages.set(chatPartnerId, updatedMessages);
-    }
-
-    // handle typing events
-    if (data.type === "typing") {
-      const { isTyping, senderId } = data;
-      chatStore.setTyping(senderId, isTyping);
+    const handler = messageHandler[data.type];
+    if (handler) {
+      handler(data);
     }
   });
 
   socket.addEventListener("close", (event) => {
     console.log("disconnected");
+    chatStore.isConnected = false;
   });
 }
+
+// MESSAGE HANDLER
+const messageHandler: Record<string, (data: any) => void> = {
+  system: (message: SocketMessage) => {},
+  message: (message: SocketMessage) => {},
+  new_conversation: (message: SocketMessage) => {
+    console.log({ message });
+    const newMessage: SocketMessage = {
+      type: "subscribe",
+      id: crypto.randomUUID(),
+      conversationId: message.conversationId,
+      timestamp: new Date().toISOString(),
+    };
+    socket?.send(JSON.stringify(newMessage));
+  },
+  user_join: (message: SocketMessage) => {},
+  user_leave: (message: SocketMessage) => {},
+  users_online: (message: SocketMessage) => {
+    chatStore.onlineUsers = message.users;
+  },
+  user_offline: (message: SocketMessage) => {
+    const id = message.users.id;
+    const updatedOnlineUsers = chatStore.onlineUsers.filter((u) => u.id !== id);
+    chatStore.onlineUsers = updatedOnlineUsers;
+  },
+  message_receipts: (message: SocketMessage) => {},
+  typing: (message: SocketMessage) => {},
+  error: (message: SocketMessage) => {},
+};
 
 export function getSocket() {
   return socket;

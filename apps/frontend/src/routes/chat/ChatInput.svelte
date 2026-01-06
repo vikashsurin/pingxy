@@ -3,22 +3,38 @@
 
   let message = $state("");
 
-  function handleSend() {
-    chatStore.sendMessage(message);
+  async function handleSend() {
+    // chatStore.sendMessage(message);
+
     message = "";
+    const response = await fetch("http://localhost:3000/api/conversations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        created_by: chatStore.currentUser?.id,
+        conversation_type: "direct",
+        name: chatStore.chatTarget?.username,
+        participant_id: chatStore.chatTarget?.id,
+      }),
+    });
+
+    const data = await response.json();
+    console.log({ data });
   }
 
   function handleInput() {
-    chatStore.handleTyping();
+    // chatStore.handleTyping();
   }
 </script>
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
-  {#if chatStore.activeChatTarget && chatStore.typingUsers.has(chatStore.activeChatTarget.uid)}
+  <!-- {#if chatStore.activeChatTarget && chatStore.typingUsers.has(chatStore.activeChatTarget.uid)}
     <span class="absolute bottom-full px-2 text-xs text-gray-500"
       >Typing...</span
     >
-  {/if}
+  {/if} -->
   <input
     type="text"
     placeholder="Message"

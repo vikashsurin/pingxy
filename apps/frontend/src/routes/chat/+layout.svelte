@@ -1,21 +1,26 @@
 <script lang="ts">
   import Navbar from "./Navbar.svelte";
   import { chatStore } from "$lib/store.svelte.js";
+  import { onMount } from "svelte";
+  import { get } from "svelte/store";
+  import { getSocket } from "$lib/socket.svelte.js";
+  import type { SocketMessage } from "@chat/shared/src/lib/utils/validation.js";
 
   let { children, data } = $props();
 
-  $effect.pre(() => {
+  $effect(() => {
     chatStore.currentUser = data.user;
   });
 
-
-  let username = $derived(data?.user?.username);
+  const user = $derived(chatStore.currentUser);
 </script>
 
 <div class="h-dvh flex flex-col">
-  <div class="banner">AD Display</div>  
+  <div class="banner">AD Display</div>
+  {#if user !== undefined || user !== null}
+    <Navbar username={user?.username} />
+  {/if}
 
-  <Navbar {username} />
   {@render children()}
 </div>
 

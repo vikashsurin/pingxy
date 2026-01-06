@@ -1,8 +1,5 @@
 <script lang="ts">
-  import type {
-    User,
-    ChatTarget,
-  } from "../../../../shared/src/lib/utils/validation.js";
+  import type { PublicUser, User } from "@chat/shared/src/lib/utils/validation";
   import { chatStore } from "$lib/store.svelte.js";
   import GenderIcon from "./GenderIcon.svelte";
   import { ChevronDown, ChevronUp, MessageSquare } from "@lucide/svelte";
@@ -10,29 +7,26 @@
   import { getSocket } from "$lib/socket.svelte.js";
   import { onMount } from "svelte";
 
-  let { user: me, users } = $props();
+  let {} = $props();
 
   let isExpandedRecentChats = $state(false);
   let filterGender = $state("all");
 
   let usersCount = $derived.by(() => {
-    return users.size - 1;
+    return chatStore.onlineUsers.length - 1;
   });
 
   let sortedUsers = $derived.by(() => {
-    if (!users || users.size === 0) return [];
-
-    const searchLower = chatStore.searchQuery.value.trim().toLowerCase();
-
-    return Array.from<User>(users.values())
-      .filter((usr) => {
-        if (chatStore.recentChatIds.has(usr.uid)) return false;
-        if (filterGender !== "all" && usr.gender !== filterGender) return false;
-        if (searchLower && !usr.username.toLowerCase().includes(searchLower))
+    const searchLower = chatStore.searchQuery.trim().toLowerCase();
+    return chatStore.onlineUsers
+      .filter((user) => {
+        if (filterGender !== "all" && user.data.gender !== filterGender)
+          return false;
+        if (searchLower && !user.username.toLowerCase().includes(searchLower))
           return false;
         return true;
       })
-      .sort((a, b) => a.country.localeCompare(b.country));
+      .sort((a, b) => a.data.country.localeCompare(b.data.country));
   });
 
   // const genderFilter
@@ -40,50 +34,51 @@
     filterGender = e.target.value;
   }
 
-  async function loadMessagesFor(target: ChatTarget) {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/messages/history/${me.uid}/${target.uid}?limit=50`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        console.error(
-          "Failed to load messages for ",
-          target.username,
-          data.message
-        );
-        return;
-      }
-      const reversedMessages = data.messages.reverse();
-      chatStore.messages.set(target.uid, reversedMessages);
-    } catch (error) {
-      console.error("Error loading messages for ", target.username, error);
-      return;
-    }
-  }
+  // async function loadMessagesFor(target: ChatTarget) {
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:3000/api/messages/history/${me.id}/${target.id}?limit=50`,
+  //       {
+  //         method: "GET",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         credentials: "include",
+  //       }
+  //     );
+  //     const data = await response.json();
+  //     if (!response.ok) {
+  //       console.error(
+  //         "Failed to load messages for ",
+  //         target.username,
+  //         data.message
+  //       );
+  //       return;
+  //     }
+  //     const reversedMessages = data.messages.reverse();
+  //     chatStore.messages.set(target.id, reversedMessages);
+  //   } catch (error) {
+  //     console.error("Error loading messages for ", target.username, error);
+  //     return;
+  //   }
+  // }
 
   // TODO Handle read receipts when opening a chat
-  function initChat(user: User) {
-    chatStore.activeChatTarget = user;
-    const socket = getSocket();
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
-        JSON.stringify({
-          type: "read_receipt",
-          senderId: me.uid,
-          recipientId: user.uid,
-        })
-      );
-    }
+  function initChat(user: PublicUser) {
+    chatStore.chatTarget = user;
 
-    loadMessagesFor(user);
+    // const socket = getSocket();
+    // if (socket && socket.readyState === WebSocket.OPEN) {
+    //   socket.send(
+    //     JSON.stringify({
+    //       type: "read_receipt",
+    //       senderId: chatStore.currentUser?.id,
+    //       recipientId: user.id,
+    //     })
+    //   );
+    // }
+
+    // loadMessagesFor(user);
   }
 </script>
 
@@ -102,10 +97,10 @@
           <div class="flex items-center gap-2">
             <MessageSquare size={14} />
             <span>Recent Chats</span>
-            {#if chatStore.unread.size > 0}
+            <!-- {#if chatStore.unread.size > 0}
               <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"
               ></span>
-            {/if}
+            {/if} -->
           </div>
           {#if isExpandedRecentChats}
             <ChevronUp size={24} class="p-1" />
@@ -116,9 +111,9 @@
         {#if isExpandedRecentChats}
           <!-- RECENT CHATS -->
           <div class="bg-amber-50">
-            {#each chatStore.recentChats as target (target.uid)}
+            <!-- {#each chatStore.recentChats as target (target.id)}
               {@render userItemRow(target)}
-            {/each}
+            {/each} -->
           </div>
         {/if}
       </div>
@@ -126,7 +121,7 @@
       <div class="border border-gray-700 my-2"></div>
 
       <!-- RENDER ONLINE USERS LIST -->
-      {#each sortedUsers as user (user.uid)}
+      {#each sortedUsers as user (user.id)}
         {@render userItemRow(user)}
       {/each}
     </ul>
@@ -135,49 +130,47 @@
 
 <!-- SNIPPETS-------------------------------- -->
 
-{#snippet userItemRow(user: User)}
+{#snippet userItemRow(user: PublicUser)}
   <li>
     <div class="flex items-center gap-1 w-full relative group">
       <button
         class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
-        id={user.uid}
-        style={chatStore.activeChatTarget?.uid === user.uid
-          ? "background-color: #1e1e1e; color: white;"
-          : ""}
+        id={user.id.toString()}
         onclick={(e) => initChat(user)}
       >
         <div class="flex items-center gap-2 w-full overflow-hidden">
-          <GenderIcon gender={user.gender} />
+          <GenderIcon gender={user.data.gender} />
           <span class="truncate">
-            {#if user.uid === me.uid}
+            {#if user.id === chatStore.currentUser?.id}
               You
             {:else}
               {user.username}
             {/if}
           </span>
 
-          {#if user.country && user.country !== "0"}
+          {#if user.data.country && user.data.country !== "0"}
             <span
               class="font-bold ml-auto text-xs shrink-0 flex items-center gap-1"
             >
-              {user.country}
-              <span class={`fi fi-${user.country.toLocaleLowerCase()}`}> </span>
+              {user.data.country}
+              <span class={`fi fi-${user.data.country.toLocaleLowerCase()}`}>
+              </span>
             </span>
           {/if}
         </div>
 
-        {@render unreaStatus(user.uid!)}
+        <!-- {@render unreaStatus(user.id!)} -->
       </button>
     </div>
   </li>
 {/snippet}
 
-{#snippet unreaStatus(uid: string)}
-  {#if (chatStore.unread.get(uid!) ?? 0) > 0}
+<!-- {#snippet unreaStatus(id: string)}
+  {#if (chatStore.unread.get(id!) ?? 0) > 0}
     <span
       class="w-4 h-4 rounded-full bg-red-600 animate-pulse text-[10px] flex items-center justify-center text-white ml-auto"
     >
-      {chatStore.unread.get(uid!) ?? 0}
+      {chatStore.unread.get(id!) ?? 0}
     </span>
   {/if}
-{/snippet}
+{/snippet} -->

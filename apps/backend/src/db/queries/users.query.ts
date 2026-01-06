@@ -1,7 +1,7 @@
 import db from "../client";
-import { userInsertSchema, users } from "../schema/_schema";
+import { users, userInsertSchema } from "../schema/index";
 import { eq } from "drizzle-orm";
-import { NewUser, User } from "@chat/shared/src/lib/utils/temp";
+import { NewUser, User } from "@chat/shared/src/lib/utils/validation";
 
 export const insertUser = async (newUser: NewUser) => {
   const user = userInsertSchema.parse(newUser);

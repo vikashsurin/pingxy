@@ -8,25 +8,27 @@
   } from "@lucide/svelte";
   import GenderIcon from "../../routes/chat/GenderIcon.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
-  let { user } = $props();
 
+  const currentUser = $derived(chatStore.currentUser);
+  const username = $derived(chatStore.chatTarget?.username);
+  const gender = $derived(chatStore.chatTarget?.data.gender);
+  const uid = $derived(chatStore.chatTarget?.id);
+  const country = $derived(chatStore.chatTarget?.data.country);
   let toggleMenu = $state(false);
 </script>
 
 <div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
-  {#if chatStore.activeChatTarget}
+  {#if chatStore.chatTarget}
     <div class="flex w-full items-center gap-2">
       <span> Chatting with : </span>
-      <GenderIcon gender={chatStore.activeChatTarget?.gender} />
+      <GenderIcon {gender} />
       <span class=" font-bold">
-        {chatStore.activeChatTarget?.username}
-        {chatStore.activeChatTarget?.uid === user.uid ? " (You)" : ""}
+        {username}
+        {uid === currentUser?.id ? " (You)" : ""}
       </span>
 
-      {#if chatStore.activeChatTarget?.country && chatStore.activeChatTarget.country !== "0"}
-        <span
-          class={`fi fi-${chatStore.activeChatTarget.country.toLocaleLowerCase()}`}
-        ></span>
+      {#if country && country !== "0"}
+        <span class={`fi fi-${country.toLocaleLowerCase()}`}></span>
       {/if}
 
       <EllipsisVertical
@@ -41,7 +43,7 @@
   {#if toggleMenu}
     <div
       use:clickOutside={() => (toggleMenu = false)}
-      class="absolute top-full right-0 bg-gray-100 py-1 border mt-1 border-gray-300 min-w-[120px]"
+      class="absolute top-full right-0 bg-gray-100 py-1 border mt-1 border-gray-300 min-w-30"
     >
       {@render menuItem(Ban, "Block")}
       {@render menuItem(Eye, "View")}

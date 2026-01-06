@@ -4,6 +4,7 @@
   import { debounce } from "$lib/utils/debounce";
   import { CircleAlert, CircleCheck } from "@lucide/svelte";
   import { enhance } from "$app/forms";
+  import { chatStore } from "$lib/store.svelte.js";
 
   let { form } = $props();
 
@@ -12,7 +13,6 @@
     Array.from({ length: end - start + 1 }, (_, i) => i + start);
 
   const ageRange = range(18, 70); // from 18 to 50
-
   let username = $state("");
   let gender = $state("all");
   let age = $state(18);
@@ -149,7 +149,11 @@
         action="?/{mode}"
         use:enhance={() => {
           loading = true;
-          return async ({ update }) => {
+          return async ({ result, update }) => {
+            if (result.type === "success" && result.data !== undefined) {
+              chatStore.currentUser = result.data.user;
+            }
+
             await update();
             loading = false;
           };
@@ -167,7 +171,6 @@
               : 'border-gray-200'}"
             placeholder="Enter username"
             bind:value={username}
-            oninput={debounceCheck}
             required
           />
         </div>
@@ -309,9 +312,9 @@
   </li>
 {/snippet}
 
-<!-- 
+<!--
   This is the home page
-  it contains 
+  it contains
   Header section
   Form section
 -->
