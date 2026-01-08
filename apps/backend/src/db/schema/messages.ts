@@ -4,7 +4,6 @@ import { pgTable as table, pgEnum } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { conversations } from "./conversations";
 
-
 export const messageTypeEnum = pgEnum("message_type", [
   "text",
   "image",
@@ -19,7 +18,7 @@ export const deliveryStatusEnum = pgEnum("delivery_status", [
   "delivered",
   "read",
   "failed",
-])
+]);
 
 export const messages = table(
   "messages",
@@ -69,29 +68,37 @@ export const messages = table(
     flagged_reason: t.text(),
   },
   (table) => [
-    t.foreignKey({
-      name: "messages_conversation_fk",
-      columns: [table.conversation_id],
-      foreignColumns: [conversations.conversation_id] as any,
-    }).onDelete("cascade"),
+    t
+      .foreignKey({
+        name: "messages_conversation_fk",
+        columns: [table.conversation_id],
+        foreignColumns: [conversations.conversation_id] as any,
+      })
+      .onDelete("cascade"),
 
-    t.foreignKey({
-      name: "messages_sender_fk",
-      columns: [table.sender_id],
-      foreignColumns: [users.id],
-    }).onDelete("cascade"),
+    t
+      .foreignKey({
+        name: "messages_sender_fk",
+        columns: [table.sender_id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
 
-    t.foreignKey({
-      name: "messages_parent_fk",
-      columns: [table.parent_message_id],
-      foreignColumns: [table.message_id],
-    }).onDelete("set null"),
+    t
+      .foreignKey({
+        name: "messages_parent_fk",
+        columns: [table.parent_message_id],
+        foreignColumns: [table.message_id],
+      })
+      .onDelete("set null"),
 
-    t.foreignKey({
-      name: "messages_deleted_by_fk",
-      columns: [table.deleted_by],
-      foreignColumns: [users.id],
-    }).onDelete("set null"),
+    t
+      .foreignKey({
+        name: "messages_deleted_by_fk",
+        columns: [table.deleted_by],
+        foreignColumns: [users.id],
+      })
+      .onDelete("set null"),
 
     // PRIMARY INDEXES
     t.index("messages_conversation_id_idx").on(table.conversation_id),
@@ -99,14 +106,16 @@ export const messages = table(
     t.index("messages_created_at_idx").on(table.created_at),
 
     // ✅ COMPOSITE - Most common query pattern
-    t.index("messages_conversation_created_idx")
+    t
+      .index("messages_conversation_created_idx")
       .on(table.conversation_id, table.created_at.desc()),
 
     // For finding replies/threads
     t.index("messages_parent_id_idx").on(table.parent_message_id),
 
     // For searching user's messages
-    t.index("messages_sender_created_idx")
+    t
+      .index("messages_sender_created_idx")
       .on(table.sender_id, table.created_at.desc()),
 
     // Soft delete queries
@@ -117,5 +126,3 @@ export const messages = table(
     //   .using("gin", table.content_vector),
   ]
 );
-
-

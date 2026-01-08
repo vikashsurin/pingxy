@@ -1,10 +1,15 @@
+import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
+import { type PgTransaction } from "drizzle-orm/pg-core";
 import { eq } from "drizzle-orm";
 import db from "../client";
 import { messages } from "../schema/index";
 import { NewMessage } from "@chat/shared/src/lib/utils/validation";
 
-export const insertMessage = (message: NewMessage) => {
-  return db
+export const insertMessage = (
+  message: NewMessage,
+  tx: BunSQLDatabase | PgTransaction<any, any, any> = db
+) => {
+  return tx
     .insert(messages)
     .values({
       conversation_id: message.conversation_id,
@@ -57,8 +62,11 @@ export const selectMessageById = (message_id: number) => {
     .where(eq(messages.message_id, message_id));
 };
 
-export const selectMessagesByConversationId = (conversation_id: number) => {
-  return db
+export const selectMessagesByConversationId = (
+  conversation_id: number,
+  tx = db
+) => {
+  return tx
     .select({
       message_id: messages.message_id,
       conversation_id: messages.conversation_id,
