@@ -1,15 +1,5 @@
-// import { SvelteMap, SvelteSet } from "svelte/reactivity";
-// import {
-//   type Message,
-//   type User,
-//   messageSchema,
-//   type ChatTarget,
-// } from "../../../shared/src/lib/utils/validation.js";
-// import { getSocket } from "./socket.svelte.js";
-import { browser } from "$app/environment";
 import type {
   Message,
-  NewMessage,
   MessagePayload,
   PublicUser,
 } from "@chat/shared/src/lib/utils/validation";
@@ -112,12 +102,16 @@ class ChatStore {
       },
     );
     const data = await response.json();
-    const reactiveMessages = $state(data.messages);
+    const reactiveMessages = $state(data.messages.reverse());
     this.messages.set(conversation_id, reactiveMessages);
   }
+
+
   async clearNotification(conversation_id: number) {
     this.notifications.delete(conversation_id);
   }
+
+
   reset() {
     this.isConnected = false;
     this.currentUser = null;

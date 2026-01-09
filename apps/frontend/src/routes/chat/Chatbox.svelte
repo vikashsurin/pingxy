@@ -4,6 +4,7 @@
   import ChatboxHeader from "./ChatboxHeader.svelte";
   import ChatInput from "./ChatInput.svelte";
   import { onMount, tick } from "svelte";
+  import { Check, CheckCheck } from "@lucide/svelte";
 
   const messages = $derived(
     chatStore.messages.get(chatStore?.activeConversation?.conversation_id!),
@@ -58,7 +59,7 @@
   {:else}
     <li class="flex flex-col bg-gray-200 ml-auto p-2 px-3 rounded-sm">
       <span>{message.content}</span>
-      <span class="text-xs">
+      <span class="text-xs flex items-center justify-between gap-3">
         {new Date(message.created_at! * 1000).toLocaleString([], {
           day: "numeric",
           month: "short",
@@ -66,6 +67,8 @@
           minute: "numeric",
           hour12: true,
         })}
+        <Check size={12} class=" rounded-full text-gray-500" />
+        <!-- <CheckCheck size={12} class=" rounded-full text-gray-500" /> -->
       </span>
     </li>
   {/if}

@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
 import { users } from "./users";
@@ -9,7 +8,7 @@ export const blocked_users = table(
     block_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     blocker_id: t.integer().notNull(),
     blocked_id: t.integer().notNull(),
-    blocked_at: t.integer().default(sql`extract(epoch from now())`),
+    blocked_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     t

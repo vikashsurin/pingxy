@@ -18,20 +18,17 @@ export const participants = table(
     conversation_id: t.integer().notNull(),
     user_id: t.integer().notNull(),
     role: participantRoleEnum("role").default("member").notNull(), // owner, admin, member
-    joined_at: t
-      .integer()
-      .default(sql`extract(epoch from now())`)
-      .notNull(),
-    left_at: t.integer(), // When user left the conversation
+    joined_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    left_at: t.timestamp({ withTimezone: true }), // When user left the conversation
 
     // Per-user conversation settings
     is_active: t.boolean().default(true).notNull(),
     is_muted: t.boolean().default(false).notNull(),
-    muted_until: t.integer(),
+    muted_until: t.timestamp({ withTimezone: true }),
     is_pinned: t.boolean().default(false).notNull(),
     is_archived: t.boolean().default(false).notNull(), // User-level archive
     last_read_message_id: t.integer(), // Track what user has read
-    last_read_at: t.integer(),
+    last_read_at: t.timestamp({ withTimezone: true }),
     unread_count: t.integer().default(0).notNull(), // User-specific unread
 
     // Notifications
@@ -39,7 +36,7 @@ export const participants = table(
 
     // Soft delete
     is_deleted: t.boolean().default(false).notNull(),
-    deleted_at: t.integer(),
+    deleted_at: t.timestamp({ withTimezone: true }),
   },
   (table) => [
     t

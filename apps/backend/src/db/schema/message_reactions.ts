@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
 import { messages } from "./messages";
@@ -11,8 +10,8 @@ export const message_reactions = table(
     message_id: t.integer().notNull(),
     user_id: t.integer().notNull(),
     emoji: t.varchar("emoji", { length: 10 }).notNull(),
-    created_at: t.integer().default(sql`extract(epoch from now())`),
-    updated_at: t.integer().default(sql`extract(epoch from now())`),
+    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updated_at: t.timestamp({ withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => [
     t

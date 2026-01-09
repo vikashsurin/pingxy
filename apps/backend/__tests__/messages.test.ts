@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { db } from "../client";
-import { messages } from "../schema/_schema";
 import { NewMessage } from "@chat/shared/src/lib/utils/validation";
 import * as queries from "../queries/messages.query";
 

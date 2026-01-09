@@ -28,9 +28,9 @@ export const messages = table(
     conversation_id: t.integer().notNull(),
     sender_id: t.integer().notNull(),
     content: t.text().notNull(),
-    created_at: t.integer().default(sql`extract(epoch from now())`),
-    deleted_at: t.integer(),
-    updated_at: t.integer().default(sql`extract(epoch from now())`),
+    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    deleted_at: t.timestamp({ withTimezone: true }),
+    updated_at: t.timestamp({ withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
 
     // MISSING IMPORTANT FIELDS:
 
@@ -44,7 +44,7 @@ export const messages = table(
 
     // Edited status
     is_edited: t.boolean().default(false).notNull(),
-    edited_at: t.integer(),
+    edited_at: t.timestamp({ withTimezone: true }),
 
     // Reply/Thread support
     parent_message_id: t.integer(), // For replies/threads
@@ -64,7 +64,7 @@ export const messages = table(
 
     // Moderation
     is_flagged: t.boolean().default(false),
-    flagged_at: t.integer(),
+    flagged_at: t.timestamp({ withTimezone: true }),
     flagged_reason: t.text(),
   },
   (table) => [

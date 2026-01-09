@@ -32,6 +32,13 @@ export const createMessage = async ({ recipient_id, message }:
       updated_at: message.updated_at,
       deleted_at: message.deleted_at,
     })
+
+
+
+    // Implement message read receipts
+
+    
+
     return {
       message: insertedMessage,
       conversation_id: conversation.conversation_id,

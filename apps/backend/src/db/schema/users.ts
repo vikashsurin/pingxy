@@ -18,9 +18,9 @@ export const users = table(
     username: t.text().notNull().unique(),
     hashed_password: t.text(),
     data: t.jsonb().notNull(),
-    last_seen_at: t.integer(),
-    created_at: t.integer().default(sql`extract(epoch from now())`),
-    updated_at: t.integer().default(sql`extract(epoch from now())`),
+    last_seen_at: t.timestamp({ withTimezone: true }),
+    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updated_at: t.timestamp({ withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => [t.uniqueIndex("users_username_idx").on(table.username)]
 );

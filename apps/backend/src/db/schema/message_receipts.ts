@@ -1,5 +1,3 @@
-
-import { sql } from "drizzle-orm";
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
 import { messages } from "./messages";
@@ -18,10 +16,10 @@ export const message_receipts = table(
     message_id: t.integer().notNull(),
     user_id: t.integer().notNull(),
     status: messageReceiptStatusEnum("status").notNull(),
-    delivered_at: t.integer(),
-    read_at: t.integer(),
-    created_at: t.integer().default(sql`extract(epoch from now())`),
-    updated_at: t.integer().default(sql`extract(epoch from now())`),
+    delivered_at: t.timestamp({ withTimezone: true }),
+    read_at: t.timestamp({ withTimezone: true }),
+    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updated_at: t.timestamp({ withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => [
     t
