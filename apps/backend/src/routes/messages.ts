@@ -1,17 +1,9 @@
-
-// export default app;
-import { Message, MessagePayload } from "@chat/shared/src/lib/utils/validation";
+import { MessagePayload } from "@chat/shared/src/lib/utils/validation";
 import { factory } from "../db/factory";
-import * as services from '../db/services'
+import * as services from '../db/services';
 import { publish } from "../pubsub";
 
 const app = factory.createApp()
-
-
-// app.get("/", async (c) => {
-//   const params = c.req.param()
-//   // const result = services.getConversationMessages({ conversation_id, user_id })
-// })
 
 
 
@@ -25,7 +17,8 @@ app.post("/", async (c) => {
     message: data.message!
   })
 
-  // Broadcast message 
+
+  // Broadcast message
   publish(`${result.conversation_id}`, JSON.stringify({
     type: "message",
     recipient: data.recipient!,

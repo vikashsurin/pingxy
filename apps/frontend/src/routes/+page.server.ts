@@ -1,9 +1,5 @@
-import { fail, redirect } from "@sveltejs/kit";
-import {
-  userInsertSchema,
-  type User,
-} from "@chat/shared/src/lib/utils/validation";
 import { capitalizeFirst } from "@chat/shared/src/lib/utils/string";
+import { fail, redirect } from "@sveltejs/kit";
 
 export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
@@ -25,6 +21,7 @@ export const actions = {
     if (!username || !password) {
       return fail(400, { username, invalid: "Missing credentials" });
     }
+    console.log('action called')
 
     const displayName = capitalizeFirst(username);
 

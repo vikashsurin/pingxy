@@ -1,10 +1,9 @@
+import { NewMessage } from "@chat/shared/src/lib/utils/validation";
+import { desc, eq } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { type PgTransaction } from "drizzle-orm/pg-core";
-import { asc, eq } from "drizzle-orm";
 import db from "../client";
 import { messages } from "../schema/index";
-import { NewMessage } from "@chat/shared/src/lib/utils/validation";
-import { desc } from "drizzle-orm";
 
 export const insertMessage = (
   message: NewMessage,
@@ -17,9 +16,6 @@ export const insertMessage = (
       client_message_id: message.client_message_id,
       sender_id: message.sender_id,
       content: message.content,
-      created_at: message.created_at,
-      updated_at: message.updated_at,
-      deleted_at: message.deleted_at,
     })
     .returning();
 };
@@ -31,11 +27,8 @@ export const updateMessage = (
   return db
     .update(messages)
     .set({
-      conversation_id: message.conversation_id,
-      sender_id: message.sender_id,
       content: message.content,
       updated_at: message.updated_at,
-      deleted_at: message.deleted_at,
     })
     .where(eq(messages.message_id, message_id))
     .returning();

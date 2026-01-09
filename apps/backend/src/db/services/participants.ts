@@ -26,16 +26,14 @@ export const createParticipants = async ({
         conversation_id,
         user_id: user1_id,
         role: "member",
-        joined_at: Math.floor(Date.now() / 1000),
-        left_at: null,
+        joined_at: new Date(Date.now()),
         is_active: true,
       }, tx);
       const [p2] = await queries.insertParticipant({
         conversation_id,
         user_id: user2_id,
         role: "member",
-        joined_at: Math.floor(Date.now() / 1000),
-        left_at: null,
+        joined_at: new Date(Date.now()),
         is_active: true,
       }, tx)
       return { sender: p1, recipient: p2 }

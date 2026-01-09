@@ -21,8 +21,6 @@ export const getUserByUsername = async (username: string) => {
   try {
     return await queries.selectUserByUsername(username);
   } catch (error) {
-    // console.error("error getting user by username:", error);
-    // throw new Error("error getting user by username");
     throw new HTTPException(404, { message: "Error getting User by username..", cause: error })
   }
 };

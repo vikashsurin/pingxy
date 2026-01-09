@@ -1,4 +1,4 @@
-import { userUpdateSchema, type MessagePayload } from '@chat/shared/src/lib/utils/validation';
+import { type MessagePayload } from '@chat/shared/src/lib/utils/validation';
 import { userSockets } from '../state';
 
 export function getOnlineUsers() {
@@ -32,7 +32,6 @@ export function broadcastOnlineUsers() {
     data: {
       users: getOnlineUsers()
     },
-    timestamp: new Date().toISOString(),
   };
 
   for (const [id, data] of userSockets.entries()) {
@@ -50,11 +49,10 @@ export function broadcastUserOffline(userId: number, username: string) {
   const message: MessagePayload = {
     type: 'user_offline',
     id: crypto.randomUUID(),
-    timestamp: new Date().toISOString(),
-    users: {
-      id: userId,
-      username: username,
-    }
+    // users: {
+    //   id: userId,
+    //   username: username,
+    // }
   };
 
 

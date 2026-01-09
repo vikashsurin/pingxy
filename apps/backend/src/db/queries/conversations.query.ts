@@ -1,10 +1,9 @@
+import { type NewConversation } from "@chat/shared/src/lib/utils/validation";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
-import { type PgTransaction } from "drizzle-orm/pg-core";
+import { alias, type PgTransaction } from "drizzle-orm/pg-core";
 import db from "../client";
 import { conversations, participants, users } from "../schema/index";
-import { eq, desc, and, aliasedTable, ne, exists, countDistinct, sql, or, getTableColumns, inArray } from "drizzle-orm";
-import { type NewConversation } from "@chat/shared/src/lib/utils/validation";
-import { alias } from "drizzle-orm/pg-core";
 
 export const insertConversation = async (
   conversation: NewConversation,
@@ -20,14 +19,6 @@ export const selectConversationById = async (id: number) => {
     .where(eq(conversations.conversation_id, id))
     .limit(1);
 };
-
-// export const selectConversationsByUserId = async (userId: number) => {
-//   return await db
-//     .select()
-//     .from(participants)
-//     .where(eq(participants.user_id, userId))
-//     .limit(10);
-// };
 
 
 // Select conversation by 2 distinct Users
@@ -61,41 +52,6 @@ export const selectConversationByUsersPrecise = async (userId1: number, userId2:
   return result[0] || null;
 }
 
-// export const selectConversationsByUserId = async (userId: number) => {
-//   // Alias the participants table to join it against itself
-//   const otherParticipants = aliasedTable(participants, 'other_participants');
-
-//   const result = await db
-//     .select({
-//       conversation_id: participants.conversation_id,
-//       user: {
-//         id: users.id,
-//         username: users.username,
-//         user_type: users.user_type,
-//         data: users.data,
-//         last_seen_at: users.last_seen_at
-//       }
-//     })
-//     .from(participants)
-//     // 1. Get the other participant in the same conversation
-//     .innerJoin(
-//       otherParticipants,
-//       and(
-//         eq(participants.conversation_id, otherParticipants.conversation_id),
-//         ne(otherParticipants.user_id, userId) // Exclude the current user
-//       )
-//     )
-//     // 2. Optional: Join users table to get the other participant's details
-//     .leftJoin(users, eq(otherParticipants.user_id, users.id))
-//     // 3. Filter by the current user's ID
-//     .where(eq(participants.user_id, userId))
-//     .limit(10);
-
-//   return result;
-// };
-
-
-
 export const selectConversationsByUserId = async (userId: number) => {
   const p1 = alias(participants, 'p1')
   const p2 = alias(participants, 'p2')
@@ -127,47 +83,6 @@ export const selectConversationsByUserId = async (userId: number) => {
     .limit(10);
   return result;
 };
-
-// export const selectExistingDirectConversation = async (
-//   userIdA: number,
-//   userIdB: number,
-//   tx: any = db
-// ) => {
-//   const [id1, id2] = [userIdA, userIdB].sort((a, b) => a - b); // always smaller first
-
-//   const result = await tx
-//     .select()
-//     .from(conversations)
-//     .innerJoin(
-//       participants,
-//       eq(conversations.conversation_id, participants.conversation_id)
-//     )
-//     .where(
-//       and(
-//         eq(conversations.conversation_type, "direct"),
-//         eq(conversations.is_deleted, false),
-//         eq(participants.user_id, id1), // smaller id
-//       )
-//     )
-//     .where(
-//       exists(
-//         tx // or db
-//           .select()
-//           .from(participants)
-//           .where(
-//             and(
-//               eq(participants.conversation_id, conversations.conversation_id),
-//               eq(participants.user_id, id2) // bigger id
-//             )
-//           )
-//       )
-//     )
-//     .limit(3);
-
-//   return result ?? null;
-// };
-
-
 
 export const selectExistingDirectConversation = async (
   userIdA: number,
@@ -205,21 +120,13 @@ export const selectExistingDirectConversation = async (
         eq(p2.user_id, id2)
       )
     )
-    .limit(1); // For direct chats, there should be exactly one or zero
+    .limit(1);
 
   // Return the first match or null if not found
   return result[0] ?? null;
 };
 
 
-
-// export const selectConversationByAuthorId = async (authorId: number) => {
-//   return await db
-//     .select()
-//     .from(conversations)
-//     .where(eq(conversations.created_by, authorId))
-//     .limit(1);
-// };
 
 export const deleteConversation = async (id: number) => {
   return await db

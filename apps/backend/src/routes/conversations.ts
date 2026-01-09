@@ -1,6 +1,6 @@
 import { factory } from "../db/factory";
-const app = factory.createApp();
 import * as services from "../db/services";
+const app = factory.createApp();
 
 
 app.get("/", async (c) => {

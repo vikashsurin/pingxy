@@ -1,10 +1,14 @@
 import { NewMessage } from '@chat/shared/src/lib/utils/validation';
 import * as queries from "../queries/index";
 import * as services from '../services/index';
+import { exists } from 'drizzle-orm';
 
 export const createMessage = async ({ recipient_id, message }:
   { recipient_id: number, message: NewMessage }) => {
   try {
+
+    // Check if conversation exists
+    // If not create
     const conversation = await services.findOrCreateConversationByUser({
       userId1: message.sender_id,
       userId2: recipient_id
@@ -12,7 +16,7 @@ export const createMessage = async ({ recipient_id, message }:
 
     if (!conversation) throw new Error("Conversation does not exits")
 
-
+    // Create Participant
     const participant = await services.createParticipants({
       conversation_id: conversation.conversation_id,
       user1_id: message.sender_id,
@@ -22,22 +26,23 @@ export const createMessage = async ({ recipient_id, message }:
     if (!participant) throw new Error("Error creating participants")
 
 
-
+    // Create Message
     const [insertedMessage] = await queries.insertMessage({
       conversation_id: conversation.conversation_id,
       client_message_id: message.client_message_id,
       sender_id: message.sender_id,
       content: message.content,
-      created_at: message.created_at,
-      updated_at: message.updated_at,
-      deleted_at: message.deleted_at,
     })
 
 
 
-    // Implement message read receipts
+    const messageReceipt = await services.createMessageReceipt({
+      message_id: insertedMessage.message_id!,
+      user_id: recipient_id,
+      status: 'sent'
+    })
 
-    
+    console.log({ messageReceipt })
 
     return {
       message: insertedMessage,

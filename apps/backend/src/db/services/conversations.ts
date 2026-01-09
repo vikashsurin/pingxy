@@ -53,8 +53,8 @@ export const findOrCreateConversationByUser = async ({ userId1, userId2 }: { use
 
     const [conversation] = await createConversation({
       conversation_type: 'direct',
-      created_at: Math.floor(Date.now() / 1000),
-      updated_at: Math.floor(Date.now() / 1000)
+      created_at: new Date(Date.now()),
+      updated_at: new Date(Date.now())
     })
 
     return conversation
@@ -216,5 +216,3 @@ export const removeConversation = async (conversation_id: number) => {
 //     };
 //   });
 // };
-
-

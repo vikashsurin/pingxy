@@ -52,29 +52,9 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void> = {
   system: (ws, message: MessagePayload) => { },
   message: (ws, message: MessagePayload) => {
-    
-    // const conversationId = message.conversationId?.toString()
-    // const newMessage: MessagePayload = {
-    //   type: "message",
-    //   id: crypto.randomUUID(),
-    //   sender: {
-    //     id: message?.sender?.id!,
-    //     username: message?.sender?.username!
-    //   },
-    //   conversationId: Number(conversationId!),
-    //   content: {
-    //     text:,
-    //   },
-    //   timestamp: new Date().toISOString()
-    // }
-    // ws.publish(conversationId!, JSON.stringify(message))
 
   },
   new_conversation: (ws, message: MessagePayload) => {
-    // const conversationId = message.conversationId?.toString()
-    // ws.data.activeConversations.add(conversationId!);
-    // ws.subscribe(conversationId!)
-
   },
   open_conversation: (ws, message: MessagePayload) => {
     const conversationId = message.data?.conversation_id
@@ -83,11 +63,11 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
     console.log("subscribed")
   },
   subscribe: (ws, message: MessagePayload) => {
-    const conversationId = message.conversationId?.toString()
+    const conversationId = message.message?.conversation_id?.toString()
     ws.subscribe(conversationId!)
   },
   close_conversation: (ws, message: MessagePayload) => {
-    const conversationId = message.conversationId?.toString()
+    const conversationId = message.message?.conversation_id?.toString()
     ws.data.activeConversations.delete(conversationId!)
     ws.unsubscribe(conversationId!);
 
@@ -98,9 +78,9 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
   users_online: (ws, message: MessagePayload) => { },
   user_online: (ws, message: MessagePayload) => { },
   user_offline: (ws, message: MessagePayload) => {
-    const id = message.sender?.id!;
-    const username = message.sender?.username!;
-    broadcastUserOffline(id, username);
+    const id = message.message?.sender_id;
+    // const username = message;
+    // broadcastUserOffline(id, username);
   },
   user_leave: (ws, message: MessagePayload) => {
     console.log(message);

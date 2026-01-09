@@ -4,19 +4,7 @@ import {
   Message,
   messageSchema,
 } from "@chat/shared/src/lib/utils/tempp.js";
-import { HTTPException } from "hono/http-exception";
 import * as services from "./db/services";
-// import { verify } from "hono/jwt";
-// import { getUser } from "./db/users.js";
-// import { getSessionById, updateSessionActivity } from "./db/sessions.js";
-
-// function getJwtSecret(): string {
-//   const fromEnv = process.env.JWT_SECRET;
-//   const isProd = process.env.NODE_ENV === "production";
-//   if (fromEnv) return fromEnv;
-//   if (!isProd) return "fallback_secret_for_dev";
-//   throw new Error("JWT_SECRET is not configured in production environment");
-// }
 
 // // function to validate connections
 export function validateConnection(connection: Connection) {

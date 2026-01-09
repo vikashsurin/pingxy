@@ -1,10 +1,10 @@
-import { and, eq, aliasedTable } from "drizzle-orm";
+import { aliasedTable, and, eq } from "drizzle-orm";
 import db from "../client";
-import { participants, conversations } from "../schema/index";
+import { conversations, participants } from "../schema/index";
 
 import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
-import { PgTransaction } from "drizzle-orm/pg-core";
 import { BunSQLDatabase } from "drizzle-orm/bun-sql";
+import { PgTransaction } from "drizzle-orm/pg-core";
 
 export const insertParticipant = async (
   participant: NewParticipant,
@@ -30,33 +30,6 @@ export const insertParticipant = async (
     .returning();
 };
 
-// export const insertParticipants = async ({
-//   conversation_id,
-//   user1_id,
-//   user2_id }: {
-//     conversation_id: number;
-//     user1_id: number;
-//     user2_id: number;
-//   }) => {
-//   return await db.transaction(async (tx) => {
-//     await insertParticipant({
-//       conversation_id,
-//       user_id: user1_id,
-//       role: "member",
-//       joined_at: Math.floor(Date.now() / 1000),
-//       left_at: null,
-//       is_active: true,
-//     }, tx);
-//     await insertParticipant({
-//       conversation_id,
-//       user_id: user2_id,
-//       role: "member",
-//       joined_at: Math.floor(Date.now() / 1000),
-//       left_at: null,
-//       is_active: true,
-//     }, tx)
-//   })
-// }
 
 export const selectParticipant = async (
   conversationId: number,

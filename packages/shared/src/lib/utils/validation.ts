@@ -103,8 +103,6 @@ const messageType = z.enum([
   "error",
 ]);
 
-
-
 export const messagePayloadSchema = z.object({
   id: z.uuid(),
   type: messageType,
@@ -116,11 +114,13 @@ export const messagePayloadSchema = z.object({
     })
     .optional(),
   message: z.union([messageInsertSchema, messageSelectSchema]).optional(),
-  data: z.object({
-    conversation_id: z.number().optional(),
-    user_id: z.number().optional(),
-    users: z.any().optional(),
-  }).optional(),
+  data: z
+    .object({
+      conversation_id: z.number().optional(),
+      user_id: z.number().optional(),
+      users: z.any().optional(),
+    })
+    .optional(),
 });
 
 export type MessagePayload = z.infer<typeof messagePayloadSchema>;
