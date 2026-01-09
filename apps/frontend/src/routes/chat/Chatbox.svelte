@@ -3,41 +3,70 @@
   import { type Message } from "@chat/shared/src/lib/utils/validation";
   import ChatboxHeader from "./ChatboxHeader.svelte";
   import ChatInput from "./ChatInput.svelte";
+  import { onMount, tick } from "svelte";
 
   const messages = $derived(
     chatStore.messages.get(chatStore?.activeConversation?.conversation_id!),
   );
+  $inspect({ messages });
+  let chatbox: HTMLUListElement;
+
+  function scrollToBottom() {
+    if (chatbox) {
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+  }
+
+  onMount(() => {
+    scrollToBottom();
+  });
+
+  $effect(() => {
+    if (messages && messages.length > 0) {
+      tick().then(() => scrollToBottom());
+    }
+  });
 </script>
 
-<div class="border flex flex-col h-full">
+<div class="border-4 flex flex-col h-full overflow-y-auto">
   <ChatboxHeader />
-  <div
-    class="flex flex-col gap-2 p-2 border-2 border-red-500 overflow-y-auto h-[calc(100%-100px)]"
+  <ul
+    bind:this={chatbox}
+    class="flex flex-col gap-2 p-2 overflow-y-auto h-[calc(100%-40px)]"
   >
     {#each messages as message}
       {@render messageItem(message)}
     {/each}
-  </div>
+  </ul>
   <ChatInput />
 </div>
 
 {#snippet messageItem(message: Message)}
   {#if message.sender_id !== chatStore.currentUser?.id}
-    <div class="flex p-2 bg-gray-200 w-max px-3 rounded-sm">
+    <li class="flex flex-col p-2 bg-gray-200 w-max px-3 rounded-sm">
       <span>{message.content}</span>
-    </div>
-  {:else}
-    <div class="flex flex-col bg-gray-200 ml-auto p-2 px-3 rounded-sm">
-      <span>{message.content}</span>
-      <span class="text-xs"
-        >{new Date(message.created_at! * 1000).toLocaleString([], {
+      <span class="text-xs">
+        {new Date(message.created_at! * 1000).toLocaleString([], {
           day: "numeric",
           month: "short",
           hour: "numeric",
           minute: "numeric",
           hour12: true,
-        })}</span
-      >
-    </div>
+        })}
+      </span>
+    </li>
+  {:else}
+    <li class="flex flex-col bg-gray-200 ml-auto p-2 px-3 rounded-sm">
+      <span>{message.content}</span>
+      <span class="text-xs">
+        {new Date(message.created_at! * 1000).toLocaleString([], {
+          day: "numeric",
+          month: "short",
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        })}
+      </span>
+    </li>
   {/if}
 {/snippet}
