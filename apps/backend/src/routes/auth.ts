@@ -76,6 +76,8 @@ app.post("/login", async (c) => {
 
   const { username, password } = body;
 
+  console.log({ username, password })
+
   if (!username || !password) {
     return c.json({ error: "Missing required fields" }, 400);
   }
@@ -106,6 +108,7 @@ app.post("/login", async (c) => {
     path: "/",
     sameSite: "lax",
   });
+
 
   return c.json({
     user: user,

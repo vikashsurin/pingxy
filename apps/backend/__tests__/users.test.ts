@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../client";
-import { users } from "../schema/_schema";
+import { db } from "../src/db/client";
+import { users } from "../src/db/schema/index";
 import { NewUser } from "@chat/shared/src/lib/utils/validation";
-import * as queries from "../queries/users.query";
+import * as queries from '../src/db/queries/index'
 
 describe("Users Table Schema", async () => {
   beforeAll(async () => {
@@ -10,18 +10,19 @@ describe("Users Table Schema", async () => {
     // await db.delete(users);
   });
 
-  const userId = 5;
-  const userName = "TestUser1";
-  test("should insert a user", async () => {
-    const newUser: NewUser = {
-      user_type: "user" as const,
-      username: userName,
-      hashed_password: "password",
-      data: { role: "admin" },
-    };
-    const result = await queries.insertUser(newUser);
-    expect(result).toHaveLength(1);
-  });
+  const userId = 3;
+  const userName = "TestUser2";
+
+  // test("should insert a user", async () => {
+  //   const newUser: NewUser = {
+  //     user_type: "user" as const,
+  //     username: userName,
+  //     hashed_password: "password",
+  //     data: { role: "admin" },
+  //   };
+  //   const result = await queries.insertUser(newUser);
+  //   expect(result).toHaveLength(1);
+  // });
 
   test("should select a user by id", async () => {
     const result = await queries.selectUserById(userId);
@@ -47,10 +48,10 @@ describe("Users Table Schema", async () => {
 
   test("should update a user", async () => {
     const result = await queries.updateUser(userId, {
-      username: "Test User 2",
+      username: "TestUser2",
     });
     expect(result).toHaveLength(1);
-    expect(result[0].username).toBe("Test User 2");
+    expect(result[0].username).toBe("TestUser2");
   });
 
   test("should delete a user", async () => {

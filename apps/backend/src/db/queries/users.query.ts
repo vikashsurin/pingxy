@@ -74,7 +74,7 @@ export const updateUser = async (id: number, data: {}) => {
     .update(users)
     .set({
       ...data,
-      updated_at: Math.floor(Date.now() / 1000),
+      updated_at: new Date(Date.now()),
     })
     .where(eq(users.id, id))
     .returning({

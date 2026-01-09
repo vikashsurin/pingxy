@@ -5,7 +5,7 @@ export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
 
   if (token) {
-    throw redirect(302, "/chat");
+    // throw redirect(302, "/chat");
   }
   if (!token) return { success: false };
 

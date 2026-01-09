@@ -1,6 +1,5 @@
 import { NewSession } from "@chat/shared/src/lib/utils/validation";
 import * as queries from "../queries/index";
-import { HTTPException } from "hono/http-exception";
 
 const secret = "temp_secret";
 
@@ -78,8 +77,9 @@ export const getSessionUser = async (token: string) => {
     // Result returns { session, user }
     return result.user;
   } catch (error) {
-    throw new HTTPException(404, { message: "Error getting user", cause: error })
+    throw new Error("Error getting user!")
   }
+
 };
 
 export const extendSessionActivity = async (token: string) => {
