@@ -1,9 +1,10 @@
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { type PgTransaction } from "drizzle-orm/pg-core";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import db from "../client";
 import { messages } from "../schema/index";
 import { NewMessage } from "@chat/shared/src/lib/utils/validation";
+import { desc } from "drizzle-orm";
 
 export const insertMessage = (
   message: NewMessage,
@@ -62,6 +63,7 @@ export const selectMessageById = (message_id: number) => {
     .where(eq(messages.message_id, message_id));
 };
 
+// Select all messages of a conversation
 export const selectMessagesByConversationId = (
   conversation_id: number,
   tx = db
@@ -77,9 +79,12 @@ export const selectMessagesByConversationId = (
       deleted_at: messages.deleted_at,
     })
     .from(messages)
-    .where(eq(messages.conversation_id, conversation_id));
+    .where(eq(messages.conversation_id, conversation_id))
+    .orderBy(desc(messages.created_at))
+    .limit(50);
 };
 
+// Select all messages of a sender
 export const selectMessagesBySenderId = (sender_id: number) => {
   return db
     .select({

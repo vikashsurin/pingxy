@@ -1,17 +1,48 @@
-// import { Hono } from "hono";
-// import { getDirectMessages } from "../db/messages";
-// import { authMiddleware } from "../middlewares/auth";
-
-// const app = new Hono();
-
-// // app.use(authMiddleware);
-
-// app.get("/history/:userA/:userB", async (c) => {
-//   const userA = c.req.param("userA");
-//   const userB = c.req.param("userB");
-//   const limit = c.req.query("limit") ? Number(c.req.query("limit")) : 20;
-//   const messages = getDirectMessages(userA, userB, limit);
-//   return c.json({ messages }, 200);
-// });
 
 // export default app;
+import { Message, MessagePayload } from "@chat/shared/src/lib/utils/validation";
+import { factory } from "../db/factory";
+import * as services from '../db/services'
+import { publish } from "../pubsub";
+
+const app = factory.createApp()
+
+
+// app.get("/", async (c) => {
+//   const params = c.req.param()
+//   // const result = services.getConversationMessages({ conversation_id, user_id })
+// })
+
+
+
+app.post("/", async (c) => {
+  const body = await c.req.json()
+
+  const data: MessagePayload = body.messagePayload
+
+  const result = await services.createMessage({
+    recipient_id: data.recipient?.id!,
+    message: data.message!
+  })
+
+  // Broadcast message 
+  publish(`${result.conversation_id}`, JSON.stringify({
+    type: "message",
+    recipient: data.recipient!,
+    message: result.message!,
+  }))
+
+
+  // Notify of new Message
+  const notificationPayload: MessagePayload = {
+    id: data.id!,
+    type: "notification",
+    recipient: data.recipient!,
+    message: result.message!,
+  }
+  publish(`inbox:${result.recipient.user_id}`, JSON.stringify(notificationPayload))
+
+  return c.json({ result })
+
+})
+export default app

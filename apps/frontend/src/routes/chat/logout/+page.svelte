@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { chatStore } from "$lib/store.svelte";
   import { getSocket } from "$lib/socket.svelte";
-  import type { SocketMessage } from "@chat/shared/src/lib/utils/validation";
+  import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
   // onMount(() => {
   //   chatStore.reset();
   //   if (sessionStorage) {

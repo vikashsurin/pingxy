@@ -38,13 +38,11 @@ describe("Messages Table Schema", () => {
 
   test("should select messages by conversation id", async () => {
     const result = await queries.selectMessagesByConversationId(7);
-    console.log({ result });
     expect(result).toBeArray();
   });
 
   test("should select messages by sender id", async () => {
     const result = await queries.selectMessagesBySenderId(userId);
-    console.log({ result });
     expect(result).toBeArray();
   });
 });

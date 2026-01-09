@@ -3,7 +3,7 @@ import { broadcastUserOffline, broadcastOnlineUsers } from "./socketHelpers";
 
 import {
   PublicUser,
-  SocketMessage,
+  MessagePayload,
 } from "@chat/shared/src/lib/utils/validation";
 
 import { userSockets } from "../state";
@@ -30,7 +30,6 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
   },
 
   async message(ws, message) {
-    console.log("New Message");
     if (typeof message !== "string") return;
 
     const data = JSON.parse(message);
@@ -51,10 +50,11 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
 // --- Helpers ---
 const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void> = {
-  system: (ws, message: SocketMessage) => { },
-  message: (ws, message: SocketMessage) => {
-    const conversationId = message.conversationId?.toString()
-    // const newMessage: SocketMessage = {
+  system: (ws, message: MessagePayload) => { },
+  message: (ws, message: MessagePayload) => {
+    
+    // const conversationId = message.conversationId?.toString()
+    // const newMessage: MessagePayload = {
     //   type: "message",
     //   id: crypto.randomUUID(),
     //   sender: {
@@ -67,23 +67,26 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
     //   },
     //   timestamp: new Date().toISOString()
     // }
-
-    ws.publish(conversationId!, JSON.stringify(message))
+    // ws.publish(conversationId!, JSON.stringify(message))
 
   },
-  open_conversation: (ws, message: SocketMessage) => {
-    const conversationId = message.conversationId?.toString()
-    ws.data.activeConversations.add(conversationId!);
-    ws.subscribe(conversationId!);
+  new_conversation: (ws, message: MessagePayload) => {
+    // const conversationId = message.conversationId?.toString()
+    // ws.data.activeConversations.add(conversationId!);
+    // ws.subscribe(conversationId!)
 
-    return
   },
-  subscribe: (ws, message: SocketMessage) => {
+  open_conversation: (ws, message: MessagePayload) => {
+    const conversationId = message.data?.conversation_id
+    ws.data.activeConversations.add(conversationId!.toString());
+    ws.subscribe(conversationId!.toString());
+    console.log("subscribed")
+  },
+  subscribe: (ws, message: MessagePayload) => {
     const conversationId = message.conversationId?.toString()
     ws.subscribe(conversationId!)
-    console.log("Subscribed.")
   },
-  close_conversation: (ws, message: SocketMessage) => {
+  close_conversation: (ws, message: MessagePayload) => {
     const conversationId = message.conversationId?.toString()
     ws.data.activeConversations.delete(conversationId!)
     ws.unsubscribe(conversationId!);
@@ -91,24 +94,24 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
     return
 
   },
-  user_join: (ws, message: SocketMessage) => { },
-  users_online: (ws, message: SocketMessage) => { },
-  user_online: (ws, message: SocketMessage) => { },
-  user_offline: (ws, message: SocketMessage) => {
+  user_join: (ws, message: MessagePayload) => { },
+  users_online: (ws, message: MessagePayload) => { },
+  user_online: (ws, message: MessagePayload) => { },
+  user_offline: (ws, message: MessagePayload) => {
     const id = message.sender?.id!;
     const username = message.sender?.username!;
     broadcastUserOffline(id, username);
   },
-  user_leave: (ws, message: SocketMessage) => {
+  user_leave: (ws, message: MessagePayload) => {
     console.log(message);
   },
-  message_receipt: (ws, message: SocketMessage) => {
+  message_receipt: (ws, message: MessagePayload) => {
     console.log(message);
   },
-  typing: (ws, message: SocketMessage) => {
+  typing: (ws, message: MessagePayload) => {
     console.log(message);
   },
-  error: (ws, message: SocketMessage) => {
+  error: (ws, message: MessagePayload) => {
     console.log(message);
   },
 };

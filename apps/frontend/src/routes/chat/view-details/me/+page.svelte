@@ -7,12 +7,10 @@
 
     let { form } = $props();
 
-    $inspect({ form });
 
     let loading = $state(false);
     let showSuccess = $state(false);
 
-    $inspect({ chatStoreUser: chatStore.currentUser });
 
     // Form handling
     const handleSubmit: SubmitFunction = () => {

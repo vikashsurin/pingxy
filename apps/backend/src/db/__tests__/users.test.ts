@@ -30,7 +30,6 @@ describe("Users Table Schema", async () => {
 
   test("should select a user by username", async () => {
     const result = await queries.selectUserByUsername(userName);
-    console.log({ result });
     console.log(result[0].username);
     expect(result).toHaveLength(1);
   });

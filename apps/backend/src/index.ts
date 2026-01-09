@@ -15,11 +15,12 @@ import { PublicUser } from "@chat/shared/src/lib/utils/validation.js";
 import { factory } from "./db/factory/index.js";
 import { HTTPException } from "hono/http-exception";
 import { setServer } from "./pubsub.js";
-// import userRouter from "./routes/users.js";
+import userRouter from "./routes/users.js";
 // import moderationRouter from "./routes/moderation.js";
-// import messageRouter from "./routes/messages.js";
+import messageRouter from "./routes/messages.js";
 import conversationRouter from './routes/conversations.js';
 import { WebSocketData } from "./socket/socketHandlers.js";
+import { auth } from "hono/utils/basic-auth";
 
 const app = factory.createApp();
 
@@ -64,12 +65,18 @@ app.use("/api/users/*", async (c, next) => {
   }
 });
 
+app.use('/api/conversations/*', authMiddleware)
+
+app.use('/api/messages/*', authMiddleware)
+
+
 app.route("/api/auth", authRouter);
+app.route("/api/users", userRouter);
 app.route('/api/conversations', conversationRouter)
-// app.route("/api/users", userRouter);
+app.route("/api/messages", messageRouter);
 // app.route("/api/mod", moderationRouter);
-// app.route("/api/messages", messageRouter);
 //
+
 
 serve({
   websocket: socketHandlers,

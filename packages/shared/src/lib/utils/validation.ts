@@ -30,7 +30,14 @@ export const messageSelectSchema = createSelectSchema(schema.messages);
 export const messageUpdateSchema = createUpdateSchema(schema.messages);
 
 export type User = typeof schema.users.$inferSelect;
-export type PublicUser = Omit<User, "hashed_password">;
+export type PublicUser = Omit<User, "hashed_password"> & {
+  data: {
+    gender: string;
+    age: number;
+    country: string;
+    roles: string[];
+  };
+};
 export type NewUser = typeof schema.users.$inferInsert;
 export type UpdateUser = Partial<typeof schema.users.$inferInsert>;
 
@@ -83,9 +90,11 @@ const messageType = z.enum([
   "message",
   "user_join",
   "user_leave",
-  'new_conversation',
-  'subscribe',
-  'unsubscribe',
+  "new_conversation",
+  "open_conversation",
+  "notification",
+  "subscribe",
+  "unsubscribe",
   "users_online",
   "user_online",
   "user_offline",
@@ -93,41 +102,25 @@ const messageType = z.enum([
   "typing",
   "error",
 ]);
-export const messageSchema = z.object({
-  type: messageType,
+
+
+
+export const messagePayloadSchema = z.object({
   id: z.uuid(),
-  conversationId: z.number().optional(), // auto generated.
-  clientMessageId: z.uuid().optional(),
-  timestamp: z.iso.datetime({ offset: true }),
-  sender: z
+  type: messageType,
+  recipient: z
     .object({
-      id: z.number(),
+      id: z.number().optional(),
       username: z.string().min(1).max(100),
       avatarUrl: z.url().optional(),
     })
     .optional(),
-  content: z
-    .object({
-      text: z.string().min(1).max(5000),
-      media: z.array(z.url()).optional(),
-    })
-    .optional(),
-  roomId: z.uuid().optional(),
-  threadId: z.uuid().optional(),
-  metadata: z
-    .object({
-      isEdited: z.boolean().optional(),
-      replyToId: z.string().optional(),
-      mentions: z.array(z.uuid()).optional(),
-      reactions: z.array(z.string()).optional(),
-    })
-    .optional(),
-  status: z
-    .enum(["sending", "sent", "delivered", "read", "failed"])
-    .default("sent")
-    .optional(),
-  users: z.any().optional(),
-  data: z.any().optional(),
+  message: z.union([messageInsertSchema, messageSelectSchema]).optional(),
+  data: z.object({
+    conversation_id: z.number().optional(),
+    user_id: z.number().optional(),
+    users: z.any().optional(),
+  }).optional(),
 });
 
-export type SocketMessage = z.infer<typeof messageSchema>;
+export type MessagePayload = z.infer<typeof messagePayloadSchema>;

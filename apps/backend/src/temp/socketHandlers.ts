@@ -10,7 +10,7 @@ import { broadcastUserOffline, broadcastOnlineUsers } from "./socketHelpers";
 
 import {
   PublicUser,
-  SocketMessage,
+  MessagePayload,
 } from "@chat/shared/src/lib/utils/validation";
 
 import { userSockets } from "../state";
@@ -38,7 +38,7 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
     // console.log({ userSockets })
 
     // Socket Message
-    // const socketMessage: SocketMessage = {
+    // const socketMessage: MessagePayload = {
     //   type: "system",
     //   id: crypto.randomUUID(),
     //   timestamp: Date.now().toString(),
@@ -189,7 +189,7 @@ const messageHandler: Record<string, (data: any) => void> = {
   },
   user_join: (data: any) => {},
   users_online: (data: any) => {},
-  user_offline: (data: SocketMessage) => {
+  user_offline: (data: MessagePayload) => {
     const id = data.sender?.id!;
     const username = data.sender?.username!;
     broadcastUserOffline(id, username);

@@ -54,19 +54,18 @@ export const getMessageById = async (message_id: number) => {
     throw new Error("Error getting message by id");
   }
 }
-
-
 export const getConversationMessages = async (
-  { conversation_id, user_id }: { conversation_id: number, user_id: number }) => {
+  {
+    conversation_id,
+    user_id
+  }: {
+    conversation_id: number,
+    user_id: number
+  }) => {
   try {
-    const [conversation] = await services.getConversationById(conversation_id)
-    if (!conversation) {
-      throw new Error("Conversation does not exits")
-    }
-    const [isParticipant] = await services.isParticipant({ conversation_id, user_id })
-    if (!isParticipant) {
-      throw new Error("Not a participant")
-    }
+    const [participant] = await services.isParticipant({ conversation_id, user_id })
+    if (!participant) throw new Error("Not a participant")
+
     return await queries.selectMessagesByConversationId(conversation_id);
   }
   catch (error) {
@@ -74,6 +73,8 @@ export const getConversationMessages = async (
     throw new Error("Error getting messages by conversation id");
   }
 }
+
+
 
 export const getMessagesBySenderId = async (sender_id: number) => {
   try {

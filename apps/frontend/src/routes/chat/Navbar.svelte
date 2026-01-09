@@ -2,7 +2,7 @@
   import { getSocket } from "$lib/socket.svelte";
   import { chatStore } from "$lib/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
-  import type { SocketMessage } from "@chat/shared/src/lib/utils/validation";
+  import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
   import {
     ChevronDown,
     CircleChevronDown,
@@ -16,7 +16,7 @@
   let isMenuExpanded = $state(false);
 
   function handleLogout() {
-    const message: SocketMessage = {
+    const message: MessagePayload = {
       type: "user_offline",
       id: crypto.randomUUID(),
       sender: {

@@ -1,0 +1,4 @@
+
+make create_by nullable, since 1-1 chat doesnot need it , only groups need it.
+change time Type from integer to timestampz.
+add avatar url for conversation.

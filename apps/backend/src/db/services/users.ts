@@ -1,5 +1,5 @@
 import { NewUser, User } from "@chat/shared/src/lib/utils/validation";
-import * as queries from "./queries";
+import * as queries from "../queries/index";
 import { HTTPException } from "hono/http-exception";
 
 export const createUser = async (newUser: NewUser) => {

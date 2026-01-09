@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { db } from "../client";
-import { conversations } from "../schema/_schema";
+import { conversations } from '../schema/index'
 
 import * as queries from "../queries/conversations.query";
 
@@ -19,19 +19,16 @@ describe("Conversations Table Schema", () => {
       updated_at: Math.floor(Date.now() / 1000),
     };
     const result = await queries.insertConversation(newConversation);
-    console.log({ result });
     expect(result).toHaveLength(1);
   });
 
   test("should select a conversation by id", async () => {
     const result = await queries.selectConversationById(7);
-    console.log({ result });
     expect(result).toHaveLength(1);
   });
 
   test("should select a conversation by author id", async () => {
     const result = await queries.selectConversationByAuthorId(userId);
-    console.log({ result });
     expect(result).toHaveLength(1);
   });
 });

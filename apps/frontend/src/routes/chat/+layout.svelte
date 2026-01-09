@@ -4,7 +4,7 @@
   import { onMount } from "svelte";
   import { get } from "svelte/store";
   import { getSocket } from "$lib/socket.svelte.js";
-  import type { SocketMessage } from "@chat/shared/src/lib/utils/validation.js";
+  import type { MessagePayload } from "@chat/shared/src/lib/utils/validation.js";
 
   let { children, data } = $props();
 

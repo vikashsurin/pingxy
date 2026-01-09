@@ -1,4 +1,4 @@
-import { userUpdateSchema, type SocketMessage } from '@chat/shared/src/lib/utils/validation';
+import { userUpdateSchema, type MessagePayload } from '@chat/shared/src/lib/utils/validation';
 import { userSockets } from '../state';
 
 export function getOnlineUsers() {
@@ -6,7 +6,10 @@ export function getOnlineUsers() {
 
   for (const [id, data] of userSockets.entries()) {
     users.push({
-      ...data.user
+      conversation_id: null,
+      user: {
+        ...data.user
+      }
     })
   }
   return users;
@@ -23,10 +26,12 @@ export function getStatus(lastActivity: any) {
 
 export function broadcastOnlineUsers() {
   const onlineUsers = getOnlineUsers()
-  const message: SocketMessage = {
+  const message: MessagePayload = {
     type: 'users_online',
     id: crypto.randomUUID(),
-    users: getOnlineUsers(),
+    data: {
+      users: getOnlineUsers()
+    },
     timestamp: new Date().toISOString(),
   };
 
@@ -42,7 +47,7 @@ export function broadcastOnlineUsers() {
 
 export function broadcastUserOffline(userId: number, username: string) {
   userSockets.delete(userId)
-  const message: SocketMessage = {
+  const message: MessagePayload = {
     type: 'user_offline',
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),

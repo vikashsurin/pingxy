@@ -14,7 +14,7 @@ import { sign } from "hono/jwt";
 // import { authMiddleware } from "../middlewares/auth";
 import { getConnInfo } from "hono/bun";
 import { getCookie } from "hono/cookie";
-import * as db from "../db/index.js";
+import * as db from "../db/services/index.js";
 import {
   User,
   NewUser,
@@ -238,7 +238,6 @@ app.get("/verify", authMiddleware, async (c) => {
 
 // Register route
 app.post("/register", async (c) => {
-  console.log("incoming request");
   const body = await c.req.json();
 
   // Check this if user is needed here!

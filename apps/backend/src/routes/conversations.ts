@@ -1,50 +1,27 @@
-import { NewConversation, NewParticipant, SocketMessage } from "@chat/shared/src/lib/utils/validation";
 import { factory } from "../db/factory";
-import { createNewConversation } from "../db";
-import { getServer, publish } from "../pubsub";
-import { timestamp } from "drizzle-orm/singlestore-core";
-const app = factory.createApp()
+const app = factory.createApp();
+import * as services from "../db/services";
 
 
-app.post('/', async (c) => {
-  const body = await c.req.json()
+app.get("/", async (c) => {
+  const user = c.get("user");
+  const conversations = await services.getConversationsByUser(user.id);
 
-  const { created_by, conversation_type, name, participant_id } = body
+  return c.json({ conversations }, 200);
+});
 
-  console.log('conversations:: ', created_by, conversation_type, name, participant_id)
 
-  const newConversation: NewConversation = {
-    name,
-    conversation_type,
-    created_by,
-  }
 
-  const server = getServer()
-
-  const result = await createNewConversation(
-    newConversation,
-    participant_id,
-    created_by)
-
-  const participantIds = [result.participant1.user_id, result.participant2.user_id]
-
-  participantIds.forEach((pid: number) => {
-    const newMessage: SocketMessage = {
-      type: 'new_conversation',
-      id: crypto.randomUUID(),
-      conversationId: result.conversation.conversation_id,
-      timestamp: new Date().toISOString(),
-      data: participantIds,
-    }
-    publish(`inbox:${pid}`, JSON.stringify(newMessage))
+// Fetch all Messages of a conversation
+app.get("/messages/:conversation_id/:user_id", async (c) => {
+  // const { conversation_id, user_id } = c.req.param()
+  const conversation_id = Number(c.req.param("conversation_id"))
+  const user_id = Number(c.req.param("user_id"))
+  const result = await services.getConversationMessages({
+    conversation_id, user_id
   })
 
-  console.log({ result })
-
-  return c.json({
-    conversation_id: result.conversation.conversation_id
-  }, 200)
+  return c.json({ messages: result }, 200)
 })
-
 
 export default app;

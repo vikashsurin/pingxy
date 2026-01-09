@@ -5,7 +5,7 @@ import {
   messageSchema,
 } from "@chat/shared/src/lib/utils/tempp.js";
 import { HTTPException } from "hono/http-exception";
-import * as db from "./db";
+import * as services from "./db/services";
 // import { verify } from "hono/jwt";
 // import { getUser } from "./db/users.js";
 // import { getSessionById, updateSessionActivity } from "./db/sessions.js";
@@ -50,11 +50,11 @@ export async function getAuthUserFromReq(req: Request) {
 
   if (!cookie) return null;
 
-  const user = await db.getSessionUser(cookie);
+  const user = await services.getSessionUser(cookie);
 
   if (!user) {
     throw new Error("Error while getting user from  session");
   }
-  await db.extendSessionAcitivity(cookie);
+  await services.extendSessionActivity(cookie);
   return user;
 }

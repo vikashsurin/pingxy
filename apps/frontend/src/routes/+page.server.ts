@@ -47,7 +47,6 @@ export const actions = {
       path: "/",
       sameSite: "lax",
     });
-    console.log({ user });
     return { success: true, user };
   },
 

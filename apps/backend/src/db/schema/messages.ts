@@ -51,9 +51,9 @@ export const messages = table(
     thread_message_count: t.integer().default(0), // Denormalized count
 
     // Rich content
-    attachments: t.jsonb("attachments"), // Array of file URLs, metadata
-    mentions: t.jsonb("mentions"), // Array of mentioned user IDs
-    metadata: t.jsonb("metadata"), // Flexible field for reactions, polls, etc.
+    attachments: t.jsonb("attachments").$type<any>(), // Array of file URLs, metadata
+    mentions: t.jsonb("mentions").$type<any>(), // Array of mentioned user IDs
+    metadata: t.jsonb("metadata").$type<any>(), // Flexible field for reactions, polls, etc.
 
     // Delivery & read status (optional - can be separate table)
     delivery_status: deliveryStatusEnum("delivery_status").default("sent"),

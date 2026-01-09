@@ -1,7 +1,7 @@
 import { deleteCookie, getCookie } from "hono/cookie";
 import type { Context, Next } from "hono";
 import { getConnInfo } from "hono/bun";
-import * as db from "../db/index";
+import * as services from "../db/services";
 import { factory } from "../db/factory";
 
 function getJwtSecret(): string {
@@ -12,32 +12,52 @@ function getJwtSecret(): string {
   throw new Error("JWT_SECRET is not configured in production environment");
 }
 
-export const authMiddleware = factory.createMiddleware(
-  async (c: Context, next: Next) => {
-    const cookie = getCookie(c, "_Host-session");
+export const authMiddleware = factory.createMiddleware(async (c, next) => {
+  const sessionToken = getCookie(c, "_Host-session");
 
-    if (!cookie) {
-      deleteCookie(c, "_Host-session");
-      return c.json({ message: "not logged in" }, 401);
+  console.log(sessionToken)
+  // No token → early exit
+  if (!sessionToken) {
+    // Optional: deleteCookie(c, "_Host-session"); // only if you really want to be extra clean
+    return c.json({ message: "Unauthorized - please log in" }, 401);
+  }
+
+  try {
+    const user = await services.getSessionUser(sessionToken);
+
+    // Optional: you can throw specific errors from getSessionUser
+    // e.g. throw new Error("session_expired") / "session_revoked" etc.
+
+    c.set("user", user)
+
+    // Update last activity (best effort – don't fail request if this fails)
+    services.extendSessionActivity(sessionToken).catch((e) => {
+      console.warn("Failed to extend session activity", e);
+    });
+
+    // IP is usually optional/nice-to-have, rarely critical
+    const ip = getConnInfo(c)?.remote?.address ?? "unknown";
+    // You can store it somewhere if needed, but don't fail the request
+    await next();
+  } catch (error) {
+    // Very important: delete invalid/expired session cookie
+    deleteCookie(c, "_Host-session", {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax", // or "strict"
+    });
+
+    if (error instanceof Error) {
+      if (error.message.includes("expired")) {
+        return c.json({ message: "Session expired" }, 401);
+      }
+      if (error.message.includes("revoked")) {
+        return c.json({ message: "Session has been revoked" }, 401);
+      }
     }
 
-    try {
-      const user = await db.getSessionUser(cookie);
-
-      // Set user in the context
-      c.set("user", user);
-
-      // Update Session Activity
-      await db.extendSessionAcitivity(cookie);
-
-      const connInfo = getConnInfo(c);
-      const ipAddress = connInfo?.remote?.address;
-
-      if (!ipAddress) {
-        return c.json({ message: "Unable to retrieve client IP" }, 400);
-      }
-    } catch (error) { }
-
-    next();
+    // Default case - generic invalid session
+    return c.json({ message: "Invalid session" }, 401);
   }
-);
+});

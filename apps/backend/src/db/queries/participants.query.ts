@@ -30,6 +30,50 @@ export const insertParticipant = async (
     .returning();
 };
 
+// export const insertParticipants = async ({
+//   conversation_id,
+//   user1_id,
+//   user2_id }: {
+//     conversation_id: number;
+//     user1_id: number;
+//     user2_id: number;
+//   }) => {
+//   return await db.transaction(async (tx) => {
+//     await insertParticipant({
+//       conversation_id,
+//       user_id: user1_id,
+//       role: "member",
+//       joined_at: Math.floor(Date.now() / 1000),
+//       left_at: null,
+//       is_active: true,
+//     }, tx);
+//     await insertParticipant({
+//       conversation_id,
+//       user_id: user2_id,
+//       role: "member",
+//       joined_at: Math.floor(Date.now() / 1000),
+//       left_at: null,
+//       is_active: true,
+//     }, tx)
+//   })
+// }
+
+export const selectParticipant = async (
+  conversationId: number,
+  userId: number
+) => {
+  return await db
+    .select()
+    .from(participants)
+    .where(
+      and(
+        eq(participants.conversation_id, conversationId),
+        eq(participants.user_id, userId)
+      )
+    )
+    .limit(1);
+};
+
 export const selectParticipantById = async (participantId: number) => {
   return await db
     .select()

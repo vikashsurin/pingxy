@@ -1,5 +1,5 @@
 import { chatStore } from "$lib/store.svelte.js";
-import type { SocketMessage } from "@chat/shared/src/lib/utils/validation";
+import type { Message, MessagePayload } from "@chat/shared/src/lib/utils/validation";
 
 export let socket: WebSocket | null = null;
 
@@ -42,31 +42,42 @@ export function initSocket() {
 
 // MESSAGE HANDLER
 const messageHandler: Record<string, (data: any) => void> = {
-  system: (message: SocketMessage) => {},
-  message: (message: SocketMessage) => {},
-  new_conversation: (message: SocketMessage) => {
-    console.log({ message });
-    const newMessage: SocketMessage = {
-      type: "subscribe",
-      id: crypto.randomUUID(),
-      conversationId: message.conversationId,
-      timestamp: new Date().toISOString(),
-    };
-    socket?.send(JSON.stringify(newMessage));
+  system: (messagePayload: MessagePayload) => { },
+  message: (messagePayload: MessagePayload) => {
+    chatStore.messages
+      .get(messagePayload.message?.conversation_id!)
+      ?.push(messagePayload.message! as Message)
+
   },
-  user_join: (message: SocketMessage) => {},
-  user_leave: (message: SocketMessage) => {},
-  users_online: (message: SocketMessage) => {
-    chatStore.onlineUsers = message.users;
+
+  notification: (messagePayload: MessagePayload) => {
+    const conversationId = messagePayload?.message?.conversation_id;
+    if (chatStore.activeConversation?.conversation_id === conversationId) {
+      return
+    } else {
+      console.log('new message notification!')
+      chatStore.notifications.add(conversationId!)
+    }
+
   },
-  user_offline: (message: SocketMessage) => {
-    const id = message.users.id;
-    const updatedOnlineUsers = chatStore.onlineUsers.filter((u) => u.id !== id);
-    chatStore.onlineUsers = updatedOnlineUsers;
+  new_conversation: (messagePayload: MessagePayload) => {
+    // const conversationId = messagePayload.message.conversation_id;
+    // chatStore.conversations.add(conversationId!);
+    // chatStore.messages.set(conversationId!, message)
   },
-  message_receipts: (message: SocketMessage) => {},
-  typing: (message: SocketMessage) => {},
-  error: (message: SocketMessage) => {},
+  user_join: (messagePayload: MessagePayload) => { },
+  user_leave: (messagePayload: MessagePayload) => { },
+  users_online: (messagePayload: MessagePayload) => {
+    chatStore.onlineUsers = messagePayload?.data?.users;
+  },
+  user_offline: (messagePayload: MessagePayload) => {
+    // const id = messagePayload.users.id;
+    // const updatedOnlineUsers = chatStore.onlineUsers.filter((u) => u.id !== id);
+    // chatStore.onlineUsers = updatedOnlineUsers;
+  },
+  message_receipts: (messagePayload: MessagePayload) => { },
+  typing: (messagePayload: MessagePayload) => { },
+  error: (message: MessagePayload) => { },
 };
 
 export function getSocket() {

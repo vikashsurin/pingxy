@@ -1,5 +1,5 @@
 import { NewSession } from "@chat/shared/src/lib/utils/validation";
-import * as queries from "./queries/sessions.query";
+import * as queries from "../queries/index";
 import { HTTPException } from "hono/http-exception";
 
 const secret = "temp_secret";
@@ -82,7 +82,7 @@ export const getSessionUser = async (token: string) => {
   }
 };
 
-export const extendSessionAcitivity = async (token: string) => {
+export const extendSessionActivity = async (token: string) => {
   try {
     const hashed_token = hashSessionToken(token);
     await queries.updateSessionActivity(hashed_token);

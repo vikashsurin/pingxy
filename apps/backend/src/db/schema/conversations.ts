@@ -18,7 +18,7 @@ export const conversations = table(
     last_message_id: t.integer(),
     last_message_at: t.integer(),
     is_deleted: t.boolean().default(false).notNull(),
-    created_by: t.integer().notNull(),
+    created_by: t.integer(),
     created_at: t.integer().default(sql`extract(epoch from now())`),
     updated_at: t.integer().default(sql`extract(epoch from now())`),
   },
