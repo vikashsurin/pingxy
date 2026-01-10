@@ -1,4 +1,4 @@
-import * as schema from "../../../../../apps/backend/src/db/schema/index";
+import * as schema from "../../../../../apps/backend/src/core/db/schema";
 import z from "zod";
 
 import {

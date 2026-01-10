@@ -1,26 +1,14 @@
 import { serve } from "bun";
+import { setServer } from "./core/socket/pubsub.js";
+import { socketHandlers } from "./core/socket/socketHandlers.js";
+import { WebSocketData } from "./core/socket/types.js";
+import { getAuthUserFromReq } from "./core/utils/index.js";
 
-import { Hono } from "hono";
-import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
-import { type WebSocketHandler } from "bun";
-import type { User } from "@chat/shared/src/lib/utils/tempp.js";
-
-import { getAuthUserFromReq } from "./utils.js";
-import { socketHandlers } from "./socket/socketHandlers.js";
-
-import { authMiddleware } from "./middlewares/auth.js";
-import authRouter from "./routes/auth.js";
-import { PublicUser } from "@chat/shared/src/lib/utils/validation.js";
-import { factory } from "./db/factory/index.js";
 import { HTTPException } from "hono/http-exception";
-import { setServer } from "./pubsub.js";
-import userRouter from "./routes/users.js";
-// import moderationRouter from "./routes/moderation.js";
-import messageRouter from "./routes/messages.js";
-import conversationRouter from './routes/conversations.js';
-import { WebSocketData } from "./socket/socketHandlers.js";
-import { auth } from "hono/utils/basic-auth";
+import { prettyJSON } from "hono/pretty-json";
+import { factory } from "./core/db/drizzle-factory";
+import { registerRoutes } from "./routes/index";
 
 const app = factory.createApp();
 
@@ -34,7 +22,6 @@ app.use(
   })
 );
 app.use(prettyJSON());
-
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
@@ -51,38 +38,12 @@ app.get("/api/health", (c) => {
   return c.json({ status: "ok" });
 });
 
-// Protect all /api/users routes EXCEPT /check
-// We can use a regex or just apply middleware conditionally, but Hono's router is better used by splitting.
-// However, since we mounted userRouter at /api/users, we can intercept /api/users/*
-// But we want to exclude /api/users/check.
-// Let's use a specific matcher for the middleware.
-
-app.use("/api/users/*", async (c, next) => {
-  if (c.req.path === "/api/users/check") {
-    await next();
-  } else {
-    await authMiddleware(c, next);
-  }
-});
-
-app.use('/api/conversations/*', authMiddleware)
-
-app.use('/api/messages/*', authMiddleware)
-
-
-app.route("/api/auth", authRouter);
-app.route("/api/users", userRouter);
-app.route('/api/conversations', conversationRouter)
-app.route("/api/messages", messageRouter);
-// app.route("/api/mod", moderationRouter);
-//
-
+registerRoutes(app);
 
 serve({
   websocket: socketHandlers,
 
   async fetch(req, server) {
-
     // Store server reference
     setServer(server);
 
@@ -96,7 +57,7 @@ serve({
       const success = server.upgrade(req, {
         data: {
           user,
-          activeConversations: new Set()
+          activeConversations: new Set(),
         } as WebSocketData,
       });
 
