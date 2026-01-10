@@ -2,8 +2,8 @@ import { type NewConversation } from "@chat/shared/src/lib/utils/validation";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { alias, type PgTransaction } from "drizzle-orm/pg-core";
-import db from "../../../core/db/client";
-import { conversations, participants, users } from '../../../core/db/schema';
+import db from "@core/db/client";
+import { conversations, participants, users } from '@core/db/schema';
 
 export const insertConversation = async (
   conversation: NewConversation,

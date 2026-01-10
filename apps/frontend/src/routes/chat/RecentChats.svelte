@@ -1,11 +1,7 @@
 <script lang="ts">
     import { getSocket } from "$lib/socket.svelte";
     import { chatStore, type PrivateConversation } from "$lib/store.svelte";
-    import type {
-        Conversation,
-        MessagePayload,
-        PublicUser,
-    } from "@chat/shared/src/lib/utils/validation";
+    import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
 
@@ -24,12 +20,12 @@
         chatStore.conversations = data.conversations;
     });
 
-    $inspect("loading::", chatStore.conversations);
-
     const handleClick = async (conversation: PrivateConversation) => {
         chatStore.clearNotification(conversation.conversation_id!);
         chatStore.activeConversation = conversation;
-        chatStore.activeConversationId = conversation.conversation_id;
+
+        // Load messages for current conversation
+        // await chatStore.loadMessages();
 
         const user_id = chatStore.currentUser?.id;
 
@@ -48,7 +44,6 @@
         }
 
         // Load messages for current conversation
-        await chatStore.loadMessages();
     };
     $inspect({ notifications: chatStore.notifications });
 </script>
@@ -85,7 +80,15 @@
                     ? 'bg-gray-400'
                     : ''}"
                 id={conversation.user.id.toString()}
-                onclick={() => handleClick(conversation)}
+                onmouseenter={async () => {
+                    // TODO optimize it
+                    await chatStore.loadMessages({
+                        conversation_id: conversation.conversation_id,
+                    });
+                }}
+                onclick={async () => {
+                    handleClick(conversation);
+                }}
             >
                 <div class="flex items-center gap-2 w-full overflow-hidden">
                     <GenderIcon gender={conversation.user.data.gender} />

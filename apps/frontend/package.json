@@ -13,21 +13,22 @@
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^7.0.0",
-    "@sveltejs/kit": "^2.48.5",
-    "@sveltejs/vite-plugin-svelte": "^6.2.1",
-    "@tailwindcss/vite": "^4.1.17",
-    "svelte": "^5.43.8",
-    "svelte-check": "^4.3.4",
-    "tailwindcss": "^4.1.17",
+    "@sveltejs/kit": "^2.49.4",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@tailwindcss/vite": "^4.1.18",
+    "svelte": "^5.46.1",
+    "svelte-check": "^4.3.5",
+    "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vite": "^7.2.2"
+    "vite": "^7.3.1",
+    "vite-tsconfig-paths": "^6.0.4"
   },
   "dependencies": {
     "@lucide/svelte": "^0.556.0",
     "countries-list": "^3.2.2",
-    "hono": "^4.10.7",
+    "hono": "^4.11.3",
     "jwt-decode": "^4.0.0",
-    "zod": "^4.1.13",
+    "zod": "^4.3.5",
     "@chat/shared": "workspace:*"
   }
 }

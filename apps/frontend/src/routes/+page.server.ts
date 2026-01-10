@@ -5,7 +5,7 @@ export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
 
   if (token) {
-    // throw redirect(302, "/chat");
+    throw redirect(302, "/chat");
   }
   if (!token) return { success: false };
 
@@ -21,7 +21,6 @@ export const actions = {
     if (!username || !password) {
       return fail(400, { username, invalid: "Missing credentials" });
     }
-    console.log('action called')
 
     const displayName = capitalizeFirst(username);
 

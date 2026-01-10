@@ -4,9 +4,10 @@ import {
   Message,
   messageSchema,
 } from "@chat/shared/src/lib/utils/tempp.js";
-import * as services from "../../features/services";
+import { extendSessionActivity, getSessionUser } from "../../features/sessions";
 
-// // function to validate connections
+
+
 export function validateConnection(connection: Connection) {
   const validateConnection = connectionSchema.safeParse(connection);
 
@@ -38,11 +39,11 @@ export async function getAuthUserFromReq(req: Request) {
 
   if (!cookie) return null;
 
-  const user = await services.getSessionUser(cookie);
+  const user = await getSessionUser(cookie);
 
   if (!user) {
     throw new Error("Error while getting user from  session");
   }
-  await services.extendSessionActivity(cookie);
+  await extendSessionActivity(cookie);
   return user;
 }

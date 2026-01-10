@@ -1,6 +1,6 @@
 import { aliasedTable, and, eq } from "drizzle-orm";
-import db from '../../../../core/db/client'
-import { conversations, participants } from '../../../../core/db/schema';
+import db from "@core/db/client"
+import { conversations, participants } from "@core/db/schema";
 
 import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
 import { BunSQLDatabase } from "drizzle-orm/bun-sql";
@@ -32,16 +32,20 @@ export const insertParticipant = async (
 
 
 export const selectParticipant = async (
-  conversationId: number,
-  userId: number
-) => {
+  {
+    conversation_id,
+    user_id
+  }: {
+    conversation_id: number,
+    user_id: number
+  }) => {
   return await db
     .select()
     .from(participants)
     .where(
       and(
-        eq(participants.conversation_id, conversationId),
-        eq(participants.user_id, userId)
+        eq(participants.conversation_id, conversation_id),
+        eq(participants.user_id, user_id)
       )
     )
     .limit(1);

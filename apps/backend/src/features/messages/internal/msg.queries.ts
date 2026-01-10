@@ -2,8 +2,8 @@ import { NewMessage } from "@chat/shared/src/lib/utils/validation";
 import { desc, eq } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { type PgTransaction } from "drizzle-orm/pg-core";
-import db from "../../../core/db/client";
-import { messages } from "../../../core/db/schema";
+import db from "@core/db/client";
+import { messages } from "@core/db/schema";
 
 export const insertMessage = (
   message: NewMessage,

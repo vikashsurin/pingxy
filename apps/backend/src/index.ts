@@ -25,11 +25,14 @@ app.use(prettyJSON());
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
+    console.error(err);
     return err.getResponse();
   }
-  console.error(err);
-  return c.json({ error: "Internal Server Error " }, 500);
+  return c.json({ error: "Internal Server Error " }, 500)
 });
+
+
+
 
 app.get("/api/", (c) => {
   return c.json({ app: "chat" });
@@ -41,6 +44,7 @@ app.get("/api/health", (c) => {
 registerRoutes(app);
 
 serve({
+  development: true,
   websocket: socketHandlers,
 
   async fetch(req, server) {

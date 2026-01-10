@@ -1,6 +1,6 @@
 import { NewMessage } from '@chat/shared/src/lib/utils/validation';
 import * as queries from './internal/msg.queries';
-import { findOrCreateConversationByUser } from '../conversations';
+import { findOrCreateConversationByUsers } from '../conversations';
 import { createParticipants, isParticipant } from '../conversations/participants';
 import { createMessageReceipt } from './receipts';
 
@@ -11,7 +11,7 @@ export const createMessage = async ({ recipient_id, message }:
 
     // Check if conversation exists
     // If not create
-    const conversation = await findOrCreateConversationByUser({
+    const conversation = await findOrCreateConversationByUsers({
       userId1: message.sender_id,
       userId2: recipient_id
     })
@@ -27,7 +27,6 @@ export const createMessage = async ({ recipient_id, message }:
 
     if (!participant) throw new Error("Error creating participants")
 
-
     // Create Message
     const [insertedMessage] = await queries.insertMessage({
       conversation_id: conversation.conversation_id,
@@ -36,15 +35,13 @@ export const createMessage = async ({ recipient_id, message }:
       content: message.content,
     })
 
-
-
+    // Create message receipts
     const messageReceipt = await createMessageReceipt({
       message_id: insertedMessage.message_id!,
       user_id: recipient_id,
       status: 'sent'
     })
 
-    console.log({ messageReceipt })
 
     return {
       message: insertedMessage,
@@ -68,7 +65,7 @@ export const getMessageById = async (message_id: number) => {
     throw new Error("Error getting message by id");
   }
 }
-export const getConversationMessages = async (
+export const getMessagesByConversation = async (
   {
     conversation_id,
     user_id

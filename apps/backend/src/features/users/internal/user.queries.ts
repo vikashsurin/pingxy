@@ -1,7 +1,7 @@
 import { NewUser } from "@chat/shared/src/lib/utils/validation";
 import { eq } from "drizzle-orm";
-import db from "../../../core/db/client";
-import { userInsertSchema, users } from "../../../core/db/schema";
+import db from "@core/db/client";
+import { userInsertSchema, users } from "@core/db/schema";
 
 export const insertUser = async (newUser: NewUser) => {
   const user = userInsertSchema.parse(newUser);
@@ -26,16 +26,7 @@ export const selectUserById = async (id: number) => {
 
 export const selectAuthUserByUsername = async (username: string) => {
   return await db
-    .select({
-      id: users.id,
-      username: users.username,
-      user_type: users.user_type,
-      data: users.data,
-      last_seen_at: users.last_seen_at,
-      created_at: users.created_at,
-      updated_at: users.updated_at,
-      hashed_password: users.hashed_password,
-    })
+    .select()
     .from(users)
     .where(eq(users.username, username));
 };

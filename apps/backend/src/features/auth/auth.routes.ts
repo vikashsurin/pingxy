@@ -1,20 +1,21 @@
 import { NewUser } from "@chat/shared/src/lib/utils/validation";
 import { getConnInfo } from "hono/bun";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { factory } from "../../core/db/drizzle-factory";
-import { authMiddleware } from "../../core/middlewares/auth.js";
+import { factory } from "@core/db/drizzle-factory";
+import { authMiddleware } from "@core/middlewares/auth.js";
 import {
   createUser,
-  getUserByUsername,
   getAuthUserByUsername,
+  getUserByUsername,
   removeUser
-} from "../../features/users/index";
+} from "@features/users/index";
 
+import { logger } from "hono/logger";
 import {
   createSession,
-  revokeSession,
   getSessionUser,
-} from "../../features/sessions/index";
+  revokeSession,
+} from "@features/sessions/index";
 
 const app = factory.createApp();
 
@@ -75,13 +76,13 @@ app.post("/register", async (c) => {
   });
 });
 
+app.use(logger())
 // Login route
 app.post("/login", async (c) => {
   const body = await c.req.json();
 
   const { username, password } = body;
 
-  console.log({ username, password });
 
   if (!username || !password) {
     return c.json({ error: "Missing required fields" }, 400);

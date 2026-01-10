@@ -1,6 +1,6 @@
 import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
-import * as queries from './internal/participants.queries'
-import db from '../../../core/db/client'
+import db from '@core/db/client';
+import * as queries from './internal/participants.queries';
 
 export const createParticipant = async (participant: NewParticipant) => {
   try {
@@ -61,7 +61,7 @@ export const isParticipant = async (
     conversation_id: number, user_id: number
   }) => {
   try {
-    return await queries.selectParticipant(conversation_id, user_id);
+    return await queries.selectParticipant({ conversation_id, user_id });
   } catch (error) {
     console.error("Error getting participant:", error);
     throw new Error("Error getting participant");

@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
-import { sessions, users } from '../../../core/db/schema'
+import { sessions, users } from '@core/db/schema'
 
 export const refresh_tokens = table(
   "refresh_tokens",

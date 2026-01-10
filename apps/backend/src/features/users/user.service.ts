@@ -1,5 +1,6 @@
 import { NewUser } from "@chat/shared/src/lib/utils/validation";
 import * as queries from "./internal/user.queries";
+import { HTTPException } from "hono/http-exception";
 
 export const createUser = async (newUser: NewUser) => {
   try {
@@ -20,7 +21,7 @@ export const getUserByUsername = async (username: string) => {
   try {
     return await queries.selectUserByUsername(username);
   } catch (error) {
-    throw new Error('Error getting User by username..')
+    throw new HTTPException(404, { message: "User not found" });
   }
 };
 
@@ -34,7 +35,8 @@ export const getAuthUserByUsername = async (username: string) => {
     }
     return result
   } catch (error) {
-    throw new Error("Error getting User by username..")
+    console.error(error)
+    throw new Error("Error getting user by username")
   }
 };
 

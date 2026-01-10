@@ -1,6 +1,6 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
-import { users } from "../../features/users/user.schema";
+import { users } from "@features/users/user.schema";
 
 export const conversationTypesEnum = t.pgEnum("conversation_type", [
   "direct",

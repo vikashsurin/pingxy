@@ -1,8 +1,8 @@
 import { MessagePayload } from "@chat/shared/src/lib/utils/validation";
-import { factory } from "../../core/db/drizzle-factory";
+import { factory } from "@core/db/drizzle-factory";
+import { authMiddleware } from "@core/middlewares/auth";
+import { publish } from "@core/socket/pubsub";
 import * as services from "./msg.service";
-import { publish } from "../../core/socket/pubsub";
-import { authMiddleware } from "../../core/middlewares/auth";
 
 const app = factory.createApp();
 
@@ -17,7 +17,7 @@ app.post("/", authMiddleware, async (c) => {
     recipient_id: data.recipient?.id!,
     message: data.message!,
   });
-
+  // console.log({ result });
   // Broadcast message
   publish(
     `${result.conversation_id}`,

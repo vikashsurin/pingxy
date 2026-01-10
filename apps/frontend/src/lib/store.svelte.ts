@@ -88,11 +88,12 @@ class ChatStore {
   }
 
 
-  async loadMessages() {
-    const conversation_id = this.activeConversation?.conversation_id!;
+  async loadMessages({ conversation_id }: { conversation_id: number }) {
+    // const conversation_id = this.activeConversation?.conversation_id!;
+
     const user_id = this.currentUser?.id!;
     const response = await fetch(
-      `http://localhost:3000/api/conversations/messages/${conversation_id}/${user_id}`,
+      `http://localhost:3000/api/conversations/${conversation_id}/${user_id}/messages`,
       {
         method: "GET",
         headers: {
