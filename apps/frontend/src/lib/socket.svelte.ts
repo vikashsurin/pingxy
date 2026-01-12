@@ -1,5 +1,6 @@
-import { chatStore } from "$lib/store.svelte.js";
-import type { Message, MessagePayload } from "@chat/shared/src/lib/utils/validation";
+import { chatStore, type ChatEntry } from "$lib/store.svelte.js";
+import type { Message, MessagePayload, MessageReceipt } from "@chat/shared/src/lib/utils/validation";
+import { markAsDelivered, markAsRead, receiptHandlers } from "./storeHelper.svelte";
 
 export let socket: WebSocket | null = null;
 
@@ -44,37 +45,88 @@ export function initSocket() {
 const messageHandler: Record<string, (data: any) => void> = {
   system: (messagePayload: MessagePayload) => { },
   message: (messagePayload: MessagePayload) => {
-    chatStore.messages
-      .get(messagePayload.message?.conversation_id!)
-      ?.push(messagePayload.message! as Message)
+    const msgData = messagePayload.msgData as ChatEntry
+    const conversation_id = msgData.message.conversation_id
+    // console.log({ messagePayload })
+    // chatStore.addChatEntry(msgData.message.conversation_id, msgData)
+    //
+
+    // chatStore.messages[conversation_id][msgData.message.message_id] = msgData
+    if (!chatStore.messages[conversation_id]) {
+      chatStore.messages[conversation_id] = {};
+    }
+    chatStore.messages[conversation_id][msgData.message.message_id] = msgData;
 
   },
 
-  notification: (messagePayload: MessagePayload) => {
-    const conversationId = messagePayload?.message?.conversation_id;
-    if (chatStore.activeConversation?.conversation_id === conversationId) {
-      return
-    } else {
-      console.log('new message notification!')
-      chatStore.notifications.add(conversationId!)
+  receipt_update: (messagePayload: MessagePayload) => {
+    console.log({ messagePayload });
+
+    const receipts = messagePayload.msgData?.receipt as MessageReceipt[];
+    if (!receipts?.length) return;
+
+    for (const receipt of receipts) {
+      receiptHandlers[receipt.status]?.(receipt);
     }
 
   },
+
+
+
+
+
+
+
+  notification: async (messagePayload: MessagePayload) => {
+    const conversationId = messagePayload.msgData?.message?.conversation_id;
+    const message = messagePayload.msgData?.message as Message
+    const user_id = messagePayload.recipient?.id!
+    const isActiveConversation = chatStore.activeConversation?.conversation_id === conversationId;
+
+
+    // Mark as read, if active conversation is the same as the received message
+    // TODO: also can check if the scroll position is at the bottom, for precision
+    if (isActiveConversation) {
+      await markAsRead({
+        message,
+        user_id
+      })
+    } else {
+      await markAsDelivered({
+        message,
+        user_id
+      })
+    }
+  },
+
+
+
+
   new_conversation: (messagePayload: MessagePayload) => {
     // const conversationId = messagePayload.message.conversation_id;
     // chatStore.conversations.add(conversationId!);
     // chatStore.messages.set(conversationId!, message)
   },
+
+
+
   user_join: (messagePayload: MessagePayload) => { },
   user_leave: (messagePayload: MessagePayload) => { },
   users_online: (messagePayload: MessagePayload) => {
     chatStore.onlineUsers = messagePayload?.data?.users;
   },
+
+
+
+
   user_offline: (messagePayload: MessagePayload) => {
     // const id = messagePayload.users.id;
     // const updatedOnlineUsers = chatStore.onlineUsers.filter((u) => u.id !== id);
     // chatStore.onlineUsers = updatedOnlineUsers;
   },
+
+
+
   message_receipts: (messagePayload: MessagePayload) => { },
   typing: (messagePayload: MessagePayload) => { },
   error: (message: MessagePayload) => { },

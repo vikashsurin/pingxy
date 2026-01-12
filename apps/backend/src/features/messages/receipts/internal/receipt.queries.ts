@@ -1,14 +1,16 @@
-import { eq, and, ne, inArray } from "drizzle-orm";
+import { eq, and, ne, inArray, isNull } from "drizzle-orm";
 import db from "@core/db/client";
 import { message_receipts } from "@core/db/schema";
 import { NewMessageReceipt } from "@chat/shared/src/lib/utils/validation";
 
 
 export const insertMessageReceipt = async ({
+  conversation_id,
   message_id,
   user_id,
   status,
 }: {
+  conversation_id: number,
   message_id: number,
   user_id: number,
   status: "sent" | "delivered" | "read",
@@ -16,6 +18,7 @@ export const insertMessageReceipt = async ({
   return await db
     .insert(message_receipts)
     .values({
+      conversation_id,
       message_id,
       user_id,
       status,
@@ -92,6 +95,32 @@ export const insertBulkMessageReceipts = async (messageReceipts: NewMessageRecei
     .returning();
 }
 
+export async function updateAllMessageReceiptsToRead({
+  conversation_id,
+  user_id,
+}: {
+  conversation_id: number,
+  user_id: number,
+}) {
+  return await db
+    .update(message_receipts)
+    .set({
+      status: "read",
+      read_at: new Date(Date.now()),
+      updated_at: new Date(Date.now()),
+    })
+    .where(
+      and(
+        eq(message_receipts.conversation_id, conversation_id),
+        eq(message_receipts.user_id, user_id),
+        ne(message_receipts.status, "read"),
+        isNull(message_receipts.read_at)
+      )
+    ).returning()
+}
+
+
+
 export async function updateBulkMessageReceiptsToRead({
   userId,
   messageIds,
@@ -143,6 +172,79 @@ export async function updateBulkMessageReceiptsToDelivered({
         eq(message_receipts.user_id, userId),
         inArray(message_receipts.message_id, messageIds),
         eq(message_receipts.status, "sent")
+      )
+    );
+}
+
+
+
+
+export async function updateMessageReceiptToDelivered({
+  message_id,
+  user_id
+}: {
+  message_id: number,
+  user_id: number
+}) {
+  return await db
+    .update(message_receipts)
+    .set({
+      status: 'delivered',
+      delivered_at: new Date(Date.now()),
+      updated_at: new Date(Date.now()),
+    })
+    .where(
+      and(
+        eq(message_receipts.message_id, message_id),
+        eq(message_receipts.user_id, user_id),
+        eq(message_receipts.status, "sent")
+      )
+    ).returning()
+}
+
+
+export async function updateMessageReceiptToRead({
+  message_id,
+  user_id
+}: {
+  message_id: number,
+  user_id: number
+}) {
+  return await db
+    .update(message_receipts)
+    .set({
+      status: 'read',
+      read_at: new Date(Date.now()),
+      updated_at: new Date(Date.now()),
+    })
+    .where(
+      and(
+        eq(message_receipts.message_id, message_id),
+        eq(message_receipts.user_id, user_id),
+        inArray(message_receipts.status, ['sent', 'delivered'])
+        // eq(message_receipts.status, "delivered")
+      )
+    ).returning()
+}
+
+export async function updateMessageReceiptToSent({
+  message_id,
+  user_id
+}: {
+  message_id: number,
+  user_id: number
+}) {
+  return await db
+    .update(message_receipts)
+    .set({
+      status: 'sent',
+      updated_at: new Date(Date.now()),
+    })
+    .where(
+      and(
+        eq(message_receipts.message_id, message_id),
+        eq(message_receipts.user_id, user_id),
+        eq(message_receipts.status, "read")
       )
     );
 }

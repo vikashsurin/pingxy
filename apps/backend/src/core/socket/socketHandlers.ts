@@ -7,7 +7,7 @@ import {
 
 import { userSockets } from "./state";
 import { WebSocketData } from "./types";
-
+import { markAllAsRead, markAsRead, markAsDelivered } from '@features/messages/receipts'
 
 
 export const socketHandlers: WebSocketHandler<WebSocketData> = {
@@ -28,7 +28,6 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
   async message(ws, message) {
     if (typeof message !== "string") return;
-
     const data = JSON.parse(message);
     const handler = messageHandler[data.type];
     if (handler) {
@@ -51,18 +50,49 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
   message: (ws, message: MessagePayload) => {
 
   },
-  new_conversation: (ws, message: MessagePayload) => {
+  mark_all_as_read: async (ws, messagePayload: MessagePayload) => {
+    // const conversation_id = message.data?.conversation_id
+    // const user_id = message.data?.user_id
+
+    if (messagePayload.data?.conversation_id && messagePayload.data.user_id) {
+      await markAllAsRead(messagePayload)
+    }
   },
+
+  mark_as_delivered: async (ws, messagePayload: MessagePayload) => {
+
+    await markAsDelivered(messagePayload)
+
+  },
+
+
+
+  mark_as_read: async (ws, messagePayload: MessagePayload) => {
+
+    await markAsRead(messagePayload)
+  },
+
+
+  new_conversation: (ws, message: MessagePayload) => {
+
+  },
+
+
   open_conversation: (ws, message: MessagePayload) => {
     const conversationId = message.data?.conversation_id
     ws.data.activeConversations.add(conversationId!.toString());
     ws.subscribe(conversationId!.toString());
     console.log("subscribed")
   },
+
+
+
   subscribe: (ws, message: MessagePayload) => {
     const conversationId = message.message?.conversation_id?.toString()
     ws.subscribe(conversationId!)
   },
+
+
   close_conversation: (ws, message: MessagePayload) => {
     const conversationId = message.message?.conversation_id?.toString()
     ws.data.activeConversations.delete(conversationId!)

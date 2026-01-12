@@ -1,9 +1,9 @@
 import { NewMessage } from "@chat/shared/src/lib/utils/validation";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { type PgTransaction } from "drizzle-orm/pg-core";
 import db from "@core/db/client";
-import { messages } from "@core/db/schema";
+import { messages, message_receipts } from "@core/db/schema";
 
 export const insertMessage = (
   message: NewMessage,
@@ -75,6 +75,60 @@ export const selectMessagesByConversationId = (
     .where(eq(messages.conversation_id, conversation_id))
     .orderBy(desc(messages.created_at))
     .limit(50);
+};
+
+
+export const selectMessagesAndReceiptsByConversation = async ({
+  conversation_id,
+  user_id,
+  tx = db,
+}: {
+  conversation_id: number;
+  user_id: number;
+  tx: BunSQLDatabase | PgTransaction<any, any, any>;
+}) => {
+  const result = await tx
+    .select({
+      message: messages,
+      receipt: message_receipts,
+    })
+    .from(messages)
+    .where(eq(messages.conversation_id, conversation_id))
+    .leftJoin(
+      message_receipts,
+      and(
+        eq(messages.message_id, message_receipts.message_id),
+        // Get receipt for the OTHER person (not the viewer)
+        ne(message_receipts.user_id, user_id)
+      )
+    )
+    .orderBy(desc(messages.created_at));
+  return result;
+};
+
+export const selectMessagesAndReceiptsByConversationForGroup = async ({
+  conversation_id,
+  user_id,
+  tx = db,
+}: {
+  conversation_id: number;
+  user_id: number;
+  tx: BunSQLDatabase | PgTransaction<any, any, any>;
+}) => {
+  const result = await tx
+    .select({
+      message: messages,
+      receipt: message_receipts,
+    })
+    .from(messages)
+    .where(eq(messages.conversation_id, conversation_id))
+    .leftJoin(
+      message_receipts,
+      eq(messages.message_id, message_receipts.message_id)
+      // No user_id filter - get ALL receipts
+    )
+    .orderBy(desc(messages.created_at));
+  return result;
 };
 
 // Select all messages of a sender

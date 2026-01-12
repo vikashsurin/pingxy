@@ -24,8 +24,10 @@
         chatStore.clearNotification(conversation.conversation_id!);
         chatStore.activeConversation = conversation;
 
+        await chatStore.markAllAsRead(conversation.user.id);
         // Load messages for current conversation
         // await chatStore.loadMessages();
+        chatStore.loadMessages();
 
         const user_id = chatStore.currentUser?.id;
 
@@ -42,10 +44,7 @@
             };
             socket.send(JSON.stringify(messagePayload));
         }
-
-        // Load messages for current conversation
     };
-    $inspect({ notifications: chatStore.notifications });
 </script>
 
 <div class="flex-1 flex flex-col overflow-hidden">
@@ -82,7 +81,7 @@
                 id={conversation.user.id.toString()}
                 onmouseenter={async () => {
                     // TODO optimize it
-                    await chatStore.loadMessages({
+                    await chatStore.preloadMessages({
                         conversation_id: conversation.conversation_id,
                     });
                 }}

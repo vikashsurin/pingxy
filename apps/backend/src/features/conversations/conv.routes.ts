@@ -1,7 +1,7 @@
 import { factory } from "@core/db/drizzle-factory";
 import { authMiddleware } from "@core/middlewares/auth";
 import { getConversationsByUser } from "./conv.service";
-import { getMessagesByConversation } from "../messages";
+import { getMessagesAndReceiptsByConversation, getMessagesByConversation } from "../messages";
 
 const app = factory.createApp();
 
@@ -17,13 +17,14 @@ app.get("/", async (c) => {
   return c.json({ conversations: conversations })
 })
 
-// GET all the messages from a conversation
+// GET all the messages and receipts from a conversation
 app.get("/:conversation_id/:user_id/messages", async (c) => {
   const conversation_id = Number(c.req.param("conversation_id"));
   const user_id = Number(c.req.param("user_id"));
 
-  const messages = await getMessagesByConversation({ conversation_id, user_id });
-  return c.json({ messages: messages })
+  const result = await getMessagesAndReceiptsByConversation({ conversation_id, user_id });
+
+  return c.json({ result })
 })
 
 export const conversationRouter = app;

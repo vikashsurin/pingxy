@@ -58,4 +58,7 @@ describe("Message Receipts Table Schema", () => {
     const result = await queries.insertBulkMessageReceipts(newMessageReceipts);
     expect(result).toHaveLength(2);
   });
+
+
+
 });

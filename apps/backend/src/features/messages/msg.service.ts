@@ -3,6 +3,7 @@ import * as queries from './internal/msg.queries';
 import { findOrCreateConversationByUsers } from '../conversations';
 import { createParticipants, isParticipant } from '../conversations/participants';
 import { createMessageReceipt } from './receipts';
+import db from '@core/db/client';
 
 
 export const createMessage = async ({ recipient_id, message }:
@@ -36,15 +37,18 @@ export const createMessage = async ({ recipient_id, message }:
     })
 
     // Create message receipts
-    const messageReceipt = await createMessageReceipt({
+    const [messageReceipt] = await createMessageReceipt({
+      conversation_id: conversation.conversation_id,
       message_id: insertedMessage.message_id!,
       user_id: recipient_id,
       status: 'sent'
     })
 
-
     return {
-      message: insertedMessage,
+      msgData: {
+        message: insertedMessage,
+        receipt: messageReceipt
+      },
       conversation_id: conversation.conversation_id,
       sender: participant.sender,
       recipient: participant.recipient
@@ -65,6 +69,7 @@ export const getMessageById = async (message_id: number) => {
     throw new Error("Error getting message by id");
   }
 }
+
 export const getMessagesByConversation = async (
   {
     conversation_id,
@@ -85,7 +90,33 @@ export const getMessagesByConversation = async (
   }
 }
 
+export const getMessagesAndReceiptsByConversation = async (
+  {
+    conversation_id,
+    user_id
+  }: {
+    conversation_id: number,
+    user_id: number
+  }) => {
+  try {
+    const [participant] = await isParticipant({ conversation_id, user_id })
+    if (!participant) throw new Error("Not a participant")
 
+    const result = await queries.selectMessagesAndReceiptsByConversation({
+      conversation_id,
+      user_id,
+      tx: db
+    });
+    // const messages = result.messages;
+    // const receipts = result.receipts;
+    // return { messages, receipts };
+    return result;
+  }
+  catch (error) {
+    console.error("Error getting messages and receipts by conversation id:", error);
+    throw new Error("Error getting messages and receipts by conversation id");
+  }
+}
 
 export const getMessagesBySenderId = async (sender_id: number) => {
   try {

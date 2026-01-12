@@ -2,18 +2,18 @@ import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/bun-sql';
 import { SQL } from 'bun';
 
-// if (!process.env.DATABASE_URL) {
-//   throw new Error('DATABASE_URL is not set');
-// }
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set');
+}
 
 // 1. Create a global variable to store the connection
 const globalForDb = globalThis as unknown as {
   conn: SQL | undefined;
 };
-const url = 'postgresql://vikashsurin@localhost:5432/chat_db'
+// const url = 'postgresql://vikashsurin@localhost:5432/chat_db'
 // 2. Reuse existing connection if it exists, otherwise create a new one
 // Bun.SQL handles the connection pooling internally
-const client = globalForDb.conn ?? new SQL(url);
+const client = globalForDb.conn ?? new SQL(process.env.DATABASE_URL);
 
 // 3. In development, save the connection to the global object
 if (process.env.NODE_ENV !== 'production') globalForDb.conn = client;

@@ -8,6 +8,7 @@ const app = factory.createApp();
 
 app.use(authMiddleware);
 
+//Create New Message
 app.post("/", authMiddleware, async (c) => {
   const body = await c.req.json();
 
@@ -15,25 +16,28 @@ app.post("/", authMiddleware, async (c) => {
 
   const result = await services.createMessage({
     recipient_id: data.recipient?.id!,
-    message: data.message!,
+    message: data.msgData?.message!,
   });
-  // console.log({ result });
+
+
+
   // Broadcast message
   publish(
     `${result.conversation_id}`,
     JSON.stringify({
       type: "message",
       recipient: data.recipient!,
-      message: result.message!,
+      msgData: result.msgData!,
     })
   );
+
 
   // Notify of new Message
   const notificationPayload: MessagePayload = {
     id: data.id!,
     type: "notification",
     recipient: data.recipient!,
-    message: result.message!,
+    msgData: result.msgData!,
   };
   publish(
     `inbox:${result.recipient.user_id}`,

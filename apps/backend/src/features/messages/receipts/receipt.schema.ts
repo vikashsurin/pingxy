@@ -1,7 +1,6 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
-import { messages, users } from "@core/db/schema";
-// import { users } from "../users/user.schema";
+import { messages, users, conversations } from "@core/db/schema";
 
 export const messageReceiptStatusEnum = pgEnum("status", [
   "sent",
@@ -13,6 +12,7 @@ export const message_receipts = table(
   "message_receipts",
   {
     receipt_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversation_id: t.integer().notNull(),
     message_id: t.integer().notNull(),
     user_id: t.integer().notNull(),
     status: messageReceiptStatusEnum("status").notNull(),
@@ -42,6 +42,12 @@ export const message_receipts = table(
       })
       .onDelete("cascade"),
 
+    t.foreignKey({
+      name: "conversation_fk",
+      columns: [table.conversation_id],
+      foreignColumns: [conversations.conversation_id],
+    }),
+
     t
       .uniqueIndex("message_receipts_message_id_user_id_idx")
       .on(table.message_id, table.user_id),
@@ -51,5 +57,7 @@ export const message_receipts = table(
       .index("message_receipts_user_id_status_idx")
       .on(table.user_id, table.status),
     t.index("message_receipts_read_at_idx").on(table.read_at),
+    t.index('message_receipts_conversation_id_idx').on(table.conversation_id),
+    t.index('message_receipts_conversation_id_user_id_read_at_idx').on(table.conversation_id, table.user_id, table.read_at),
   ]
 );
