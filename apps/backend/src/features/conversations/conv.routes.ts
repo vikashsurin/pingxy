@@ -18,13 +18,26 @@ app.get("/", async (c) => {
 })
 
 // GET all the messages and receipts from a conversation
-app.get("/:conversation_id/:user_id/messages", async (c) => {
+app.get("/:conversation_id/messages/:user_id", async (c) => {
   const conversation_id = Number(c.req.param("conversation_id"));
   const user_id = Number(c.req.param("user_id"));
+  const before = Number(c.req.query('before'));
+  const after = Number(c.req.query('after'));
+  const limit = Number(c.req.query('limit')) || 20;
 
-  const result = await getMessagesAndReceiptsByConversation({ conversation_id, user_id });
+  const result = await getMessagesAndReceiptsByConversation({
+    conversation_id,
+    user_id,
+    before,
+    after,
+    limit
+  });
 
-  return c.json({ result })
+  return c.json({
+    result: result,
+    hasMore: result.length === limit
+  })
 })
+
 
 export const conversationRouter = app;
