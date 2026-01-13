@@ -3,9 +3,8 @@ import type {
   MessagePayload,
   PublicUser,
 } from "@chat/shared/src/lib/utils/validation";
-import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import { type Conversation, type MessageReceipt } from "@chat/shared/src/lib/utils/validation";
-import { getSocket } from "./socket.svelte";
+import { type MessageReceipt } from "@chat/shared/src/lib/utils/validation";
+import { SvelteSet } from "svelte/reactivity";
 
 
 
@@ -36,28 +35,30 @@ class ChatStore {
     isUser: false,
     data: {},
   });
+
   activeConversation = $state<{
     conversation_id: number;
     user: PublicUser;
   }>();
 
-  activeConversationId = $state<number | null>(null);
 
   conversations = $state<PrivateConversation[]>([]);
-
-  // notifications = new SvelteMap<number, boolean>();
   notifications = new SvelteSet<number>();
 
-  // messages = new SvelteMap<number, Message[]>();
-
-  conversationsList = $state<Conversation[]>([]);
-
-  receipts = new SvelteMap<number, MessageReceipt>();
-
-  // messages = new SvelteMap<number, SvelteMap<number, ChatEntry>>();
+  // TODO : CACHE MESSAGES IN BACKEND instead of local storage, when scrolling
+  rawMessages = $state<ChatEntry[]>([])
   messages = $state<Record<string, Record<number, ChatEntry>>>({});
 
-  preloadedMessages = $state<ChatEntry[]>([])
+  // TODO : CACHED MESSAGES Array
+  flatMessages = $derived.by(() => {
+    const flatArray: ChatEntry[] = []
+    for (const convId in this.messages) {
+      for (const msgId in this.messages[convId]) {
+        flatArray.push(this.messages[convId][msgId])
+      }
+    }
+    return flatArray
+  });
 
 
   async sendMessage({ messageText }: { messageText: string }) {
@@ -106,11 +107,10 @@ class ChatStore {
   }
 
   async preloadMessages({ conversation_id }: { conversation_id: number }) {
-    // const conversation_id = this.activeConversation?.conversation_id!;
 
     const user_id = this.currentUser?.id!;
     const response = await fetch(
-      `http://localhost:3000/api/conversations/${conversation_id}/${user_id}/messages`,
+      `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?limit=30`,
       {
         method: "GET",
         headers: {
@@ -121,46 +121,16 @@ class ChatStore {
     );
     const data = await response.json();
 
-    this.preloadedMessages = data.result.reverse()
 
+    this.rawMessages = data.result
+    this.buildNestedMap(this.rawMessages)
 
-    // this.buildNestedMap(reactiveMessages)
   }
 
   async loadMessages() {
-    // const conversation_id = this.activeConversation?.conversation_id!;
-
-    // const user_id = this.currentUser?.id!;
-    // const response = await fetch(
-    //   `http://localhost:3000/api/conversations/${conversation_id}/${user_id}/messages`,
-    //   {
-    //     method: "GET",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     credentials: "include",
-    //   },
-    // );
-    // const data = await response.json();
-
-    // const reactiveMessages = $state(data.result.reverse());
-
-    console.log({ pd: this.preloadedMessages })
-
-    this.buildNestedMap(this.preloadedMessages)
+    this.buildNestedMap(this.rawMessages)
   }
 
-  // addChatEntry(convId: number, newEntry: ChatEntry) {
-
-  //   let convMap = this.messages.get(convId);
-  //   if (!convMap) {
-  //     convMap = new SvelteMap<number, ChatEntry>();
-  //     this.messages.set(convId, convMap);
-  //   }
-
-  //   const msgId = newEntry.message.message_id;
-  //   convMap.set(msgId, newEntry);
-  // }
 
   buildNestedMap(messagesArray: ChatEntry[]) {
     const newMessages: Record<string, Record<number, ChatEntry>> = {};
@@ -178,65 +148,8 @@ class ChatStore {
     this.messages = newMessages;
   }
 
-  // buildNestedMap(messagesArray: ChatEntry[]) {
-  //   for (const entry of messagesArray) {
-
-  //     const reactiveEntry = $state(entry)
-
-  //     const convId = reactiveEntry.message.conversation_id;
-  //     const msgId = reactiveEntry.message.message_id;
-
-  //     let convMap = this.messages.get(convId);
-  //     if (!convMap) {
-  //       convMap = new SvelteMap<number, ChatEntry>();
-  //       this.messages.set(convId, convMap);
-  //     }
-
-  //     convMap.set(msgId, reactiveEntry);
-  //   }
-
-  //   this.messages = this.messages
-  // }
-
-
   async clearNotification(conversation_id: number) {
     this.notifications.delete(conversation_id);
-  }
-
-
-  async markAllAsRead(recipient_id: number) {
-    const socket = getSocket()
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const msgPayload: MessagePayload = {
-        type: "mark_all_as_read",
-        id: crypto.randomUUID(),
-        recipient: {
-          id: recipient_id,
-        },
-        data: {
-          conversation_id:
-            chatStore.activeConversation?.conversation_id!,
-          user_id: chatStore.currentUser?.id!,
-        },
-      };
-      socket.send(JSON.stringify(msgPayload));
-    }
-  }
-
-
-  async markAsRead(message_id: number) {
-    const socket = getSocket()
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const msgPayload: MessagePayload = {
-        type: "mark_as_read",
-        id: crypto.randomUUID(),
-        data: {
-          message_id,
-          user_id: chatStore.currentUser?.id!,
-        },
-      };
-      socket.send(JSON.stringify(msgPayload));
-    }
   }
 
   reset() {

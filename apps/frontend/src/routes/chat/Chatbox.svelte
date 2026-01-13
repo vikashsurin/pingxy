@@ -1,25 +1,15 @@
 <script lang="ts">
     import { chatStore } from "$lib/store.svelte";
-    import {
-        type Message,
-        type MessagePayload,
-    } from "@chat/shared/src/lib/utils/validation";
     import ChatboxHeader from "./ChatboxHeader.svelte";
     import ChatInput from "./ChatInput.svelte";
     import { onMount, tick } from "svelte";
     import { Check, CheckCheck } from "@lucide/svelte";
-    import { getSocket } from "$lib/socket.svelte";
 
     const messages = $derived(
-        // chatStore.messages.get(chatStore?.activeConversation?.conversation_id!),
         chatStore.messages[chatStore.activeConversation?.conversation_id!],
     );
-    $inspect({ messages: chatStore.messages });
 
-    onMount(() => {
-        console.log("mounted");
-    });
-    let chatbox: HTMLUListElement;
+    let chatbox: HTMLUListElement | undefined = $state();
 
     function scrollToBottom() {
         if (chatbox) {
@@ -47,10 +37,6 @@
         {#each Object.entries(messages ?? {}) as [key, entry]}
             {@render messageItem(entry)}
         {/each}
-
-        <!-- {#each Array.from(messages?.entries() ?? []) as [key, entry] (key)}
-            {@render messageItem(entry)}
-        {/each} -->
     </ul>
     <ChatInput />
 </div>

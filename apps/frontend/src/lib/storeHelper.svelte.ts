@@ -10,7 +10,6 @@ export async function markAsDelivered({
   }) {
   const socket = getSocket()
   if (socket && socket.readyState === WebSocket.OPEN) {
-    console.log('function running')
     const msgPayload: MessagePayload = {
       type: "mark_as_delivered",
       id: crypto.randomUUID(),
@@ -35,7 +34,6 @@ export async function markAsRead({
   }) {
   const socket = getSocket()
   if (socket && socket.readyState === WebSocket.OPEN) {
-    console.log('function running')
     const msgPayload: MessagePayload = {
       type: "mark_as_read",
       id: crypto.randomUUID(),
@@ -46,6 +44,26 @@ export async function markAsRead({
         conversation_id: message.conversation_id,
         message_id: message.message_id,
         user_id: user_id,
+      },
+    };
+    socket.send(JSON.stringify(msgPayload));
+  }
+}
+
+
+export async function markAllAsRead(recipient_id: number) {
+  const socket = getSocket()
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    const msgPayload: MessagePayload = {
+      type: "mark_all_as_read",
+      id: crypto.randomUUID(),
+      recipient: {
+        id: recipient_id,
+      },
+      data: {
+        conversation_id:
+          chatStore.activeConversation?.conversation_id!,
+        user_id: chatStore.currentUser?.id!,
       },
     };
     socket.send(JSON.stringify(msgPayload));

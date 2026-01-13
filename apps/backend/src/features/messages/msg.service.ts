@@ -177,6 +177,5 @@ export const removeMessage = async (message_id: number) => {
 //     limit,
 //     tx: db
 //   });
-//   console.log({ result });
 //   return result;
 // }

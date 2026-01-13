@@ -46,10 +46,22 @@ describe("Messages Table Schema", () => {
   // });
 
 
-  test("should select messages and receipts by conversation id", async () => {
+  // test("should select messages and receipts by conversation id", async () => {
+  //   const result = await queries.selectMessagesAndReceiptsByConversation({
+  //     conversation_id: 3,
+  //     user_id: 1,
+  //     tx: db
+  //   });
+  //   expect(result).toBeDefined();
+  // });
+
+  test("should select limited messages by conversation id", async () => {
     const result = await queries.selectMessagesAndReceiptsByConversation({
       conversation_id: 3,
       user_id: 1,
+      before: null,
+      after: null,
+      limit: 10,
       tx: db
     });
     console.log({ ...result })

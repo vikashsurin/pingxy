@@ -47,7 +47,6 @@ const messageHandler: Record<string, (data: any) => void> = {
   message: (messagePayload: MessagePayload) => {
     const msgData = messagePayload.msgData as ChatEntry
     const conversation_id = msgData.message.conversation_id
-    // console.log({ messagePayload })
     // chatStore.addChatEntry(msgData.message.conversation_id, msgData)
     //
 

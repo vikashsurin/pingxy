@@ -70,7 +70,6 @@ export const actions = {
     };
 
     // const validateUser = user
-    // console.log({validateUser: validateUser.})
     // if (!validateUser.success) {
     //   return fail(400, { username, invalid:"Invalid user data" });
     // }

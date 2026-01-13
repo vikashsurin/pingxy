@@ -42,7 +42,6 @@ export const markAllAsRead = async (messagePayload: MessagePayload) => {
       }
     }
     publish(`inbox:${ack_user_id}`, JSON.stringify(read))
-    console.log({ messageReceipts })
 
     return messageReceipts;
   }
@@ -62,7 +61,6 @@ export const markAsDelivered = async (messagePayload: MessagePayload) => {
     user_id
   });
 
-  console.log({ messageReceipt })
   const delivered: MessagePayload = {
     type: 'receipt_update',
     id: messagePayload.id,
@@ -81,14 +79,12 @@ export const markAsRead = async (messagePayload: MessagePayload) => {
   const user_id = messagePayload.data?.user_id!;
   const ack_user_id = messagePayload.recipient?.id!
 
-  console.log("marking as read::", message_id, user_id)
 
   const messageReceipt = await queries.updateMessageReceiptToRead({
     message_id,
     user_id
   });
 
-  console.log({ messageReceipt })
   const read: MessagePayload = {
     type: 'receipt_update',
     id: messagePayload.id,

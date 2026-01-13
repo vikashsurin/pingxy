@@ -38,7 +38,6 @@ describe("Message Receipts Table Schema", () => {
 
   test("should select unread messages for a user", async () => {
     const result = await queries.selectUnreadMessagesForUser(2);
-    console.log({ result });
     expect(result).toBeArray();
   });
 

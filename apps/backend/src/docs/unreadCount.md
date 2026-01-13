@@ -222,7 +222,7 @@ ws.on('message', (event) => {
 // CLIENT: User opens conversation
 // ============================================
 function openConversation(conversationId) {
-  activeConversationId = conversationId;
+  // activeConversationId = conversationId;
   
   // Get unread message IDs
   const msgs = messages.get(conversationId) || [];

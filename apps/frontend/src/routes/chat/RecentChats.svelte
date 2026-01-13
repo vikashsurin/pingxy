@@ -4,6 +4,7 @@
     import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
+    import { markAllAsRead } from "$lib/storeHelper.svelte";
 
     onMount(async () => {
         const response = await fetch(
@@ -24,7 +25,7 @@
         chatStore.clearNotification(conversation.conversation_id!);
         chatStore.activeConversation = conversation;
 
-        await chatStore.markAllAsRead(conversation.user.id);
+        await markAllAsRead(conversation.user.id);
         // Load messages for current conversation
         // await chatStore.loadMessages();
         chatStore.loadMessages();

@@ -25,6 +25,8 @@ app.get("/:conversation_id/messages/:user_id", async (c) => {
   const after = Number(c.req.query('after'));
   const limit = Number(c.req.query('limit')) || 20;
 
+  console.log({ conversation_id, user_id, before, after, limit })
+
   const result = await getMessagesAndReceiptsByConversation({
     conversation_id,
     user_id,
