@@ -93,10 +93,16 @@ export const getMessagesByConversation = async (
 export const getMessagesAndReceiptsByConversation = async (
   {
     conversation_id,
-    user_id
+    user_id,
+    before,
+    after,
+    limit
   }: {
     conversation_id: number,
-    user_id: number
+    user_id: number,
+    before: number | null,
+    after: number | null,
+    limit: number
   }) => {
   try {
     const [participant] = await isParticipant({ conversation_id, user_id })
@@ -105,6 +111,9 @@ export const getMessagesAndReceiptsByConversation = async (
     const result = await queries.selectMessagesAndReceiptsByConversation({
       conversation_id,
       user_id,
+      before,
+      after,
+      limit,
       tx: db
     });
     // const messages = result.messages;
@@ -147,3 +156,27 @@ export const removeMessage = async (message_id: number) => {
     throw new Error("Error deleting message");
   }
 }
+
+// export const getLimitMessagesByConvId = async ({
+//   conversation_id,
+//   user_id,
+//   before,
+//   after,
+//   limit }: {
+//     conversation_id: number,
+//     user_id: number,
+//     before: number | null,
+//     after: number | null,
+//     limit: number
+//   }) => {
+//   const result = await queries.selectLimitedMessagesByConversation({
+//     conversation_id,
+//     user_id,
+//     before,
+//     after,
+//     limit,
+//     tx: db
+//   });
+//   console.log({ result });
+//   return result;
+// }
