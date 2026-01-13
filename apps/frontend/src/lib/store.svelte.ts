@@ -106,7 +106,7 @@ class ChatStore {
     return data;
   }
 
-  async preloadMessages({ conversation_id }: { conversation_id: number }) {
+  async initialMessages({ conversation_id }: { conversation_id: number }) {
 
     const user_id = this.currentUser?.id!;
     const response = await fetch(
@@ -127,9 +127,9 @@ class ChatStore {
 
   }
 
-  async loadMessages() {
-    this.buildNestedMap(this.rawMessages)
-  }
+  // async loadMessages() {
+  //   this.buildNestedMap(this.rawMessages)
+  // }
 
 
   buildNestedMap(messagesArray: ChatEntry[]) {

@@ -28,7 +28,9 @@
         await markAllAsRead(conversation.user.id);
         // Load messages for current conversation
         // await chatStore.loadMessages();
-        chatStore.loadMessages();
+        await chatStore.initialMessages({
+            conversation_id: conversation.conversation_id,
+        });
 
         const user_id = chatStore.currentUser?.id;
 
@@ -82,9 +84,9 @@
                 id={conversation.user.id.toString()}
                 onmouseenter={async () => {
                     // TODO optimize it
-                    await chatStore.preloadMessages({
-                        conversation_id: conversation.conversation_id,
-                    });
+                    // await chatStore.preloadMessages({
+                    //     conversation_id: conversation.conversation_id,
+                    // });
                 }}
                 onclick={async () => {
                     handleClick(conversation);
