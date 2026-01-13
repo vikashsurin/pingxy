@@ -1,5 +1,5 @@
 import { NewMessage } from "@chat/shared/src/lib/utils/validation";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, lt, gt, gte, asc } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { type PgTransaction } from "drizzle-orm/pg-core";
 import db from "@core/db/client";
@@ -78,33 +78,35 @@ export const selectMessagesByConversationId = (
 };
 
 
-export const selectMessagesAndReceiptsByConversation = async ({
-  conversation_id,
-  user_id,
-  tx = db,
-}: {
-  conversation_id: number;
-  user_id: number;
-  tx: BunSQLDatabase | PgTransaction<any, any, any>;
-}) => {
-  const result = await tx
-    .select({
-      message: messages,
-      receipt: message_receipts,
-    })
-    .from(messages)
-    .where(eq(messages.conversation_id, conversation_id))
-    .leftJoin(
-      message_receipts,
-      and(
-        eq(messages.message_id, message_receipts.message_id),
-        // Get receipt for the OTHER person (not the viewer)
-        ne(message_receipts.user_id, user_id)
-      )
-    )
-    .orderBy(desc(messages.created_at));
-  return result;
-};
+// export const selectMessagesAndReceiptsByConversation = async ({
+//   conversation_id,
+//   user_id,
+//   limit,
+//   tx = db,
+// }: {
+//   conversation_id: number;
+//   user_id: number;
+//   limit: number;
+//   tx: BunSQLDatabase | PgTransaction<any, any, any>;
+// }) => {
+//   const result = await tx
+//     .select({
+//       message: messages,
+//       receipt: message_receipts,
+//     })
+//     .from(messages)
+//     .where(eq(messages.conversation_id, conversation_id))
+//     .leftJoin(
+//       message_receipts,
+//       and(
+//         eq(messages.message_id, message_receipts.message_id),
+//         ne(message_receipts.user_id, user_id)
+//       )
+//     )
+//     .limit(limit)
+//     .orderBy(desc(messages.created_at));
+//   return result;
+// };
 
 export const selectMessagesAndReceiptsByConversationForGroup = async ({
   conversation_id,
@@ -145,4 +147,61 @@ export const selectMessagesBySenderId = (sender_id: number) => {
     })
     .from(messages)
     .where(eq(messages.sender_id, sender_id));
+};
+
+export const selectMessagesAndReceiptsByConversation = async ({
+  conversation_id,
+  user_id,
+  before,
+  after,
+  limit,
+  tx = db,
+}: {
+  conversation_id: number;
+  user_id: number;
+  before: number | null;
+  after: number | null;
+  limit: number;
+  tx: BunSQLDatabase | PgTransaction<any, any, any>;
+}) => {
+  // Base condition: always filter by conversation
+  const baseCondition = eq(messages.conversation_id, conversation_id);
+
+  // Build query based on pagination direction
+  let query = tx
+    .select({ message: messages, receipt: message_receipts })
+    .from(messages)
+    .leftJoin(
+      message_receipts,
+      and(
+        eq(messages.message_id, message_receipts.message_id),
+        ne(message_receipts.user_id, user_id)
+      )
+    );
+
+  if (before) {
+    // Get messages OLDER than 'before'
+    const result = await query
+      .where(and(baseCondition, lt(messages.message_id, before)))
+      .orderBy(desc(messages.message_id))
+      .limit(limit);
+
+    return result.reverse(); // Reverse to chronological order
+
+  } else if (after) {
+    // Get messages NEWER than 'after'
+    return await query
+      .where(and(baseCondition, gt(messages.message_id, after)))
+      .orderBy(asc(messages.message_id))
+      .limit(limit);
+
+  } else {
+    // Initial load: get latest messages
+    const result = await query
+      .where(baseCondition)
+      .orderBy(desc(messages.message_id))
+      .limit(limit);
+
+    return result.reverse(); // Reverse to chronological order
+  }
 };
