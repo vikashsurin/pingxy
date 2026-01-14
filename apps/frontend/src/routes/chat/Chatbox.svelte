@@ -4,17 +4,19 @@
     import ChatInput from "./ChatInput.svelte";
     import { onMount, tick } from "svelte";
     import { Check, CheckCheck } from "@lucide/svelte";
-
+    import { Loader } from "@lucide/svelte";
     import type { ChatEntry } from "$lib/store.svelte";
 
     // --- Derived State ---
     const conversation_id = $derived(
-        chatStore.activeConversation?.conversation_id!,
+        chatStore.activeConversation?.conversation_id ?? null,
     );
-    const user_id = $derived(chatStore.currentUser?.id!);
+    const user_id = $derived(chatStore.currentUser?.id ?? null);
 
     // Get messages for current conversation ONLY
-    const messagesMap = $derived(chatStore.messages[conversation_id] || {});
+    const messagesMap = $derived(
+        conversation_id ? chatStore.messages[conversation_id] || {} : {},
+    );
 
     const sortedMessages = $derived(
         Object.values(messagesMap).sort((a, b) => {
@@ -25,7 +27,7 @@
     );
 
     // --- State ---
-    let chatbox = $state<HTMLUListElement>();
+    let chatbox = $state<HTMLDivElement>();
     let scrollTop = $state(0);
     let containerHeight = $state(600);
 
@@ -43,6 +45,7 @@
     let previousMessageCount = $state(0);
     let shouldRestoreScroll = $state(false);
     let scrollRestoreHeight = $state(0);
+    let scrollRestoreTop = $state(0);
 
     // Store for actual measured heights
     let measuredHeights = $state<Map<number, number>>(new Map());
@@ -149,7 +152,12 @@
     }
 
     // Setup IntersectionObserver to measure visible items
-    onMount(() => {
+    $effect(() => {
+        if (!chatbox) return;
+
+        // Recreate observer when chatbox changes
+        observer?.disconnect();
+
         observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -171,6 +179,10 @@
             },
         );
 
+        for (const [messageId, element] of messageElements) {
+            observer.observe(element);
+        }
+
         return () => {
             observer?.disconnect();
         };
@@ -182,10 +194,21 @@
 
         messageElements.set(messageId, element);
         element.dataset.messageId = messageId.toString();
-        observer?.observe(element);
+        if (observer) {
+            observer.observe(element);
+        }
 
         // Measure immediately
         measureElement(element, messageId);
+
+        return {
+            destroy() {
+                if (observer) {
+                    observer.unobserve(element);
+                }
+                messageElements.delete(messageId);
+            },
+        };
     }
 
     // --- Logic ---
@@ -196,6 +219,30 @@
             oldestLoadedId = sortedMessages[0].message.message_id;
             newestLoadedId =
                 sortedMessages[sortedMessages.length - 1].message.message_id;
+        }
+    });
+
+    // Reset pagination and scroll state when conversation changes
+    $effect(() => {
+        const id = conversation_id;
+
+        if (!id) {
+            return;
+        }
+
+        isLoadingOlder = false;
+        isLoadingNewer = false;
+        hasMoreOlder = true;
+        hasMoreNewer = false;
+        measuredHeights = new Map();
+        scrollTop = 0;
+        previousMessageCount = 0;
+        shouldRestoreScroll = false;
+        scrollRestoreHeight = 0;
+        scrollRestoreTop = 0;
+
+        if (chatbox) {
+            chatbox.scrollTop = chatbox.scrollHeight;
         }
     });
 
@@ -248,7 +295,7 @@
             const heightDifference = newTotalHeight - scrollRestoreHeight;
 
             if (heightDifference > 0) {
-                chatbox.scrollTop = scrollTop + heightDifference;
+                chatbox.scrollTop = scrollRestoreTop + heightDifference;
             }
 
             shouldRestoreScroll = false;
@@ -258,7 +305,7 @@
     let scrollTimeout: number | null = null;
 
     async function handleScroll(e: Event) {
-        const target = e.target as HTMLUListElement;
+        const target = e.target as HTMLDivElement;
         scrollTop = target.scrollTop;
 
         // Debounce pagination triggers
@@ -282,13 +329,21 @@
     }
 
     async function loadOlderMessages() {
-        if (isLoadingOlder || !hasMoreOlder || !oldestLoadedId || !chatbox)
+        if (
+            isLoadingOlder ||
+            !hasMoreOlder ||
+            !oldestLoadedId ||
+            !chatbox ||
+            !conversation_id ||
+            !user_id
+        )
             return;
 
         isLoadingOlder = true;
 
         // Capture scroll state BEFORE fetch
         scrollRestoreHeight = chatbox.scrollHeight;
+        scrollRestoreTop = chatbox.scrollTop;
 
         try {
             const response = await fetch(
@@ -337,7 +392,14 @@
     }
 
     async function loadNewerMessages() {
-        if (isLoadingNewer || !hasMoreNewer || !newestLoadedId) return;
+        if (
+            isLoadingNewer ||
+            !hasMoreNewer ||
+            !newestLoadedId ||
+            !conversation_id ||
+            !user_id
+        )
+            return;
 
         isLoadingNewer = true;
 
@@ -391,7 +453,7 @@
         class="relative flex-1 overflow-hidden"
         bind:clientHeight={containerHeight}
     >
-        <ul
+        <div
             bind:this={chatbox}
             class="h-full overflow-y-auto w-full p-2"
             onscroll={handleScroll}
@@ -400,15 +462,28 @@
                 style="height: {totalHeight}px; position: relative; width: 100%;"
             >
                 {#if isLoadingOlder}
-                    <div
-                        class="absolute top-0 w-full text-center py-2 text-xs text-amber-500 z-10 bg-gray-600"
-                    >
-                        Loading older messages...
+                    <div class="w-full flex justify-center items-center">
+                        <span
+                            class="flex gap-1 items-center text-xs bg-gray-100 text-gray-400 py-1 px-2 rounded"
+                        >
+                            <Loader size={12} class="animate-spin" />
+                            Loading older messages...
+                        </span>
+                    </div>
+                {/if}
+
+                {#if !hasMoreOlder}
+                    <div class="w-full flex justify-center items-center">
+                        <span
+                            class="text-xs bg-gray-100 text-gray-400 py-1 px-2 rounded"
+                        >
+                            Beginning of the conversation
+                        </span>
                     </div>
                 {/if}
 
                 <div
-                    style="position: absolute; top: 0; left: 0; right: 0; transform: translateY({offsetY}px); will-change: transform;"
+                    style="position:relative; top: 0; left: 0; right: 0; transform: translateY({offsetY}px); will-change: transform;"
                 >
                     {#each visibleMessages as entry (entry.message.message_id)}
                         {@render messageItem(entry)}
@@ -423,7 +498,7 @@
                     </div>
                 {/if}
             </div>
-        </ul>
+        </div>
     </div>
 
     <ChatInput />
@@ -431,10 +506,11 @@
 
 {#snippet messageItem(item: ChatEntry)}
     {#if item.message.sender_id !== chatStore.currentUser?.id}
-        <li
+        <div
             use:registerElement={item.message.message_id}
             class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg mb-2 list-none"
         >
+            <span class="font-bold text-xl">{item.message.message_id}</span>
             <span class="whitespace-pre-wrap">{item.message.content}</span>
             <span class="text-xs text-gray-600 mt-1">
                 {new Date(item.message.created_at).toLocaleString([], {
@@ -445,13 +521,13 @@
                     hour12: true,
                 })}
             </span>
-        </li>
+        </div>
     {:else}
-        <li
+        <div
             use:registerElement={item.message.message_id}
             class="flex flex-col bg-gray-500 text-white ml-auto p-2 px-3 rounded-lg mb-2 list-none w-max max-w-[70%]"
         >
-            <!-- <div class="text-xl font-bold">{item.message.message_id}</div> -->
+            <span class="font-bold text-xl">{item.message.message_id}</span>
 
             <span class="whitespace-pre-wrap">{item.message.content}</span>
             <span
@@ -472,6 +548,6 @@
                     <CheckCheck size={14} class="text-blue-200" />
                 {/if}
             </span>
-        </li>
+        </div>
     {/if}
 {/snippet}
