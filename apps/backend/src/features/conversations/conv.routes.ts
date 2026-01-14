@@ -36,7 +36,7 @@ app.get("/:conversation_id/messages/:user_id", async (c) => {
   });
 
   return c.json({
-    result: result,
+    chat: result,
     hasMore: result.length === limit
   })
 })

@@ -5,6 +5,7 @@ import type {
 } from "@chat/shared/src/lib/utils/validation";
 import { type MessageReceipt } from "@chat/shared/src/lib/utils/validation";
 import { SvelteSet } from "svelte/reactivity";
+import { da } from "zod/v4/locales";
 
 
 
@@ -46,7 +47,6 @@ class ChatStore {
   notifications = new SvelteSet<number>();
 
   // TODO : CACHE MESSAGES IN BACKEND instead of local storage, when scrolling
-  rawMessages = $state<ChatEntry[]>([])
   messages = $state<Record<string, Record<number, ChatEntry>>>({});
 
   // TODO : CACHED MESSAGES Array
@@ -122,14 +122,9 @@ class ChatStore {
     const data = await response.json();
 
 
-    this.rawMessages = data.result
-    this.buildNestedMap(this.rawMessages)
+    this.buildNestedMap(data.chat)
 
   }
-
-  // async loadMessages() {
-  //   this.buildNestedMap(this.rawMessages)
-  // }
 
 
   buildNestedMap(messagesArray: ChatEntry[]) {

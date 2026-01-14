@@ -94,39 +94,39 @@ export const receiptHandlers: Record<string, (receipt: MessageReceipt) => void> 
 };
 
 
-export async function loadMessageOnScroll({
-  conversation_id,
-  before,
-  after,
-  limit }: {
-    conversation_id: number,
-    before?: number,
-    after?: number,
-    limit?: number
-  }) {
-  const MAX_MESSAGES_IN_MEMORY = 100;
-  const user_id = chatStore.currentUser?.id!;
-  const response = await fetch(
-    `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${before}&after=${after}&limit=${limit}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    },
-  );
-  const data = await response.json();
+// export async function loadMessageOnScroll({
+//   conversation_id,
+//   before,
+//   after,
+//   limit }: {
+//     conversation_id: number,
+//     before?: number,
+//     after?: number,
+//     limit?: number
+//   }) {
+//   const MAX_MESSAGES_IN_MEMORY = 100;
+//   const user_id = chatStore.currentUser?.id!;
+//   const response = await fetch(
+//     `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${before}&after=${after}&limit=${limit}`,
+//     {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       credentials: "include",
+//     },
+//   );
+//   const data = await response.json();
 
-  const newRawMessages = [...data.result, ...chatStore.flatMessages]
-  chatStore.rawMessages = newRawMessages;
-  chatStore.buildNestedMap(chatStore.rawMessages)
+//   const newRawMessages = [...data.result, ...chatStore.flatMessages]
+//   chatStore.rawMessages = newRawMessages;
+//   chatStore.buildNestedMap(chatStore.rawMessages)
 
-  if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
-    const excess = newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
-    chatStore.rawMessages = newRawMessages.slice(0, -excess);
-    chatStore.buildNestedMap(chatStore.rawMessages);
-  }
+//   if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
+//     const excess = newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
+//     chatStore.rawMessages = newRawMessages.slice(0, -excess);
+//     chatStore.buildNestedMap(chatStore.rawMessages);
+//   }
 
-  return data.hasMore;
-}
+//   return data.hasMore;
+// }

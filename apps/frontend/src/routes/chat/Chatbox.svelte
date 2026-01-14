@@ -4,7 +4,6 @@
     import ChatInput from "./ChatInput.svelte";
     import { onMount, tick } from "svelte";
     import { Check, CheckCheck, Inspect } from "@lucide/svelte";
-    import { loadMessageOnScroll } from "$lib/storeHelper.svelte";
 
     const messages = $derived(
         chatStore.messages[chatStore.activeConversation?.conversation_id!],
@@ -24,8 +23,8 @@
     });
 
     let isAtBottom = $state(true);
-    $inspect({ chatt: chatStore.rawMessages });
-    $inspect({ messages });
+    // $inspect({ chatt: chatStore.rawMessages });
+    // $inspect({ messages });
 
     $effect(() => {
         if (messages && Object.entries(messages).length > 0 && isAtBottom) {
@@ -33,41 +32,119 @@
         }
     });
 
+    $effect(() => {
+        if (chatStore.flatMessages.length > 0) {
+            oldestLoadedId = chatStore.flatMessages[0].message.message_id;
+
+            newestLoadedId =
+                chatStore.flatMessages[chatStore.flatMessages.length - 1]
+                    .message.message_id;
+        }
+    });
+
+    const conversation_id = $derived(
+        chatStore.activeConversation?.conversation_id!,
+    );
+    const user_id = $derived(chatStore.currentUser?.id!);
+    const MAX_MESSAGES_IN_MEMORY = 100;
     let scrollTop = $state(0);
     let isLoadingOlder = $state(false);
     let isLoadingNewer = $state(false);
     let hasMoreOlder = $state(true);
+    let hasMoreNewer = $state(true);
     let oldestLoadedId = $state(0);
     let newestLoadedId = $state(0);
-    $effect(() => {
-        if (chatStore.flatMessages.length > 0) {
-            oldestLoadedId = chatStore.flatMessages[0].message.message_id;
-            newestLoadedId =
-                chatStore.flatMessages[chatStore.flatMessages.length - 1]
-                    ?.message.message_id;
-        }
-    });
-
-    $inspect({ oldestLoadedId, newestLoadedId });
 
     async function loadOlderMessages() {
-        const previousScrollHeight = chatbox?.scrollHeight || 0;
+        if (isLoadingOlder || !hasMoreOlder || !oldestLoadedId) return;
         isLoadingOlder = true;
-        const hasMore = await loadMessageOnScroll({
-            conversation_id: chatStore.activeConversation?.conversation_id!,
-            before: oldestLoadedId,
-            after: newestLoadedId,
-            limit: 20,
-        });
-        console.log({ hasMore });
-        hasMoreOlder = hasMore;
-        await tick();
-        if (chatbox) {
-            const newScrollHeight = chatbox.scrollHeight;
-            chatbox.scrollTop += newScrollHeight - previousScrollHeight;
-            console.log("Scroll position updated", newScrollHeight);
+
+        try {
+            const response = await fetch(
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${oldestLoadedId}&limit=${20}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                },
+            );
+
+            const data = await response.json();
+            if (data.chat.length > 0) {
+                const previousScrollHeight = chatbox?.scrollHeight || 0;
+
+                // Prepend older messages
+                let newRawMessages = [...data.chat, ...chatStore.flatMessages];
+                chatStore.buildNestedMap(newRawMessages);
+                hasMoreOlder = data.hasMore;
+
+                // Auto Unload
+                if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
+                    const excess =
+                        newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
+                    newRawMessages = newRawMessages.slice(0, -excess);
+                    chatStore.buildNestedMap(newRawMessages);
+                    hasMoreNewer = true;
+                    console.log({ newRawMessages });
+                }
+                await tick();
+                if (chatbox) {
+                    const newScrollHeight = chatbox.scrollHeight;
+                    chatbox.scrollTop +=
+                        newScrollHeight - previousScrollHeight + 200;
+                }
+            } else {
+                hasMoreOlder = false;
+            }
+        } finally {
+            isLoadingOlder = false;
         }
-        isLoadingOlder = false;
+    }
+
+    async function loadNewerMessages() {
+        if (isLoadingNewer || !hasMoreNewer || !newestLoadedId) return;
+
+        isLoadingNewer = true;
+
+        try {
+            const response = await fetch(
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?after=${newestLoadedId}&limit=${20}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                },
+            );
+
+            const data = await response.json();
+            // Append new messages to the existing messages array
+            if (data.chat.length > 0) {
+                let newRawMessages = [...chatStore.flatMessages, ...data.chat];
+                chatStore.buildNestedMap(newRawMessages);
+                newestLoadedId =
+                    data.chat[data.chat.length - 1].message.message_id;
+
+                hasMoreNewer = data.hasMore;
+
+                // Auto unloading if too many messages
+                if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
+                    const excess =
+                        newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
+                    newRawMessages = newRawMessages.slice(excess);
+                    chatStore.buildNestedMap(newRawMessages);
+                    console.log({ newRawMessages });
+                    hasMoreOlder = true;
+                }
+            } else {
+                hasMoreNewer = false;
+            }
+        } finally {
+            isLoadingNewer = false;
+        }
     }
 
     async function handleScroll(event: Event) {
@@ -79,13 +156,18 @@
                 target.scrollHeight - target.scrollTop - target.clientHeight,
             ) < 5;
 
-        if (scrollTop < 200 && hasMoreOlder && !isLoadingOlder) {
-            isLoadingOlder = true;
+        if (scrollTop < 200 && hasMoreOlder) {
+            console.log("Loading older messages...");
             await loadOlderMessages();
         }
-    }
 
-    $inspect({ hasMoreOlder });
+        // Load newer messages when scrolling near bottom
+        const scrollBottom =
+            target.scrollHeight - target.scrollTop - target.clientHeight;
+        if (scrollBottom < 200 && hasMoreNewer) {
+            loadNewerMessages();
+        }
+    }
 </script>
 
 <div class="border-4 flex flex-col h-full overflow-y-auto">
