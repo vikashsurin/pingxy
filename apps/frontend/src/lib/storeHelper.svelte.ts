@@ -2,131 +2,179 @@ import { type Message, type MessagePayload, type MessageReceipt } from "@chat/sh
 import { getSocket } from "./socket.svelte";
 import { chatStore } from "./store.svelte";
 
+/**
+ * Mark a message as delivered via WebSocket
+ */
 export async function markAsDelivered({
   message,
-  user_id }: {
-    message: Message,
-    user_id: number
-  }) {
-  const socket = getSocket()
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    const msgPayload: MessagePayload = {
-      type: "mark_as_delivered",
-      id: crypto.randomUUID(),
-      recipient: {
-        id: message.sender_id
-      },
-      data: {
-        conversation_id: message.conversation_id,
-        message_id: message.message_id,
-        user_id: user_id,
-      },
-    };
-    socket.send(JSON.stringify(msgPayload));
+  user_id
+}: {
+  message: Message;
+  user_id: number;
+}) {
+  const socket = getSocket();
+
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket not ready, cannot mark as delivered");
+    return;
   }
+
+  const msgPayload: MessagePayload = {
+    type: "mark_as_delivered",
+    id: crypto.randomUUID(),
+    recipient: {
+      id: message.sender_id,
+    },
+    data: {
+      conversation_id: message.conversation_id,
+      message_id: message.message_id,
+      user_id: user_id,
+    },
+  };
+
+  socket.send(JSON.stringify(msgPayload));
 }
 
+/**
+ * Mark a message as read via WebSocket
+ */
 export async function markAsRead({
   message,
-  user_id }: {
-    message: Message,
-    user_id: number
-  }) {
-  const socket = getSocket()
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    const msgPayload: MessagePayload = {
-      type: "mark_as_read",
-      id: crypto.randomUUID(),
-      recipient: {
-        id: message.sender_id
-      },
-      data: {
-        conversation_id: message.conversation_id,
-        message_id: message.message_id,
-        user_id: user_id,
-      },
-    };
-    socket.send(JSON.stringify(msgPayload));
+  user_id
+}: {
+  message: Message;
+  user_id: number;
+}) {
+  const socket = getSocket();
+
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket not ready, cannot mark as read");
+    return;
   }
+
+  const msgPayload: MessagePayload = {
+    type: "mark_as_read",
+    id: crypto.randomUUID(),
+    recipient: {
+      id: message.sender_id,
+    },
+    data: {
+      conversation_id: message.conversation_id,
+      message_id: message.message_id,
+      user_id: user_id,
+    },
+  };
+
+  socket.send(JSON.stringify(msgPayload));
 }
 
-
+/**
+ * Mark all messages in the active conversation as read
+ */
 export async function markAllAsRead(recipient_id: number) {
-  const socket = getSocket()
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    const msgPayload: MessagePayload = {
-      type: "mark_all_as_read",
-      id: crypto.randomUUID(),
-      recipient: {
-        id: recipient_id,
-      },
-      data: {
-        conversation_id:
-          chatStore.activeConversation?.conversation_id!,
-        user_id: chatStore.currentUser?.id!,
-      },
-    };
-    socket.send(JSON.stringify(msgPayload));
+  const socket = getSocket();
+
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket not ready, cannot mark all as read");
+    return;
   }
+
+  if (!chatStore.activeConversation || !chatStore.currentUser) {
+    console.warn("No active conversation or user");
+    return;
+  }
+
+  const msgPayload: MessagePayload = {
+    type: "mark_all_as_read",
+    id: crypto.randomUUID(),
+    recipient: {
+      id: recipient_id,
+    },
+    data: {
+      conversation_id: chatStore.activeConversation.conversation_id,
+      user_id: chatStore.currentUser.id,
+    },
+  };
+
+  socket.send(JSON.stringify(msgPayload));
 }
 
-function getEntry(receipt: MessageReceipt) {
-  const conv = chatStore.messages[receipt.conversation_id];
-  const entry = conv?.[receipt.message_id];
-  return entry;
-}
-
-
-export const receiptHandlers: Record<string, (receipt: MessageReceipt) => void> = {
-  'delivered': (receipt) => {
-    // Only update if current status is less advanced
-    const entry = getEntry(receipt);
-    if (entry && ['sent', 'sending'].includes(entry.receipt.status)) {
-      entry.receipt = { ...receipt };
-    }
-  },
-  'read': (receipt) => {
-    const entry = getEntry(receipt);
-    if (entry) {
-      entry.receipt = { ...receipt }; // Always update read status
-    }
-  }
+/**
+ * Receipt status hierarchy for comparison
+ */
+const RECEIPT_STATUS_PRIORITY: Record<MessageReceipt['status'], number> = {
+  'sending': 0,
+  'sent': 1,
+  'delivered': 2,
+  'read': 3,
 };
 
+/**
+ * Check if new status is more advanced than current status
+ */
+function isMoreAdvancedStatus(
+  currentStatus: MessageReceipt['status'],
+  newStatus: MessageReceipt['status']
+): boolean {
+  return RECEIPT_STATUS_PRIORITY[newStatus] > RECEIPT_STATUS_PRIORITY[currentStatus];
+}
 
-// export async function loadMessageOnScroll({
-//   conversation_id,
-//   before,
-//   after,
-//   limit }: {
-//     conversation_id: number,
-//     before?: number,
-//     after?: number,
-//     limit?: number
-//   }) {
-//   const MAX_MESSAGES_IN_MEMORY = 100;
-//   const user_id = chatStore.currentUser?.id!;
-//   const response = await fetch(
-//     `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${before}&after=${after}&limit=${limit}`,
-//     {
-//       method: "GET",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       credentials: "include",
-//     },
-//   );
-//   const data = await response.json();
+/**
+ * Handlers for different receipt types
+ * Called when receipt updates arrive via WebSocket
+ */
+export const receiptHandlers: Record<string, (receipt: MessageReceipt) => void> = {
+  'delivered': (receipt) => {
+    const entry = chatStore.getEntry(receipt.conversation_id, receipt.message_id);
 
-//   const newRawMessages = [...data.result, ...chatStore.flatMessages]
-//   chatStore.rawMessages = newRawMessages;
-//   chatStore.buildNestedMap(chatStore.rawMessages)
+    if (!entry) {
+      console.warn(`Message not found: conv=${receipt.conversation_id}, msg=${receipt.message_id}`);
+      return;
+    }
 
-//   if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
-//     const excess = newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
-//     chatStore.rawMessages = newRawMessages.slice(0, -excess);
-//     chatStore.buildNestedMap(chatStore.rawMessages);
-//   }
+    // Only update if new status is more advanced
+    if (isMoreAdvancedStatus(entry.receipt.status, 'delivered')) {
+      chatStore.updateReceipt(receipt);
+    }
+  },
 
-//   return data.hasMore;
-// }
+  'read': (receipt) => {
+    const entry = chatStore.getEntry(receipt.conversation_id, receipt.message_id);
+
+    if (!entry) {
+      console.warn(`Message not found: conv=${receipt.conversation_id}, msg=${receipt.message_id}`);
+      return;
+    }
+
+    // Read status always updates (highest priority)
+    chatStore.updateReceipt(receipt);
+  },
+
+  'sent': (receipt) => {
+    const entry = chatStore.getEntry(receipt.conversation_id, receipt.message_id);
+
+    if (!entry) {
+      console.warn(`Message not found: conv=${receipt.conversation_id}, msg=${receipt.message_id}`);
+      return;
+    }
+
+    // Only update if current status is 'sending'
+    if (entry.receipt.status === 'sending') {
+      chatStore.updateReceipt(receipt);
+    }
+  },
+};
+
+/**
+ * Process incoming receipt update
+ * Call this from your WebSocket message handler
+ */
+export function handleReceiptUpdate(receipt: MessageReceipt) {
+  const handler = receiptHandlers[receipt.status];
+
+  if (handler) {
+    handler(receipt);
+  } else {
+    console.warn(`Unknown receipt status: ${receipt.status}`);
+  }
+}

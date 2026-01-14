@@ -3,13 +3,201 @@
     import ChatboxHeader from "./ChatboxHeader.svelte";
     import ChatInput from "./ChatInput.svelte";
     import { onMount, tick } from "svelte";
-    import { Check, CheckCheck, Inspect } from "@lucide/svelte";
+    import { Check, CheckCheck } from "@lucide/svelte";
 
-    const messages = $derived(
-        chatStore.messages[chatStore.activeConversation?.conversation_id!],
+    import type { ChatEntry } from "$lib/store.svelte";
+
+    // --- Derived State ---
+    const conversation_id = $derived(
+        chatStore.activeConversation?.conversation_id!,
+    );
+    const user_id = $derived(chatStore.currentUser?.id!);
+
+    // Get messages for current conversation ONLY
+    const messagesMap = $derived(chatStore.messages[conversation_id] || {});
+
+    const sortedMessages = $derived(
+        Object.values(messagesMap).sort((a, b) => {
+            const dateA = new Date(a.message.created_at).getTime();
+            const dateB = new Date(b.message.created_at).getTime();
+            return dateA - dateB;
+        }),
     );
 
-    let chatbox: HTMLUListElement | undefined = $state();
+    // --- State ---
+    let chatbox = $state<HTMLUListElement>();
+    let scrollTop = $state(0);
+    let containerHeight = $state(600);
+
+    // Pagination State
+    const MAX_MESSAGES_IN_MEMORY = 200;
+    let isLoadingOlder = $state(false);
+    let isLoadingNewer = $state(false);
+    let hasMoreOlder = $state(true);
+    let hasMoreNewer = $state(false);
+
+    let oldestLoadedId = $state<number | null>(null);
+    let newestLoadedId = $state<number | null>(null);
+
+    // Track previous message count for scroll restoration
+    let previousMessageCount = $state(0);
+    let shouldRestoreScroll = $state(false);
+    let scrollRestoreHeight = $state(0);
+
+    // Store for actual measured heights
+    let measuredHeights = $state<Map<number, number>>(new Map());
+    let messageElements = new Map<number, HTMLElement>();
+
+    // IntersectionObserver for measuring visible items
+    let observer: IntersectionObserver | null = null;
+
+    // --- Virtualization with measured heights ---
+    function getMessageHeight(entry: ChatEntry): number {
+        const msgId = entry.message.message_id;
+
+        // Use measured height if available
+        if (measuredHeights.has(msgId)) {
+            return measuredHeights.get(msgId)!;
+        }
+
+        // Fallback to estimation
+        const baseHeight = 70; // Increased padding + margins
+        const text = entry.message.content || "";
+
+        // Better estimation based on message length and line breaks
+        const hasLineBreaks = text.includes("\n");
+        const charCount = text.length;
+
+        if (hasLineBreaks) {
+            const lines = text.split("\n").length;
+            return baseHeight + lines * 24;
+        }
+
+        // Estimate based on character count with better wrapping calculation
+        // Assume ~60 chars per line for user messages (narrower), ~80 for received
+        const isUserMessage =
+            entry.message.sender_id === chatStore.currentUser?.id;
+        const charsPerLine = isUserMessage ? 45 : 60;
+        const estimatedLines = Math.ceil(charCount / charsPerLine);
+
+        return baseHeight + Math.max(1, estimatedLines) * 24;
+    }
+
+    let itemOffsets = $derived.by(() => {
+        let acc = 0;
+        const offsets = [0];
+        for (const msg of sortedMessages) {
+            acc += getMessageHeight(msg);
+            offsets.push(acc);
+        }
+        return offsets;
+    });
+
+    let totalHeight = $derived(itemOffsets[itemOffsets.length - 1] || 0);
+
+    // Reduce buffer size to prevent over-rendering
+    const RENDER_BUFFER = 300;
+
+    let visibleStartIndex = $derived.by(() => {
+        const target = Math.max(0, scrollTop - RENDER_BUFFER);
+
+        let low = 0,
+            high = itemOffsets.length - 1;
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            if (itemOffsets[mid] < target) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return Math.max(0, low - 1);
+    });
+
+    let visibleEndIndex = $derived.by(() => {
+        const target = scrollTop + containerHeight + RENDER_BUFFER;
+
+        let low = 0,
+            high = itemOffsets.length - 1;
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            if (itemOffsets[mid] < target) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return Math.min(sortedMessages.length, low);
+    });
+
+    let visibleMessages = $derived(
+        sortedMessages.slice(visibleStartIndex, visibleEndIndex),
+    );
+
+    let offsetY = $derived(itemOffsets[visibleStartIndex] || 0);
+
+    // --- Measure rendered elements ---
+    function measureElement(element: HTMLElement, messageId: number) {
+        if (!element) return;
+
+        const height = element.offsetHeight;
+        if (height > 0 && height !== measuredHeights.get(messageId)) {
+            measuredHeights.set(messageId, height);
+            // Trigger recalculation
+            measuredHeights = new Map(measuredHeights);
+        }
+    }
+
+    // Setup IntersectionObserver to measure visible items
+    onMount(() => {
+        observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const element = entry.target as HTMLElement;
+                        const messageId = parseInt(
+                            element.dataset.messageId || "0",
+                        );
+                        if (messageId) {
+                            measureElement(element, messageId);
+                        }
+                    }
+                });
+            },
+            {
+                root: chatbox,
+                rootMargin: "100px",
+                threshold: 0,
+            },
+        );
+
+        return () => {
+            observer?.disconnect();
+        };
+    });
+
+    // Register elements with observer
+    function registerElement(element: HTMLElement, messageId: number) {
+        if (!element) return;
+
+        messageElements.set(messageId, element);
+        element.dataset.messageId = messageId.toString();
+        observer?.observe(element);
+
+        // Measure immediately
+        measureElement(element, messageId);
+    }
+
+    // --- Logic ---
+
+    // Track boundaries for pagination
+    $effect(() => {
+        if (sortedMessages.length > 0) {
+            oldestLoadedId = sortedMessages[0].message.message_id;
+            newestLoadedId =
+                sortedMessages[sortedMessages.length - 1].message.message_id;
+        }
+    });
 
     function scrollToBottom() {
         if (chatbox) {
@@ -17,89 +205,134 @@
         }
     }
 
+    // Initial load
     onMount(() => {
-        console.log("mounted");
-        scrollToBottom();
-    });
-
-    let isAtBottom = $state(true);
-    // $inspect({ chatt: chatStore.rawMessages });
-    // $inspect({ messages });
-
-    $effect(() => {
-        if (messages && Object.entries(messages).length > 0 && isAtBottom) {
-            tick().then(() => scrollToBottom());
+        if (sortedMessages.length > 0) {
+            tick().then(scrollToBottom);
         }
     });
 
-    $effect(() => {
-        if (chatStore.flatMessages.length > 0) {
-            oldestLoadedId = chatStore.flatMessages[0].message.message_id;
+    // Handle auto-scroll for new messages
+    let wasAtBottom = false;
 
-            newestLoadedId =
-                chatStore.flatMessages[chatStore.flatMessages.length - 1]
-                    .message.message_id;
+    $effect.pre(() => {
+        if (chatbox) {
+            const threshold = 50;
+            wasAtBottom =
+                chatbox.scrollHeight -
+                    chatbox.scrollTop -
+                    chatbox.clientHeight <=
+                threshold;
         }
     });
 
-    const conversation_id = $derived(
-        chatStore.activeConversation?.conversation_id!,
-    );
-    const user_id = $derived(chatStore.currentUser?.id!);
-    const MAX_MESSAGES_IN_MEMORY = 100;
-    let scrollTop = $state(0);
-    let isLoadingOlder = $state(false);
-    let isLoadingNewer = $state(false);
-    let hasMoreOlder = $state(true);
-    let hasMoreNewer = $state(true);
-    let oldestLoadedId = $state(0);
-    let newestLoadedId = $state(0);
+    // Auto-scroll when new messages arrive
+    $effect(() => {
+        const currentCount = sortedMessages.length;
+
+        if (
+            currentCount > previousMessageCount &&
+            wasAtBottom &&
+            !isLoadingOlder
+        ) {
+            tick().then(scrollToBottom);
+        }
+
+        previousMessageCount = currentCount;
+    });
+
+    // Restore scroll position after loading older messages
+    $effect(() => {
+        if (shouldRestoreScroll && chatbox) {
+            const newTotalHeight = chatbox.scrollHeight;
+            const heightDifference = newTotalHeight - scrollRestoreHeight;
+
+            if (heightDifference > 0) {
+                chatbox.scrollTop = scrollTop + heightDifference;
+            }
+
+            shouldRestoreScroll = false;
+        }
+    });
+
+    let scrollTimeout: number | null = null;
+
+    async function handleScroll(e: Event) {
+        const target = e.target as HTMLUListElement;
+        scrollTop = target.scrollTop;
+
+        // Debounce pagination triggers
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+
+        scrollTimeout = window.setTimeout(() => {
+            // Load Older - trigger earlier for smoother UX
+            if (scrollTop < 400 && hasMoreOlder && !isLoadingOlder) {
+                loadOlderMessages();
+            }
+
+            // Load Newer
+            const scrollBottom =
+                target.scrollHeight - target.scrollTop - target.clientHeight;
+            if (scrollBottom < 400 && hasMoreNewer && !isLoadingNewer) {
+                loadNewerMessages();
+            }
+        }, 100);
+    }
 
     async function loadOlderMessages() {
-        if (isLoadingOlder || !hasMoreOlder || !oldestLoadedId) return;
+        if (isLoadingOlder || !hasMoreOlder || !oldestLoadedId || !chatbox)
+            return;
+
         isLoadingOlder = true;
+
+        // Capture scroll state BEFORE fetch
+        scrollRestoreHeight = chatbox.scrollHeight;
 
         try {
             const response = await fetch(
-                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${oldestLoadedId}&limit=${20}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                },
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${oldestLoadedId}&limit=20`,
+                { credentials: "include" },
             );
 
+            if (!response.ok) {
+                throw new Error("Failed to load older messages");
+            }
+
             const data = await response.json();
-            if (data.chat.length > 0) {
-                const previousScrollHeight = chatbox?.scrollHeight || 0;
 
-                // Prepend older messages
-                let newRawMessages = [...data.chat, ...chatStore.flatMessages];
-                chatStore.buildNestedMap(newRawMessages);
-                hasMoreOlder = data.hasMore;
+            if (data.chat && data.chat.length > 0) {
+                const existingMessages = Object.values(messagesMap);
+                let newAllMessages = [...data.chat, ...existingMessages];
 
-                // Auto Unload
-                if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
+                // Memory Management
+                if (newAllMessages.length > MAX_MESSAGES_IN_MEMORY) {
                     const excess =
-                        newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
-                    newRawMessages = newRawMessages.slice(0, -excess);
-                    chatStore.buildNestedMap(newRawMessages);
+                        newAllMessages.length - MAX_MESSAGES_IN_MEMORY;
+                    newAllMessages = newAllMessages.slice(0, -excess);
                     hasMoreNewer = true;
-                    console.log({ newRawMessages });
                 }
+
+                hasMoreOlder = data.hasMore ?? false;
+
+                chatStore.updateConversationMessages(
+                    conversation_id,
+                    newAllMessages,
+                );
+
+                shouldRestoreScroll = true;
+
                 await tick();
-                if (chatbox) {
-                    const newScrollHeight = chatbox.scrollHeight;
-                    chatbox.scrollTop +=
-                        newScrollHeight - previousScrollHeight + 200;
-                }
             } else {
                 hasMoreOlder = false;
             }
+        } catch (error) {
+            console.error("Error loading older messages:", error);
         } finally {
-            isLoadingOlder = false;
+            setTimeout(() => {
+                isLoadingOlder = false;
+            }, 150);
         }
     }
 
@@ -110,85 +343,102 @@
 
         try {
             const response = await fetch(
-                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?after=${newestLoadedId}&limit=${20}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                },
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?after=${newestLoadedId}&limit=20`,
+                { credentials: "include" },
             );
 
+            if (!response.ok) {
+                throw new Error("Failed to load newer messages");
+            }
+
             const data = await response.json();
-            // Append new messages to the existing messages array
-            if (data.chat.length > 0) {
-                let newRawMessages = [...chatStore.flatMessages, ...data.chat];
-                chatStore.buildNestedMap(newRawMessages);
-                newestLoadedId =
-                    data.chat[data.chat.length - 1].message.message_id;
 
-                hasMoreNewer = data.hasMore;
+            if (data.chat && data.chat.length > 0) {
+                const existingMessages = Object.values(messagesMap);
+                let newAllMessages = [...existingMessages, ...data.chat];
 
-                // Auto unloading if too many messages
-                if (newRawMessages.length > MAX_MESSAGES_IN_MEMORY) {
+                if (newAllMessages.length > MAX_MESSAGES_IN_MEMORY) {
                     const excess =
-                        newRawMessages.length - MAX_MESSAGES_IN_MEMORY;
-                    newRawMessages = newRawMessages.slice(excess);
-                    chatStore.buildNestedMap(newRawMessages);
-                    console.log({ newRawMessages });
+                        newAllMessages.length - MAX_MESSAGES_IN_MEMORY;
+                    newAllMessages = newAllMessages.slice(excess);
                     hasMoreOlder = true;
                 }
+
+                hasMoreNewer = data.hasMore ?? false;
+                chatStore.updateConversationMessages(
+                    conversation_id,
+                    newAllMessages,
+                );
+
+                await tick();
             } else {
                 hasMoreNewer = false;
             }
+        } catch (error) {
+            console.error("Error loading newer messages:", error);
         } finally {
-            isLoadingNewer = false;
-        }
-    }
-
-    async function handleScroll(event: Event) {
-        const target = event.target as HTMLUListElement;
-        scrollTop = target.scrollTop;
-
-        isAtBottom =
-            Math.abs(
-                target.scrollHeight - target.scrollTop - target.clientHeight,
-            ) < 5;
-
-        if (scrollTop < 200 && hasMoreOlder) {
-            console.log("Loading older messages...");
-            await loadOlderMessages();
-        }
-
-        // Load newer messages when scrolling near bottom
-        const scrollBottom =
-            target.scrollHeight - target.scrollTop - target.clientHeight;
-        if (scrollBottom < 200 && hasMoreNewer) {
-            loadNewerMessages();
+            setTimeout(() => {
+                isLoadingNewer = false;
+            }, 150);
         }
     }
 </script>
 
-<div class="border-4 flex flex-col h-full overflow-y-auto">
+<div class="flex flex-col h-full overflow-hidden">
     <ChatboxHeader />
-    <ul
-        bind:this={chatbox}
-        class="flex flex-col gap-2 p-2 overflow-y-auto h-[calc(100%-40px)]"
-        onscroll={(e) => handleScroll(e)}
+
+    <div
+        class="relative flex-1 overflow-hidden"
+        bind:clientHeight={containerHeight}
     >
-        {#each Object.entries(messages ?? {}) as [key, entry]}
-            {@render messageItem(entry)}
-        {/each}
-    </ul>
+        <ul
+            bind:this={chatbox}
+            class="h-full overflow-y-auto w-full p-2"
+            onscroll={handleScroll}
+        >
+            <div
+                style="height: {totalHeight}px; position: relative; width: 100%;"
+            >
+                {#if isLoadingOlder}
+                    <div
+                        class="absolute top-0 w-full text-center py-2 text-xs text-amber-500 z-10 bg-gray-600"
+                    >
+                        Loading older messages...
+                    </div>
+                {/if}
+
+                <div
+                    style="position: absolute; top: 0; left: 0; right: 0; transform: translateY({offsetY}px); will-change: transform;"
+                >
+                    {#each visibleMessages as entry (entry.message.message_id)}
+                        {@render messageItem(entry)}
+                    {/each}
+                </div>
+
+                {#if isLoadingNewer}
+                    <div
+                        class="absolute bottom-0 w-full text-center py-2 text-xs text-amber-500 z-10 bg-gray-600"
+                    >
+                        Loading newer messages...
+                    </div>
+                {/if}
+            </div>
+        </ul>
+    </div>
+
     <ChatInput />
 </div>
 
-{#snippet messageItem(item: { message: any; receipt: any })}
+{#snippet messageItem(item: ChatEntry)}
     {#if item.message.sender_id !== chatStore.currentUser?.id}
-        <li class="flex flex-col p-2 bg-gray-200 w-max px-3 rounded-sm">
-            <span>{item.message.content}</span>
-            <span class="text-xs">
+        <li
+            use:registerElement={item.message.message_id}
+            class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg mb-2 list-none"
+        >
+            <span class="whitespace-pre-wrap break-words"
+                >{item.message.content}</span
+            >
+            <span class="text-xs text-gray-600 mt-1">
                 {new Date(item.message.created_at).toLocaleString([], {
                     day: "numeric",
                     month: "short",
@@ -199,12 +449,18 @@
             </span>
         </li>
     {:else}
-        <li class="flex flex-col bg-gray-200 ml-auto p-2 px-3 rounded-sm">
-            <span class="text-xl ml-auto font-bold"
-                >{item.message.message_id}</span
+        <li
+            use:registerElement={item.message.message_id}
+            class="flex flex-col bg-gray-500 text-white ml-auto p-2 px-3 rounded-lg mb-2 list-none w-max max-w-[70%]"
+        >
+            <!-- <div class="text-xl font-bold">{item.message.message_id}</div> -->
+
+            <span class="whitespace-pre-wrap break-words"
+                >{item.message.content}</span
             >
-            <span>{item.message.content}</span>
-            <span class="text-xs flex items-center justify-between gap-3">
+            <span
+                class="text-xs flex items-center justify-end gap-2 opacity-90 mt-1"
+            >
                 {new Date(item.message.created_at).toLocaleString([], {
                     day: "numeric",
                     month: "short",
@@ -213,11 +469,11 @@
                     hour12: true,
                 })}
                 {#if item.receipt.status === "sent"}
-                    <Check size={12} class=" rounded-full text-gray-500" />
+                    <Check size={14} />
                 {:else if item.receipt.status === "delivered"}
-                    <CheckCheck size={12} class=" rounded-full text-gray-500" />
+                    <CheckCheck size={14} />
                 {:else if item.receipt.status === "read"}
-                    <CheckCheck size={12} class=" rounded-full text-blue-500" />
+                    <CheckCheck size={14} class="text-blue-200" />
                 {/if}
             </span>
         </li>

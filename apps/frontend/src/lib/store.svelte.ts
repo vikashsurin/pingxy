@@ -2,31 +2,25 @@ import type {
   Message,
   MessagePayload,
   PublicUser,
+  MessageReceipt,
 } from "@chat/shared/src/lib/utils/validation";
-import { type MessageReceipt } from "@chat/shared/src/lib/utils/validation";
 import { SvelteSet } from "svelte/reactivity";
-import { da } from "zod/v4/locales";
-
-
 
 export type PrivateConversation = {
   conversation_id: number;
   user: PublicUser;
 };
 
-
 export type ChatEntry = {
-  message: Message,
-  receipt: MessageReceipt
-}
-
+  message: Message;
+  receipt: MessageReceipt;
+};
 
 class ChatStore {
   isConnected = $state<boolean>(false);
   currentUser = $state<PublicUser | null | undefined>(undefined);
   error = $state<string>("");
   onlineUsers = $state<PrivateConversation[]>([]);
-
   searchQuery = $state<string>("");
 
   chatTarget = $state<{
@@ -42,93 +36,106 @@ class ChatStore {
     user: PublicUser;
   }>();
 
-
   conversations = $state<PrivateConversation[]>([]);
   notifications = new SvelteSet<number>();
 
-  // TODO : CACHE MESSAGES IN BACKEND instead of local storage, when scrolling
-  messages = $state<Record<string, Record<number, ChatEntry>>>({});
+  // Nested structure: { [conversationId]: { [messageId]: ChatEntry } }
+  messages = $state<Record<number, Record<number, ChatEntry>>>({});
 
-  // TODO : CACHED MESSAGES Array
+  // Derived flat messages array for general operations
   flatMessages = $derived.by(() => {
-    const flatArray: ChatEntry[] = []
+    const flatArray: ChatEntry[] = [];
     for (const convId in this.messages) {
       for (const msgId in this.messages[convId]) {
-        flatArray.push(this.messages[convId][msgId])
+        flatArray.push(this.messages[convId][msgId]);
       }
     }
-    return flatArray
+    return flatArray;
   });
 
-
   async sendMessage({ messageText }: { messageText: string }) {
-
-    let messagePayload: MessagePayload = {
-      type: "message",
-      id: crypto.randomUUID(),
-      recipient: {
-        id: this.activeConversation?.user.id!,
-        username: this.activeConversation?.user.username!,
-      },
-      msgData: {
-        message: {
-          conversation_id:
-            this.activeConversation?.conversation_id!,
-          client_message_id: crypto.randomUUID(),
-          content: messageText,
-          message_type: "text",
-          sender_id: this.currentUser?.id!,
-        }
-      },
-    };
-
-
-
-    const response = await fetch("http://localhost:3000/api/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        isNew: true,
-        messagePayload: messagePayload,
-      }),
-    });
-
-    if (!response?.ok) {
-      this.error = "Failed to send message";
+    if (!this.activeConversation || !this.currentUser) {
+      this.error = "No active conversation or user";
       return;
     }
 
-    const data = await response.json();
+    const messagePayload: MessagePayload = {
+      type: "message",
+      id: crypto.randomUUID(),
+      recipient: {
+        id: this.activeConversation.user.id,
+        username: this.activeConversation.user.username,
+      },
+      msgData: {
+        message: {
+          conversation_id: this.activeConversation.conversation_id,
+          client_message_id: crypto.randomUUID(),
+          content: messageText,
+          message_type: "text",
+          sender_id: this.currentUser.id,
+        },
+      },
+    };
 
-    return data;
-  }
-
-  async initialMessages({ conversation_id }: { conversation_id: number }) {
-
-    const user_id = this.currentUser?.id!;
-    const response = await fetch(
-      `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?limit=30`,
-      {
-        method: "GET",
+    try {
+      const response = await fetch("http://localhost:3000/api/messages", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-      },
-    );
-    const data = await response.json();
+        body: JSON.stringify({
+          isNew: true,
+          messagePayload: messagePayload,
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
 
-    this.buildNestedMap(data.chat)
-
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : "Failed to send message";
+      console.error("Send message error:", error);
+      throw error;
+    }
   }
 
+  async initialMessages({ conversation_id }: { conversation_id: number }) {
+    if (!this.currentUser) {
+      this.error = "No current user";
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=30`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to load messages");
+      }
+
+      const data = await response.json();
+      this.buildNestedMap(data.chat);
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : "Failed to load messages";
+      console.error("Initial messages error:", error);
+      throw error;
+    }
+  }
 
   buildNestedMap(messagesArray: ChatEntry[]) {
-    const newMessages: Record<string, Record<number, ChatEntry>> = {};
+    const newMessages: Record<number, Record<number, ChatEntry>> = {};
 
     for (const entry of messagesArray) {
       const convId = entry.message.conversation_id;
@@ -137,10 +144,71 @@ class ChatStore {
       if (!newMessages[convId]) {
         newMessages[convId] = {};
       }
+
       newMessages[convId][msgId] = entry;
     }
 
     this.messages = newMessages;
+  }
+
+  // Method to update messages for a specific conversation
+  updateConversationMessages(conversationId: number, messagesArray: ChatEntry[]) {
+    const conversationMessages: Record<number, ChatEntry> = {};
+
+    for (const entry of messagesArray) {
+      const msgId = entry.message.message_id;
+      conversationMessages[msgId] = entry;
+    }
+
+    // Update only the specific conversation
+    this.messages = {
+      ...this.messages,
+      [conversationId]: conversationMessages,
+    };
+  }
+
+  // Add a single message to a conversation
+  addMessage(conversationId: number, entry: ChatEntry) {
+    const msgId = entry.message.message_id;
+
+    if (!this.messages[conversationId]) {
+      this.messages[conversationId] = {};
+    }
+
+    this.messages = {
+      ...this.messages,
+      [conversationId]: {
+        ...this.messages[conversationId],
+        [msgId]: entry,
+      },
+    };
+  }
+
+  // Get a message entry by conversation and message ID
+  getEntry(conversationId: number, messageId: number): ChatEntry | undefined {
+    return this.messages[conversationId]?.[messageId];
+  }
+
+  // Update message receipt status (used by receipt handlers)
+  updateReceipt(receipt: MessageReceipt) {
+    const entry = this.getEntry(receipt.conversation_id, receipt.message_id);
+
+    if (!entry) return;
+
+    // Create new entry with updated receipt to trigger reactivity
+    const updatedEntry: ChatEntry = {
+      ...entry,
+      receipt: { ...receipt },
+    };
+
+    // Update the specific message
+    this.messages = {
+      ...this.messages,
+      [receipt.conversation_id]: {
+        ...this.messages[receipt.conversation_id],
+        [receipt.message_id]: updatedEntry,
+      },
+    };
   }
 
   async clearNotification(conversation_id: number) {
@@ -151,6 +219,11 @@ class ChatStore {
     this.isConnected = false;
     this.currentUser = null;
     this.onlineUsers = [];
+    this.conversations = [];
+    this.messages = {};
+    this.notifications.clear();
+    this.activeConversation = undefined;
+    this.error = "";
   }
 }
 
