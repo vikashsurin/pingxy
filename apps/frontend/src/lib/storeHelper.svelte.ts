@@ -103,7 +103,7 @@ export async function markAllAsRead(recipient_id: number) {
  * Receipt status hierarchy for comparison
  */
 const RECEIPT_STATUS_PRIORITY: Record<MessageReceipt['status'], number> = {
-  'sending': 0,
+  // 'sending': 0,
   'sent': 1,
   'delivered': 2,
   'read': 3,
@@ -159,9 +159,12 @@ export const receiptHandlers: Record<string, (receipt: MessageReceipt) => void> 
     }
 
     // Only update if current status is 'sending'
-    if (entry.receipt.status === 'sending') {
-      chatStore.updateReceipt(receipt);
-    }
+    // if (entry.receipt.status === 'sending') {
+    //   chatStore.updateReceipt(receipt);
+    // }
+
+    chatStore.updateReceipt(receipt);
+
   },
 };
 

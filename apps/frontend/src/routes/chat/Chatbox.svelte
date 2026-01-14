@@ -435,9 +435,7 @@
             use:registerElement={item.message.message_id}
             class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg mb-2 list-none"
         >
-            <span class="whitespace-pre-wrap break-words"
-                >{item.message.content}</span
-            >
+            <span class="whitespace-pre-wrap">{item.message.content}</span>
             <span class="text-xs text-gray-600 mt-1">
                 {new Date(item.message.created_at).toLocaleString([], {
                     day: "numeric",
@@ -455,9 +453,7 @@
         >
             <!-- <div class="text-xl font-bold">{item.message.message_id}</div> -->
 
-            <span class="whitespace-pre-wrap break-words"
-                >{item.message.content}</span
-            >
+            <span class="whitespace-pre-wrap">{item.message.content}</span>
             <span
                 class="text-xs flex items-center justify-end gap-2 opacity-90 mt-1"
             >
