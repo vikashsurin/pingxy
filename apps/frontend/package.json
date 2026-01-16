@@ -24,11 +24,11 @@
     "vite-tsconfig-paths": "^6.0.4"
   },
   "dependencies": {
+    "@chat/shared": "workspace:*",
     "@lucide/svelte": "^0.556.0",
     "countries-list": "^3.2.2",
     "hono": "^4.11.3",
     "jwt-decode": "^4.0.0",
-    "zod": "^4.3.5",
-    "@chat/shared": "workspace:*"
+    "zod": "^4.3.5"
   }
 }

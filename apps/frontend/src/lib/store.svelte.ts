@@ -97,13 +97,14 @@ class ChatStore {
       const data = await response.json();
       return data;
     } catch (error) {
-      this.error = error instanceof Error ? error.message : "Failed to send message";
+      this.error =
+        error instanceof Error ? error.message : "Failed to send message";
       console.error("Send message error:", error);
       throw error;
     }
   }
 
-  async initialMessages({ conversation_id }: { conversation_id: number }) {
+  async loadInitialMessages({ conversation_id }: { conversation_id: number }) {
     if (!this.currentUser) {
       this.error = "No current user";
       return;
@@ -118,7 +119,7 @@ class ChatStore {
             "Content-Type": "application/json",
           },
           credentials: "include",
-        },
+        }
       );
 
       if (!response.ok) {
@@ -128,7 +129,8 @@ class ChatStore {
       const data = await response.json();
       this.buildNestedMap(data.chat);
     } catch (error) {
-      this.error = error instanceof Error ? error.message : "Failed to load messages";
+      this.error =
+        error instanceof Error ? error.message : "Failed to load messages";
       console.error("Initial messages error:", error);
       throw error;
     }
@@ -152,7 +154,10 @@ class ChatStore {
   }
 
   // Method to update messages for a specific conversation
-  updateConversationMessages(conversationId: number, messagesArray: ChatEntry[]) {
+  updateConversationMessages(
+    conversationId: number,
+    messagesArray: ChatEntry[]
+  ) {
     const conversationMessages: Record<number, ChatEntry> = {};
 
     for (const entry of messagesArray) {

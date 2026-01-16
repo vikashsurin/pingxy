@@ -28,7 +28,7 @@
         await markAllAsRead(conversation.user.id);
         // Load messages for current conversation
         // await chatStore.loadMessages();
-        await chatStore.initialMessages({
+        await chatStore.loadInitialMessages({
             conversation_id: conversation.conversation_id,
         });
 
