@@ -16,6 +16,11 @@ export type ChatEntry = {
   receipt: MessageReceipt;
 };
 
+// Proper type for chat target instead of any
+export type ChatTarget =
+  | { isUser: true; data: PublicUser }
+  | { isUser: false; data: Record<string, never> };
+
 class ChatStore {
   isConnected = $state<boolean>(false);
   currentUser = $state<PublicUser | null | undefined>(undefined);
@@ -23,10 +28,7 @@ class ChatStore {
   onlineUsers = $state<PrivateConversation[]>([]);
   searchQuery = $state<string>("");
 
-  chatTarget = $state<{
-    isUser: boolean;
-    data: { [key: string]: any };
-  }>({
+  chatTarget = $state<ChatTarget>({
     isUser: false,
     data: {},
   });
@@ -42,15 +44,17 @@ class ChatStore {
   // Nested structure: { [conversationId]: { [messageId]: ChatEntry } }
   messages = $state<Record<number, Record<number, ChatEntry>>>({});
 
-  // Derived flat messages array for general operations
-  flatMessages = $derived.by(() => {
-    const flatArray: ChatEntry[] = [];
-    for (const convId in this.messages) {
-      for (const msgId in this.messages[convId]) {
-        flatArray.push(this.messages[convId][msgId]);
-      }
-    }
-    return flatArray;
+  // Optimized: Only get messages for the active conversation
+  activeMessages = $derived.by(() => {
+    if (!this.activeConversation) return [];
+
+    const convMessages = this.messages[this.activeConversation.conversation_id];
+    if (!convMessages) return [];
+
+    // Convert to array and sort by message_id (chronological order)
+    return Object.values(convMessages).sort(
+      (a, b) => a.message.message_id - b.message.message_id
+    );
   });
 
   async sendMessage({ messageText }: { messageText: string }) {
@@ -105,14 +109,14 @@ class ChatStore {
   }
 
   async loadInitialMessages({ conversation_id }: { conversation_id: number }) {
-    if (!this.currentUser) {
+    if (!this.currentUser || !conversation_id) {
       this.error = "No current user";
       return;
     }
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=30`,
+        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=10`,
         {
           method: "GET",
           headers: {
@@ -136,29 +140,38 @@ class ChatStore {
     }
   }
 
+  // Optimized: Group by conversation first to minimize object checks
   buildNestedMap(messagesArray: ChatEntry[]) {
+    // Group messages by conversation_id
+    const grouped = new Map<number, ChatEntry[]>();
+
     for (const entry of messagesArray) {
       const convId = entry.message.conversation_id;
-      const msgId = entry.message.message_id;
+      if (!grouped.has(convId)) {
+        grouped.set(convId, []);
+      }
+      grouped.get(convId)!.push(entry);
+    }
 
+    // Build nested map - only one check per conversation
+    for (const [convId, entries] of grouped) {
       if (!this.messages[convId]) {
         this.messages[convId] = {};
       }
 
-      this.messages[convId][msgId] = entry;
+      const conversationMessages = this.messages[convId];
+      for (const entry of entries) {
+        conversationMessages[entry.message.message_id] = entry;
+      }
     }
   }
 
-  // Method to update messages for a specific conversation
   // Method to update messages for a specific conversation
   updateConversationMessages(
     conversationId: number,
     messagesArray: ChatEntry[]
   ) {
-    if (!this.messages[conversationId]) {
-      this.messages[conversationId] = {};
-    }
-
+    this.messages[conversationId] ??= {};
     const targetConversation = this.messages[conversationId];
 
     for (const entry of messagesArray) {
@@ -168,14 +181,9 @@ class ChatStore {
   }
 
   // Add a single message to a conversation
-  // Add a single message to a conversation
   addMessage(conversationId: number, entry: ChatEntry) {
     const msgId = entry.message.message_id;
-
-    if (!this.messages[conversationId]) {
-      this.messages[conversationId] = {};
-    }
-
+    this.messages[conversationId] ??= {};
     this.messages[conversationId][msgId] = entry;
   }
 
@@ -185,14 +193,12 @@ class ChatStore {
   }
 
   // Update message receipt status (used by receipt handlers)
-  // Update message receipt status (used by receipt handlers)
   updateReceipt(receipt: MessageReceipt) {
     const entry = this.getEntry(receipt.conversation_id, receipt.message_id);
-
     if (!entry) return;
 
-    // Direct mutation triggers granular reactivity in Svelte 5
-    entry.receipt = { ...receipt };
+    // Direct assignment - Svelte 5 handles granular reactivity
+    entry.receipt = receipt;
   }
 
   async clearNotification(conversation_id: number) {

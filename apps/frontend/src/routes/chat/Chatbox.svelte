@@ -7,101 +7,44 @@
     import { Loader } from "@lucide/svelte";
     import type { ChatEntry } from "$lib/store.svelte";
 
+    type ResponseData = { chat: ChatEntry[]; hasMore: boolean };
+
+    const user_id = $derived(chatStore.currentUser?.id);
     const conversation_id = $derived(
         chatStore.activeConversation?.conversation_id,
     );
-    const user_id = $derived(chatStore.currentUser?.id);
 
-    const messageMap = $derived(chatStore.messages[conversation_id!]);
+    // $inspect({ messages: chatStore.messages });
+    // $inspect({ count: chatStore.activeMessages.length });
 
-    const sortedMessageArray = $derived.by(() => {
-        if (!messageMap) return [];
-        return Object.values(messageMap).sort((a, b) => {
-            const dateA = new Date(a.message.created_at).getTime();
-            const dateB = new Date(b.message.created_at).getTime();
-            return dateA - dateB;
-        });
+    // Indices will be used to determine the range of messages to load
+    const indices = $derived.by(() => {
+        if (chatStore.activeMessages && chatStore.activeMessages.length > 0) {
+            return {
+                oldest: chatStore.activeMessages[0].message.message_id,
+                latest: chatStore.activeMessages[
+                    chatStore.activeMessages.length - 1
+                ].message.message_id,
+            };
+        }
+
+        return {
+            oldest: null,
+            latest: null,
+        };
     });
 
-    $inspect({ messages: sortedMessageArray.length });
-
     onMount(() => {
-        chatStore.loadInitialMessages({
-            conversation_id: conversation_id!,
-        });
-
-        if (scrollContent) {
-            scrollTop = scrollContent.scrollTop;
-            scrollViewportHeight = scrollContent.clientHeight;
+        if (conversation_id) {
+            chatStore.loadInitialMessages({
+                conversation_id: conversation_id,
+            });
         }
     });
 
     // --- Element State ---
     let scrollViewport: HTMLDivElement | undefined = $state();
     let scrollContent: HTMLDivElement | undefined = $state();
-    let scrollViewportHeight = $state(0);
-    let scrollTop = $state(0);
-    let isLoadingOlder = $state(false);
-    let oldestMessageId = $derived.by(() => {
-        if (sortedMessageArray.length > 0)
-            return sortedMessageArray[0].message.message_id;
-    });
-    let lastestMessageId = $derived.by(() => {
-        if (sortedMessageArray.length > 0)
-            return sortedMessageArray[sortedMessageArray.length - 1].message
-                .message_id;
-    });
-
-    let rowHeight = $state(65);
-    let buffer = $state(3);
-
-    // Calculate visible range.
-    const visibleRange = $derived.by(() => {
-        const start = Math.floor(scrollTop / rowHeight);
-        const visibleCount = Math.ceil(scrollViewportHeight / rowHeight);
-        const end = start + visibleCount;
-
-        return {
-            startNode: Math.max(0, start - buffer),
-            endNode: Math.min(sortedMessageArray.length, end + buffer),
-        };
-    });
-
-    const visibleMessages = $derived.by(() => {
-        return sortedMessageArray.slice(
-            visibleRange.startNode,
-            visibleRange.endNode,
-        );
-    });
-
-    const totalContentHeight = $derived(sortedMessageArray.length * rowHeight);
-    const offsetY = $derived(visibleRange.startNode * rowHeight);
-
-    $inspect({ visibleMessages });
-
-    // $inspect({ sortedMessageArray });
-    $inspect({ oldestMessageId, lastestMessageId });
-    // $inspect({ visibleMessages });
-    function test() {
-        if (scrollContent) scrollContent.scrollTop = 100;
-        console.log("erst");
-    }
-
-    function scrollToBottom() {
-        if (scrollContent) {
-            scrollContent.scrollTop = scrollContent.scrollHeight;
-        }
-    }
-
-    onMount(() => {
-        scrollToBottom();
-    });
-
-    $effect(() => {
-        if (sortedMessageArray.length > 0) {
-            // tick().then(() => scrollToBottom());
-        }
-    });
 
     // --- Intersection Observer  ---
     function intersectionObserver(node: HTMLElement, callback: () => void) {
@@ -112,7 +55,7 @@
                 }
             },
             {
-                root: scrollContent,
+                root: scrollViewport,
                 rootMargin: "400px 0px",
                 threshold: 0.1,
             },
@@ -128,12 +71,12 @@
     }
 
     async function handleLoadOlder() {
-        if (!conversation_id || !user_id || isLoadingOlder) return;
-        isLoadingOlder = true;
-
+        if (!conversation_id || !user_id) {
+            return;
+        }
         try {
             const response = await fetch(
-                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${oldestMessageId}&limit=50`,
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${indices.oldest}&limit=10`,
                 {
                     method: "GET",
                     headers: {
@@ -142,36 +85,37 @@
                     credentials: "include",
                 },
             );
-            const data: { chat: ChatEntry[]; hasMore: boolean } =
-                await response.json();
-
+            const data: ResponseData = await response.json();
             if (data.chat.length > 0) {
-                let newMessages = [...data.chat, ...sortedMessageArray];
-                if (newMessages.length > 200) {
-                    const excess = newMessages.length - 200;
-                    newMessages = newMessages.slice(excess);
+                let newMessages = [
+                    ...Array.from(data.chat),
+                    ...chatStore.activeMessages,
+                ];
+                if (newMessages.length > 50) {
+                    console.log("newMessages.length > 200", newMessages.length);
+                    newMessages = newMessages.slice(0, 50);
+                    console.log(newMessages);
+                    chatStore.updateConversationMessages(
+                        conversation_id,
+                        newMessages,
+                    );
+                } else {
+                    chatStore.updateConversationMessages(
+                        conversation_id,
+                        newMessages,
+                    );
                 }
-                chatStore.updateConversationMessages(
-                    conversation_id,
-                    newMessages,
-                );
             }
         } finally {
-            isLoadingOlder = false;
         }
     }
 
-    function handleScroll() {
-        if (!scrollContent) return;
-        scrollTop = scrollContent.scrollTop;
-        scrollViewportHeight = scrollContent.clientHeight;
-    }
+    function handleScroll() {}
 </script>
 
 <div class="flex flex-col h-full overflow-hidden">
     <ChatboxHeader />
 
-    <button onclick={test}>test</button>
     <div
         bind:this={scrollViewport}
         data-virtual-list-viewport
@@ -183,27 +127,22 @@
             class="h-full overflow-y-auto w-full p-2"
             onscroll={handleScroll}
         >
-            <div style="height: {totalContentHeight}px; position: relative;">
-                <div style="transform: translateY({offsetY}px);">
-                    <div
-                        use:intersectionObserver={handleLoadOlder}
-                        data-infinite-scroll-trigger="older"
-                        class="h-1 w-full bg-amber-500"
-                        aria-hidden="true"
-                    ></div>
-                    <ul>
-                        {#each visibleMessages as entry (entry.message.message_id)}
-                            {@render messageItem(entry)}
-                        {/each}
-                    </ul>
-                    <div
-                        use:intersectionObserver={() => console.log("newer")}
-                        data-infinite-scroll-trigger="newer"
-                        class="h-1 w-full bg-amber-500"
-                        aria-hidden="true"
-                    ></div>
-                </div>
-            </div>
+            <div
+                use:intersectionObserver={handleLoadOlder}
+                data-infinite-scroll-trigger="older"
+                class="h-1 w-full bg-amber-500"
+                aria-hidden="true"
+            ></div>
+            <ul>
+                {#each chatStore.activeMessages as entry}
+                    {@render messageItem(entry)}
+                {/each}
+            </ul>
+            <div
+                data-infinite-scroll-trigger="newer"
+                class="h-1 w-full bg-amber-500"
+                aria-hidden="true"
+            ></div>
         </div>
     </div>
 
