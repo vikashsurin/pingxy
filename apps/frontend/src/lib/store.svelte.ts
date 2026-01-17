@@ -137,41 +137,37 @@ class ChatStore {
   }
 
   buildNestedMap(messagesArray: ChatEntry[]) {
-    const newMessages: Record<number, Record<number, ChatEntry>> = {};
-
     for (const entry of messagesArray) {
       const convId = entry.message.conversation_id;
       const msgId = entry.message.message_id;
 
-      if (!newMessages[convId]) {
-        newMessages[convId] = {};
+      if (!this.messages[convId]) {
+        this.messages[convId] = {};
       }
 
-      newMessages[convId][msgId] = entry;
+      this.messages[convId][msgId] = entry;
     }
-
-    this.messages = newMessages;
   }
 
+  // Method to update messages for a specific conversation
   // Method to update messages for a specific conversation
   updateConversationMessages(
     conversationId: number,
     messagesArray: ChatEntry[]
   ) {
-    const conversationMessages: Record<number, ChatEntry> = {};
+    if (!this.messages[conversationId]) {
+      this.messages[conversationId] = {};
+    }
+
+    const targetConversation = this.messages[conversationId];
 
     for (const entry of messagesArray) {
       const msgId = entry.message.message_id;
-      conversationMessages[msgId] = entry;
+      targetConversation[msgId] = entry;
     }
-
-    // Update only the specific conversation
-    this.messages = {
-      ...this.messages,
-      [conversationId]: conversationMessages,
-    };
   }
 
+  // Add a single message to a conversation
   // Add a single message to a conversation
   addMessage(conversationId: number, entry: ChatEntry) {
     const msgId = entry.message.message_id;
@@ -180,13 +176,7 @@ class ChatStore {
       this.messages[conversationId] = {};
     }
 
-    this.messages = {
-      ...this.messages,
-      [conversationId]: {
-        ...this.messages[conversationId],
-        [msgId]: entry,
-      },
-    };
+    this.messages[conversationId][msgId] = entry;
   }
 
   // Get a message entry by conversation and message ID
@@ -195,25 +185,14 @@ class ChatStore {
   }
 
   // Update message receipt status (used by receipt handlers)
+  // Update message receipt status (used by receipt handlers)
   updateReceipt(receipt: MessageReceipt) {
     const entry = this.getEntry(receipt.conversation_id, receipt.message_id);
 
     if (!entry) return;
 
-    // Create new entry with updated receipt to trigger reactivity
-    const updatedEntry: ChatEntry = {
-      ...entry,
-      receipt: { ...receipt },
-    };
-
-    // Update the specific message
-    this.messages = {
-      ...this.messages,
-      [receipt.conversation_id]: {
-        ...this.messages[receipt.conversation_id],
-        [receipt.message_id]: updatedEntry,
-      },
-    };
+    // Direct mutation triggers granular reactivity in Svelte 5
+    entry.receipt = { ...receipt };
   }
 
   async clearNotification(conversation_id: number) {
