@@ -44,6 +44,10 @@ class ChatStore {
   // Nested structure: { [conversationId]: { [messageId]: ChatEntry } }
   messages = $state<Record<number, Record<number, ChatEntry>>>({});
 
+  // Maximum messages to keep in memory per conversation
+  private readonly MESSAGE_LIMIT = 100;
+  readonly LIMIT = 20;
+
   // Optimized: Only get messages for the active conversation
   activeMessages = $derived.by(() => {
     if (!this.activeConversation) return [];
@@ -116,7 +120,7 @@ class ChatStore {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=10`,
+        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=${this.LIMIT}`,
         {
           method: "GET",
           headers: {
@@ -131,7 +135,12 @@ class ChatStore {
       }
 
       const data = await response.json();
-      this.buildNestedMap(data.chat);
+
+      // Initial load - just add messages without trimming
+      this.messages[conversation_id] = {};
+      for (const entry of data.chat) {
+        this.messages[conversation_id][entry.message.message_id] = entry;
+      }
     } catch (error) {
       this.error =
         error instanceof Error ? error.message : "Failed to load messages";
@@ -140,9 +149,81 @@ class ChatStore {
     }
   }
 
-  // Optimized: Group by conversation first to minimize object checks
+  // Load older messages (scrolling UP) - trim from BOTTOM (newest)
+  loadOlderMessages(conversationId: number, messagesArray: ChatEntry[]) {
+    this.messages[conversationId] ??= {};
+    const conversation = this.messages[conversationId];
+
+    // Add the older messages
+    for (const entry of messagesArray) {
+      conversation[entry.message.message_id] = entry;
+    }
+
+    // Trim from bottom if exceeded limit
+    this.trimNewest(conversationId);
+  }
+
+  // Load newer messages (scrolling DOWN) - trim from TOP (oldest)
+  loadNewerMessages(conversationId: number, messagesArray: ChatEntry[]) {
+    this.messages[conversationId] ??= {};
+    const conversation = this.messages[conversationId];
+
+    // Add the newer messages
+    for (const entry of messagesArray) {
+      conversation[entry.message.message_id] = entry;
+    }
+
+    // Trim from top if exceeded limit
+    this.trimOldest(conversationId);
+  }
+
+  // Trim oldest messages (remove from TOP) - used when scrolling down
+  private trimOldest(conversationId: number) {
+    const conversation = this.messages[conversationId];
+    if (!conversation) return;
+
+    const messageIds = Object.keys(conversation).map(Number);
+
+    if (messageIds.length <= this.MESSAGE_LIMIT) return;
+
+    // Sort message IDs numerically (oldest to newest)
+    messageIds.sort((a, b) => a - b);
+
+    // Calculate how many to remove from the beginning
+    const removeCount = messageIds.length - this.MESSAGE_LIMIT;
+    const toRemove = messageIds.slice(0, removeCount);
+
+    // Remove oldest messages
+    for (const msgId of toRemove) {
+      delete conversation[msgId];
+    }
+  }
+
+  // Trim newest messages (remove from BOTTOM) - used when scrolling up
+  private trimNewest(conversationId: number) {
+    const conversation = this.messages[conversationId];
+    if (!conversation) return;
+
+    const messageIds = Object.keys(conversation).map(Number);
+
+    if (messageIds.length <= this.MESSAGE_LIMIT) return;
+
+    // Sort message IDs numerically (oldest to newest)
+    messageIds.sort((a, b) => a - b);
+
+    // Calculate how many to remove from the end
+    const removeCount = messageIds.length - this.MESSAGE_LIMIT;
+    const toRemove = messageIds.slice(-removeCount);
+
+    // Remove newest messages
+    for (const msgId of toRemove) {
+      delete conversation[msgId];
+    }
+  }
+
+  // Optimized version of buildNestedMap (for bulk initial loads)
   buildNestedMap(messagesArray: ChatEntry[]) {
-    // Group messages by conversation_id
+    // Group messages by conversation_id first
     const grouped = new Map<number, ChatEntry[]>();
 
     for (const entry of messagesArray) {
@@ -153,15 +234,11 @@ class ChatStore {
       grouped.get(convId)!.push(entry);
     }
 
-    // Build nested map - only one check per conversation
+    // Build nested map without trimming (bulk initial load)
     for (const [convId, entries] of grouped) {
-      if (!this.messages[convId]) {
-        this.messages[convId] = {};
-      }
-
-      const conversationMessages = this.messages[convId];
+      this.messages[convId] ??= {};
       for (const entry of entries) {
-        conversationMessages[entry.message.message_id] = entry;
+        this.messages[convId][entry.message.message_id] = entry;
       }
     }
   }
@@ -172,19 +249,19 @@ class ChatStore {
     messagesArray: ChatEntry[]
   ) {
     this.messages[conversationId] ??= {};
-    const targetConversation = this.messages[conversationId];
 
     for (const entry of messagesArray) {
-      const msgId = entry.message.message_id;
-      targetConversation[msgId] = entry;
+      this.messages[conversationId][entry.message.message_id] = entry;
     }
   }
 
-  // Add a single message to a conversation
+  // Add a single message to a conversation (new message received/sent)
   addMessage(conversationId: number, entry: ChatEntry) {
-    const msgId = entry.message.message_id;
     this.messages[conversationId] ??= {};
-    this.messages[conversationId][msgId] = entry;
+    this.messages[conversationId][entry.message.message_id] = entry;
+
+    // When adding new messages, trim oldest if needed
+    this.trimOldest(conversationId);
   }
 
   // Get a message entry by conversation and message ID
@@ -199,6 +276,40 @@ class ChatStore {
 
     // Direct assignment - Svelte 5 handles granular reactivity
     entry.receipt = receipt;
+  }
+
+  // Get the oldest message ID in a conversation (for loading older messages)
+  getOldestMessageId(conversationId: number): number | null {
+    const conversation = this.messages[conversationId];
+    if (!conversation) return null;
+
+    const messageIds = Object.keys(conversation).map(Number);
+    if (messageIds.length === 0) return null;
+
+    return Math.min(...messageIds);
+  }
+
+  // Get the newest message ID in a conversation (for loading newer messages)
+  getNewestMessageId(conversationId: number): number | null {
+    const conversation = this.messages[conversationId];
+    if (!conversation) return null;
+
+    const messageIds = Object.keys(conversation).map(Number);
+    if (messageIds.length === 0) return null;
+
+    return Math.max(...messageIds);
+  }
+
+  // Get current message count for a conversation
+  getMessageCount(conversationId: number): number {
+    const conversation = this.messages[conversationId];
+    if (!conversation) return 0;
+    return Object.keys(conversation).length;
+  }
+
+  // Clear messages for a specific conversation (useful when switching chats)
+  clearConversationMessages(conversationId: number) {
+    delete this.messages[conversationId];
   }
 
   async clearNotification(conversation_id: number) {

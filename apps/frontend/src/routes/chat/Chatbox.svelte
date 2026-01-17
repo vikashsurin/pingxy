@@ -9,13 +9,15 @@
 
     type ResponseData = { chat: ChatEntry[]; hasMore: boolean };
 
+    const LIMIT = $derived(chatStore.LIMIT);
+
     const user_id = $derived(chatStore.currentUser?.id);
     const conversation_id = $derived(
         chatStore.activeConversation?.conversation_id,
     );
 
     // $inspect({ messages: chatStore.messages });
-    // $inspect({ count: chatStore.activeMessages.length });
+    $inspect({ count: chatStore.getMessageCount(conversation_id!) });
 
     // Indices will be used to determine the range of messages to load
     const indices = $derived.by(() => {
@@ -74,9 +76,11 @@
         if (!conversation_id || !user_id) {
             return;
         }
+
+        const oldestId = chatStore.getOldestMessageId(conversation_id);
         try {
             const response = await fetch(
-                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${indices.oldest}&limit=10`,
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${oldestId}&limit=${LIMIT}`,
                 {
                     method: "GET",
                     headers: {
@@ -91,25 +95,40 @@
                     ...Array.from(data.chat),
                     ...chatStore.activeMessages,
                 ];
-                if (newMessages.length > 50) {
-                    console.log("newMessages.length > 200", newMessages.length);
-                    newMessages = newMessages.slice(0, 50);
-                    console.log(newMessages);
-                    chatStore.updateConversationMessages(
-                        conversation_id,
-                        newMessages,
-                    );
-                } else {
-                    chatStore.updateConversationMessages(
-                        conversation_id,
-                        newMessages,
-                    );
-                }
+                chatStore.loadOlderMessages(conversation_id, newMessages);
             }
         } finally {
         }
     }
 
+    async function handleLoadNewer() {
+        if (!conversation_id || !user_id) {
+            return;
+        }
+
+        const newestId = chatStore.getNewestMessageId(conversation_id);
+        try {
+            const response = await fetch(
+                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?after=${newestId}&limit=${LIMIT}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                },
+            );
+            const data: ResponseData = await response.json();
+            if (data.chat.length > 0) {
+                let newMessages = [
+                    ...Array.from(data.chat),
+                    ...chatStore.activeMessages,
+                ];
+                chatStore.loadNewerMessages(conversation_id, newMessages);
+            }
+        } finally {
+        }
+    }
     function handleScroll() {}
 </script>
 
@@ -139,6 +158,7 @@
                 {/each}
             </ul>
             <div
+                use:intersectionObserver={handleLoadNewer}
                 data-infinite-scroll-trigger="newer"
                 class="h-1 w-full bg-amber-500"
                 aria-hidden="true"
