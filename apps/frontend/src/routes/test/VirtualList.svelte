@@ -25,7 +25,7 @@
         }
       },
       {
-        root: null,
+        root: scrollElement,
         rootMargin: "400px 0px",
         threshold: 0.1,
       }
@@ -43,7 +43,10 @@
   function handleLoadOlder() {
     console.log("loading older");
     let startIndex = list.length;
-    list = [...Array.from({ length: 20 }, (_, i) => i + startIndex), ...list];
+    list = [
+      ...Array.from({ length: 20 }, (_, i) => i + startIndex).reverse(),
+      ...list,
+    ];
 
     scrollElement?.scrollBy({
       top: itemHeight * 20,
@@ -52,25 +55,36 @@
     });
   }
 
+  function handleLoadNewer() {
+    console.log("loading newer");
+    let startIndex = list.length;
+    list = [
+      ...list,
+      ...Array.from({ length: 20 }, (_, i) => i + startIndex).reverse(),
+    ];
+
+    if (list.length > 200) {
+      list = list.slice(200 - 2);
+    }
+  }
+
   $inspect({ list });
-  $inspect({ scrollTop });
 </script>
 
 <div
   bind:this={scrollElement}
   data-container
   style:height="{height}px"
-  style:width="50%"
   class="bg-gray-300 overflow-auto border-5"
   onscroll={handleScroll}
 >
+  <div
+    use:intersectionObserver={handleLoadOlder}
+    data-infinite-scroll-trigger="older"
+    class="h-1 w-full bg-amber-500"
+    aria-hidden="true"
+  ></div>
   <div style:height="{list.length * itemHeight}px" class="relative">
-    <div
-      use:intersectionObserver={handleLoadOlder}
-      data-infinite-scroll-trigger="older"
-      class="h-1 w-full bg-amber-500"
-      aria-hidden="true"
-    ></div>
     {#each visibleList as item, index (item)}
       <div
         style="height: {itemHeight}px; width: 100%;"
@@ -81,4 +95,10 @@
       </div>
     {/each}
   </div>
+  <div
+    use:intersectionObserver={handleLoadNewer}
+    data-infinite-scroll-trigger="older"
+    class="h-1 w-full bg-amber-500"
+    aria-hidden="true"
+  ></div>
 </div>
