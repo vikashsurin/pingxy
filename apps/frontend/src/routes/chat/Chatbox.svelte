@@ -180,11 +180,7 @@
       hasMoreOlder = data.hasMore ?? false;
 
       if (data.chat.length > 0) {
-        let newMessages = [
-          ...Array.from(data.chat),
-          ...chatStore.activeMessages,
-        ];
-        chatStore.loadOlderMessages(conversation_id, newMessages);
+        chatStore.loadOlderMessages(conversation_id, Array.from(data.chat));
 
         // Wait for DOM to update and measures to happen
         await tick();
@@ -211,6 +207,13 @@
   async function handleLoadNewer() {
     if (!hasMoreNewer) return;
     isLoadingNewer = true;
+
+    // 1. Capture Anchor (Top-most visible message)
+    const firstVisibleIndex =
+      startIndex !== -1 ? startIndex : Math.max(0, safeStartIndex);
+    const anchorMsg = chatStore.activeMessages[firstVisibleIndex];
+    const oldAnchorOffset = offsets[firstVisibleIndex] || 0;
+
     if (!conversation_id || !user_id) {
       return;
     }
@@ -230,11 +233,28 @@
       const data: ResponseData = await response.json();
       hasMoreNewer = data.hasMore ?? false;
       if (data.chat.length > 0) {
-        let newMessages = [
-          ...Array.from(data.chat),
-          ...chatStore.activeMessages,
-        ];
-        chatStore.loadNewerMessages(conversation_id, newMessages);
+        // Optimization: Just pass the new messages, store handles merging.
+        // Also fixes potential prepend/append confusion.
+        chatStore.loadNewerMessages(conversation_id, Array.from(data.chat));
+
+        // Wait for DOM to update and measures to happen
+        await tick();
+
+        if (anchorMsg && scrollElement) {
+          // 2. Find where anchor went
+          const newAnchorIndex = chatStore.activeMessages.findIndex(
+            (m) => m.message.message_id === anchorMsg.message.message_id,
+          );
+
+          if (newAnchorIndex !== -1) {
+            // 3. Calculate delta and correct scroll (handles trimming shifts)
+            const newAnchorOffset = offsets[newAnchorIndex];
+            const delta = newAnchorOffset - oldAnchorOffset;
+            if (delta !== 0) {
+              scrollElement.scrollTop += delta;
+            }
+          }
+        }
       }
     } finally {
       isLoadingNewer = false;
