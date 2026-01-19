@@ -11,7 +11,7 @@
 
   const user_id = $derived(chatStore.currentUser?.id);
   const conversation_id = $derived(
-    chatStore.activeConversation?.conversation_id,
+    chatStore.activeConversation?.conversation_id
   );
 
   onMount(() => {
@@ -20,6 +20,7 @@
         conversation_id: conversation_id,
       });
     }
+    hasMoreOlder = true;
   });
 
   // --- Element State ---
@@ -30,8 +31,8 @@
 
   let isLoadingOlder = $state(false);
   let isLoadingNewer = $state(false);
-  let hasMoreOlder = $state(true);
-  let hasMoreNewer = $state(true);
+  let hasMoreOlder = $state(false);
+  let hasMoreNewer = $state(false);
 
   // Replace: let itemHeight = 88;
   // Key by message_id instead of index
@@ -87,30 +88,28 @@
     offsets.length > 0
       ? offsets[offsets.length - 1] +
           getItemHeight(
-            chatStore.activeMessages[offsets.length - 1].message.message_id,
+            chatStore.activeMessages[offsets.length - 1].message.message_id
           )
-      : 0,
+      : 0
   );
 
-  $inspect({ totalHeight, offsets });
-
   let startIndex = $derived(
-    offsets.findIndex((offset) => offset + ESTIMATED_HEIGHT > scrollTop),
+    offsets.findIndex((offset) => offset + ESTIMATED_HEIGHT > scrollTop)
   );
 
   let endIndex = $derived(
-    offsets.findIndex((offset) => offset > scrollTop + height),
+    offsets.findIndex((offset) => offset > scrollTop + height)
   );
 
   // Fallbacks for initial load or end of list
   let safeStartIndex = $derived(
-    startIndex === -1 ? 0 : Math.max(0, startIndex - 2),
+    startIndex === -1 ? 0 : Math.max(0, startIndex - 2)
   );
 
   let safeEndIndex = $derived(
     endIndex === -1
       ? chatStore.activeMessages.length
-      : Math.min(chatStore.activeMessages.length, endIndex + 2),
+      : Math.min(chatStore.activeMessages.length, endIndex + 2)
   );
 
   let visibleList = $derived(
@@ -119,7 +118,7 @@
       .map((entry, idx) => ({
         entry,
         index: safeStartIndex + idx,
-      })),
+      }))
   );
 
   function measure(node: HTMLElement, id: number) {
@@ -166,7 +165,7 @@
         root: scrollElement,
         rootMargin: "400px 0px",
         threshold: 0.1,
-      },
+      }
     );
 
     observer.observe(node);
@@ -202,11 +201,11 @@
             "Content-Type": "application/json",
           },
           credentials: "include",
-        },
+        }
       );
       const data: ResponseData = await response.json();
       hasMoreOlder = data.hasMore ?? false;
-
+      hasMoreNewer = true;
       if (data.chat.length > 0) {
         chatStore.loadOlderMessages(conversation_id, Array.from(data.chat));
 
@@ -216,7 +215,7 @@
         if (anchorMsg && scrollElement) {
           // 2. Find where anchor went
           const newAnchorIndex = chatStore.activeMessages.findIndex(
-            (m) => m.message.message_id === anchorMsg.message.message_id,
+            (m) => m.message.message_id === anchorMsg.message.message_id
           );
 
           if (newAnchorIndex !== -1) {
@@ -256,7 +255,7 @@
             "Content-Type": "application/json",
           },
           credentials: "include",
-        },
+        }
       );
       const data: ResponseData = await response.json();
       hasMoreNewer = data.hasMore ?? false;
@@ -271,7 +270,7 @@
         if (anchorMsg && scrollElement) {
           // 2. Find where anchor went
           const newAnchorIndex = chatStore.activeMessages.findIndex(
-            (m) => m.message.message_id === anchorMsg.message.message_id,
+            (m) => m.message.message_id === anchorMsg.message.message_id
           );
 
           if (newAnchorIndex !== -1) {
@@ -382,10 +381,12 @@
     <div
       class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg list-none"
     >
-      <div>
+      <div class="flex flex-col">
         <span class="font-bold text-xl">{item.message.message_id}</span>
-        <span class="whitespace-pre-wrap">{item.message.content}</span>
-        <span class="text-xs text-gray-600 mt-1">
+        <span data-attr-msg class="whitespace-pre-wrap"
+          >{item.message.content}</span
+        >
+        <span data-attr-date class="text-xs text-gray-600 mt-1">
           {new Date(item.message.created_at).toLocaleString([], {
             day: "numeric",
             month: "short",
@@ -398,29 +399,34 @@
     </div>
   {:else}
     <div
-      class="flex flex-col bg-gray-500 text-white ml-auto p-2 px-3 rounded-lg list-none w-max max-w-[70%]"
+      class="flex flex-col bg-gray-700 text-white ml-auto p-2 px-3 rounded-lg list-none w-max max-w-[70%]"
     >
-      <div>
+      <div class="flex flex-col">
         <span class="font-bold text-xl">{item.message.message_id}</span>
-
-        <span class="whitespace-pre-wrap">{item.message.content}</span>
+        <span data-attr-msg class="whitespace-pre-wrap"
+          >{item.message.content}</span
+        >
         <span
           class="text-xs flex items-center justify-end gap-2 opacity-90 mt-1"
         >
-          {new Date(item.message.created_at).toLocaleString([], {
-            day: "numeric",
-            month: "short",
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          })}
-          {#if item.receipt.status === "sent"}
-            <Check size={14} />
-          {:else if item.receipt.status === "delivered"}
-            <CheckCheck size={14} />
-          {:else if item.receipt.status === "read"}
-            <CheckCheck size={14} class="text-blue-200" />
-          {/if}
+          <span data-attr-date>
+            {new Date(item.message.created_at).toLocaleString([], {
+              day: "numeric",
+              month: "short",
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            })}
+          </span>
+          <span data-attr-tick>
+            {#if item.receipt.status === "sent"}
+              <Check size={14} />
+            {:else if item.receipt.status === "delivered"}
+              <CheckCheck size={14} />
+            {:else if item.receipt.status === "read"}
+              <CheckCheck size={14} class="text-sky-400" />
+            {/if}
+          </span>
         </span>
       </div>
     </div>
