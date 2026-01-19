@@ -13,11 +13,8 @@
 
   const user_id = $derived(chatStore.currentUser?.id);
   const conversation_id = $derived(
-    chatStore.activeConversation?.conversation_id
+    chatStore.activeConversation?.conversation_id,
   );
-
-  // $inspect({ messages: chatStore.messages });
-  $inspect({ count: chatStore.getMessageCount(conversation_id!) });
 
   onMount(() => {
     if (conversation_id) {
@@ -31,24 +28,90 @@
   let scrollElement: HTMLDivElement | undefined = $state();
   let scrollTop = $state(0);
   let height = $state(0);
-  let itemHeight = $state(88);
-
-  let startIndex = $derived(Math.floor(scrollTop / itemHeight));
-  let endIndex = $derived(startIndex + Math.ceil(height / itemHeight));
+  //   let itemHeight = $state(88);
 
   let isLoadingOlder = $state(false);
   let isLoadingNewer = $state(false);
   let hasMoreOlder = $state(true);
   let hasMoreNewer = $state(true);
 
+  // Replace: let itemHeight = 88;
+  // Key by message_id instead of index
+  let heightCache = $state<Record<number, number>>({});
+  const ESTIMATED_HEIGHT = 80;
+
+  // Helper to get height or fallback to estimate
+  function getItemHeight(id: number) {
+    return heightCache[id] ?? ESTIMATED_HEIGHT;
+  }
+
+  // Calculate where each item should start
+  let offsets = $derived.by(() => {
+    let currentOffset = 0;
+    return chatStore.activeMessages.map((msg) => {
+      const pos = currentOffset;
+      // Use message_id logic
+      currentOffset += getItemHeight(msg.message.message_id);
+      return pos;
+    });
+  });
+
+  // Calculate total list height dynamically
+  let totalHeight = $derived(
+    offsets.length > 0
+      ? offsets[offsets.length - 1] +
+          getItemHeight(
+            chatStore.activeMessages[offsets.length - 1].message.message_id,
+          )
+      : 0,
+  );
+
+  $inspect({ totalHeight, offsets });
+
+  let startIndex = $derived(
+    offsets.findIndex((offset) => offset + ESTIMATED_HEIGHT > scrollTop),
+  );
+
+  let endIndex = $derived(
+    offsets.findIndex((offset) => offset > scrollTop + height),
+  );
+
+  // Fallbacks for initial load or end of list
+  let safeStartIndex = $derived(
+    startIndex === -1 ? 0 : Math.max(0, startIndex - 2),
+  );
+
+  let safeEndIndex = $derived(
+    endIndex === -1
+      ? chatStore.activeMessages.length
+      : Math.min(chatStore.activeMessages.length, endIndex + 2),
+  );
+
   let visibleList = $derived(
     chatStore.activeMessages
-      .slice(startIndex, endIndex + 1)
+      .slice(safeStartIndex, safeEndIndex)
       .map((entry, idx) => ({
         entry,
-        index: startIndex + idx,
-      }))
+        index: safeStartIndex + idx,
+      })),
   );
+
+  function measure(node: HTMLElement, id: number) {
+    const update = () => {
+      const newHeight = node.offsetHeight;
+      if (heightCache[id] !== newHeight) {
+        heightCache[id] = newHeight;
+      }
+    };
+
+    const ro = new ResizeObserver(update);
+    ro.observe(node);
+    update();
+
+    return {
+      destroy: () => ro.disconnect(),
+    };
+  }
 
   function handleScroll() {
     if (scrollElement) {
@@ -75,7 +138,7 @@
         root: scrollElement,
         rootMargin: "400px 0px",
         threshold: 0.1,
-      }
+      },
     );
 
     observer.observe(node);
@@ -91,6 +154,12 @@
     if (!hasMoreOlder) return;
     isLoadingOlder = true;
 
+    // 1. Capture Anchor (Top-most visible message)
+    const firstVisibleIndex =
+      startIndex !== -1 ? startIndex : Math.max(0, safeStartIndex);
+    const anchorMsg = chatStore.activeMessages[firstVisibleIndex];
+    const oldAnchorOffset = offsets[firstVisibleIndex] || 0;
+
     if (!conversation_id || !user_id) {
       return;
     }
@@ -105,25 +174,36 @@
             "Content-Type": "application/json",
           },
           credentials: "include",
-        }
+        },
       );
       const data: ResponseData = await response.json();
       hasMoreOlder = data.hasMore ?? false;
+
       if (data.chat.length > 0) {
         let newMessages = [
           ...Array.from(data.chat),
           ...chatStore.activeMessages,
         ];
         chatStore.loadOlderMessages(conversation_id, newMessages);
+
+        // Wait for DOM to update and measures to happen
+        await tick();
+
+        if (anchorMsg && scrollElement) {
+          // 2. Find where anchor went
+          const newAnchorIndex = chatStore.activeMessages.findIndex(
+            (m) => m.message.message_id === anchorMsg.message.message_id,
+          );
+
+          if (newAnchorIndex !== -1) {
+            // 3. Calculate delta and correct scroll
+            const newAnchorOffset = offsets[newAnchorIndex];
+            const delta = newAnchorOffset - oldAnchorOffset;
+            scrollElement.scrollTop += delta;
+          }
+        }
       }
     } finally {
-      if (hasMoreOlder) {
-        scrollElement?.scrollBy({
-          top: 20 * itemHeight,
-          behavior: "instant",
-        });
-      }
-
       isLoadingOlder = false;
     }
   }
@@ -145,7 +225,7 @@
             "Content-Type": "application/json",
           },
           credentials: "include",
-        }
+        },
       );
       const data: ResponseData = await response.json();
       hasMoreNewer = data.hasMore ?? false;
@@ -157,12 +237,6 @@
         chatStore.loadNewerMessages(conversation_id, newMessages);
       }
     } finally {
-      if (hasMoreNewer) {
-        scrollElement?.scrollBy({
-          top: -20 * itemHeight,
-          behavior: "instant",
-        });
-      }
       isLoadingNewer = false;
     }
   }
@@ -185,7 +259,7 @@
       aria-hidden="true"
     ></div>
     <ul
-      style:height="{chatStore.activeMessages.length * itemHeight}px"
+      style:height="{totalHeight}px"
       class="h-full relative w-full"
       onscroll={handleScroll}
     >
@@ -196,12 +270,12 @@
         {@render startOfConversation()}
       {/if}
 
-      {#each visibleList as { entry, index } (index)}
+      {#each visibleList as { entry, index } (entry.message.message_id)}
         <li
-          style:height="{itemHeight}px"
+          use:measure={entry.message.message_id}
           style:width="100%"
-          style:transform="translateY({index * itemHeight}px)"
-          class="absolute"
+          style:transform="translateY({offsets[index]}px)"
+          class="absolute left-0 top-0 py-2"
         >
           {@render messageItem(entry)}
         </li>
@@ -263,9 +337,9 @@
 {#snippet messageItem(item: ChatEntry)}
   {#if item.message.sender_id !== chatStore.currentUser?.id}
     <div
-      class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg mb-2 list-none"
+      class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg list-none"
     >
-      <div class="bg-amber-500">
+      <div>
         <span class="font-bold text-xl">{item.message.message_id}</span>
         <span class="whitespace-pre-wrap">{item.message.content}</span>
         <span class="text-xs text-gray-600 mt-1">
@@ -281,9 +355,9 @@
     </div>
   {:else}
     <div
-      class="flex flex-col bg-gray-500 text-white ml-auto p-2 px-3 rounded-lg mb-2 list-none w-max max-w-[70%]"
+      class="flex flex-col bg-gray-500 text-white ml-auto p-2 px-3 rounded-lg list-none w-max max-w-[70%]"
     >
-      <div class="bg-amber-500">
+      <div>
         <span class="font-bold text-xl">{item.message.message_id}</span>
 
         <span class="whitespace-pre-wrap">{item.message.content}</span>
