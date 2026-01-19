@@ -8,7 +8,12 @@
 
   let startIndex = $derived(Math.floor(scrollTop / itemHeight));
   let endIndex = $derived(startIndex + Math.ceil(height / itemHeight));
-  let visibleList = $derived(list.slice(startIndex, endIndex + 1));
+  let visibleList = $derived(
+    list.slice(startIndex, endIndex + 1).map((item, idx) => ({
+      item,
+      index: startIndex + idx,
+    }))
+  );
 
   function handleScroll() {
     if (scrollElement) {
@@ -40,17 +45,31 @@
     };
   }
 
+  //   function handleLoadOlder() {
+  //     console.log("loading older");
+  //     let startIndex = list.length;
+  //     list = [
+  //       ...Array.from({ length: 20 }, (_, i) => i + startIndex).reverse(),
+  //       ...list,
+  //     ];
+
+  //     scrollElement?.scrollBy({
+  //       top: itemHeight * 20,
+  //       left: 0,
+  //       behavior: "instant",
+  //     });
+  //   }
   function handleLoadOlder() {
     console.log("loading older");
+    const oldLength = list.length;
     let startIndex = list.length;
     list = [
       ...Array.from({ length: 20 }, (_, i) => i + startIndex).reverse(),
       ...list,
     ];
-
+    // Maintain scroll position relative to content
     scrollElement?.scrollBy({
-      top: itemHeight * 20,
-      left: 0,
+      top: 20 * itemHeight,
       behavior: "instant",
     });
   }
@@ -64,7 +83,12 @@
     ];
 
     if (list.length > 200) {
-      list = list.slice(200 - 2);
+      const removed = list.length - 200;
+      list = list.slice(removed); // Remove from beginning
+      scrollElement?.scrollBy({
+        top: -(removed * itemHeight),
+        behavior: "instant",
+      });
     }
   }
 
@@ -85,11 +109,11 @@
     aria-hidden="true"
   ></div>
   <div style:height="{list.length * itemHeight}px" class="relative">
-    {#each visibleList as item, index (item)}
+    {#each visibleList as { item, index } (item)}
       <div
         style="height: {itemHeight}px; width: 100%;"
         class="bg-amber-500 border-t border-2 absolute"
-        style:transform="translateY({(startIndex + index) * itemHeight}px)"
+        style:transform="translateY({index * itemHeight}px)"
       >
         item{item}
       </div>
