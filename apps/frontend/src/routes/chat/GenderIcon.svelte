@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Mars, Venus } from "@lucide/svelte";
-  let { gender }: { gender: string } = $props();
+  let { gender }: { gender: string | undefined } = $props();
 </script>
 
 <span>

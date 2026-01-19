@@ -1,4 +1,4 @@
-const VirtualScroll = ({
+<!-- const VirtualScroll = ({
     renderItem,
     itemCount,
     viewportHeight,
@@ -42,4 +42,4 @@ const VirtualScroll = ({
         </div>
       </div>
     );
-  };
+  }; -->

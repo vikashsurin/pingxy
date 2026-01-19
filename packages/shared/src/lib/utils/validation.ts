@@ -11,12 +11,9 @@ export const userInsertSchema = createInsertSchema(schema.users);
 export const userSelectSchema = createSelectSchema(schema.users);
 export const userUpdateSchema = createUpdateSchema(schema.users);
 
-
-export const receiptInsertSchema = createInsertSchema(schema.message_receipts)
-export const receiptSelectSchema = createSelectSchema(schema.message_receipts)
-export const receiptUpdateSchema = createUpdateSchema(schema.message_receipts)
-
-
+export const receiptInsertSchema = createInsertSchema(schema.message_receipts);
+export const receiptSelectSchema = createSelectSchema(schema.message_receipts);
+export const receiptUpdateSchema = createUpdateSchema(schema.message_receipts);
 
 export const conversationInsertSchema = createInsertSchema(
   schema.conversations
@@ -41,6 +38,7 @@ export type PublicUser = Omit<User, "hashed_password"> & {
   data: {
     gender: string;
     age: number;
+    bio: string;
     country: string;
     roles: string[];
   };
@@ -99,12 +97,12 @@ const messageType = z.enum([
   "user_leave",
   "new_conversation",
   "open_conversation",
-  'mark_all_as_read',
-  'mark_as_delivered',
-  'message_delivered',
-  'receipt_update',
-  'message_read',
-  'mark_as_read',
+  "mark_all_as_read",
+  "mark_as_delivered",
+  "message_delivered",
+  "receipt_update",
+  "message_read",
+  "mark_as_read",
   "notification",
   "subscribe",
   "unsubscribe",
@@ -126,16 +124,20 @@ export const messagePayloadSchema = z.object({
       avatarUrl: z.url().optional(),
     })
     .optional(),
-  msgData: z.object({
-    message: z.union([messageInsertSchema, messageSelectSchema]).optional(),
-    // TODO: update this to only use arrays.
-    receipt: z.union([
-      receiptInsertSchema,
-      receiptSelectSchema,
-      z.array(receiptInsertSchema),
-      z.array(receiptSelectSchema)
-    ]).optional()
-  }).optional(),
+  msgData: z
+    .object({
+      message: z.union([messageInsertSchema, messageSelectSchema]).optional(),
+      // TODO: update this to only use arrays.
+      receipt: z
+        .union([
+          receiptInsertSchema,
+          receiptSelectSchema,
+          z.array(receiptInsertSchema),
+          z.array(receiptSelectSchema),
+        ])
+        .optional(),
+    })
+    .optional(),
   data: z
     .object({
       conversation_id: z.number().optional(),

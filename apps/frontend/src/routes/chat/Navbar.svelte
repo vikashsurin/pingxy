@@ -19,11 +19,6 @@
     const message: MessagePayload = {
       type: "user_offline",
       id: crypto.randomUUID(),
-      sender: {
-        id: chatStore.currentUser!.id,
-        username: chatStore.currentUser!.username,
-      },
-      timestamp: new Date().toISOString(),
     };
 
     const socket = getSocket();

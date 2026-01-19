@@ -6,4 +6,4 @@ export * from "../../features/conversations/participants/participants.schema";
 export * from "../../features/messages/msg.schema";
 export * from "../../features/messages/receipts/receipt.schema";
 export * from "../../features/messages/reactions/msg-react.schema";
-export * from '../../features/blocked-users/blocked-user.schema'
+export * from "../../features/blocked-users/blocked-user.schema";
