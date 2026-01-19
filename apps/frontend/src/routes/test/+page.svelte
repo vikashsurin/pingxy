@@ -15,7 +15,7 @@
   }
 </script>
 
-<VirtualList itemHeight={60} height={500} />
+<VirtualList itemHeight={60} />
 
 <button onclick={() => handlePush()}>Push</button>
 <button onclick={() => handlePrepend()}>Prepend</button>
