@@ -1,19 +1,38 @@
+# Stage 1: Build
+FROM oven/bun:1-alpine AS builder
+WORKDIR /app
+
+# Copy package files using your specific paths
+COPY apps/backend/package.json ./apps/backend/
+COPY packages/shared/package.json ./packages/shared/
+COPY package.json bun.lock ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY packages/shared ./packages/shared
+COPY apps/backend ./apps/backend
+
+# Stage 2: Runtime
 FROM oven/bun:1-alpine
 WORKDIR /app
 
-# Copy backend and shared into the image
-COPY backend ./backend
-COPY shared ./shared
+# Copy the specific app and shared folders
+COPY --from=builder /app/packages/shared ./packages/shared
+COPY --from=builder /app/apps/backend ./apps/backend
+COPY --from=builder /app/node_modules ./node_modules
 
-# Install from inside backend
-WORKDIR /app/backend
-RUN bun install
+WORKDIR /app/apps/backend
 
-# Install dependencies
-WORKDIR /app/shared
-RUN bun install
+# Copy the startup script and give it execution permissions
+COPY apps/backend/start.sh ./start.sh
+RUN chmod +x ./start.sh
 
-WORKDIR /app/backend
 
 EXPOSE 3000
-CMD ["bun", "run", "dev"]
+
+USER bun
+
+# Use the script to start the container
+CMD ["./start.sh"]

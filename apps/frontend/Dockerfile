@@ -1,16 +1,20 @@
-FROM oven/bun:1-alpine
+# Stage 1: Build
+FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
-COPY frontend ./frontend
-COPY shared ./shared
+COPY apps/frontend/package.json ./apps/frontend/
+COPY packages/shared/package.json ./packages/shared/
+COPY package.json bun.lock ./
 
-WORKDIR /app/frontend
 RUN bun install
 
-WORKDIR /app/shared
-RUN bun install
+COPY packages/shared ./packages/shared
+COPY apps/frontend ./apps/frontend
 
+WORKDIR /app/apps/frontend
+RUN bun run build
+
+# Stage 2: Export static files
+FROM alpine
 WORKDIR /app/frontend
-
-EXPOSE 5173
-CMD ["bun", "--bun", "dev", "--host", "0.0.0.0", "--port", "5173"]
+COPY --from=builder /app/apps/frontend/dist ./dist
