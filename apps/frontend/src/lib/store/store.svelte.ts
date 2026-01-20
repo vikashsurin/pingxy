@@ -5,6 +5,8 @@ import type {
   MessageReceipt,
 } from "@chat/shared/src/lib/utils/validation";
 import { SvelteSet } from "svelte/reactivity";
+import { virtualStore } from "./virtualStore.svelte";
+
 
 export type PrivateConversation = {
   conversation_id: number;
@@ -134,11 +136,15 @@ class ChatStore {
         throw new Error("Failed to load messages");
       }
 
-      const data = await response.json();
+      const body = await response.json();
+
+
+
+      virtualStore.absoluteLatestMessageId = body.chat.at(-1).message.message_id;
 
       // Initial load - just add messages without trimming
       this.messages[conversation_id] = {};
-      for (const entry of data.chat) {
+      for (const entry of body.chat) {
         this.messages[conversation_id][entry.message.message_id] = entry;
       }
     } catch (error) {

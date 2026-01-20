@@ -1,8 +1,11 @@
 <script lang="ts">
-    import { chatStore } from "$lib/store.svelte";
+    import { chatStore } from "$lib/store/store.svelte";
     import { onMount, tick } from "svelte";
-    import { Check, CheckCheck, Loader } from "@lucide/svelte";
-    import type { ChatEntry } from "$lib/store.svelte";
+    import { Check, CheckCheck, CircleArrowDown, Loader } from "@lucide/svelte";
+    import type { ChatEntry } from "$lib/store/store.svelte";
+    import { virtualStore } from "$lib/store/virtualStore.svelte";
+
+    $inspect({ d: virtualStore.absoluteLatestMessageId });
 
     type ResponseData = { chat: ChatEntry[]; hasMore: boolean };
 
@@ -14,6 +17,9 @@
     const conversation_id = $derived(
         chatStore.activeConversation?.conversation_id,
     );
+
+    //UX
+    let jumpToLatest = $state(false);
 
     // --- State ---
     let scrollElement: HTMLDivElement | undefined = $state();
@@ -86,6 +92,14 @@
         offsetsCache = newOffsets;
         totalHeight = currentOffset;
     }
+
+    // $effec(()=>{
+    //   if(visibleList){
+
+    //   }
+    // })
+    //
+    //
 
     // --- Binary Search for Visible Range ---
     function findStartIndex(scrollTop: number): number {
@@ -200,6 +214,20 @@
             recalculateOffsets();
         }
     });
+
+    function scrollToBottom(smooth = false) {
+        if (!scrollElement) return;
+
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+            if (scrollElement) {
+                scrollElement.scrollTo({
+                    top: scrollElement.scrollHeight,
+                    behavior: smooth ? "smooth" : "auto",
+                });
+            }
+        });
+    }
 
     // --- Lifecycle ---
     onMount(() => {
@@ -368,55 +396,100 @@
             isLoadingNewer = false;
         }
     }
+
+    $effect(() => {
+        if (visibleList) {
+            const currentLastId = visibleList.at(-1)?.entry.message.message_id;
+            if (currentLastId && virtualStore.absoluteLatestMessageId) {
+                if (
+                    currentLastId <
+                    virtualStore.absoluteLatestMessageId - 250
+                ) {
+                    jumpToLatest = true;
+                } else {
+                    jumpToLatest = false;
+                }
+            }
+        }
+    });
+
+    function handleJumpToLatest() {
+        if (jumpToLatest && scrollElement) {
+            chatStore.loadInitialMessages({
+                conversation_id: conversation_id!,
+            });
+
+            scrollElement.scrollTo({
+                top: totalHeight,
+                behavior: "smooth",
+            });
+        }
+    }
 </script>
 
-<div
-    bind:this={scrollElement}
-    bind:clientHeight={viewportHeight}
-    data-virtual-list
-    style:height="100%"
-    class="flex-1 overflow-auto border-4"
-    onscroll={handleScroll}
->
-    <div
-        use:intersectionObserver={handleLoadOlder}
-        data-infinite-scroll-trigger="older"
-        class="h-1 w-full"
-        aria-hidden="true"
-    ></div>
-
-    <ul style:height="{totalHeight}px" class="relative w-full">
-        {#if isLoadingOlder}
-            {@render oldLoader()}
-        {/if}
-
-        {#if !hasMoreOlder}
-            {@render startOfConversation()}
-        {/if}
-
-        {#each visibleList as { entry, index } (entry.message.message_id)}
-            <li
-                use:measure={entry.message.message_id}
-                style:width="100%"
-                style:transform="translateY({offsetsCache[index]}px)"
-                class="absolute left-0 top-0 py-2"
+<div style:height="100%" class="overflow-auto relative">
+    {#if jumpToLatest}
+        <button
+            class="absolute z-50 bottom-10 right-1/2 translate-x-1/2"
+            onclick={handleJumpToLatest}
+        >
+            <div
+                class="bg-blue-500 flex hover:bg-blue-400 active:bg-blue-600 items-center gap-1 justify-center text-white active:scale-98 p-2 text-xs font-medium rounded-full"
             >
-                {@render messageItem(entry)}
-            </li>
-        {/each}
-
-        {#if isLoadingNewer}
-            {@render newLoader()}
-        {/if}
-    </ul>
-
+                <CircleArrowDown size={16} strokeWidth={2} />
+                Jump to Latest
+            </div>
+        </button>
+    {/if}
     <div
-        use:intersectionObserver={handleLoadNewer}
-        data-infinite-scroll-trigger="newer"
-        class="h-1 w-full"
-        aria-hidden="true"
-    ></div>
+        bind:this={scrollElement}
+        bind:clientHeight={viewportHeight}
+        data-virtual-list
+        style:height="100%"
+        class="flex-1 overflow-auto border-4"
+        onscroll={handleScroll}
+    >
+        <div
+            use:intersectionObserver={handleLoadOlder}
+            data-infinite-scroll-trigger="older"
+            class="h-1 w-full"
+            aria-hidden="true"
+        ></div>
+
+        <ul style:height="{totalHeight}px" class="relative w-full">
+            {#if isLoadingOlder}
+                {@render oldLoader()}
+            {/if}
+
+            {#if !hasMoreOlder}
+                {@render startOfConversation()}
+            {/if}
+
+            {#each visibleList as { entry, index } (entry.message.message_id)}
+                <li
+                    use:measure={entry.message.message_id}
+                    style:width="100%"
+                    style:transform="translateY({offsetsCache[index]}px)"
+                    class="absolute left-0 top-0 py-2"
+                >
+                    {@render messageItem(entry)}
+                </li>
+            {/each}
+
+            {#if isLoadingNewer}
+                {@render newLoader()}
+            {/if}
+        </ul>
+
+        <div
+            use:intersectionObserver={handleLoadNewer}
+            data-infinite-scroll-trigger="newer"
+            class="h-1 w-full"
+            aria-hidden="true"
+        ></div>
+    </div>
 </div>
+
 <!--  Snippets -->
 
 {#snippet oldLoader()}

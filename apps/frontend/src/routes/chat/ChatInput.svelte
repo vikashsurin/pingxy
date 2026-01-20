@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { chatStore } from "$lib/store.svelte";
+    import { chatStore } from "$lib/store/store.svelte";
     import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
 
     let messageText = $state("");

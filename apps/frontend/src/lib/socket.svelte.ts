@@ -1,6 +1,6 @@
-import { chatStore, type ChatEntry } from "$lib/store.svelte.js";
+import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
 import type { Message, MessagePayload, MessageReceipt } from "@chat/shared/src/lib/utils/validation";
-import { markAsDelivered, markAsRead, receiptHandlers } from "./storeHelper.svelte";
+import { markAsDelivered, markAsRead, receiptHandlers } from './store/storeHelper.svelte';
 
 export let socket: WebSocket | null = null;
 

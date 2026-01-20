@@ -1,5 +1,5 @@
 import { type Message, type MessagePayload, type MessageReceipt } from "@chat/shared/src/lib/utils/validation";
-import { getSocket } from "./socket.svelte";
+import { getSocket } from "../socket.svelte";
 import { chatStore } from "./store.svelte";
 
 /**

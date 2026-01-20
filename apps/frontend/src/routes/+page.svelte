@@ -4,7 +4,7 @@
     import { debounce } from "$lib/utils/debounce";
     import { CircleAlert, CircleCheck } from "@lucide/svelte";
     import { enhance } from "$app/forms";
-    import { chatStore } from "$lib/store.svelte.js";
+    import { chatStore } from "$lib/store/store.svelte.js";
     import { type PublicUser } from "@chat/shared/src/lib/utils/validation.js";
 
     let { form } = $props();

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getSocket } from "$lib/socket.svelte";
-  import { chatStore } from "$lib/store.svelte";
+  import { chatStore } from "$lib/store/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
   import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
   import {

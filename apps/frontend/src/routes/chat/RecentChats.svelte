@@ -1,10 +1,13 @@
 <script lang="ts">
     import { getSocket } from "$lib/socket.svelte";
-    import { chatStore, type PrivateConversation } from "$lib/store.svelte";
+    import {
+        chatStore,
+        type PrivateConversation,
+    } from "$lib/store/store.svelte";
     import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
-    import { markAllAsRead } from "$lib/storeHelper.svelte";
+    import { markAllAsRead } from "$lib/store/storeHelper.svelte";
 
     onMount(async () => {
         const response = await fetch(
