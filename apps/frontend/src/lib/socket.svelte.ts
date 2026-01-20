@@ -1,6 +1,7 @@
 import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
 import type { Message, MessagePayload, MessageReceipt } from "@chat/shared/src/lib/utils/validation";
 import { markAsDelivered, markAsRead, receiptHandlers } from './store/storeHelper.svelte';
+import { virtualStore } from "./store/virtualStore.svelte";
 
 export let socket: WebSocket | null = null;
 
@@ -47,10 +48,7 @@ const messageHandler: Record<string, (data: any) => void> = {
   message: (messagePayload: MessagePayload) => {
     const msgData = messagePayload.msgData as ChatEntry
     const conversation_id = msgData.message.conversation_id
-    // chatStore.addChatEntry(msgData.message.conversation_id, msgData)
-    //
 
-    // chatStore.messages[conversation_id][msgData.message.message_id] = msgData
     if (!chatStore.messages[conversation_id]) {
       chatStore.messages[conversation_id] = {};
     }
@@ -86,15 +84,19 @@ const messageHandler: Record<string, (data: any) => void> = {
     // Mark as read, if active conversation is the same as the received message
     // TODO: also can check if the scroll position is at the bottom, for precision
     if (isActiveConversation) {
-      await markAsRead({
-        message,
-        user_id
-      })
-    } else {
-      await markAsDelivered({
-        message,
-        user_id
-      })
+      if (virtualStore.isAtBottom) {
+        await markAsRead({
+          message,
+          user_id
+        })
+      } else {
+        await markAsDelivered({
+          message,
+          user_id
+        })
+
+        chatStore.addUnreadMessage(conversationId!, message.message_id);
+      }
     }
   },
 

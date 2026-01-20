@@ -4,7 +4,7 @@ import type {
   PublicUser,
   MessageReceipt,
 } from "@chat/shared/src/lib/utils/validation";
-import { SvelteSet } from "svelte/reactivity";
+import { SvelteSet, SvelteMap } from "svelte/reactivity";
 import { virtualStore } from "./virtualStore.svelte";
 
 
@@ -45,6 +45,7 @@ class ChatStore {
 
   // Nested structure: { [conversationId]: { [messageId]: ChatEntry } }
   messages = $state<Record<number, Record<number, ChatEntry>>>({});
+  unread = new SvelteMap<number, number[]>();
 
   // Maximum messages to keep in memory per conversation
   private readonly MESSAGE_LIMIT = 100;
@@ -320,6 +321,13 @@ class ChatStore {
 
   async clearNotification(conversation_id: number) {
     this.notifications.delete(conversation_id);
+  }
+
+  async addUnreadMessage(conversationId: number, messageId: number) {
+    const unreadMessages = this.unread.get(conversationId) || [];
+    if (!unreadMessages.includes(messageId)) {
+      this.unread.set(conversationId, [...unreadMessages, messageId]);
+    }
   }
 
   reset() {

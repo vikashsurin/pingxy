@@ -1,1 +1,44 @@
 @import 'tailwindcss';
+
+@theme {
+    --animate-wiggle-alert: wiggle-pause 3s ease-in-out infinite;
+
+    @keyframes wiggle-pause {
+
+        0%,
+        20% {
+            transform: rotate(0deg)
+        }
+
+
+        2.5% {
+            transform: rotate(-5deg)
+        }
+
+
+        5% {
+            transform: rotate(5deg)
+        }
+
+
+        7.5% {
+            transform: rotate(-5deg)
+        }
+
+
+        10% {
+            transform: rotate(5deg)
+        }
+
+
+        12.5% {
+            transform: rotate(0deg)
+        }
+
+
+        100% {
+            transform: rotate(0deg)
+        }
+
+    }
+}

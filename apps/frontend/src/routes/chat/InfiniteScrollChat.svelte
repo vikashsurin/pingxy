@@ -1,40 +1,34 @@
 <script lang="ts">
     import { chatStore } from "$lib/store/store.svelte";
-    import { onMount, tick } from "svelte";
-    import { Check, CheckCheck, CircleArrowDown, Loader } from "@lucide/svelte";
+    import { onMount } from "svelte";
+    import {
+        Check,
+        CheckCheck,
+        BellRing,
+        CircleArrowDown,
+        Loader,
+    } from "@lucide/svelte";
+    import { Tween } from "svelte/motion";
     import type { ChatEntry } from "$lib/store/store.svelte";
     import { virtualStore } from "$lib/store/virtualStore.svelte";
+    import { markAllAsRead, markAsRead } from "$lib/store/storeHelper.svelte";
 
-    $inspect({ d: virtualStore.absoluteLatestMessageId });
-
-    type ResponseData = { chat: ChatEntry[]; hasMore: boolean };
-
+    const tween = new Tween(0);
     const LIMIT = $derived(chatStore.LIMIT);
-    const ESTIMATED_HEIGHT = 80;
-    const OVERSCAN = 3;
 
     const user_id = $derived(chatStore.currentUser?.id);
     const conversation_id = $derived(
         chatStore.activeConversation?.conversation_id,
     );
+    let unread = $derived(
+        chatStore.unread.get(
+            chatStore.activeConversation?.conversation_id ?? 0,
+        ),
+    );
 
-    //UX
-    let jumpToLatest = $state(false);
-
-    // --- State ---
+    $inspect({ unread });
+    // --- DOM Elements ---
     let scrollElement: HTMLDivElement | undefined = $state();
-    let scrollTop = $state(0);
-    let viewportHeight = $state(0);
-
-    let isLoadingOlder = $state(false);
-    let isLoadingNewer = $state(false);
-    let hasMoreOlder = $state(false);
-    let hasMoreNewer = $state(false);
-
-    // Simple Map for heights
-    let heightCache = new Map<number, number>();
-    let offsetsCache: number[] = $state([]);
-    let totalHeight = $state(0);
 
     // --- ResizeObserver ---
     let resizeObserver: ResizeObserver;
@@ -50,110 +44,25 @@
                     if (id !== undefined) {
                         const newHeight = (entry.target as HTMLElement)
                             .offsetHeight;
-                        const oldHeight = heightCache.get(id);
+                        const oldHeight = virtualStore.getItemHeight(id);
 
                         if (oldHeight !== newHeight) {
-                            heightCache.set(id, newHeight);
+                            virtualStore.setItemHeight(id, newHeight);
                             needsRecalc = true;
                         }
                     }
                 }
 
                 if (needsRecalc) {
-                    recalculateOffsets();
+                    virtualStore.recalculateOffsets();
                 }
             });
         }
         return resizeObserver;
     }
 
-    // --- Height & Offset Calculations ---
-    function getItemHeight(id: number): number {
-        return heightCache.get(id) ?? ESTIMATED_HEIGHT;
-    }
-
-    function recalculateOffsets() {
-        const messages = chatStore.activeMessages;
-
-        if (messages.length === 0) {
-            offsetsCache = [];
-            totalHeight = 0;
-            return;
-        }
-
-        const newOffsets: number[] = [];
-        let currentOffset = 0;
-
-        for (let i = 0; i < messages.length; i++) {
-            newOffsets[i] = currentOffset;
-            currentOffset += getItemHeight(messages[i].message.message_id);
-        }
-
-        offsetsCache = newOffsets;
-        totalHeight = currentOffset;
-    }
-
-    // $effec(()=>{
-    //   if(visibleList){
-
-    //   }
-    // })
-    //
-    //
-
-    // --- Binary Search for Visible Range ---
-    function findStartIndex(scrollTop: number): number {
-        let left = 0;
-        let right = offsetsCache.length - 1;
-
-        while (left < right) {
-            const mid = Math.floor((left + right) / 2);
-            if (offsetsCache[mid] < scrollTop) {
-                left = mid + 1;
-            } else {
-                right = mid;
-            }
-        }
-
-        return Math.max(0, left - OVERSCAN);
-    }
-
-    function findEndIndex(scrollBottom: number): number {
-        let left = 0;
-        let right = offsetsCache.length - 1;
-
-        while (left < right) {
-            const mid = Math.ceil((left + right) / 2);
-            if (offsetsCache[mid] <= scrollBottom) {
-                left = mid;
-            } else {
-                right = mid - 1;
-            }
-        }
-
-        return Math.min(offsetsCache.length, right + OVERSCAN + 1);
-    }
-
-    // Calculate visible items
-    let visibleRange = $derived.by(() => {
-        if (offsetsCache.length === 0) {
-            return { start: 0, end: 0 };
-        }
-
-        const start = findStartIndex(scrollTop);
-        const end = findEndIndex(scrollTop + viewportHeight);
-
-        return { start, end };
-    });
-
-    let visibleList = $derived(
-        chatStore.activeMessages
-            .slice(visibleRange.start, visibleRange.end)
-            .map((entry, idx) => ({
-                entry,
-                index: visibleRange.start + idx,
-            })),
-    );
+    // Calculate visible items using virtualStore
+    let visibleRange = $derived.by(() => virtualStore.getVisibleRange());
 
     // --- Measurement ---
     function measure(node: HTMLElement, id: number) {
@@ -163,9 +72,11 @@
 
         // Initial measure
         const initialHeight = node.offsetHeight;
-        if (!heightCache.has(id)) {
-            heightCache.set(id, initialHeight);
-            recalculateOffsets();
+        const cachedHeight = virtualStore.getItemHeight(id);
+
+        if (cachedHeight === virtualStore.ESTIMATED_HEIGHT) {
+            virtualStore.setItemHeight(id, initialHeight);
+            virtualStore.recalculateOffsets();
         }
 
         return {
@@ -179,7 +90,7 @@
     // --- Scroll Handler ---
     function handleScroll() {
         if (scrollElement) {
-            scrollTop = scrollElement.scrollTop;
+            virtualStore.scrollTop = scrollElement.scrollTop;
         }
     }
 
@@ -191,7 +102,7 @@
         const currentCount = chatStore.activeMessages.length;
         if (currentCount !== lastMessageCount) {
             lastMessageCount = currentCount;
-            recalculateOffsets();
+            virtualStore.recalculateOffsets();
         }
     });
 
@@ -204,46 +115,36 @@
                 chatStore.activeMessages.map((m) => m.message.message_id),
             );
 
-            const newCache = new Map<number, number>();
-            for (const [id, height] of heightCache.entries()) {
-                if (currentIds.has(id)) {
-                    newCache.set(id, height);
-                }
-            }
-            heightCache = newCache;
-            recalculateOffsets();
+            virtualStore.cleanCacheForConversation(currentIds);
         }
     });
-
-    function scrollToBottom(smooth = false) {
-        if (!scrollElement) return;
-
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-            if (scrollElement) {
-                scrollElement.scrollTo({
-                    top: scrollElement.scrollHeight,
-                    behavior: smooth ? "smooth" : "auto",
-                });
-            }
-        });
-    }
 
     // --- Lifecycle ---
     onMount(() => {
         if (conversation_id) {
             chatStore.loadInitialMessages({ conversation_id });
         }
-        hasMoreOlder = true;
+        virtualStore.hasMoreOlder = true;
 
         if (scrollElement) {
-            viewportHeight = scrollElement.clientHeight;
+            virtualStore.viewportHeight = scrollElement.clientHeight;
         }
+
+        console.log({ iat: virtualStore.isAtBottom });
 
         return () => {
             resizeObserver?.disconnect();
             elementToId.clear();
         };
+    });
+
+    $effect(() => {
+        if (chatStore.activeMessages.length > 0) {
+            scrollElement?.scrollBy({
+                top: virtualStore.totalHeight,
+                behavior: "instant",
+            });
+        }
     });
 
     // --- Intersection Observer ---
@@ -270,180 +171,82 @@
         };
     }
 
-    // --- Data Loading ---
+    // --- Data Loading Wrappers ---
     async function handleLoadOlder() {
-        if (!hasMoreOlder || isLoadingOlder || !conversation_id || !user_id) {
-            return;
-        }
+        if (!conversation_id || !user_id) return;
 
-        isLoadingOlder = true;
-
-        // Capture anchor
-        const anchorIndex = visibleRange.start;
-        const anchorMsg = chatStore.activeMessages[anchorIndex];
-        const oldAnchorOffset = offsetsCache[anchorIndex] || 0;
-
-        const oldestId = chatStore.getOldestMessageId(conversation_id);
-
-        try {
-            const response = await fetch(
-                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?before=${oldestId}&limit=${LIMIT}`,
-                {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                },
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data: ResponseData = await response.json();
-            hasMoreOlder = data.hasMore ?? false;
-            hasMoreNewer = true;
-
-            if (data.chat.length > 0) {
-                chatStore.loadOlderMessages(
-                    conversation_id,
-                    Array.from(data.chat),
-                );
-
-                await tick();
-                await tick();
-
-                // Restore scroll position
-                if (anchorMsg && scrollElement) {
-                    const newAnchorIndex = chatStore.activeMessages.findIndex(
-                        (m) =>
-                            m.message.message_id ===
-                            anchorMsg.message.message_id,
-                    );
-
-                    if (newAnchorIndex !== -1) {
-                        const newAnchorOffset = offsetsCache[newAnchorIndex];
-                        const delta = newAnchorOffset - oldAnchorOffset;
-                        scrollElement.scrollTop += delta;
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Failed to load older messages:", error);
-        } finally {
-            isLoadingOlder = false;
-        }
+        await virtualStore.handleLoadOlder({
+            conversation_id,
+            user_id,
+            limit: LIMIT,
+            scrollElement,
+            visibleRangeStart: visibleRange.start,
+        });
     }
 
     async function handleLoadNewer() {
-        if (!hasMoreNewer || isLoadingNewer || !conversation_id || !user_id) {
-            return;
-        }
+        if (!conversation_id || !user_id) return;
 
-        isLoadingNewer = true;
-
-        const anchorIndex = visibleRange.start;
-        const anchorMsg = chatStore.activeMessages[anchorIndex];
-        const oldAnchorOffset = offsetsCache[anchorIndex] || 0;
-
-        const newestId = chatStore.getNewestMessageId(conversation_id);
-
-        try {
-            const response = await fetch(
-                `http://localhost:3000/api/conversations/${conversation_id}/messages/${user_id}?after=${newestId}&limit=${LIMIT}`,
-                {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                },
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data: ResponseData = await response.json();
-            hasMoreNewer = data.hasMore ?? false;
-
-            if (data.chat.length > 0) {
-                chatStore.loadNewerMessages(
-                    conversation_id,
-                    Array.from(data.chat),
-                );
-
-                await tick();
-                await tick();
-
-                if (anchorMsg && scrollElement) {
-                    const newAnchorIndex = chatStore.activeMessages.findIndex(
-                        (m) =>
-                            m.message.message_id ===
-                            anchorMsg.message.message_id,
-                    );
-
-                    if (newAnchorIndex !== -1) {
-                        const newAnchorOffset = offsetsCache[newAnchorIndex];
-                        const delta = newAnchorOffset - oldAnchorOffset;
-
-                        if (delta !== 0) {
-                            scrollElement.scrollTop += delta;
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Failed to load newer messages:", error);
-        } finally {
-            isLoadingNewer = false;
-        }
+        await virtualStore.handleLoadNewer({
+            conversation_id,
+            user_id,
+            limit: LIMIT,
+            scrollElement,
+            visibleRangeStart: visibleRange.start,
+        });
     }
 
+    // Jump to latest effect
     $effect(() => {
-        if (visibleList) {
-            const currentLastId = visibleList.at(-1)?.entry.message.message_id;
+        if (virtualStore.visibleList) {
+            const currentLastId =
+                virtualStore.visibleList.at(-1)?.entry.message.message_id;
             if (currentLastId && virtualStore.absoluteLatestMessageId) {
                 if (
                     currentLastId <
                     virtualStore.absoluteLatestMessageId - 250
                 ) {
-                    jumpToLatest = true;
+                    virtualStore.jumpToLatest = true;
                 } else {
-                    jumpToLatest = false;
+                    virtualStore.jumpToLatest = false;
                 }
             }
         }
     });
 
     function handleJumpToLatest() {
-        if (jumpToLatest && scrollElement) {
+        if (virtualStore.jumpToLatest && scrollElement) {
             chatStore.loadInitialMessages({
                 conversation_id: conversation_id!,
             });
 
             scrollElement.scrollTo({
-                top: totalHeight,
+                top: virtualStore.totalHeight,
                 behavior: "smooth",
             });
         }
     }
+
+    async function handleNewMessage() {
+        if (scrollElement) {
+            chatStore.loadInitialMessages({
+                conversation_id: conversation_id!,
+            });
+
+            scrollElement.scrollTo({
+                top: virtualStore.totalHeight,
+                behavior: "smooth",
+            });
+        }
+        await markAllAsRead(chatStore.activeConversation?.user.id!);
+        chatStore.unread.delete(conversation_id!);
+    }
 </script>
 
 <div style:height="100%" class="overflow-auto relative">
-    {#if jumpToLatest}
-        <button
-            class="absolute z-50 bottom-10 right-1/2 translate-x-1/2"
-            onclick={handleJumpToLatest}
-        >
-            <div
-                class="bg-blue-500 flex hover:bg-blue-400 active:bg-blue-600 items-center gap-1 justify-center text-white active:scale-98 p-2 text-xs font-medium rounded-full"
-            >
-                <CircleArrowDown size={16} strokeWidth={2} />
-                Jump to Latest
-            </div>
-        </button>
-    {/if}
     <div
         bind:this={scrollElement}
-        bind:clientHeight={viewportHeight}
+        bind:clientHeight={virtualStore.viewportHeight}
         data-virtual-list
         style:height="100%"
         class="flex-1 overflow-auto border-4"
@@ -456,27 +259,29 @@
             aria-hidden="true"
         ></div>
 
-        <ul style:height="{totalHeight}px" class="relative w-full">
-            {#if isLoadingOlder}
+        <ul style:height="{virtualStore.totalHeight}px" class="relative w-full">
+            {#if virtualStore.isLoadingOlder}
                 {@render oldLoader()}
             {/if}
 
-            {#if !hasMoreOlder}
+            {#if !virtualStore.hasMoreOlder}
                 {@render startOfConversation()}
             {/if}
 
-            {#each visibleList as { entry, index } (entry.message.message_id)}
+            {#each virtualStore.visibleList as { entry, index } (entry.message.message_id)}
                 <li
                     use:measure={entry.message.message_id}
                     style:width="100%"
-                    style:transform="translateY({offsetsCache[index]}px)"
+                    style:transform="translateY({virtualStore.offsetsCache[
+                        index
+                    ]}px)"
                     class="absolute left-0 top-0 py-2"
                 >
                     {@render messageItem(entry)}
                 </li>
             {/each}
 
-            {#if isLoadingNewer}
+            {#if virtualStore.isLoadingNewer}
                 {@render newLoader()}
             {/if}
         </ul>
@@ -488,6 +293,38 @@
             aria-hidden="true"
         ></div>
     </div>
+
+    {#if virtualStore.jumpToLatest && !chatStore.unread.has(conversation_id!)}
+        <button
+            class="absolute z-50 bottom-10 right-1/2 translate-x-1/2"
+            onclick={handleJumpToLatest}
+        >
+            <div
+                class="bg-blue-500 flex hover:bg-blue-400 active:bg-blue-600 items-center gap-1 justify-center text-white active:scale-98 p-2 text-xs font-medium rounded-full"
+            >
+                <CircleArrowDown size={16} strokeWidth={2} />
+                Jump to Latest
+            </div>
+        </button>
+    {/if}
+
+    {#if chatStore.unread.has(conversation_id!)}
+        <button
+            class="absolute z-50 bottom-10 right-1/2 translate-x-1/2"
+            onclick={handleNewMessage}
+        >
+            <div
+                class="bg-blue-500 flex hover:bg-blue-400 active:bg-blue-600 items-center gap-1 justify-center text-white active:scale-98 p-2 text-xs font-medium rounded-full"
+            >
+                <BellRing
+                    size={16}
+                    strokeWidth={2}
+                    class="animate-wiggle-alert"
+                />
+                New Message
+            </div>
+        </button>
+    {/if}
 </div>
 
 <!--  Snippets -->
