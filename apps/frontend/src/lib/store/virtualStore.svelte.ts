@@ -22,7 +22,9 @@ class VirtualStore {
 
   // UX state
   jumpToLatest = $state(false);
+  shouldScrollToBottom = $state(false)
 
+  //Messages
   visibleList = $derived(
     chatStore.activeMessages
       .slice(this.getVisibleRange().start, this.getVisibleRange().end)
@@ -37,6 +39,7 @@ class VirtualStore {
     if (this.absoluteLatestMessageId && this.visibleList.length > 0) {
       if (this.absoluteLatestMessageId === this.visibleList.at(-1)?.entry.message.message_id) {
         return true
+
       }
     }
     return false;
@@ -157,7 +160,7 @@ class VirtualStore {
     }
 
     this.isLoadingOlder = true;
-
+    this.shouldScrollToBottom = false
     // Capture anchor
     const anchorIndex = params.visibleRangeStart;
     const anchorMsg = chatStore.activeMessages[anchorIndex];

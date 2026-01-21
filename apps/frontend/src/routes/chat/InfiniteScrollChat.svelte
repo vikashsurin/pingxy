@@ -1,6 +1,6 @@
 <script lang="ts">
     import { chatStore } from "$lib/store/store.svelte";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import {
         Check,
         CheckCheck,
@@ -11,9 +11,9 @@
     import { Tween } from "svelte/motion";
     import type { ChatEntry } from "$lib/store/store.svelte";
     import { virtualStore } from "$lib/store/virtualStore.svelte";
-    import { markAllAsRead, markAsRead } from "$lib/store/storeHelper.svelte";
+    import { markAllAsRead } from "$lib/store/storeHelper.svelte";
+    import { date } from "zod/v3";
 
-    const tween = new Tween(0);
     const LIMIT = $derived(chatStore.LIMIT);
 
     const user_id = $derived(chatStore.currentUser?.id);
@@ -26,7 +26,9 @@
         ),
     );
 
-    $inspect({ unread });
+    // $inspect({ isatbottom: virtualStore.isAtBottom });
+    // $inspect({ shouldScrollToBottom: virtualStore.shouldScrollToBottom });
+
     // --- DOM Elements ---
     let scrollElement: HTMLDivElement | undefined = $state();
 
@@ -60,7 +62,7 @@
         }
         return resizeObserver;
     }
-
+    $inspect({ activeMessage: chatStore.activeMessages });
     // Calculate visible items using virtualStore
     let visibleRange = $derived.by(() => virtualStore.getVisibleRange());
 
@@ -86,6 +88,7 @@
             },
         };
     }
+    $inspect({ shouldScrollToBottom: virtualStore.shouldScrollToBottom });
 
     // --- Scroll Handler ---
     function handleScroll() {
@@ -121,6 +124,7 @@
 
     // --- Lifecycle ---
     onMount(() => {
+        virtualStore.shouldScrollToBottom = true;
         if (conversation_id) {
             chatStore.loadInitialMessages({ conversation_id });
         }
@@ -130,8 +134,6 @@
             virtualStore.viewportHeight = scrollElement.clientHeight;
         }
 
-        console.log({ iat: virtualStore.isAtBottom });
-
         return () => {
             resizeObserver?.disconnect();
             elementToId.clear();
@@ -139,10 +141,14 @@
     });
 
     $effect(() => {
-        if (chatStore.activeMessages.length > 0) {
+        console.log(performance.now());
+        if (
+            virtualStore.shouldScrollToBottom &&
+            chatStore.activeMessages.length > 0
+        ) {
             scrollElement?.scrollBy({
                 top: virtualStore.totalHeight,
-                behavior: "instant",
+                behavior: "smooth",
             });
         }
     });
@@ -195,7 +201,7 @@
             visibleRangeStart: visibleRange.start,
         });
     }
-
+    // $inspect("activeMessages:", chatStore.activeMessages.length);
     // Jump to latest effect
     $effect(() => {
         if (virtualStore.visibleList) {
@@ -215,6 +221,7 @@
     });
 
     function handleJumpToLatest() {
+        virtualStore.shouldScrollToBottom = true;
         if (virtualStore.jumpToLatest && scrollElement) {
             chatStore.loadInitialMessages({
                 conversation_id: conversation_id!,
@@ -228,6 +235,7 @@
     }
 
     async function handleNewMessage() {
+        virtualStore.shouldScrollToBottom = true;
         if (scrollElement) {
             chatStore.loadInitialMessages({
                 conversation_id: conversation_id!,

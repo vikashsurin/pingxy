@@ -40,8 +40,6 @@
 <div class="bg-gray-100 min-w-75 flex flex-col overflow-hidden">
     <div class="flex flex-col overflow-hidden flex-1">
         <ul class="flex-1 overflow-y-auto">
-            <div class="border border-gray-700 my-2"></div>
-
             {#each sortedUsers as item (item.user.id)}
                 {@render userItemRow(item)}
             {/each}
