@@ -136,7 +136,7 @@ class VirtualStore {
       if (scrollElement) {
         scrollElement.scrollTo({
           top: scrollElement.scrollHeight,
-          behavior: smooth ? "smooth" : "auto",
+          behavior: "instant",
         });
       }
     });

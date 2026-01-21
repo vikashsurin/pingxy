@@ -148,7 +148,7 @@
         ) {
             scrollElement?.scrollBy({
                 top: virtualStore.totalHeight,
-                behavior: "smooth",
+                behavior: "instant",
             });
         }
     });
@@ -229,7 +229,7 @@
 
             scrollElement.scrollTo({
                 top: virtualStore.totalHeight,
-                behavior: "smooth",
+                behavior: "instant",
             });
         }
     }
@@ -243,7 +243,7 @@
 
             scrollElement.scrollTo({
                 top: virtualStore.totalHeight,
-                behavior: "smooth",
+                behavior: "instant",
             });
         }
         await markAllAsRead(chatStore.activeConversation?.user.id!);
