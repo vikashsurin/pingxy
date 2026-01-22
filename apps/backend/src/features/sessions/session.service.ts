@@ -1,4 +1,4 @@
-import { NewSession, PublicUser } from "@chat/shared/src/lib/utils/validation";
+import { NewSession, PublicUser } from "@chat/shared/types";
 import * as queries from "./internal/session.queries";
 
 const secret = "temp_secret";

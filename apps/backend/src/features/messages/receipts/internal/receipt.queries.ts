@@ -1,7 +1,7 @@
 import { eq, and, ne, inArray, isNull } from "drizzle-orm";
 import db from "@core/db/client";
-import { message_receipts } from "@core/db/schema";
-import { NewMessageReceipt } from "@chat/shared/src/lib/utils/validation";
+import { message_receipts } from "@chat/shared/db/schemas";
+import { NewMessageReceipt } from "@chat/shared/types";
 
 
 export const insertMessageReceipt = async ({

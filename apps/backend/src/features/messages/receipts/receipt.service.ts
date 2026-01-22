@@ -1,6 +1,6 @@
 import { publish } from '@core/socket/pubsub';
 import * as queries from './internal/receipt.queries';
-import { MessagePayload } from '@chat/shared/src/lib/utils/validation';
+import { MessagePayload } from '@chat/shared/types';
 
 
 export const createMessageReceipt = async ({

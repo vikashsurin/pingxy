@@ -1,8 +1,9 @@
 import { fail, redirect } from "@sveltejs/kit";
+import { PUBLIC_API_URL } from "$env/static/public";
 
 export const actions = {
   pause: async ({ request, fetch }) => {
-    const response = await fetch("http://localhost:3000/api/users/pause", {
+    const response = await fetch(`/api/users/pause`, {
       method: "POST",
       headers: {
         cookie: request.headers.get("cookie") || ""
@@ -10,7 +11,7 @@ export const actions = {
     });
 
     if (!response.ok) {
-        return fail(response.status, { error: true });
+      return fail(response.status, { error: true });
     }
 
     // Likely want to logout or show a "paused" state
@@ -19,7 +20,7 @@ export const actions = {
   },
 
   delete: async ({ request, fetch }) => {
-     const response = await fetch("http://localhost:3000/api/users/me", {
+    const response = await fetch(`/api/users/me`, {
       method: "DELETE",
       headers: {
         cookie: request.headers.get("cookie") || ""
@@ -27,7 +28,7 @@ export const actions = {
     });
 
     if (!response.ok) {
-        return fail(response.status, { error: true });
+      return fail(response.status, { error: true });
     }
 
     throw redirect(303, "/chat/logout");

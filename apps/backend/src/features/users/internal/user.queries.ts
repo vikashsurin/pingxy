@@ -1,7 +1,7 @@
-import { NewUser } from "@chat/shared/src/lib/utils/validation";
+import { NewUser } from "@chat/shared/types";
 import { eq } from "drizzle-orm";
 import db from "@core/db/client";
-import { userInsertSchema, users } from "@core/db/schema";
+import { userInsertSchema, users } from "@chat/shared/db/schemas";
 
 export const insertUser = async (newUser: NewUser) => {
   const user = userInsertSchema.parse(newUser);

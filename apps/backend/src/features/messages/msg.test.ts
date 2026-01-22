@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { NewMessage } from "@chat/shared/src/lib/utils/validation";
+import { NewMessage } from "@chat/shared/types";
 import * as queries from "./internal/msg.queries";
 import db from "@core/db/client";
 describe("Messages Table Schema", () => {

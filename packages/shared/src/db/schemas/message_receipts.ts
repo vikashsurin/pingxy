@@ -1,6 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
-import { messages, users, conversations } from "@core/db/schema";
+import { messages } from './messages'
+import { users } from './users'
+import { conversations } from './conversations'
 
 export const messageReceiptStatusEnum = pgEnum("status", [
   "sent",

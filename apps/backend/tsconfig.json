@@ -1,17 +1,25 @@
 {
   "compilerOptions": {
     "strict": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "baseUrl": ".",
     "paths": {
       "@core/*": [
         "./src/core/*"
       ],
       "@features/*": [
         "./src/features/*"
+      ],
+      "@chat/shared/*": [
+        "../../packages/shared/src/*"
       ]
     }
   }

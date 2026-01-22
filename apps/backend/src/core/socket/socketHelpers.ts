@@ -1,4 +1,4 @@
-import { type MessagePayload } from '@chat/shared/src/lib/utils/validation';
+import { type MessagePayload } from '@chat/shared/types';
 import { userSockets } from './state';
 
 export function getOnlineUsers() {

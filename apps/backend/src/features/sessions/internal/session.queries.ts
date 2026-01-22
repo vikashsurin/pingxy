@@ -1,7 +1,7 @@
-import { NewSession } from "@chat/shared/src/lib/utils/validation";
+import { NewSession } from "@chat/shared/types";
 import { eq } from "drizzle-orm";
 import db from "@core/db/client";
-import { sessions, users } from "@core/db/schema";
+import { sessions, users } from "@chat/shared/db/schemas";
 
 export const insertSession = async (session: NewSession) => {
   return await db.insert(sessions).values(session).returning();

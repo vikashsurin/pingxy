@@ -1,5 +1,6 @@
-import { capitalizeFirst } from "@chat/shared/src/lib/utils/string";
+import { capitalizeFirst } from "$lib/utils/string";
 import { fail, redirect } from "@sveltejs/kit";
+import { PUBLIC_API_URL } from "$env/static/public";
 
 export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
@@ -24,7 +25,7 @@ export const actions = {
 
     const displayName = capitalizeFirst(username);
 
-    const response = await fetch("http://localhost:3000/api/auth/login", {
+    const response = await fetch(`/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: displayName, password }),
@@ -74,7 +75,7 @@ export const actions = {
     //   return fail(400, { username, invalid:"Invalid user data" });
     // }
 
-    const response = await fetch("http://localhost:3000/api/auth/register", {
+    const response = await fetch(`/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: displayName, password, user }),
@@ -119,7 +120,7 @@ export const actions = {
     // if (!validateUser.success)
     //   return fail(400, { username, invalid: "Invalid data" });
 
-    const response = await fetch("http://localhost:3000/api/auth/guest", {
+    const response = await fetch(`/api/auth/guest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user }),

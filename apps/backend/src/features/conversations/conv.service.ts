@@ -1,6 +1,6 @@
 import {
   NewConversation,
-} from "@chat/shared/src/lib/utils/validation";
+} from "@chat/shared/types";
 
 import * as queries from './internal/conv.queries'
 
@@ -97,4 +97,3 @@ export const removeConversation = async (conversation_id: number) => {
     throw new Error("Error removing conversation");
   }
 };
-

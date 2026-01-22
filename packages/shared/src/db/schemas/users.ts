@@ -1,6 +1,6 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
-import { createInsertSchema, createUpdateSchema, createSelectSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
 export const userTypesEnum = pgEnum("user_type", [
   "admin",

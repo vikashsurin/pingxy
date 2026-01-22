@@ -1,4 +1,4 @@
-import { NewUser } from "@chat/shared/src/lib/utils/validation";
+import { NewUser } from "@chat/shared/types";
 import * as queries from "./internal/user.queries";
 import { HTTPException } from "hono/http-exception";
 

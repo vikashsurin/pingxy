@@ -1,4 +1,4 @@
-import { PublicUser } from "@chat/shared/src/lib/utils/validation";
+import { PublicUser } from "@chat/shared/types";
 
 export type WebSocketData = {
     user: PublicUser;

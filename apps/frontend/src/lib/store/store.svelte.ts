@@ -3,10 +3,10 @@ import type {
   MessagePayload,
   PublicUser,
   MessageReceipt,
-} from "@chat/shared/src/lib/utils/validation";
+} from "@chat/shared/types";
 import { SvelteSet, SvelteMap } from "svelte/reactivity";
 import { virtualStore } from "./virtualStore.svelte";
-
+import { PUBLIC_API_URL } from "$env/static/public";
 
 export type PrivateConversation = {
   conversation_id: number;
@@ -89,7 +89,7 @@ class ChatStore {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/messages", {
+      const response = await fetch(`/api/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ class ChatStore {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=${this.LIMIT}`,
+        `/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=${this.LIMIT}`,
         {
           method: "GET",
           headers: {

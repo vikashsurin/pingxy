@@ -1,4 +1,4 @@
-import { NewMessage } from '@chat/shared/src/lib/utils/validation';
+import { NewMessage } from '@chat/shared/types';
 import * as queries from './internal/msg.queries';
 import { findOrCreateConversationByUsers } from '../conversations';
 import { createParticipants, isParticipant } from '../conversations/participants';

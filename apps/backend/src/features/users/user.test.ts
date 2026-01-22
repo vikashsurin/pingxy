@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import * as queries from "./internal/user.queries";
-import { type NewUser } from "@chat/shared/src/lib/utils/validation";
+import { type NewUser } from "@chat/shared/types";
 
 describe("Users Table Schema", async () => {
   beforeAll(async () => {

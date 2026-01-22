@@ -1,4 +1,4 @@
-import { NewUser } from "@chat/shared/src/lib/utils/validation";
+import { NewUser } from "@chat/shared/types";
 import { getConnInfo } from "hono/bun";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { factory } from "@core/db/drizzle-factory";

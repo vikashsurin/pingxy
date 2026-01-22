@@ -1,6 +1,6 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
-import { users } from "../users/user.schema";
+import { users } from "./users";
 
 export const blocked_users = table(
   "blocked_users",

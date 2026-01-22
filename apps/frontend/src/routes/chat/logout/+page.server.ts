@@ -1,9 +1,10 @@
 import { redirect } from "@sveltejs/kit";
+import { PUBLIC_API_URL } from "$env/static/public";
 
 export async function load({ request, cookies }) {
   const cookie = request.headers.get("cookie");
 
-  const response = await fetch("http://localhost:3000/api/auth/logout", {
+  const response = await fetch(`/api/auth/logout`, {
     method: "POST",
     headers: {
       cookie: cookie as string,

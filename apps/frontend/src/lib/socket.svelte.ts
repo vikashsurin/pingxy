@@ -1,6 +1,14 @@
 import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
-import type { Message, MessagePayload, MessageReceipt } from "@chat/shared/src/lib/utils/validation";
-import { markAsDelivered, markAsRead, receiptHandlers } from './store/storeHelper.svelte';
+import type {
+  Message,
+  MessagePayload,
+  MessageReceipt,
+} from "@chat/shared/types";
+import {
+  markAsDelivered,
+  markAsRead,
+  receiptHandlers,
+} from "./store/storeHelper.svelte";
 import { virtualStore } from "./store/virtualStore.svelte";
 
 export let socket: WebSocket | null = null;
@@ -44,16 +52,15 @@ export function initSocket() {
 
 // MESSAGE HANDLER
 const messageHandler: Record<string, (data: any) => void> = {
-  system: (messagePayload: MessagePayload) => { },
+  system: (messagePayload: MessagePayload) => {},
   message: (messagePayload: MessagePayload) => {
-    const msgData = messagePayload.msgData as ChatEntry
-    const conversation_id = msgData.message.conversation_id
+    const msgData = messagePayload.msgData as ChatEntry;
+    const conversation_id = msgData.message.conversation_id;
 
     if (!chatStore.messages[conversation_id]) {
       chatStore.messages[conversation_id] = {};
     }
     chatStore.messages[conversation_id][msgData.message.message_id] = msgData;
-
   },
 
   receipt_update: (messagePayload: MessagePayload) => {
@@ -65,21 +72,14 @@ const messageHandler: Record<string, (data: any) => void> = {
     for (const receipt of receipts) {
       receiptHandlers[receipt.status]?.(receipt);
     }
-
   },
-
-
-
-
-
-
 
   notification: async (messagePayload: MessagePayload) => {
     const conversationId = messagePayload.msgData?.message?.conversation_id;
-    const message = messagePayload.msgData?.message as Message
-    const user_id = messagePayload.recipient?.id!
-    const isActiveConversation = chatStore.activeConversation?.conversation_id === conversationId;
-
+    const message = messagePayload.msgData?.message as Message;
+    const user_id = messagePayload.recipient?.id!;
+    const isActiveConversation =
+      chatStore.activeConversation?.conversation_id === conversationId;
 
     // Mark as read, if active conversation is the same as the received message
     // TODO: also can check if the scroll position is at the bottom, for precision
@@ -87,21 +87,18 @@ const messageHandler: Record<string, (data: any) => void> = {
       if (virtualStore.isAtBottom) {
         await markAsRead({
           message,
-          user_id
-        })
+          user_id,
+        });
       } else {
         await markAsDelivered({
           message,
-          user_id
-        })
+          user_id,
+        });
 
         chatStore.addUnreadMessage(conversationId!, message.message_id);
       }
     }
   },
-
-
-
 
   new_conversation: (messagePayload: MessagePayload) => {
     // const conversationId = messagePayload.message.conversation_id;
@@ -109,16 +106,11 @@ const messageHandler: Record<string, (data: any) => void> = {
     // chatStore.messages.set(conversationId!, message)
   },
 
-
-
-  user_join: (messagePayload: MessagePayload) => { },
-  user_leave: (messagePayload: MessagePayload) => { },
+  user_join: (messagePayload: MessagePayload) => {},
+  user_leave: (messagePayload: MessagePayload) => {},
   users_online: (messagePayload: MessagePayload) => {
     chatStore.onlineUsers = messagePayload?.data?.users;
   },
-
-
-
 
   user_offline: (messagePayload: MessagePayload) => {
     // const id = messagePayload.users.id;
@@ -126,11 +118,9 @@ const messageHandler: Record<string, (data: any) => void> = {
     // chatStore.onlineUsers = updatedOnlineUsers;
   },
 
-
-
-  message_receipts: (messagePayload: MessagePayload) => { },
-  typing: (messagePayload: MessagePayload) => { },
-  error: (message: MessagePayload) => { },
+  message_receipts: (messagePayload: MessagePayload) => {},
+  typing: (messagePayload: MessagePayload) => {},
+  error: (message: MessagePayload) => {},
 };
 
 export function getSocket() {

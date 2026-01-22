@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from "bun:test";
-import { NewMessageReceipt } from "@chat/shared/src/lib/utils/validation";
+import { NewMessageReceipt } from "@chat/shared/types";
 import * as queries from "./internal/receipt.queries";
 
 describe("Message Receipts Table Schema", () => {

@@ -1,23 +1,33 @@
-import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/bun-sql';
-import { SQL } from 'bun';
+import "dotenv/config";
+import { drizzle } from "drizzle-orm/bun-sql";
+import { SQL } from "bun";
+import * as schema from "@chat/shared/db/schemas";
 
+// 0. Check if DATABASE_URL is set
 if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set');
+  throw new Error("DATABASE_URL is not set");
 }
 
-// 1. Create a global variable to store the connection
+// 1. Singleton pattern for Development HMR
 const globalForDb = globalThis as unknown as {
   conn: SQL | undefined;
 };
-// const url = 'postgresql://vikashsurin@localhost:5432/chat_db'
-// 2. Reuse existing connection if it exists, otherwise create a new one
-// Bun.SQL handles the connection pooling internally
-const client = globalForDb.conn ?? new SQL(process.env.DATABASE_URL);
 
-// 3. In development, save the connection to the global object
-if (process.env.NODE_ENV !== 'production') globalForDb.conn = client;
+// 2. Production-optimized client
+// We add 'max' to prevent connection exhaustion in containerized environments
+const client =
+  globalForDb.conn ??
+  new SQL({
+    url: process.env.DATABASE_URL,
+    max: process.env.NODE_ENV === "production" ? 10 : undefined, // Keep it lean in prod
+  });
 
-// 4. Export the Drizzle instance
-export const db = drizzle({ client });
+if (process.env.NODE_ENV !== "production") globalForDb.conn = client;
+
+// 3. Export Drizzle
+export const db = drizzle({
+  client,
+  schema,
+});
+
 export default db;

@@ -1,4 +1,4 @@
-import { MessagePayload } from "@chat/shared/src/lib/utils/validation";
+import { MessagePayload } from "@chat/shared/types";
 import { factory } from "@core/db/drizzle-factory";
 import { authMiddleware } from "@core/middlewares/auth";
 import { publish } from "@core/socket/pubsub";

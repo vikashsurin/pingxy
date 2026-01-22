@@ -3,7 +3,7 @@ import { broadcastOnlineUsers, broadcastUserOffline } from "./socketHelpers";
 
 import {
   MessagePayload
-} from "@chat/shared/src/lib/utils/validation";
+} from "@chat/shared/types";
 
 import { userSockets } from "./state";
 import { WebSocketData } from "./types";

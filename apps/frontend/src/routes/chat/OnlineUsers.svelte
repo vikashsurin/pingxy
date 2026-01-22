@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { PublicUser } from "@chat/shared/src/lib/utils/validation";
+    import type { PublicUser } from "@chat/shared/types";
     import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
     import GenderIcon from "./GenderIcon.svelte";
 

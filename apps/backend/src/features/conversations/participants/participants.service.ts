@@ -1,4 +1,4 @@
-import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
+import { NewParticipant } from "@chat/shared/types";
 import db from '@core/db/client';
 import * as queries from './internal/participants.queries';
 

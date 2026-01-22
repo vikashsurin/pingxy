@@ -1,9 +1,9 @@
-import { NewMessage } from "@chat/shared/src/lib/utils/validation";
+import { NewMessage } from "@chat/shared/types";
 import { and, desc, eq, ne, lt, gt, gte, asc } from "drizzle-orm";
 import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { type PgTransaction } from "drizzle-orm/pg-core";
 import db from "@core/db/client";
-import { messages, message_receipts } from "@core/db/schema";
+import { messages, message_receipts } from "@chat/shared/db/schemas";
 
 export const insertMessage = (
   message: NewMessage,

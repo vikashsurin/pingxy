@@ -1,6 +1,7 @@
 import * as t from "drizzle-orm/pg-core";
-import { pgTable as table, pgEnum } from "drizzle-orm/pg-core";
-import { users, conversations } from "@core/db/schema";
+import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
+import { conversations } from './conversations';
+import { users } from './users';
 
 
 export const messageTypeEnum = pgEnum("message_type", [

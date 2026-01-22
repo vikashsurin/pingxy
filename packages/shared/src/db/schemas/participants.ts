@@ -1,6 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
-import { conversations, messages, users } from "@core/db/schema";
+import { conversations } from "./conversations";
+import { messages } from "./messages";
+import { users } from "./users";
 
 export const participantRoleEnum = pgEnum("role", [
   "admin",

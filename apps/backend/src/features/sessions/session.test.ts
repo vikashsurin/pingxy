@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { NewSession } from "@chat/shared/src/lib/utils/validation";
+import { NewSession } from "@chat/shared/types";
 import * as queries from "./internal/session.queries";
 describe("Sessions Table Schema", async () => {
   beforeAll(async () => {

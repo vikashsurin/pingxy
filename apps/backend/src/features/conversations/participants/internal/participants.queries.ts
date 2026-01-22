@@ -1,8 +1,8 @@
 import { aliasedTable, and, eq } from "drizzle-orm";
 import db from "@core/db/client"
-import { conversations, participants } from "@core/db/schema";
+import { conversations, participants } from "@chat/shared/db/schemas"
 
-import { NewParticipant } from "@chat/shared/src/lib/utils/validation";
+import { NewParticipant } from "@chat/shared/types";
 import { BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { PgTransaction } from "drizzle-orm/pg-core";
 
