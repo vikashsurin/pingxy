@@ -7,14 +7,13 @@
   $effect(() => {
     chatStore.currentUser = data.user;
   });
-
-  const user = $derived(chatStore.currentUser);
 </script>
 
 <div class="h-dvh flex flex-col">
   <div class="banner">AD Display</div>
-  {#if user !== undefined || user !== null}
-    <Navbar username={user?.username} />
+
+  {#if data.success && data.user}
+    <Navbar username={data.user.username} />
   {/if}
 
   {@render children()}

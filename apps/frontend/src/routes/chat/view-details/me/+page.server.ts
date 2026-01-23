@@ -1,5 +1,6 @@
 import { fail } from "@sveltejs/kit";
 import { PUBLIC_API_URL } from "$env/static/public";
+import { INTERNAL_BACKEND_URL } from "$env/static/private";
 
 export const actions = {
   update: async ({ request, cookies, fetch }) => {
@@ -20,7 +21,7 @@ export const actions = {
       gender
     };
 
-    const response = await fetch(`/api/users/me`, {
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/me`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

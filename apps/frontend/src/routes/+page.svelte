@@ -6,9 +6,10 @@
   import { enhance } from "$app/forms";
   import { chatStore } from "$lib/store/store.svelte.js";
   import { type PublicUser } from "@chat/shared/types";
-  import { PUBLIC_API_URL } from "$env/static/public";
 
   let { form } = $props();
+
+  $inspect({ user: chatStore.currentUser });
 
   onMount(() => {});
   const range = (start: number, end: number) =>
@@ -151,6 +152,7 @@
           loading = true;
           return async ({ result, update }) => {
             if (result.type === "success" && result.data !== undefined) {
+              console.log("huhu");
               chatStore.currentUser = result.data.user as PublicUser;
             }
 

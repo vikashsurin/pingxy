@@ -115,6 +115,14 @@ app.post("/login", async (c) => {
     sameSite: "lax",
   });
 
+  setCookie(c, '_Host-refresh', token, {
+    maxAge: 60 * 60 * 24 * 7,
+    httpOnly: true,
+    secure: false,
+    path: "/",
+    sameSite: "lax",
+  });
+
   return c.json({
     user: user,
     token: token,

@@ -1,5 +1,9 @@
 import * as schema from "../db/schemas";
-import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
 
 export const userInsertSchema = createInsertSchema(schema.users);
 export const userSelectSchema = createSelectSchema(schema.users);

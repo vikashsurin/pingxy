@@ -60,7 +60,7 @@ class ChatStore {
 
     // Convert to array and sort by message_id (chronological order)
     return Object.values(convMessages).sort(
-      (a, b) => a.message.message_id - b.message.message_id
+      (a, b) => a.message.message_id - b.message.message_id,
     );
   });
 
@@ -130,7 +130,7 @@ class ChatStore {
             "Content-Type": "application/json",
           },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -139,9 +139,8 @@ class ChatStore {
 
       const body = await response.json();
 
-
-
-      virtualStore.absoluteLatestMessageId = body.chat.at(-1).message.message_id;
+      virtualStore.absoluteLatestMessageId =
+        body.chat.at(-1).message.message_id;
 
       // Initial load - just add messages without trimming
       this.messages[conversation_id] = {};
@@ -253,7 +252,7 @@ class ChatStore {
   // Method to update messages for a specific conversation
   updateConversationMessages(
     conversationId: number,
-    messagesArray: ChatEntry[]
+    messagesArray: ChatEntry[],
   ) {
     this.messages[conversationId] ??= {};
 

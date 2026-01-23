@@ -1,9 +1,10 @@
 import { fail, redirect } from "@sveltejs/kit";
 import { PUBLIC_API_URL } from "$env/static/public";
+import { INTERNAL_BACKEND_URL } from "$env/static/private";
 
 export const actions = {
   pause: async ({ request, fetch }) => {
-    const response = await fetch(`/api/users/pause`, {
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/pause`, {
       method: "POST",
       headers: {
         cookie: request.headers.get("cookie") || ""
@@ -20,7 +21,7 @@ export const actions = {
   },
 
   delete: async ({ request, fetch }) => {
-    const response = await fetch(`/api/users/me`, {
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/me`, {
       method: "DELETE",
       headers: {
         cookie: request.headers.get("cookie") || ""

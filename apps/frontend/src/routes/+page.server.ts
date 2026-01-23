@@ -1,6 +1,6 @@
 import { capitalizeFirst } from "$lib/utils/string";
 import { fail, redirect } from "@sveltejs/kit";
-import { PUBLIC_API_URL } from "$env/static/public";
+import { INTERNAL_BACKEND_URL } from "$env/static/private";
 
 export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
@@ -14,7 +14,7 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-  login: async ({ cookies, request, fetch }) => {
+  login: async ({ request, fetch }) => {
     const data = await request.formData();
     const username = data.get("username") as string;
     const password = data.get("password") as string;
@@ -36,14 +36,8 @@ export const actions = {
       return fail(401, { username, invalid: error.error || "Login failed" });
     }
 
-    const { user, token } = await response.json();
-    cookies.set("_Host-session", token, {
-      maxAge: 60 * 60 * 24 * 7,
-      httpOnly: false,
-      secure: false,
-      path: "/",
-      sameSite: "lax",
-    });
+    const { user } = await response.json();
+
     return { success: true, user };
   },
 
@@ -75,7 +69,7 @@ export const actions = {
     //   return fail(400, { username, invalid:"Invalid user data" });
     // }
 
-    const response = await fetch(`/api/auth/register`, {
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: displayName, password, user }),
@@ -88,15 +82,6 @@ export const actions = {
         invalid: error.error || "Registration failed",
       });
     }
-
-    const { token } = await response.json();
-    cookies.set("_Host-session", token, {
-      maxAge: 60 * 60 * 24 * 7,
-      httpOnly: false,
-      secure: false,
-      path: "/",
-      sameSite: "lax",
-    });
   },
 
   guest: async ({ cookies, request, fetch }) => {
@@ -120,7 +105,7 @@ export const actions = {
     // if (!validateUser.success)
     //   return fail(400, { username, invalid: "Invalid data" });
 
-    const response = await fetch(`/api/auth/guest`, {
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/auth/guest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user }),
