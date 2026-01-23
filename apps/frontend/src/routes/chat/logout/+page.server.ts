@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
-import { PUBLIC_API_URL } from "$env/static/public";
+import type { LayoutServerLoad } from "../$types";
 
-export async function load({ request, cookies }) {
+export const load: LayoutServerLoad = async ({ fetch, request, cookies }) => {
   const cookie = request.headers.get("cookie");
 
   const response = await fetch(`/api/auth/logout`, {
@@ -25,4 +25,4 @@ export async function load({ request, cookies }) {
   }
 
   return { success: true };
-}
+};

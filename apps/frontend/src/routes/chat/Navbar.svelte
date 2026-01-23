@@ -70,7 +70,7 @@
 </div>
 
 <!-- FOR DESKTOP -->
-<div class="hidden justify-between items-center mx-4 lg:flex py-2">
+<div class="hidden justify-between items-center mx-4 lg:flex py-2 z-999">
   <div class="flex gap-2 text-sm">
     <a href="/" class="font-bold">Logo</a>
     {@render link("/about", "About")}
