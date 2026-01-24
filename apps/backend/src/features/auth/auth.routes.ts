@@ -76,14 +76,13 @@ app.post("/register", async (c) => {
   });
 });
 
-app.use(logger())
 // Login route
 app.post("/login", async (c) => {
   const body = await c.req.json();
 
   const { username, password } = body;
 
-
+  console.log({ login: body })
   if (!username || !password) {
     return c.json({ error: "Missing required fields" }, 400);
   }
@@ -108,14 +107,6 @@ app.post("/login", async (c) => {
 
   // Set cookie
   setCookie(c, "_Host-session", token, {
-    maxAge: 60 * 60 * 24 * 7,
-    httpOnly: true,
-    secure: false,
-    path: "/",
-    sameSite: "lax",
-  });
-
-  setCookie(c, '_Host-refresh', token, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,
     secure: false,

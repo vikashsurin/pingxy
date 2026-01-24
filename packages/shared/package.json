@@ -6,7 +6,8 @@
   "exports": {
     "./db": "./db/*",
     "./constants": "./src/constants/index.ts",
-    "./types": "./src/types/index.ts"
+    "./types": "./src/types/index.ts",
+    "./utils": "./src/utils/index.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.3.6",

@@ -6,6 +6,7 @@ import { getAuthUserFromReq } from "./core/utils/index.js";
 
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
+import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { factory } from "./core/db/drizzle-factory";
 import { registerRoutes } from "./routes/index";
@@ -23,6 +24,8 @@ app.use(
 );
 app.use(prettyJSON());
 
+app.use(logger())
+
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
     console.error(err);
@@ -33,13 +36,15 @@ app.onError((err, c) => {
 
 
 
-
 app.get("/api/", (c) => {
+  console.log("path", c.req.path)
   return c.json({ app: "chat" });
 });
+
 app.get("/api/health", (c) => {
   return c.json({ status: "ok" });
 });
+
 
 registerRoutes(app);
 

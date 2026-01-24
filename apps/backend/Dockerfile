@@ -2,7 +2,6 @@
 FROM oven/bun:1-alpine AS base
 RUN apk add --no-cache postgresql-client
 WORKDIR /app
-
 COPY package.json bun.lock ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/shared/package.json ./packages/shared/
@@ -10,9 +9,13 @@ RUN bun install
 
 # Stage 2: Development (Used by docker-compose.dev.yml)
 FROM base AS development
+WORKDIR /app
+# Copy everything for development (volumes will override)
+COPY packages/shared ./packages/shared
+COPY apps/backend ./apps/backend
 WORKDIR /app/apps/backend
-# We don't COPY source here because the bind mount handles it
-CMD ["bun", "run", "dev"]
+# Use --watch instead of --hot for better file system watching
+CMD ["bun", "run", "--watch", "src/index.ts"]
 
 # Stage 3: Builder (Production)
 FROM base AS builder

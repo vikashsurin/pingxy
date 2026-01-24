@@ -1,7 +1,7 @@
 {
   "name": "@chat/backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "dev": "bun run --hot --watch src/index.ts",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "start": "bun run src/index.ts"

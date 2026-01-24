@@ -2,7 +2,6 @@ import { authRouter } from "../features/auth/auth.routes";
 import { conversationRouter } from "../features/conversations/conv.routes";
 import { messageRouter } from "../features/messages/msg.routes";
 import { userRouter } from "../features/users/user.routes";
-import { logger } from "hono/logger";
 
 
 export function registerRoutes(app: any) {

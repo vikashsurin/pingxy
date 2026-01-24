@@ -1,7 +1,5 @@
-import { capitalizeFirst } from "$lib/utils/string";
-import { fail, redirect } from "@sveltejs/kit";
-import { INTERNAL_BACKEND_URL } from "$env/static/private";
-
+import { capitalizeFirst } from '@chat/shared/utils'
+import { fail, redirect, type Cookies } from "@sveltejs/kit";
 export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
 
@@ -14,7 +12,7 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-  login: async ({ request, fetch }) => {
+  login: async ({ request, fetch, cookies }) => {
     const data = await request.formData();
     const username = data.get("username") as string;
     const password = data.get("password") as string;
@@ -22,21 +20,19 @@ export const actions = {
     if (!username || !password) {
       return fail(400, { username, invalid: "Missing credentials" });
     }
-
     const displayName = capitalizeFirst(username);
-
     const response = await fetch(`/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: displayName, password }),
     });
-
     if (!response.ok) {
       const error = await response.json();
       return fail(401, { username, invalid: error.error || "Login failed" });
     }
+    const { user, _ } = await response.json();
 
-    const { user } = await response.json();
+    await setCookieHeaders({ response, cookies })
 
     return { success: true, user };
   },
@@ -69,7 +65,7 @@ export const actions = {
     //   return fail(400, { username, invalid:"Invalid user data" });
     // }
 
-    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/auth/register`, {
+    const response = await fetch(`/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: displayName, password, user }),
@@ -82,6 +78,7 @@ export const actions = {
         invalid: error.error || "Registration failed",
       });
     }
+    await setCookieHeaders({ response, cookies })
   },
 
   guest: async ({ cookies, request, fetch }) => {
@@ -105,7 +102,7 @@ export const actions = {
     // if (!validateUser.success)
     //   return fail(400, { username, invalid: "Invalid data" });
 
-    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/auth/guest`, {
+    const response = await fetch(`/api/auth/guest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user }),
@@ -119,13 +116,33 @@ export const actions = {
       });
     }
 
-    const { token } = await response.json();
-    cookies.set("_Host-session", token, {
+    await setCookieHeaders({ response, cookies })
+
+  },
+};
+
+// A function to setCookieHeaders in the browser
+async function setCookieHeaders({ response, cookies }: { response: Response, cookies: Cookies }) {
+
+  const setCookieHeaders = response.headers.getSetCookie();
+
+  setCookieHeaders.forEach((cookieString: string) => {
+    const firstEquals = cookieString.indexOf('=');
+    const name = cookieString.substring(0, firstEquals).trim();
+
+    const afterEquals = cookieString.substring(firstEquals + 1);
+
+    const firstSemicolon = afterEquals.indexOf(';');
+    const value = (firstSemicolon === -1
+      ? afterEquals
+      : afterEquals.substring(0, firstSemicolon)).trim();
+
+    cookies.set(name, value, {
       maxAge: 60 * 60 * 24 * 7,
-      httpOnly: false,
+      httpOnly: true,
       secure: false,
       path: "/",
       sameSite: "lax",
     });
-  },
-};
+  });
+}

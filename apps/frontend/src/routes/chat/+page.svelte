@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { initSocket } from "$lib/socket.svelte";
-  import { onMount } from "svelte";
-  import Sidebar from "./Sidebar.svelte";
-  import Chatbox from "./Chatbox.svelte";
-  import AdSidebar from "./AdSidebar.svelte";
+    import { initSocket } from "$lib/socket.svelte";
+    import { onMount } from "svelte";
+    import Sidebar from "./Sidebar.svelte";
+    import Chatbox from "./Chatbox.svelte";
+    import AdSidebar from "./AdSidebar.svelte";
 
-  onMount(() => {
-    initSocket();
-  });
+    onMount(() => {
+        initSocket();
+    });
 </script>
 
 <div
-  class="grid grid-cols-[300px_minmax(900px,1fr)_300px] h-screen overflow-hidden"
+    class="grid grid-cols-[300px_minmax(900px,1fr)_300px] h-screen overflow-hidden"
 >
-  <Sidebar />
-  <Chatbox />
-  <AdSidebar />
+    <Sidebar />
+    <Chatbox />
+    <AdSidebar />
 </div>

@@ -3,17 +3,16 @@ import db from "@core/db/client";
 import { message_receipts } from "@chat/shared/db/schemas";
 import { NewMessageReceipt } from "@chat/shared/types";
 
-
 export const insertMessageReceipt = async ({
   conversation_id,
   message_id,
   user_id,
   status,
 }: {
-  conversation_id: number,
-  message_id: number,
-  user_id: number,
-  status: "sent" | "delivered" | "read",
+  conversation_id: number;
+  message_id: number;
+  user_id: number;
+  status: "sent" | "delivered" | "read";
 }) => {
   return await db
     .insert(message_receipts)
@@ -24,7 +23,7 @@ export const insertMessageReceipt = async ({
       status,
     })
     .returning();
-}
+};
 
 export const updateMessageReceipt = async ({
   receipt_id,
@@ -32,10 +31,10 @@ export const updateMessageReceipt = async ({
   delivered_at,
   read_at,
 }: {
-  receipt_id: number,
-  status: "sent" | "delivered" | "read",
-  delivered_at: Date,
-  read_at: Date,
+  receipt_id: number;
+  status: "sent" | "delivered" | "read";
+  delivered_at: Date;
+  read_at: Date;
 }) => {
   return await db
     .update(message_receipts)
@@ -46,9 +45,7 @@ export const updateMessageReceipt = async ({
     })
     .where(eq(message_receipts.receipt_id, receipt_id))
     .returning();
-}
-
-
+};
 
 export const selectReceiptsForMessage = async (message_id: number) => {
   return await db
@@ -64,8 +61,7 @@ export const selectReceiptsForMessage = async (message_id: number) => {
     })
     .from(message_receipts)
     .where(eq(message_receipts.message_id, message_id));
-}
-
+};
 
 export const selectUnreadMessagesForUser = async (user_id: number) => {
   return await db
@@ -82,25 +78,23 @@ export const selectUnreadMessagesForUser = async (user_id: number) => {
     .where(
       and(
         eq(message_receipts.user_id, user_id),
-        ne(message_receipts.status, "read")
-      )
+        ne(message_receipts.status, "read"),
+      ),
     );
-}
+};
 
-
-export const insertBulkMessageReceipts = async (messageReceipts: NewMessageReceipt[]) => {
-  return await db
-    .insert(message_receipts)
-    .values(messageReceipts)
-    .returning();
-}
+export const insertBulkMessageReceipts = async (
+  messageReceipts: NewMessageReceipt[],
+) => {
+  return await db.insert(message_receipts).values(messageReceipts).returning();
+};
 
 export async function updateAllMessageReceiptsToRead({
   conversation_id,
   user_id,
 }: {
-  conversation_id: number,
-  user_id: number,
+  conversation_id: number;
+  user_id: number;
 }) {
   return await db
     .update(message_receipts)
@@ -114,21 +108,20 @@ export async function updateAllMessageReceiptsToRead({
         eq(message_receipts.conversation_id, conversation_id),
         eq(message_receipts.user_id, user_id),
         ne(message_receipts.status, "read"),
-        isNull(message_receipts.read_at)
-      )
-    ).returning()
+        isNull(message_receipts.read_at),
+      ),
+    )
+    .returning();
 }
-
-
 
 export async function updateBulkMessageReceiptsToRead({
   userId,
   messageIds,
   readAt,
 }: {
-  userId: number,
-  messageIds: number[],
-  readAt: Date,
+  userId: number;
+  messageIds: number[];
+  readAt: Date;
 }) {
   if (messageIds.length === 0) return;
 
@@ -143,27 +136,26 @@ export async function updateBulkMessageReceiptsToRead({
       and(
         eq(message_receipts.user_id, userId),
         inArray(message_receipts.message_id, messageIds),
-        eq(message_receipts.status, "delivered")
-      )
+        eq(message_receipts.status, "delivered"),
+      ),
     );
 }
-
 
 export async function updateBulkMessageReceiptsToDelivered({
   userId,
   messageIds,
   deliveredAt,
 }: {
-  userId: number,
-  messageIds: number[],
-  deliveredAt: Date,
+  userId: number;
+  messageIds: number[];
+  deliveredAt: Date;
 }) {
   if (messageIds.length === 0) return;
 
   await db
     .update(message_receipts)
     .set({
-      status: 'delivered',
+      status: "delivered",
       delivered_at: deliveredAt,
       updated_at: new Date(Date.now()),
     })
@@ -171,25 +163,22 @@ export async function updateBulkMessageReceiptsToDelivered({
       and(
         eq(message_receipts.user_id, userId),
         inArray(message_receipts.message_id, messageIds),
-        eq(message_receipts.status, "sent")
-      )
+        eq(message_receipts.status, "sent"),
+      ),
     );
 }
 
-
-
-
 export async function updateMessageReceiptToDelivered({
   message_id,
-  user_id
+  user_id,
 }: {
-  message_id: number,
-  user_id: number
+  message_id: number;
+  user_id: number;
 }) {
   return await db
     .update(message_receipts)
     .set({
-      status: 'delivered',
+      status: "delivered",
       delivered_at: new Date(Date.now()),
       updated_at: new Date(Date.now()),
     })
@@ -197,23 +186,23 @@ export async function updateMessageReceiptToDelivered({
       and(
         eq(message_receipts.message_id, message_id),
         eq(message_receipts.user_id, user_id),
-        eq(message_receipts.status, "sent")
-      )
-    ).returning()
+        eq(message_receipts.status, "sent"),
+      ),
+    )
+    .returning();
 }
-
 
 export async function updateMessageReceiptToRead({
   message_id,
-  user_id
+  user_id,
 }: {
-  message_id: number,
-  user_id: number
+  message_id: number;
+  user_id: number;
 }) {
   return await db
     .update(message_receipts)
     .set({
-      status: 'read',
+      status: "read",
       read_at: new Date(Date.now()),
       updated_at: new Date(Date.now()),
     })
@@ -221,30 +210,31 @@ export async function updateMessageReceiptToRead({
       and(
         eq(message_receipts.message_id, message_id),
         eq(message_receipts.user_id, user_id),
-        inArray(message_receipts.status, ['sent', 'delivered'])
+        inArray(message_receipts.status, ["sent", "delivered"]),
         // eq(message_receipts.status, "delivered")
-      )
-    ).returning()
+      ),
+    )
+    .returning();
 }
 
 export async function updateMessageReceiptToSent({
   message_id,
-  user_id
+  user_id,
 }: {
-  message_id: number,
-  user_id: number
+  message_id: number;
+  user_id: number;
 }) {
   return await db
     .update(message_receipts)
     .set({
-      status: 'sent',
+      status: "sent",
       updated_at: new Date(Date.now()),
     })
     .where(
       and(
         eq(message_receipts.message_id, message_id),
         eq(message_receipts.user_id, user_id),
-        eq(message_receipts.status, "read")
-      )
+        eq(message_receipts.status, "read"),
+      ),
     );
 }

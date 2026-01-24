@@ -1,21 +1,29 @@
-.PHONY: dev build stop clean logs
+.PHONY: dev prod stop clean logs help
 
-# Start the dev environment with hot-reload
+help:
+	@echo "Available commands:"
+	@echo "  make dev   - Start development environment"
+	@echo "  make prod  - Start production environment"
+	@echo "  make stop  - Stop all containers"
+	@echo "  make logs  - View logs"
+	@echo "  make clean - Remove everything"
+
+# Development: merge base + dev overrides
 dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
-# Start in production mode (compiled/optimized)
+# Production: use base file only
 prod:
 	docker compose up -d --build
 
-# Stop all containers
+# Stop (handle both dev and prod)
 stop:
 	docker compose down
 
-# View logs for all services
+# Logs for dev
 logs:
-	docker compose logs -f
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
-# Nuclear option: remove all containers, volumes, and images to start fresh
+# Clean everything
 clean:
 	docker compose down -v --rmi all
