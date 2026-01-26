@@ -24,7 +24,7 @@ export type PublicUser = Omit<User, "hashed_password"> & {
   };
 };
 export type NewUser = typeof schema.users.$inferInsert;
-export type UpdateUser = Partial<typeof schema.users.$inferInsert>;
+export type update = Partial<typeof schema.users.$inferInsert>;
 
 export type BlockedUser = typeof schema.blocked_users.$inferSelect;
 export type NewBlockedUser = typeof schema.blocked_users.$inferInsert;

@@ -12,11 +12,11 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@core/*": [
-        "./src/core/*"
+      "@common/*": [
+        "src/common/*"
       ],
-      "@features/*": [
-        "./src/features/*"
+      "@modules/*": [
+        "./src/modules/*"
       ],
       "@chat/shared/*": [
         "../../packages/shared/src/*"
