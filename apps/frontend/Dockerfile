@@ -15,6 +15,10 @@ CMD ["bun", "run", "dev", "--", "--host"]
 FROM base AS builder
 COPY packages/shared ./packages/shared
 COPY apps/frontend ./apps/frontend
+
+ARG PUBLIC_API_URL
+ENV PUBLIC_API_URL=$PUBLIC_API_URL
+
 WORKDIR /app/apps/frontend
 RUN bun run build
 
