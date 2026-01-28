@@ -8,7 +8,6 @@
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
     import { markAllAsRead } from "$lib/store/storeHelper.svelte";
-    import { PUBLIC_API_URL } from "$env/static/public";
 
     onMount(async () => {
         const response = await fetch(`/api/conversations`, {

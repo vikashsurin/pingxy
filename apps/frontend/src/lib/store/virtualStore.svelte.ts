@@ -1,6 +1,6 @@
 import { chatStore, type ChatEntry } from "./store.svelte";
 import { tick } from "svelte";
-import { PUBLIC_API_URL } from "$env/static/public";
+
 type ResponseData = { chat: ChatEntry[]; hasMore: boolean };
 
 class VirtualStore {

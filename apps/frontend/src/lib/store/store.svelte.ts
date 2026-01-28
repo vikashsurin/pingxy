@@ -6,7 +6,6 @@ import type {
 } from "@chat/shared/types";
 import { SvelteSet, SvelteMap } from "svelte/reactivity";
 import { virtualStore } from "./virtualStore.svelte";
-import { PUBLIC_API_URL } from "$env/static/public";
 
 export type PrivateConversation = {
   conversation_id: number;

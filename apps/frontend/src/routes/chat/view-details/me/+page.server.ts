@@ -1,6 +1,7 @@
 import { fail } from "@sveltejs/kit";
-import { PUBLIC_API_URL } from "$env/static/public";
-import { INTERNAL_BACKEND_URL } from "$env/static/private";
+import { env } from "$env/dynamic/private";
+
+const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL
 
 export const actions = {
   update: async ({ request, cookies, fetch }) => {

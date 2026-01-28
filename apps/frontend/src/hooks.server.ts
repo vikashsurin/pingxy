@@ -1,6 +1,8 @@
-import { INTERNAL_BACKEND_URL } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { sequence } from "@sveltejs/kit/hooks";
 import type { Handle, HandleFetch } from "@sveltejs/kit";
+
+const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL
 
 // 1. THE NETWORKING HOOK (URL Swapping & Cookie Syncing)
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
