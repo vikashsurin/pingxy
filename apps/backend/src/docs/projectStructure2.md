@@ -3,7 +3,7 @@ src/
 │   ├── auth/
 │   │   ├── routes.ts
 │   │   ├── service.ts
-│   │   ├── queries.ts           (or data.ts / repository.ts)
+│   │   ├── queries.ts           (or data.ts / .repository.ts)
 │   │   └── types.ts             (if needed)
 │   ├── conversations/
 │   │   ├── routes.ts

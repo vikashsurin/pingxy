@@ -1,13 +1,13 @@
 import { serve } from "bun";
-import { setServer } from "./core/socket/pubsub.js";
-import { socketHandlers } from "./core/socket/socketHandlers.js";
-import { WebSocketData } from "./core/socket/types.js";
-import { getAuthUserFromReq } from "./core/utils/index.js";
-
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
+import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
-import { factory } from "./core/db/drizzle-factory";
+import { factory } from "./common/db/drizzle-factory.js";
+import { setServer } from "./common/socket/pubsub.js";
+import { socketHandlers } from "./common/socket/socketHandlers.js";
+import { WebSocketData } from "./common/socket/types.js";
+import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
 
 const app = factory.createApp();
@@ -19,24 +19,25 @@ app.use(
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 app.use(prettyJSON());
+
+app.use(logger());
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
     console.error(err);
     return err.getResponse();
   }
-  return c.json({ error: "Internal Server Error " }, 500)
+  return c.json({ error: "Internal Server Error " }, 500);
 });
-
-
-
 
 app.get("/api/", (c) => {
+  console.log("path", c.req.path);
   return c.json({ app: "chat" });
 });
+
 app.get("/api/health", (c) => {
   return c.json({ status: "ok" });
 });

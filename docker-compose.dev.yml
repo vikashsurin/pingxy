@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chat-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - chat-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migration:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: chat-migration
+    restart: no
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+    networks:
+      - chat-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["bun", "run", "db:push"]
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: development
+    volumes:
+      - ./apps/backend:/app/apps/backend # ← Direct backend mount
+      - ./packages/shared:/app/packages/shared # ← Direct shared mount
+      - /app/node_modules # ← Keep deps separate
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - chat-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      target: development
+    volumes:
+      - ./apps/frontend:/app/apps/frontend
+      - ./packages/shared:/app/packages/shared
+      - /app/apps/frontend/node_modules
+    environment:
+      - NODE_ENV=development
+
+  nginx:
+    image: nginx:alpine
+    container_name: chat-proxy
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - chat-network
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
+networks:
+  chat-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

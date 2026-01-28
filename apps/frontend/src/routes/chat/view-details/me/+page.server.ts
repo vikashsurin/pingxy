@@ -1,6 +1,6 @@
 import { fail } from "@sveltejs/kit";
-
-
+import { PUBLIC_API_URL } from "$env/static/public";
+import { INTERNAL_BACKEND_URL } from "$env/static/private";
 
 export const actions = {
   update: async ({ request, cookies, fetch }) => {
@@ -20,8 +20,8 @@ export const actions = {
       bio,
       gender
     };
-    
-    const response = await fetch("http://localhost:3000/api/users/me", {
+
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/me`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -29,9 +29,9 @@ export const actions = {
       },
       body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
-       return fail(response.status, { error: true });
+      return fail(response.status, { error: true });
     }
 
     const resData = await response.json();

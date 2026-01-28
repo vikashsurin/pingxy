@@ -3,10 +3,10 @@ import type {
   MessagePayload,
   PublicUser,
   MessageReceipt,
-} from "@chat/shared/src/lib/utils/validation";
+} from "@chat/shared/types";
 import { SvelteSet, SvelteMap } from "svelte/reactivity";
 import { virtualStore } from "./virtualStore.svelte";
-
+import { PUBLIC_API_URL } from "$env/static/public";
 
 export type PrivateConversation = {
   conversation_id: number;
@@ -60,7 +60,7 @@ class ChatStore {
 
     // Convert to array and sort by message_id (chronological order)
     return Object.values(convMessages).sort(
-      (a, b) => a.message.message_id - b.message.message_id
+      (a, b) => a.message.message_id - b.message.message_id,
     );
   });
 
@@ -89,7 +89,7 @@ class ChatStore {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/messages", {
+      const response = await fetch(`/api/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,14 +123,14 @@ class ChatStore {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=${this.LIMIT}`,
+        `/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=${this.LIMIT}`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -139,9 +139,8 @@ class ChatStore {
 
       const body = await response.json();
 
-
-
-      virtualStore.absoluteLatestMessageId = body.chat.at(-1).message.message_id;
+      virtualStore.absoluteLatestMessageId =
+        body.chat.at(-1).message.message_id;
 
       // Initial load - just add messages without trimming
       this.messages[conversation_id] = {};
@@ -253,7 +252,7 @@ class ChatStore {
   // Method to update messages for a specific conversation
   updateConversationMessages(
     conversationId: number,
-    messagesArray: ChatEntry[]
+    messagesArray: ChatEntry[],
   ) {
     this.messages[conversationId] ??= {};
 

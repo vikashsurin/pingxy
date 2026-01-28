@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { chatStore } from "$lib/store/store.svelte";
+    import { chatStore } from "$lib/store/store.svelte.js";
     import { onMount, tick } from "svelte";
     import {
         Check,
@@ -9,8 +9,8 @@
         Loader,
     } from "@lucide/svelte";
     import { Tween } from "svelte/motion";
-    import type { ChatEntry } from "$lib/store/store.svelte";
-    import { virtualStore } from "$lib/store/virtualStore.svelte";
+    import type { ChatEntry } from "$lib/store/store.svelte.js";
+    import { virtualStore } from "$lib/store/virtualStore.svelte.js";
     import { markAllAsRead } from "$lib/store/storeHelper.svelte";
     import { date } from "zod/v3";
 

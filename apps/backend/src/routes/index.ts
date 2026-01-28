@@ -1,9 +1,7 @@
-import { authRouter } from "../features/auth/auth.routes";
-import { conversationRouter } from "../features/conversations/conv.routes";
-import { messageRouter } from "../features/messages/msg.routes";
-import { userRouter } from "../features/users/user.routes";
-import { logger } from "hono/logger";
-
+import { authRouter } from "../modules/auth/auth.routes";
+import { conversationRouter } from "../modules/conversations/conversation.routes";
+import { messageRouter } from "../modules/messages/message.routes";
+import { userRouter } from "../modules/users/user.routes";
 
 export function registerRoutes(app: any) {
   app.route("/api/auth", authRouter);
