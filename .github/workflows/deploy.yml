@@ -1,4 +1,4 @@
-name: Build and Push to Docker Hub
+name: Build, Push, and Deploy
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Backend
+      - name: Build and push Backend (used for both migration & backend)
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -32,3 +32,20 @@ jobs:
           file: apps/frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/chat-frontend:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/pingxy
+            git pull origin main
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
