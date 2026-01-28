@@ -52,7 +52,7 @@ export function initSocket() {
 
 // MESSAGE HANDLER
 const messageHandler: Record<string, (data: any) => void> = {
-  system: (messagePayload: MessagePayload) => {},
+  system: (messagePayload: MessagePayload) => { },
   message: (messagePayload: MessagePayload) => {
     const msgData = messagePayload.msgData as ChatEntry;
     const conversation_id = msgData.message.conversation_id;
@@ -106,8 +106,8 @@ const messageHandler: Record<string, (data: any) => void> = {
     // chatStore.messages.set(conversationId!, message)
   },
 
-  user_join: (messagePayload: MessagePayload) => {},
-  user_leave: (messagePayload: MessagePayload) => {},
+  user_join: (messagePayload: MessagePayload) => { },
+  user_leave: (messagePayload: MessagePayload) => { },
   users_online: (messagePayload: MessagePayload) => {
     chatStore.onlineUsers = messagePayload?.data?.users;
   },
@@ -118,9 +118,9 @@ const messageHandler: Record<string, (data: any) => void> = {
     // chatStore.onlineUsers = updatedOnlineUsers;
   },
 
-  message_receipts: (messagePayload: MessagePayload) => {},
-  typing: (messagePayload: MessagePayload) => {},
-  error: (message: MessagePayload) => {},
+  message_receipts: (messagePayload: MessagePayload) => { },
+  typing: (messagePayload: MessagePayload) => { },
+  error: (message: MessagePayload) => { },
 };
 
 export function getSocket() {
