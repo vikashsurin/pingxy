@@ -1,14 +1,13 @@
 import { serve } from "bun";
-import { setServer } from "./common/socket/pubsub.js";
-import { socketHandlers } from "./common/socket/socketHandlers.js";
-import { WebSocketData } from "./common/socket/types.js";
-import { getAuthUserFromReq } from "./common/utils/index.js";
-
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { factory } from "./common/db/drizzle-factory.js";
+import { setServer } from "./common/socket/pubsub.js";
+import { socketHandlers } from "./common/socket/socketHandlers.js";
+import { WebSocketData } from "./common/socket/types.js";
+import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
 
 const app = factory.createApp();

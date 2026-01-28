@@ -6,19 +6,13 @@ import { SessionService } from "../../modules/sessions";
 export const authMiddleware = factory.createMiddleware(async (c, next) => {
   const sessionToken = getCookie(c, "_Host-session");
 
-  console.log(sessionToken);
-  // No token → early exit
   if (!sessionToken) {
-    // Optional: deleteCookie(c, "_Host-session"); // only if you really want to be extra clean
     return c.json({ message: "Unauthorized - please log in" }, 401);
   }
 
   try {
     const user = await SessionService.getSessionUser(sessionToken);
 
-    // Optional: you can throw specific errors from getSessionUser
-    // e.g. throw new Error("session_expired") / "session_revoked" etc.
-    // TODO check this
     c.set("user", user);
 
     // Update last activity (best effort – don't fail request if this fails)

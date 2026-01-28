@@ -1,13 +1,9 @@
-import { MessagePayload } from "@chat/shared/types";
 import { factory } from "src/common/db/drizzle-factory";
 import { authMiddleware } from "src/common/middlewares/auth";
-import { publish } from "src/common/socket/pubsub";
-import * as services from "./message.service";
+import { MessageController } from "./message.controller";
 
-const app = factory.createApp();
+export const messageRouter = factory.createApp();
 
-app.use(authMiddleware);
+messageRouter.use(authMiddleware);
 
-//Create New Message
-app.post("/", authMiddleware,);
-export const messageRouter = app;
+messageRouter.post("/", authMiddleware, MessageController.create);

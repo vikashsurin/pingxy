@@ -51,9 +51,6 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
 
   },
   mark_all_as_read: async (ws, messagePayload: MessagePayload) => {
-    // const conversation_id = message.data?.conversation_id
-    // const user_id = message.data?.user_id
-
     if (messagePayload.data?.conversation_id && messagePayload.data.user_id) {
       await ReceiptService.markAllAsRead(messagePayload)
     }
@@ -65,16 +62,9 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
 
   },
 
-
-
   mark_as_read: async (ws, messagePayload: MessagePayload) => {
 
     await ReceiptService.markAsRead(messagePayload)
-  },
-
-
-  new_conversation: (ws, message: MessagePayload) => {
-
   },
 
 
@@ -84,7 +74,6 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
     ws.subscribe(conversationId!.toString());
     console.log("subscribed")
   },
-
 
 
   subscribe: (ws, message: MessagePayload) => {

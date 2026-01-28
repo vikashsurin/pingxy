@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { MessageRepository } from "./message.repository";
 import db from "src/common/db/client";
+import { NewMessage } from "@chat/shared/types"
+
+
 describe("Messages Table Schema", () => {
   beforeAll(async () => {
     // await db.delete(messages);
@@ -8,16 +11,16 @@ describe("Messages Table Schema", () => {
 
   const userId = 1;
 
-  // test("should insert a new message", async () => {
-  //   const newMessage: NewMessage = {
-  //     conversation_id: 7,
-  //     sender_id: userId,
-  //     client_message_id: "123",
-  //     content: "Hello",
-  //   };
-  //   const result = await queries.insertMessage(newMessage);
-  //   expect(result).toHaveLength(1);
-  // });
+  test("should insert a new message", async () => {
+    const newMessage: NewMessage = {
+      conversation_id: 1,
+      sender_id: userId,
+      client_message_id: "123",
+      content: "Hello",
+    };
+    const result = await MessageRepository.insertMessage(newMessage);
+    expect(result).toHaveLength(1);
+  });
 
   // test("should update a message", async () => {
   //   const result = await queries.updateMessage(6, { content: "Hello World" });

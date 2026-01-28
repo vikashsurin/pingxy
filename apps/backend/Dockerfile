@@ -15,7 +15,7 @@ COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 WORKDIR /app/apps/backend
 # Use --watch instead of --hot for better file system watching
-CMD ["bun", "run", "--watch", "src/index.ts"]
+CMD ["bun","--hot" "run", "src/index.ts"]
 
 # Stage 3: Builder (Production)
 FROM base AS builder

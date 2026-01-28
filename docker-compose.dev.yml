@@ -44,11 +44,9 @@ services:
       dockerfile: apps/backend/Dockerfile
       target: development
     volumes:
-      - ./apps/backend:/app/apps/backend
-      - ./packages/shared:/app/packages/shared
-      - /app/apps/backend/node_modules
-      - /app/node_modules
-      - /app/packages/shared/node_modules
+      - ./apps/backend:/app/apps/backend # ← Direct backend mount
+      - ./packages/shared:/app/packages/shared # ← Direct shared mount
+      - /app/node_modules # ← Keep deps separate
     environment:
       - NODE_ENV=development
     depends_on:
