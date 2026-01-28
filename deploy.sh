@@ -5,7 +5,7 @@ set -e
 
 echo "🚀 Starting deployment..."
 
-# 1. Pull the latest code from your repository
+# 1. Pull the latest code from your .repository
 echo "📥 Pulling latest changes..."
 git pull origin main
 

@@ -4,22 +4,20 @@
         chatStore,
         type PrivateConversation,
     } from "$lib/store/store.svelte";
-    import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
+    import type { MessagePayload } from "@chat/shared/types";
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
     import { markAllAsRead } from "$lib/store/storeHelper.svelte";
+    import { PUBLIC_API_URL } from "$env/static/public";
 
     onMount(async () => {
-        const response = await fetch(
-            "http://localhost:3000/api/conversations",
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
+        const response = await fetch(`/api/conversations`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
             },
-        );
+            credentials: "include",
+        });
         const data = await response.json();
         chatStore.conversations = data.conversations;
     });

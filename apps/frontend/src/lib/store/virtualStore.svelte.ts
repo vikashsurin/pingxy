@@ -1,6 +1,6 @@
 import { chatStore, type ChatEntry } from "./store.svelte";
 import { tick } from "svelte";
-
+import { PUBLIC_API_URL } from "$env/static/public";
 type ResponseData = { chat: ChatEntry[]; hasMore: boolean };
 
 class VirtualStore {
@@ -170,7 +170,7 @@ class VirtualStore {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/conversations/${params.conversation_id}/messages/${params.user_id}?before=${oldestId}&limit=${params.limit}`,
+        `/api/conversations/${params.conversation_id}/messages/${params.user_id}?before=${oldestId}&limit=${params.limit}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -240,7 +240,7 @@ class VirtualStore {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/conversations/${params.conversation_id}/messages/${params.user_id}?after=${newestId}&limit=${params.limit}`,
+        `/api/conversations/${params.conversation_id}/messages/${params.user_id}?after=${newestId}&limit=${params.limit}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },

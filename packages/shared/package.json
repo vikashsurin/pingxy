@@ -1,15 +1,23 @@
 {
   "name": "@chat/shared",
+  "private": true,
   "module": "src/index.ts",
   "type": "module",
-  "private": true,
+  "exports": {
+    "./db": "./db/*",
+    "./constants": "./src/constants/index.ts",
+    "./types": "./src/types/index.ts",
+    "./utils": "./src/utils/index.ts"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.3.6",
+    "@types/node": "^25.0.10"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.1",
     "drizzle-zod": "^0.8.3",
     "zod": "^4.1.13"
   }

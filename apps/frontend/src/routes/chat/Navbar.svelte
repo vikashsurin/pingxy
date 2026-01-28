@@ -2,7 +2,7 @@
   import { getSocket } from "$lib/socket.svelte";
   import { chatStore } from "$lib/store/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
-  import type { MessagePayload } from "@chat/shared/src/lib/utils/validation";
+  import type { MessagePayload } from "@chat/shared/types";
   import {
     ChevronDown,
     CircleChevronDown,
@@ -70,7 +70,7 @@
 </div>
 
 <!-- FOR DESKTOP -->
-<div class="hidden justify-between items-center mx-4 lg:flex py-2">
+<div class="hidden justify-between items-center mx-4 lg:flex py-2 z-999">
   <div class="flex gap-2 text-sm">
     <a href="/" class="font-bold">Logo</a>
     {@render link("/about", "About")}
