@@ -4,7 +4,7 @@
 
 <div class="flex justify-center pt-12">
     <p
-        class="bg-blue-200 py-4 px-6 rounded-md border border-blue-500 text-blue-800"
+        class="bg-blue-700 py-4 shadow-2xl shadow-blue-200 px-6 text-sm font-medium rounded-md border border-blue-500 text-sky-100"
     >
         {BANNER_NOTIFICATION}
     </p>

@@ -79,10 +79,6 @@
     }, 500);
 </script>
 
-<div class="flex flex-col md:items-center">
-    <p class="text-3xl font-bold py-2 text-blue-600">ChatApp</p>
-    <p class="text-sm text-gray-500">Connect globally, chat instantly.</p>
-</div>
 <div class="md:w-96 w-full mx-auto">
     <div class="flex flex-col bg-white rounded-lg md:shadow-lg p-6">
         <h1 class="text-xl font-bold py-2 mb-4 text-center">
@@ -224,7 +220,7 @@
               : "Enter as Guest"}
     <button
         disabled={loading}
-        class="bg-green-600 text-white p-2.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+        class="bg-blue-600 text-white p-2.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
     >
         {#if loading}
             <svg
