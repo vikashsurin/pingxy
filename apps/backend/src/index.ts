@@ -25,12 +25,37 @@ app.use(prettyJSON());
 
 app.use(logger());
 
-app.onError((err, c) => {
+app.onError((err, ctx) => {
+  console.error(`[Error] ${err.message}`);
+
   if (err instanceof HTTPException) {
-    console.error(err);
-    return err.getResponse();
+    return ctx.json(
+      {
+        success: false,
+        message: err.message,
+      },
+      err.status,
+    );
   }
-  return c.json({ error: "Internal Server Error " }, 500);
+
+  if (err.name === "ZodError") {
+    return ctx.json(
+      {
+        success: false,
+        error: "Validation Error",
+        details: err.message,
+      },
+      400,
+    );
+  }
+
+  return ctx.json(
+    {
+      success: false,
+      message: "Internal Server Error",
+    },
+    500,
+  );
 });
 
 app.get("/api/", (c) => {

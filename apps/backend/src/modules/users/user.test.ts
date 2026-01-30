@@ -1,6 +1,8 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { UserRepository } from "./user.repository";
-import { type NewUser } from "@chat/shared/types";
+import { NewUser } from "@chat/shared/domain/user";
+
+
 
 describe("Users Table Schema", async () => {
   beforeAll(async () => {

@@ -160,6 +160,7 @@
             {:else if mode === "register"}
                 {@render uname()}
                 {@render pass()}
+                {@render confirmPass()}
                 <div class="flex justify-between items-center gap-2">
                     {@render gen()}
                     {@render ag()}
@@ -206,6 +207,21 @@
             type="password"
             class="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 border-gray-200 transition-all"
             placeholder="Enter password"
+            required
+        />
+    </div>
+{/snippet}
+
+{#snippet confirmPass()}
+    <div class="space-y-1">
+        <span class="text-xs font-medium text-gray-700 ml-1"
+            >Confirm Password</span
+        >
+        <input
+            name="confirmPassword"
+            type="password"
+            class="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 border-gray-200 transition-all"
+            placeholder="Confirm password"
             required
         />
     </div>

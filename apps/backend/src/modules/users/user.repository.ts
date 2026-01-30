@@ -1,4 +1,4 @@
-import { NewUser } from "@chat/shared/types";
+import { NewUser } from "@chat/shared/domain/user";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
 import { userInsertSchema, users } from "@chat/shared/db/schemas";

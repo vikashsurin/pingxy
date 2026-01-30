@@ -1,4 +1,4 @@
-import { capitalizeFirst } from '@chat/shared/utils'
+import { capitalizeFirst } from "@chat/shared/utils";
 import { fail, redirect, type Cookies } from "@sveltejs/kit";
 export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
@@ -32,18 +32,19 @@ export const actions = {
     }
     const { user, _ } = await response.json();
 
-    await setCookieHeaders({ response, cookies })
+    await setCookieHeaders({ response, cookies });
 
     return { success: true, user };
   },
 
   register: async ({ cookies, request, fetch }) => {
-    const data = await request.formData();
-    const username = data.get("username") as string;
-    const password = data.get("password") as string;
-    const gender = data.get("gender") as string;
-    const age = data.get("age");
-    const country = data.get("country") as string;
+    const formData = await request.formData();
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    const gender = formData.get("gender") as string;
+    const age = formData.get("age");
+    const country = formData.get("country") as string;
 
     if (!username || !password || username.length < 3) {
       return fail(400, { username, invalid: "Invalid input" });
@@ -52,23 +53,22 @@ export const actions = {
     // Capitalize for display consistency
     const displayName = capitalizeFirst(username);
 
-    const user = {
-      username: displayName,
+    const data = {
       gender: gender,
       age: Number(age),
       country: country,
       roles: ["user"],
     };
 
-    // const validateUser = user
-    // if (!validateUser.success) {
-    //   return fail(400, { username, invalid:"Invalid user data" });
-    // }
-
     const response = await fetch(`/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: displayName, password, user }),
+      body: JSON.stringify({
+        username: displayName,
+        password,
+        confirmPassword,
+        data,
+      }),
     });
 
     if (!response.ok) {
@@ -78,34 +78,27 @@ export const actions = {
         invalid: error.error || "Registration failed",
       });
     }
-    await setCookieHeaders({ response, cookies })
+    await setCookieHeaders({ response, cookies });
   },
 
   guest: async ({ cookies, request, fetch }) => {
-    const data = await request.formData();
-    const username = data.get("username") as string;
-    const gender = data.get("gender") as string;
-    const age = data.get("age");
-    const country = data.get("country") as string;
+    const formData = await request.formData();
+    const username = formData.get("username") as string;
+    const gender = formData.get("gender") as string;
+    const age = formData.get("age");
+    const country = formData.get("country") as string;
 
-    const displayName = capitalizeFirst(username);
-
-    const user = {
-      username: displayName,
+    const data = {
       gender: gender,
       age: Number(age),
       country: country,
+      roles: ["guest"],
     };
-
-    // Validation
-    // const validateUser = userInsertSchema.safeParse(user);
-    // if (!validateUser.success)
-    //   return fail(400, { username, invalid: "Invalid data" });
 
     const response = await fetch(`/api/auth/guest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user }),
+      body: JSON.stringify({ username: capitalizeFirst(username), data }),
     });
 
     if (!response.ok) {
@@ -116,26 +109,32 @@ export const actions = {
       });
     }
 
-    await setCookieHeaders({ response, cookies })
-
+    await setCookieHeaders({ response, cookies });
   },
 };
 
 // A function to setCookieHeaders in the browser
-async function setCookieHeaders({ response, cookies }: { response: Response, cookies: Cookies }) {
-
+async function setCookieHeaders({
+  response,
+  cookies,
+}: {
+  response: Response;
+  cookies: Cookies;
+}) {
   const setCookieHeaders = response.headers.getSetCookie();
 
   setCookieHeaders.forEach((cookieString: string) => {
-    const firstEquals = cookieString.indexOf('=');
+    const firstEquals = cookieString.indexOf("=");
     const name = cookieString.substring(0, firstEquals).trim();
 
     const afterEquals = cookieString.substring(firstEquals + 1);
 
-    const firstSemicolon = afterEquals.indexOf(';');
-    const value = (firstSemicolon === -1
-      ? afterEquals
-      : afterEquals.substring(0, firstSemicolon)).trim();
+    const firstSemicolon = afterEquals.indexOf(";");
+    const value = (
+      firstSemicolon === -1
+        ? afterEquals
+        : afterEquals.substring(0, firstSemicolon)
+    ).trim();
 
     cookies.set(name, value, {
       maxAge: 60 * 60 * 24 * 7,

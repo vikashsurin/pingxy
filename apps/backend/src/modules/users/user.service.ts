@@ -1,17 +1,15 @@
-import { NewUser } from "@chat/shared/types";
+import { NewUser, UserInsertSchema } from "@chat/shared/domain/user";
 import { UserRepository } from "./user.repository";
 import { HTTPException } from "hono/http-exception";
 
 export const UserService = {
   createUser: async (newUser: NewUser) => {
-    try {
-      const [existingUser] = await UserRepository.selectByUsername(
-        newUser.username,
-      );
-      if (existingUser) {
-        throw new Error("Username already exists");
-      }
 
+    try {
+      const [existingUser] = await UserRepository.selectByUsername(newUser.username)
+      if (existingUser) {
+        throw new Error("User already exists")
+      }
       return UserRepository.insert(newUser);
     } catch (error) {
       console.error("error creating user:", error);
