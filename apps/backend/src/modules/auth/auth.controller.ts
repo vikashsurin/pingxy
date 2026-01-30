@@ -138,38 +138,12 @@ export const AuthController = {
       data: { ...user },
     };
 
-    const success = await UserService.createUser(newUser);
-    if (success.length < 0) {
-      return c.json({ error: "Failed to create user" }, 500);
-    }
 
-    // Create session and auto login the user
-    const info = getConnInfo(c);
-    const ip_address = info.remote.address!;
-    const [dbUser] = await UserService.getUserByUsername(user.username);
-    const userAgent = c.req.header("User-Agent")!;
-    if (!dbUser) {
-      return c.json({ error: "User not found" }, 404);
-    }
-    const token = crypto.randomUUID();
-
-    // Create session
-    await SessionService.createSession(token, dbUser.id, ip_address, userAgent);
-
-    // Set cookie
-    setCookie(c, "_Host-session", token, {
-      maxAge: 60 * 60 * 24 * 7,
-      httpOnly: true,
-      secure: false,
-      path: "/",
-      sameSite: "lax",
-    });
-
-    return c.json({
-      user: dbUser,
-      token: token,
-    });
-  },
+      return c.json({
+        // user: dbUser,
+        // token: token,
+      });
+    }),
 
   logout: async (c: Context) => {
     const cookie = getCookie(c, "_Host-session");
