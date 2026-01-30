@@ -1,24 +1,31 @@
+version: "3.8"
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: chat-db
+    shm_size: "512mb"
+    container_name: pingxy-postgres-dev
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-pingxy}
     ports:
-      - "5432:5432"
+      - "5432:5432" # Expose for local tools
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     networks:
-      - chat-network
+      - pingxy-network-dev
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 512M # Less than prod
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-pingxy}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,54 +34,77 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    container_name: chat-migration
+      target: development
+    container_name: pingxy-migration-dev
     restart: no
     environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
+    volumes:
+      - ./apps/backend:/app/apps/backend
+      - ./packages/shared:/app/packages/shared
+      - ./drizzle:/app/drizzle
+      - ./drizzle.config.ts:/app/drizzle.config.ts
     networks:
-      - chat-network
+      - pingxy-network-dev
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["bun", "run", "db:push"]
+    command: ["bun", "run", "db:migrate"]
 
   backend:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
       target: development
+    container_name: pingxy-backend-dev
+    restart: always
+    ports:
+      - "3000:3000" # Expose for testing
     volumes:
-      - ./apps/backend:/app/apps/backend # ← Direct backend mount
-      - ./packages/shared:/app/packages/shared # ← Direct shared mount
-      - /app/node_modules # ← Keep deps separate
+      - ./apps/backend:/app/apps/backend
+      - ./packages/shared:/app/packages/shared
+      - /app/node_modules
+      - /app/apps/backend/node_modules
     environment:
       - NODE_ENV=development
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - PORT=3000
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
     networks:
-      - chat-network
+      - pingxy-network-dev
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    command: ["bun", "--hot", "run", "src/index.ts"]
 
   frontend:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
       target: development
+    container_name: pingxy-frontend-dev
+    restart: always
+    ports:
+      - "5173:5173" # Vite dev server
     volumes:
       - ./apps/frontend:/app/apps/frontend
       - ./packages/shared:/app/packages/shared
+      - /app/node_modules
       - /app/apps/frontend/node_modules
     environment:
       - NODE_ENV=development
+      - PORT=5173
+      - INTERNAL_BACKEND_URL=http://backend:3000
+    networks:
+      - pingxy-network-dev
 
   nginx:
     image: nginx:alpine
-    container_name: chat-proxy
+    container_name: pingxy-proxy-dev
     restart: always
     ports:
       - "80:80"
     networks:
-      - chat-network
+      - pingxy-network-dev
     volumes:
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -82,8 +112,8 @@ services:
       - backend
 
 networks:
-  chat-network:
+  pingxy-network-dev:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data_dev:

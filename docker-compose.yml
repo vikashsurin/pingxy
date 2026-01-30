@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     shm_size: "512mb"
-    container_name: chat-postgres
+    container_name: pingxy-postgres
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${DB_USER}
@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - chat-network
+      - pingxy-network
     deploy:
       resources:
         limits:
@@ -23,27 +23,27 @@ services:
       retries: 5
 
   migration:
-    image: vikashsurin/chat-backend:latest
+    image: vikashsurin/pingxy-backend:latest
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    container_name: chat-migration
+    container_name: pingxy-migration
     restart: no
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
     networks:
-      - chat-network
+      - pingxy-network
     depends_on:
       postgres:
         condition: service_healthy
     command: ["bun", "run", "db:migrate"]
 
   backend:
-    image: vikashsurin/chat-backend:latest
+    image: vikashsurin/pingxy-backend:latest
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    container_name: chat-backend
+    container_name: pingxy-backend
     restart: always
     depends_on:
       migration:
@@ -52,32 +52,32 @@ services:
       - PORT=3000
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
     networks:
-      - chat-network
+      - pingxy-network
     command: ["bun", "run", "start"]
 
   frontend:
-    image: vikashsurin/chat-frontend:latest
+    image: vikashsurin/pingxy-frontend:latest
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
-    container_name: chat-frontend
+    container_name: pingxy-frontend
     restart: always
     environment:
       - PORT=3001
       - ORIGIN=https://pingxy.com
       - INTERNAL_BACKEND_URL=http://backend:3000
     networks:
-      - chat-network
+      - pingxy-network
 
   nginx:
     image: nginx:alpine
-    container_name: chat-proxy
+    container_name: pingxy-proxy
     restart: always
     ports:
       - "80:80"
       - "443:443"
     networks:
-      - chat-network
+      - pingxy-network
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro # Mount the certs here
@@ -86,7 +86,7 @@ services:
       - backend
 
 networks:
-  chat-network:
+  pingxy-network:
     driver: bridge
 
 volumes:
