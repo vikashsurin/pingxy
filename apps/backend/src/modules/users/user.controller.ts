@@ -1,29 +1,40 @@
 import { capitalizeFirst } from "@chat/shared/utils";
-import { Context } from "hono";
+import { validate } from "@common/utils/validator";
+import { z } from "zod";
 import { UserService } from "./user.service";
+import { factory } from "src/common/db/drizzle-factory";
 
 export const UserController = {
-  checkUser: async (c: Context) => {
-    try {
-      const username = c.req.query("username");
-      if (!username || username === "") {
-        return c.json({ error: "username cannot be empty" }, 400);
+  checkUser: factory.createHandlers(
+    validate(
+      "query",
+      z.object({
+        username: z
+          .string()
+          .min(3, "Too short")
+          .max(20, "Too long")
+          .regex(/^[a-zA-Z0-9]+$/, "Invalid username"),
+      }),
+    ),
+    async (c) => {
+      try {
+        const username = c.req.valid("query").username;
+
+        const UserName = capitalizeFirst(username ?? "");
+        let available: boolean;
+        const result = await UserService.getUserByUsername(UserName);
+
+        if (result.length > 0) {
+          available = false;
+        } else {
+          available = true;
+        }
+
+        return c.json({ available: available });
+      } catch (error) {
+        console.log(error);
+        return c.json({ error: "Something went wrong" }, 500);
       }
-
-      const UserName = capitalizeFirst(username ?? "");
-      let available: boolean;
-      const result = await UserService.getUserByUsername(UserName);
-
-      if (result.length > 0) {
-        available = false;
-      } else {
-        available = true;
-      }
-
-      return c.json({ available: available });
-    } catch (error) {
-      console.log(error);
-      return c.json({ error: "Something went wrong" }, 500);
-    }
-  },
+    },
+  ),
 };

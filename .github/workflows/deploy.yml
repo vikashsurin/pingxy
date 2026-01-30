@@ -23,7 +23,7 @@ jobs:
           context: .
           file: apps/backend/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/chat-backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/pingxy-backend:latest
 
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
@@ -31,7 +31,7 @@ jobs:
           context: .
           file: apps/frontend/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/chat-frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/pingxy-frontend:latest
           build-args: PUBLIC_API_URL=https://pingxy.com
 
   deploy:

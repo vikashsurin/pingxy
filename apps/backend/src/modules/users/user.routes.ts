@@ -3,4 +3,4 @@ import { UserController } from "./user.controller";
 
 export const userRouter = factory.createApp();
 
-userRouter.get("/check", UserController.checkUser);
+userRouter.get("/check", ...UserController.checkUser);

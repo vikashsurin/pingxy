@@ -12,7 +12,7 @@ export const conversations = table(
   {
     conversation_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     conversation_type:
-      conversationTypesEnum("conversation_type").default("direct"),
+      conversationTypesEnum().default("direct"),
     name: t.varchar("name", { length: 100 }),
     last_message_id: t.integer(),
     last_message_at: t.timestamp({ withTimezone: true }),

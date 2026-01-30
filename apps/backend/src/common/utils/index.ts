@@ -1,7 +1,5 @@
 import { SessionService } from "../../modules/sessions";
 
-
-
 export async function getAuthUserFromReq(req: Request) {
   const cookieHeader = req.headers.get("cookie");
   if (!cookieHeader) return null;
