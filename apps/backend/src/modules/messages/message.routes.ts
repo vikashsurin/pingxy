@@ -6,4 +6,4 @@ export const messageRouter = factory.createApp();
 
 messageRouter.use(authMiddleware);
 
-messageRouter.post("/", authMiddleware, MessageController.create);
+messageRouter.post("/", authMiddleware, ...MessageController.create);

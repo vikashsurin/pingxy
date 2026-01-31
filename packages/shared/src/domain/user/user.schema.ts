@@ -1,9 +1,15 @@
-import { z } from "zod";
 import {
   createInsertSchema,
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
+import { z } from "zod";
+import {
+  MAX_NAME_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MIN_NAME_LENGTH,
+  MIN_PASSWORD_LENGTH,
+} from "../../constants/user";
 import { users } from "./user.table";
 
 const UserMetaDataSchema = z.object({
@@ -17,16 +23,16 @@ const UserMetaDataSchema = z.object({
 const BaseUserSchema = z.object({
   username: z
     .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(100, "Username must be at most 100 characters"),
+    .min(MIN_NAME_LENGTH, "Username must be at least 3 characters")
+    .max(MAX_NAME_LENGTH, "Username must be at most 16 characters"),
   data: UserMetaDataSchema,
 });
 
 export const RegisterUserRequestSchema = BaseUserSchema.extend({
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password must be at most 100 characters"),
+    .min(MIN_PASSWORD_LENGTH, "Password must be at least 8 characters")
+    .max(MAX_PASSWORD_LENGTH, "Password must be at most 32 characters"),
   confirmPassword: z.string(),
 }).refine((values) => values.password === values.confirmPassword, {
   message: "Passwords do not match",

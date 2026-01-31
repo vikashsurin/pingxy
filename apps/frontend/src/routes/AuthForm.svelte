@@ -33,6 +33,7 @@
     }
 
     const debounceCheck = debounce(async () => {
+        // use Constant from shared/constants.ts for length cheking..
         if (!username) {
             hint.error = null;
             hint.text = "";
@@ -70,10 +71,10 @@
             // Register / Guest: We want availability
             if (data.available) {
                 hint.error = false;
-                hint.text = "Username available";
+                hint.text = "Ok";
             } else {
                 hint.error = true;
-                hint.text = "Username not available";
+                hint.text = "Username Taken";
             }
         }
     }, 500);
