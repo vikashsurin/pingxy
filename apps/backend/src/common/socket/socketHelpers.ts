@@ -1,5 +1,6 @@
-import { type MessagePayload } from '@chat/shared/types';
+import { type MessagePayload } from '@pingxy/shared/types';
 import { userSockets } from './state';
+import { ServerEventSchema } from '@pingxy/shared/';
 
 export function getOnlineUsers() {
   const users = [];
@@ -26,8 +27,8 @@ export function getStatus(lastActivity: any) {
 
 export function broadcastOnlineUsers() {
   const onlineUsers = getOnlineUsers()
-  const message: MessagePayload = {
-    type: 'users_online',
+  const message: ServerEventSchema = {
+    type: 'users.online',
     id: crypto.randomUUID(),
     data: {
       users: getOnlineUsers()

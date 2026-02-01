@@ -14,7 +14,7 @@ export const validate = <
       return ctx.json({
         success: false,
         message: 'Validation failed',
-        errors: result.error
+        errors: result.error._zod.def
       }, 400);
     }
   });

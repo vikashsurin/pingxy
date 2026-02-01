@@ -1,6 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 import { jwtDecode } from "jwt-decode";
-import type { User } from "@chat/shared/types";
+import type { User } from "@pingxy/shared/types";
 
 export async function load({ request, cookies }) {
   const token = cookies.get("sessionid");

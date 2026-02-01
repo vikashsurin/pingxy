@@ -1,4 +1,4 @@
-import { NewConversation } from "@chat/shared/types";
+import { NewConversation } from "@pingxy/shared/types";
 
 import { ConversationRepository } from "./conversation.repository";
 

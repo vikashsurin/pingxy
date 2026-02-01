@@ -1,7 +1,7 @@
 import {
   GuestUserRequestSchema,
   RegisterUserRequestSchema,
-} from "@chat/shared/domain/user";
+} from "@pingxy/shared/domain/user";
 import { factory } from "@common/db/drizzle-factory";
 import { validate } from "@common/utils/validator";
 import { SessionService } from "@modules/sessions";
@@ -61,7 +61,9 @@ export const AuthController = {
       "json",
       z.object({
         username: z.string().min(3).max(100),
-        password: z.string().min(8).max(100),
+        password: z.string().min(2).max(100),
+        // password: z.string().min(8).max(100),
+        // Todo:implement right error message for frontend
       }),
     ),
     async (c) => {
@@ -70,7 +72,9 @@ export const AuthController = {
         const ip_address = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
 
-        const { username, password } = c.req.valid("json");
+        const { username, password } = c.req.valid("json")
+
+        console.log({ username, password })
 
         const { user, token } = await AuthService.login({
           username,

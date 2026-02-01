@@ -1,15 +1,13 @@
-import { NewMessage } from "@chat/shared/types";
-import { and, desc, eq, ne, lt, gt, gte, asc } from "drizzle-orm";
-import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
-import { type PgTransaction } from "drizzle-orm/pg-core";
+import { NewMessage } from "@pingxy/shared/types";
+import { and, desc, eq, ne, lt, gt, asc } from "drizzle-orm";
 import db from "src/common/db/client";
-import { messages, message_receipts } from "@chat/shared/db/schemas";
-import * as schema from "@chat/shared/db/schemas";
+import { messages, message_receipts } from "@pingxy/shared/db/schemas";
+import { type DB_TX } from "src/common/db/client";
 
 export const MessageRepository = {
   insertMessage: async (
     message: NewMessage,
-    tx: BunSQLDatabase<typeof schema> | PgTransaction<any, any, any> = db,
+    tx: DB_TX = db,
   ) => {
     return tx
       .insert(messages)
@@ -56,7 +54,7 @@ export const MessageRepository = {
   },
 
   // Select all messages of a conversation
-  selectMessagesByConversationId: async (conversation_id: number, tx: BunSQLDatabase<typeof schema> | PgTransaction<any, any, any> = db) => {
+  selectMessagesByConversationId: async (conversation_id: number, tx: DB_TX = db) => {
     return tx
       .select({
         message_id: messages.message_id,
@@ -110,7 +108,7 @@ export const MessageRepository = {
   }: {
     conversation_id: number;
     user_id: number;
-    tx: BunSQLDatabase<typeof schema> | PgTransaction<any, any, any>;
+    tx: DB_TX;
   }) => {
     const result = await tx
       .select({
@@ -157,7 +155,7 @@ export const MessageRepository = {
     before: number | null;
     after: number | null;
     limit: number;
-    tx: BunSQLDatabase<typeof schema> | PgTransaction<any, any, any>;
+    tx: DB_TX;
   }) => {
     // Base condition: always filter by conversation
     const baseCondition = eq(messages.conversation_id, conversation_id);

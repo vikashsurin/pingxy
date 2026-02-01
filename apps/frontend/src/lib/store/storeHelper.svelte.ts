@@ -1,4 +1,4 @@
-import { type Message, type MessagePayload, type MessageReceipt } from "@chat/shared/types";
+import { type Message, type MessagePayload, type MessageReceipt } from "@pingxy/shared/types";
 import { getSocket } from "../socket.svelte";
 import { chatStore } from "./store.svelte";
 

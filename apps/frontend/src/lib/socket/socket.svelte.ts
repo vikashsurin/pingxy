@@ -1,15 +1,21 @@
-import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
+import { chatStore, type ChatEntry } from "$lib/store/store.svelte";
 import type {
   Message,
   MessagePayload,
   MessageReceipt,
-} from "@chat/shared/types";
+} from "@pingxy/shared/types";
 import {
   markAsDelivered,
   markAsRead,
   receiptHandlers,
 } from "./store/storeHelper.svelte";
 import { virtualStore } from "./store/virtualStore.svelte";
+import {
+  ServerEventSchema,
+  type ServerEventType,
+} from "@pingxy/shared/domain";
+import { raw } from "hono/html";
+import { handleNewMessage } from "./socket.service.svelte";
 
 export let socket: WebSocket | null = null;
 
@@ -43,7 +49,21 @@ export function initSocket() {
       handler(data);
     }
   });
+  socket.addEventListener("message", (event) => {
+    const rawData = JSON.parse(event.data);
+    console.log({ rawData });
+    const parsedData = ServerEventSchema.safeParse(rawData);
+    if (!parsedData.success) {
+      console.error("Invalid message format", parsedData.error);
+      return;
+    }
+    const data = parsedData.data;
 
+    const handler = messageHandler[data.type];
+    if (handler) {
+      handler(data);
+    }
+  });
   socket.addEventListener("close", (event) => {
     console.log("disconnected");
     chatStore.isConnected = false;
@@ -53,19 +73,15 @@ export function initSocket() {
 // MESSAGE HANDLER
 const messageHandler: Record<string, (data: any) => void> = {
   system: (messagePayload: MessagePayload) => { },
-  message: (messagePayload: MessagePayload) => {
-    const msgData = messagePayload.msgData as ChatEntry;
-    const conversation_id = msgData.message.conversation_id;
-
-    if (!chatStore.messages[conversation_id]) {
-      chatStore.messages[conversation_id] = {};
-    }
-    chatStore.messages[conversation_id][msgData.message.message_id] = msgData;
+  "message.new": (data) => {
+    handleNewMessage(data as ServerEventType)
   },
-
+  "users.online": (data) => {
+    const { users } = data.payload;
+    chatStore.usersOnline = users;
+  },
   receipt_update: (messagePayload: MessagePayload) => {
     console.log({ messagePayload });
-
     const receipts = messagePayload.msgData?.receipt as MessageReceipt[];
     if (!receipts?.length) return;
 

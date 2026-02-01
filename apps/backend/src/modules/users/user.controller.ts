@@ -1,4 +1,4 @@
-import { capitalizeFirst } from "@chat/shared/utils";
+import { capitalizeFirst } from "@pingxy/shared/utils";
 import { validate } from "@common/utils/validator";
 import { z } from "zod";
 import { UserService } from "./user.service";

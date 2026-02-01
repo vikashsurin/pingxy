@@ -1,6 +1,6 @@
 import { publish } from "src/common/socket/pubsub";
 import { ReceiptRepository } from "./receipt.repository";
-import { MessagePayload } from "@chat/shared/types";
+import { MessagePayload } from "@pingxy/shared/types";
 
 export const ReceiptService = {
   createMessageReceipt: async ({

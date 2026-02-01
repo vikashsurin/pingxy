@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { MessageRepository } from "./message.repository";
 import db from "src/common/db/client";
-import { NewMessage } from "@chat/shared/types"
+import { NewMessage } from "@pingxy/shared/types"
 
 
 describe("Messages Table Schema", () => {

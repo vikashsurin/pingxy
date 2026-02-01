@@ -1,7 +1,33 @@
+import { SQL } from "bun";
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/bun-sql";
-import { SQL } from "bun";
-import * as schema from "@chat/shared/db/schemas";
+import { BunSQLDatabase } from "drizzle-orm/bun-sql";
+import { PgTransaction } from "drizzle-orm/pg-core";
+
+// import * as schema from "@pingxy/shared/db/schemas";
+import {
+  blocked_users,
+  conversations,
+  message_reactions,
+  message_receipts,
+  messages,
+  participants,
+  refresh_tokens,
+  sessions,
+  users
+} from "@pingxy/shared/domain";
+
+export const schema = {
+  users,
+  blocked_users,
+  conversations,
+  message_reactions,
+  message_receipts,
+  messages,
+  participants,
+  refresh_tokens,
+  sessions,
+};
 
 // 0. Check if DATABASE_URL is set
 if (!process.env.DATABASE_URL) {
@@ -30,4 +56,9 @@ export const db = drizzle({
   schema,
 });
 
+
+
+
 export default db;
+
+export type DB_TX = BunSQLDatabase<typeof schema> | PgTransaction<any, any, any>

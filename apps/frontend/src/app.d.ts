@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { PublicUser } from "@chat/shared/types";
+import type { PublicUser } from "@pingxy/shared/types";
 
 declare global {
   namespace App {

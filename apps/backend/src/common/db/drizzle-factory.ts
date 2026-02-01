@@ -1,4 +1,4 @@
-import { PublicUser } from "@chat/shared/types";
+import { PublicUser } from "@pingxy/shared/types";
 import { createFactory } from "hono/factory";
 
 type Env = {

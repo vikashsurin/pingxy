@@ -1,9 +1,10 @@
-import { NewParticipant } from "@chat/shared/types";
+import { NewParticipant } from "@pingxy/shared/types";
 import db from "src/common/db/client";
 import { ParticipantRepository } from "./participant.repository";
 
 export const ParticipantService = {
-
+  // Todo: create multiple participants for  group
+  // or change name , symantically
   create: async ({
     conversation_id,
     user1_id,
@@ -60,18 +61,21 @@ export const ParticipantService = {
     user_id: number;
   }) => {
     try {
-      return await ParticipantRepository.selectParticipant({ conversation_id, user_id });
+      return await ParticipantRepository.selectParticipant({
+        conversation_id,
+        user_id,
+      });
     } catch (error) {
       console.error("Error getting participant:", error);
       throw new Error("Error getting participant");
     }
   },
 
-  getParticipantsByConversationId: async (
-    conversation_id: number,
-  ) => {
+  getParticipantsByConversationId: async (conversation_id: number) => {
     try {
-      return await ParticipantRepository.selectParticipantsByConversationId(conversation_id);
+      return await ParticipantRepository.selectParticipantsByConversationId(
+        conversation_id,
+      );
     } catch (error) {
       console.error("Error getting participants by conversation id:", error);
       throw new Error("Error getting participants by conversation id");
@@ -84,23 +88,26 @@ export const ParticipantService = {
     role: "admin" | "moderator" | "member",
   ) => {
     try {
-      return await ParticipantRepository.updateParticipantRole(conversationId, userId, role);
+      return await ParticipantRepository.updateParticipantRole(
+        conversationId,
+        userId,
+        role,
+      );
     } catch (error) {
       console.error("Error updating participant role:", error);
       throw new Error("Error updating participant role");
     }
   },
 
-  removeParticipant: async (
-    conversationId: number,
-    participantId: number,
-  ) => {
+  removeParticipant: async (conversationId: number, participantId: number) => {
     try {
-      return await ParticipantRepository.deleteParticipant(conversationId, participantId);
+      return await ParticipantRepository.deleteParticipant(
+        conversationId,
+        participantId,
+      );
     } catch (error) {
       console.error("Error removing participant:", error);
       throw new Error("Error removing participant");
     }
   },
-
-}
+};

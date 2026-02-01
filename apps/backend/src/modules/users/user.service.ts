@@ -1,4 +1,4 @@
-import { NewUser, UserInsertSchema } from "@chat/shared/domain/user";
+import { NewUser, UserInsertSchema } from "@pingxy/shared/domain/user";
 import { UserRepository } from "./user.repository";
 import { HTTPException } from "hono/http-exception";
 

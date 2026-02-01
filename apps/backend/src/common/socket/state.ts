@@ -1,4 +1,4 @@
-import { PublicUser } from "@chat/shared/types";
+import { PublicUser } from "@pingxy/shared/types";
 import { WebSocketData } from "./types";
 export let announcedUsers: Set<string> = new Set();
 

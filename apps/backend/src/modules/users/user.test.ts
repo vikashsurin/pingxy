@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { UserRepository } from "./user.repository";
-import { NewUser } from "@chat/shared/domain/user";
+import { NewUser } from "@pingxy/shared/domain/user";
 
 
 

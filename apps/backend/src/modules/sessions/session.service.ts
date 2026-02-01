@@ -1,4 +1,4 @@
-import { NewSession, PublicUser } from "@chat/shared/types";
+import { NewSession, PublicUser } from "@pingxy/shared/types";
 import { SessionRepository } from "./session.repository";
 
 const secret = "temp_secret";

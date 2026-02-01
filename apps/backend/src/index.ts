@@ -9,7 +9,7 @@ import { socketHandlers } from "./common/socket/socketHandlers.js";
 import { WebSocketData } from "./common/socket/types.js";
 import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
-
+import { setupSocketListeners } from "./common/socket/listeners.js";
 const app = factory.createApp();
 
 app.use(
@@ -26,7 +26,7 @@ app.use(prettyJSON());
 app.use(logger());
 
 app.onError((err, ctx) => {
-  console.error(`[Error] ${err.message}`);
+  console.error({ err });
 
   if (err instanceof HTTPException) {
     return ctx.json(
@@ -68,6 +68,8 @@ app.get("/api/health", (c) => {
 });
 
 registerRoutes(app);
+
+setupSocketListeners();
 
 serve({
   development: true,

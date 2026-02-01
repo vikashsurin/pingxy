@@ -3,9 +3,10 @@ import type {
   MessagePayload,
   PublicUser,
   MessageReceipt,
-} from "@chat/shared/types";
+} from "@pingxy/shared/types";
 import { SvelteSet, SvelteMap } from "svelte/reactivity";
 import { virtualStore } from "./virtualStore.svelte";
+import { socketService } from "./socketService.svelte";
 
 export type PrivateConversation = {
   conversation_id: number;
@@ -64,54 +65,7 @@ class ChatStore {
   });
 
   async sendMessage({ messageText }: { messageText: string }) {
-    if (!this.activeConversation || !this.currentUser) {
-      this.error = "No active conversation or user";
-      return;
-    }
-
-    const messagePayload: MessagePayload = {
-      type: "message",
-      id: crypto.randomUUID(),
-      recipient: {
-        id: this.activeConversation.user.id,
-        username: this.activeConversation.user.username,
-      },
-      msgData: {
-        message: {
-          conversation_id: this.activeConversation.conversation_id,
-          client_message_id: crypto.randomUUID(),
-          content: messageText,
-          message_type: "text",
-          sender_id: this.currentUser.id,
-        },
-      },
-    };
-
-    try {
-      const response = await fetch(`/api/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          isNew: true,
-          messagePayload: messagePayload,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      this.error =
-        error instanceof Error ? error.message : "Failed to send message";
-      console.error("Send message error:", error);
-      throw error;
-    }
+    await socketService.sendMessage({ messageText });
   }
 
   async loadInitialMessages({ conversation_id }: { conversation_id: number }) {

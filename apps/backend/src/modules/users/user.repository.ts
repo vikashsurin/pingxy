@@ -1,7 +1,7 @@
-import { NewUser } from "@chat/shared/domain/user";
+import { NewUser } from "@pingxy/shared/domain/user";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
-import { userInsertSchema, users } from "@chat/shared/db/schemas";
+import { userInsertSchema, users } from "@pingxy/shared/db/schemas";
 
 export const UserRepository = {
   insert: async (newUser: NewUser) => {

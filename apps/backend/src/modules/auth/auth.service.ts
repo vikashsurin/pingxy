@@ -1,4 +1,4 @@
-import { NewUser, RegisterGuest, RegisterUser } from "@chat/shared/domain/user";
+import { NewUser, RegisterGuest, RegisterUser } from "@pingxy/shared/domain/user";
 import { SessionService } from "@modules/sessions";
 import { UserService } from "@modules/users";
 import { ConnInfo } from "hono/conninfo";

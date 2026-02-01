@@ -1,38 +1,32 @@
-import { NewMessage } from "@chat/shared/types";
+import { NewMessage } from "@pingxy/shared/types";
 import { MessageRepository } from "./message.repository";
 import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
 import { ReceiptService } from "../receipts";
+
+import { ClientPayloadType, ServerEventType } from "@pingxy/shared/ws";
+
 import db from "src/common/db/client";
+import { HTTPException } from "hono/http-exception";
+import { eventBus, DOMAIN_EVENTS } from "@common/events";
 
 export const MessageService = {
-  create: async ({
-    recipient_id,
-    message,
-  }: {
-    recipient_id: number;
-    message: NewMessage;
-  }) => {
+  sendMessage: async (body: ClientPayloadType) => {
     try {
-      // Check if conversation exists
-      // If not create
+      const { message, recipient } = body.payload;
+      // const result = await db.transaction(async (tx) => {
+      //  TODO: Wrap it in transaction
       const conversation = await ConversationService.findOrCreateByUsers({
         userId1: message.sender_id,
-        userId2: recipient_id,
+        userId2: recipient.id,
       });
 
-      if (!conversation) throw new Error("Conversation does not exits");
-
-      // Create Participant
-      const participant = await ParticipantService.create({
+      const participants = await ParticipantService.create({
         conversation_id: conversation.conversation_id,
         user1_id: message.sender_id,
-        user2_id: recipient_id,
+        user2_id: recipient.id,
       });
 
-      if (!participant) throw new Error("Error creating participants");
-
-      // Create Message
       const [insertedMessage] = await MessageRepository.insertMessage({
         conversation_id: conversation.conversation_id,
         client_message_id: message.client_message_id,
@@ -40,26 +34,31 @@ export const MessageService = {
         content: message.content,
       });
 
-      // Create message receipts
       const [messageReceipt] = await ReceiptService.createMessageReceipt({
         conversation_id: conversation.conversation_id,
-        message_id: insertedMessage.message_id!,
-        user_id: recipient_id,
+        message_id: insertedMessage.message_id,
+        user_id: recipient.id,
         status: "sent",
       });
+      // })
 
-      return {
-        msgData: {
+      const responseEnvelope: ServerEventType = {
+        id: body.id,
+        type: body.type,
+        payload: {
           message: insertedMessage,
           receipt: messageReceipt,
+          conversation_id: conversation.conversation_id,
+          recipient: recipient,
         },
-        conversation_id: conversation.conversation_id,
-        sender: participant.sender,
-        recipient: participant.recipient,
       };
+      eventBus.emit(DOMAIN_EVENTS.MESSAGES.SENT, {
+        ...responseEnvelope,
+      });
+      return;
     } catch (error) {
-      console.error("Error creating message:", error);
-      throw new Error("Error creating message");
+      console.error(error);
+      throw new HTTPException(500, { message: "Failed to send message" });
     }
   },
 
@@ -80,10 +79,15 @@ export const MessageService = {
     user_id: number;
   }) => {
     try {
-      const [participant] = await ParticipantService.isParticipant({ conversation_id, user_id });
+      const [participant] = await ParticipantService.isParticipant({
+        conversation_id,
+        user_id,
+      });
       if (!participant) throw new Error("Not a participant");
 
-      return await MessageRepository.selectMessagesByConversationId(conversation_id);
+      return await MessageRepository.selectMessagesByConversationId(
+        conversation_id,
+      );
     } catch (error) {
       console.error("Error getting messages by conversation id:", error);
       throw new Error("Error getting messages by conversation id");
@@ -104,17 +108,21 @@ export const MessageService = {
     limit: number;
   }) => {
     try {
-      const [participant] = await ParticipantService.isParticipant({ conversation_id, user_id });
-      if (!participant) throw new Error("Not a participant");
-
-      const result = await MessageRepository.selectMessagesAndReceiptsByConversation({
+      const [participant] = await ParticipantService.isParticipant({
         conversation_id,
         user_id,
-        before,
-        after,
-        limit,
-        tx: db,
       });
+      if (!participant) throw new Error("Not a participant");
+
+      const result =
+        await MessageRepository.selectMessagesAndReceiptsByConversation({
+          conversation_id,
+          user_id,
+          before,
+          after,
+          limit,
+          tx: db,
+        });
       // const messages = result.messages;
       // const receipts = result.receipts;
       // return { messages, receipts };

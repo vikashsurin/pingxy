@@ -1,15 +1,14 @@
-import { type NewConversation } from "@chat/shared/types";
+import { type NewConversation } from "@pingxy/shared/types";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
-import { type BunSQLDatabase } from "drizzle-orm/bun-sql";
-import { alias, type PgTransaction } from "drizzle-orm/pg-core";
+import { alias } from "drizzle-orm/pg-core";
 import db from "src/common/db/client";
-import { conversations, participants, users } from "@chat/shared/db/schemas";
-import * as schema from '@chat/shared/db/schemas';
+import { conversations, participants, users } from "@pingxy/shared/db/schemas";
+import { type DB_TX } from "src/common/db/client";
 
 export const ConversationRepository = {
   insert: async (
     conversation: NewConversation,
-    tx: BunSQLDatabase<typeof schema> | PgTransaction<any, any, any> = db,
+    tx: DB_TX = db,
   ) => {
     return await tx.insert(conversations).values(conversation).returning();
   },

@@ -18,7 +18,7 @@
       "@modules/*": [
         "./src/modules/*"
       ],
-      "@chat/shared/*": [
+      "@pingxy/shared/*": [
         "../../packages/shared/src/*"
       ]
     }

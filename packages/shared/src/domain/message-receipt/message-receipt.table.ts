@@ -18,9 +18,9 @@ export const message_receipts = table(
     message_id: t.integer().notNull(),
     user_id: t.integer().notNull(),
     status: messageReceiptStatusEnum("status").notNull(),
+    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     delivered_at: t.timestamp({ withTimezone: true }),
     read_at: t.timestamp({ withTimezone: true }),
-    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     updated_at: t
       .timestamp({ withTimezone: true })
       .defaultNow()

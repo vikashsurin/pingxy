@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from "bun:test";
-import { NewMessageReceipt } from "@chat/shared/types";
+import { NewMessageReceipt } from "@pingxy/shared/types";
 import { ReceiptRepository } from "./receipt.repository";
 
 describe("Message Receipts Table Schema", () => {

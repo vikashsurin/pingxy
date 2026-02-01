@@ -4,7 +4,7 @@
         chatStore,
         type PrivateConversation,
     } from "$lib/store/store.svelte";
-    import type { MessagePayload } from "@chat/shared/types";
+    import type { MessagePayload } from "@pingxy/shared/types";
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
     import { markAllAsRead } from "$lib/store/storeHelper.svelte";

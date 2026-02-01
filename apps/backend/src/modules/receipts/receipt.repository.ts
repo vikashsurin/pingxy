@@ -1,5 +1,5 @@
-import { message_receipts } from "@chat/shared/db/schemas";
-import { NewMessageReceipt } from "@chat/shared/types";
+import { message_receipts } from "@pingxy/shared/db/schemas";
+import { NewMessageReceipt } from "@pingxy/shared/types";
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import db from "src/common/db/client";
 

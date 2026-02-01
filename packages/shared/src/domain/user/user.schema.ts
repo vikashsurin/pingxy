@@ -12,6 +12,10 @@ import {
 } from "../../constants/user";
 import { users } from "./user.table";
 
+
+
+
+
 const UserMetaDataSchema = z.object({
   gender: z.string(),
   age: z.number().min(18, "Age must be a positive number"),
@@ -47,3 +51,9 @@ export const UserResponseSchema = createSelectSchema(users).omit({
 });
 
 export const UserUpdateSchema = createUpdateSchema(users);
+
+export const wsUsersOnline = z.object({
+  users: z.array(
+    UserResponseSchema
+  ),
+});

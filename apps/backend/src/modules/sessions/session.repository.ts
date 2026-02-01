@@ -1,7 +1,7 @@
-import { NewSession } from "@chat/shared/types";
+import { NewSession } from "@pingxy/shared/types";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
-import { sessions, users } from "@chat/shared/db/schemas";
+import { sessions, users } from "@pingxy/shared/db/schemas";
 
 export const SessionRepository = {
 

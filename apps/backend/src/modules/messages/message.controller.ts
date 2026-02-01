@@ -1,46 +1,17 @@
-import { MessagePayload } from "@chat/shared/types";
-import { publish } from "@common/socket/pubsub";
-import { Context } from "hono";
-import { MessageService } from "./message.service";
 import { factory } from "@common/db/drizzle-factory";
-import { messageInsertSchema } from "@chat/shared/domain/message";
 import { validate } from "@common/utils/validator";
+import { ClientPayloadSchema } from "@pingxy/shared/domain/message";
+import { MessageService } from "./message.service";
 
 export const MessageController = {
 
   create: factory.createHandlers(
-    validate("json", messageInsertSchema),
+    validate("json", ClientPayloadSchema),
     async (c) => {
-      const body = await c.req.json();
 
-      const data: MessagePayload = body.messagePayload;
+      const body = c.req.valid('json')
 
-      const result = await MessageService.create({
-        recipient_id: data.recipient?.id!,
-        message: data.msgData?.message!,
-      });
-
-      // Broadcast message
-      publish(
-        `${result.conversation_id}`,
-        JSON.stringify({
-          type: "message",
-          recipient: data.recipient!,
-          msgData: result.msgData!,
-        }),
-      );
-
-      // Notify of new Message
-      const notificationPayload: MessagePayload = {
-        id: data.id!,
-        type: "notification",
-        recipient: data.recipient!,
-        msgData: result.msgData!,
-      };
-      publish(
-        `inbox:${result.recipient.user_id}`,
-        JSON.stringify(notificationPayload),
-      );
+      const result = await MessageService.sendMessage(body)
 
       return c.json({ result });
     }),

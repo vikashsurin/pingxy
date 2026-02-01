@@ -1,6 +1,6 @@
 <script lang="ts">
   import { chatStore } from "$lib/store/store.svelte";
-  import type { MessagePayload } from "@chat/shared/types";
+  import type { MessagePayload } from "@pingxy/shared/types";
 
   let messageText = $state("");
 
