@@ -9,4 +9,4 @@ import {
 export type RegisterUser = z.infer<typeof RegisterUserRequestSchema>;
 export type RegisterGuest = z.infer<typeof GuestUserRequestSchema>;
 export type NewUser = z.infer<typeof UserInsertSchema>;
-export type PublicUser = z.infer<typeof UserResponseSchema>;
+export type User = z.infer<typeof UserResponseSchema>;

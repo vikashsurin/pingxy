@@ -1,6 +1,6 @@
-import { type ClientPayloadSchema } from "@pingxy/shared/domain";
+import { type ClientPayloadType } from "@pingxy/shared/ws/types";
 
-import type { MessagePayload } from "@pingxy/shared/types";
+// import type { MessagePayload } from "@pingxy/shared/types";
 import { chatStore } from "./store.svelte";
 
 export const socketService = {
@@ -10,7 +10,7 @@ export const socketService = {
       return;
     }
 
-    const envelope: ClientPayloadSchema = {
+    const envelope: ClientPayloadType = {
       id: crypto.randomUUID(),
       type: "message.new",
       payload: {

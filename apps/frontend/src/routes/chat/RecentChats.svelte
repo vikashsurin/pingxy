@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getSocket } from "$lib/socket.svelte";
+    import { getSocket } from "$lib/socket/socket.svelte";
     import {
         chatStore,
         type PrivateConversation,

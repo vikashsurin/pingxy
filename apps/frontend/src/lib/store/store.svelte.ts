@@ -1,16 +1,15 @@
 import type {
   Message,
-  MessagePayload,
-  PublicUser,
+  User,
   MessageReceipt,
-} from "@pingxy/shared/types";
+} from "@pingxy/shared/types/index";
 import { SvelteSet, SvelteMap } from "svelte/reactivity";
 import { virtualStore } from "./virtualStore.svelte";
 import { socketService } from "./socketService.svelte";
 
 export type PrivateConversation = {
   conversation_id: number;
-  user: PublicUser;
+  user: User;
 };
 
 export type ChatEntry = {
@@ -20,12 +19,12 @@ export type ChatEntry = {
 
 // Proper type for chat target instead of any
 export type ChatTarget =
-  | { isUser: true; data: PublicUser }
+  | { isUser: true; data: User }
   | { isUser: false; data: Record<string, never> };
 
 class ChatStore {
   isConnected = $state<boolean>(false);
-  currentUser = $state<PublicUser | null | undefined>(undefined);
+  currentUser = $state<User | null | undefined>(undefined);
   error = $state<string>("");
   onlineUsers = $state<PrivateConversation[]>([]);
   searchQuery = $state<string>("");
@@ -37,7 +36,7 @@ class ChatStore {
 
   activeConversation = $state<{
     conversation_id: number;
-    user: PublicUser;
+    user: User;
   }>();
 
   conversations = $state<PrivateConversation[]>([]);

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 
 export const messageInsertSchema = createInsertSchema(messages);
+export const messageSelectSchema = createSelectSchema(messages);
 export const db_messageInsertSchema = createInsertSchema(messages);
 export const dbSelectMessageSchema = createSelectSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages, {

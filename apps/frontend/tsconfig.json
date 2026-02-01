@@ -11,9 +11,6 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "bundler",
-    "paths": {
-      "@pingxy/shared": ["../../packages/shared/src/index.ts"],
-      "@pingxy/shared/*": ["../../packages/shared/src/*"]
-    }
+   
   }
 }

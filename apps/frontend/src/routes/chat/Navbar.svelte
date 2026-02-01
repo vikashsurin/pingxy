@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getSocket } from "$lib/socket.svelte";
+  import { getSocket } from "$lib/socket/socket.svelte";
   import { chatStore } from "$lib/store/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
   import type { MessagePayload } from "@pingxy/shared/types";

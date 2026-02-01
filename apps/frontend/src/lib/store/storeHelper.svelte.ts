@@ -1,5 +1,6 @@
-import { type Message, type MessagePayload, type MessageReceipt } from "@pingxy/shared/types";
-import { getSocket } from "../socket.svelte";
+import type { Message, ServerEventType, ClientPayloadType, MessageReceipt } from "@pingxy/shared/types/index";
+
+import { getSocket } from "$lib/socket/socket.svelte";
 import { chatStore } from "./store.svelte";
 
 /**
@@ -19,8 +20,8 @@ export async function markAsDelivered({
     return;
   }
 
-  const msgPayload: MessagePayload = {
-    type: "mark_as_delivered",
+  const msgPayload: ClientPayloadType = {
+    type: "receipt.delivered",
     id: crypto.randomUUID(),
     recipient: {
       id: message.sender_id,
@@ -32,6 +33,11 @@ export async function markAsDelivered({
     },
   };
 
+  // data: {
+  //   conversation_id: message.conversation_id,
+  //   message_id: message.message_id,
+  //   user_id: user_id,
+  // },
   socket.send(JSON.stringify(msgPayload));
 }
 
@@ -52,8 +58,8 @@ export async function markAsRead({
     return;
   }
 
-  const msgPayload: MessagePayload = {
-    type: "mark_as_read",
+  const msgPayload: ClientPayloadType = {
+    type: "receipt.read",
     id: crypto.randomUUID(),
     recipient: {
       id: message.sender_id,
@@ -84,8 +90,8 @@ export async function markAllAsRead(recipient_id: number) {
     return;
   }
 
-  const msgPayload: MessagePayload = {
-    type: "mark_all_as_read",
+  const msgPayload: ClientPayloadType = {
+    type: "receipts.mark_all_read",
     id: crypto.randomUUID(),
     recipient: {
       id: recipient_id,

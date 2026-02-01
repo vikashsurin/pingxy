@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { wsMessageRequestPayload, wsMessageResponsePayload } from '../domain/message/message.schema';
 import { wsUsersOnline } from "../domain/user/user.schema";
-
+import { MessageReceiptRequestSchema } from '../domain/message-receipt/message-receipt.schema'
 
 const wsEnum = z.enum([
   "system",
@@ -53,6 +53,10 @@ export const ClientPayloadSchema = z.discriminatedUnion("type", [
   createEnvelope("message.new", wsMessageRequestPayload),
   createEnvelope("message.update", wsMessageRequestPayload),
   createEnvelope("message.delete", wsMessageRequestPayload),
+  createEnvelope("receipt.sent", MessageReceiptRequestSchema),
+  createEnvelope("receipt.delivered", MessageReceiptRequestSchema),
+  createEnvelope("receipt.read", MessageReceiptRequestSchema),
+  createEnvelope("receipt.failed", MessageReceiptRequestSchema),
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [

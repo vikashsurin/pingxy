@@ -1,5 +1,5 @@
 import type { ServerEventType } from "@pingxy/shared/ws";
-import { chatStore } from "../store/store.svelte";
+import { chatStore } from "$lib/store/store.svelte";
 
 export async function handleNewMessage(data: ServerEventType) {
   if (data.type === 'message.new') {

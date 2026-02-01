@@ -8,8 +8,8 @@ import {
   markAsDelivered,
   markAsRead,
   receiptHandlers,
-} from "./store/storeHelper.svelte";
-import { virtualStore } from "./store/virtualStore.svelte";
+} from "$lib/store/storeHelper.svelte";
+import { virtualStore } from "$lib/store/virtualStore.svelte";
 import {
   ServerEventSchema,
   type ServerEventType,
