@@ -1,24 +1,26 @@
-import { NewMessage } from "@pingxy/shared/types";
-import { MessageRepository } from "./message.repository";
+import { ClientNewMessageType, ServerNewMessageType, UpdateMessageType } from "@pingxy/shared/types";
 import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
 import { ReceiptService } from "../receipts";
+import { MessageRepository } from "./message.repository";
 
-import { ClientPayloadType, ServerEventType } from "@pingxy/shared/ws";
 
-import db from "src/common/db/client";
+import { DOMAIN_EVENTS, eventBus } from "@common/events";
 import { HTTPException } from "hono/http-exception";
-import { eventBus, DOMAIN_EVENTS } from "@common/events";
+import db from "src/common/db/client";
+
+
 
 export const MessageService = {
-  sendMessage: async (body: ClientPayloadType) => {
+  sendMessage: async (body: ClientNewMessageType) => {
     try {
+
       const { message, recipient } = body.payload;
       // const result = await db.transaction(async (tx) => {
       //  TODO: Wrap it in transaction
       const conversation = await ConversationService.findOrCreateByUsers({
-        userId1: message.sender_id,
-        userId2: recipient.id,
+        currentUserId: message.sender_id,
+        userId: recipient.id,
       });
 
       const participants = await ParticipantService.create({
@@ -42,7 +44,7 @@ export const MessageService = {
       });
       // })
 
-      const responseEnvelope: ServerEventType = {
+      const responseEnvelope: ServerNewMessageType = {
         id: body.id,
         type: body.type,
         payload: {
@@ -145,7 +147,7 @@ export const MessageService = {
     }
   },
 
-  update: async (message_id: number, message: Partial<NewMessage>) => {
+  update: async (message_id: number, message: Partial<UpdateMessageType>) => {
     try {
       return await MessageRepository.updateMessage(message_id, message);
     } catch (error) {

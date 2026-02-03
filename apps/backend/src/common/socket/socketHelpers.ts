@@ -1,20 +1,19 @@
-import { type MessagePayload } from '@pingxy/shared/types';
+import { ServerUsersOnlineType } from '@pingxy/shared/types';
 import { userSockets } from './state';
 import { ServerEventSchema } from '@pingxy/shared/';
+import type { OnlineUserType } from '@pingxy/shared/types';
 
-export function getOnlineUsers() {
-  const users = [];
+// export function getOnlineUsers() {
+//   const users: OnlineUserType[] = [];
 
-  for (const [id, data] of userSockets.entries()) {
-    users.push({
-      conversation_id: null,
-      user: {
-        ...data.user
-      }
-    })
-  }
-  return users;
-}
+//   for (const [id, data] of userSockets.entries()) {
+//     users.push({
+//       ...data.user
+
+//     })
+//   }
+//   return users;
+// }
 
 export function getStatus(lastActivity: any) {
   const idleTime = Date.now() - lastActivity;
@@ -26,12 +25,16 @@ export function getStatus(lastActivity: any) {
 
 
 export function broadcastOnlineUsers() {
-  const onlineUsers = getOnlineUsers()
-  const message: ServerEventSchema = {
-    type: 'users.online',
+  const users: OnlineUserType[] = [];
+
+  for (const [id, data] of userSockets.entries()) {
+    users.push({ ...data.user })
+  }
+  const message: ServerUsersOnlineType = {
     id: crypto.randomUUID(),
-    data: {
-      users: getOnlineUsers()
+    type: 'users.online',
+    payload: {
+      users: users
     },
   };
 
@@ -42,12 +45,12 @@ export function broadcastOnlineUsers() {
       console.error(`Failed to send to user ${id}: `, error)
     }
   }
-  console.log(`Broadcasted online users: ${onlineUsers.length} users`)
+  console.log(`Broadcasted online users: ${users.length} users`)
 }
 
 export function broadcastUserOffline(userId: number, username: string) {
   userSockets.delete(userId)
-  const message: MessagePayload = {
+  const message = {
     type: 'user_offline',
     id: crypto.randomUUID(),
     // users: {

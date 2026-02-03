@@ -1,12 +1,13 @@
-import { NewMessage } from "@pingxy/shared/types";
 import { and, desc, eq, ne, lt, gt, asc } from "drizzle-orm";
 import db from "src/common/db/client";
-import { messages, message_receipts } from "@pingxy/shared/db/schemas";
+import { messages, message_receipts } from "@pingxy/shared";
 import { type DB_TX } from "src/common/db/client";
+import { InsertMessageType, UpdateMessageType } from "@pingxy/shared/domain";
+
 
 export const MessageRepository = {
   insertMessage: async (
-    message: NewMessage,
+    message: InsertMessageType,
     tx: DB_TX = db,
   ) => {
     return tx
@@ -20,7 +21,7 @@ export const MessageRepository = {
       .returning();
   },
 
-  updateMessage: async (message_id: number, message: Partial<NewMessage>) => {
+  updateMessage: async (message_id: number, message: Partial<UpdateMessageType>) => {
     return db
       .update(messages)
       .set({

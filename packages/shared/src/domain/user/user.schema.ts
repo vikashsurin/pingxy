@@ -12,9 +12,8 @@ import {
 } from "../../constants/user";
 import { users } from "./user.table";
 
-
-
-
+export const insertUserSchema = createInsertSchema(users);
+export const selectUserSchema = createSelectSchema(users);
 
 const UserMetaDataSchema = z.object({
   gender: z.string(),
@@ -46,14 +45,19 @@ export const RegisterUserRequestSchema = BaseUserSchema.extend({
 export const GuestUserRequestSchema = BaseUserSchema;
 
 export const UserInsertSchema = createInsertSchema(users);
+
 export const UserResponseSchema = createSelectSchema(users).omit({
   hashed_password: true,
-});
+}).extend({
+  data: UserMetaDataSchema
+})
 
 export const UserUpdateSchema = createUpdateSchema(users);
 
-export const wsUsersOnline = z.object({
-  users: z.array(
-    UserResponseSchema
-  ),
+export const serverUsersOnlineSchema = z.object({
+  id: z.uuid(),
+  type: z.literal("users.online"),
+  payload: z.object({
+    users: z.array(UserResponseSchema),
+  }),
 });

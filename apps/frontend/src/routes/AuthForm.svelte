@@ -5,7 +5,6 @@
     import { CircleAlert, CircleCheck } from "@lucide/svelte";
     import { enhance } from "$app/forms";
     import { chatStore } from "$lib/store/store.svelte.js";
-    import { type PublicUser } from "@pingxy/shared/types";
 
     let { form } = $props();
 
@@ -147,7 +146,7 @@
                         result.data !== undefined
                     ) {
                         console.log("huhu");
-                        chatStore.currentUser = result.data.user as PublicUser;
+                        chatStore.currentUser = result.data.user;
                     }
 
                     await update();
@@ -194,7 +193,6 @@
                 : 'border-gray-200'}"
             placeholder="Enter username"
             bind:value={username}
-            oninput={debounceCheck}
             required
         />
     </div>

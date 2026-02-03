@@ -1,13 +1,19 @@
-import { type NewConversation } from "@pingxy/shared/types";
+import {
+  conversations,
+  participants,
+  users
+} from "@pingxy/shared/domain";
+import { type InsertConversationType } from "@pingxy/shared/types";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "src/common/db/client";
-import { conversations, participants, users } from "@pingxy/shared/db/schemas";
+
+
 import { type DB_TX } from "src/common/db/client";
 
 export const ConversationRepository = {
   insert: async (
-    conversation: NewConversation,
+    conversation: InsertConversationType,
     tx: DB_TX = db,
   ) => {
     return await tx.insert(conversations).values(conversation).returning();

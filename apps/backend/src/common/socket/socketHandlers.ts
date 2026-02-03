@@ -2,12 +2,12 @@ import type { WebSocketHandler } from "bun";
 import { broadcastOnlineUsers, broadcastUserOffline } from "./socketHelpers";
 
 import {
-  MessagePayload
+  ClientMessageReceiptType,
 } from "@pingxy/shared/types";
 
+import { ReceiptService } from '@modules/receipts';
 import { userSockets } from "./state";
 import { WebSocketData } from "./types";
-import { ReceiptService } from '@modules/receipts'
 
 
 export const socketHandlers: WebSocketHandler<WebSocketData> = {
@@ -46,29 +46,23 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 
 // --- Helpers ---
 const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void> = {
-  system: (ws, message: MessagePayload) => { },
-  message: (ws, message: MessagePayload) => {
 
-  },
-  mark_all_as_read: async (ws, messagePayload: MessagePayload) => {
+  mark_all_as_read: async (ws, messagePayload) => {
     if (messagePayload.data?.conversation_id && messagePayload.data.user_id) {
       await ReceiptService.markAllAsRead(messagePayload)
     }
   },
 
-  mark_as_delivered: async (ws, messagePayload: MessagePayload) => {
-
+  "receipt.delivered": async (ws, messagePayload: ClientMessageReceiptType) => {
     await ReceiptService.markAsDelivered(messagePayload)
-
   },
 
-  mark_as_read: async (ws, messagePayload: MessagePayload) => {
-
+  "receipt.read": async (ws, messagePayload: ClientMessageReceiptType) => {
     await ReceiptService.markAsRead(messagePayload)
   },
 
 
-  open_conversation: (ws, message: MessagePayload) => {
+  open_conversation: (ws, message) => {
     const conversationId = message.data?.conversation_id
     ws.data.activeConversations.add(conversationId!.toString());
     ws.subscribe(conversationId!.toString());
@@ -76,13 +70,13 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
   },
 
 
-  subscribe: (ws, message: MessagePayload) => {
+  subscribe: (ws, message) => {
     const conversationId = message.msgData?.message?.conversation_id?.toString()
     ws.subscribe(conversationId!)
   },
 
 
-  close_conversation: (ws, message: MessagePayload) => {
+  close_conversation: (ws, message) => {
     const conversationId = message.msgData?.message?.conversation_id?.toString()
     ws.data.activeConversations.delete(conversationId!)
     ws.unsubscribe(conversationId!);
@@ -90,24 +84,7 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
     return
 
   },
-  user_join: (ws, message: MessagePayload) => { },
-  users_online: (ws, message: MessagePayload) => { },
-  user_online: (ws, message: MessagePayload) => { },
-  user_offline: (ws, message: MessagePayload) => {
-    const id = message.msgData?.message?.sender_id;
-    // const username = message;
-    // broadcastUserOffline(id, username);
-  },
-  user_leave: (ws, message: MessagePayload) => {
-    console.log(message);
-  },
-  message_receipt: (ws, message: MessagePayload) => {
-    console.log(message);
-  },
-  typing: (ws, message: MessagePayload) => {
-    console.log(message);
-  },
-  error: (ws, message: MessagePayload) => {
+  error: (ws, message) => {
     console.log(message);
   },
 };

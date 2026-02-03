@@ -1,47 +1,35 @@
 <script lang="ts">
-    import type { PublicUser } from "@pingxy/shared/types";
+    import { initChat } from "$lib/store/storeHelper.svelte";
+    import type { User } from "@pingxy/shared/domain/user/user.types";
     import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
     import GenderIcon from "./GenderIcon.svelte";
-
+    $inspect("active conv:: ", chatStore.activeConversation);
     let { searchQuery, gender } = $props();
+    $inspect({ onlineUsers: chatStore.onlineUsers });
 
     let sortedUsers = $derived.by(() => {
         const searchLower = searchQuery.trim().toLowerCase();
         return chatStore.onlineUsers
             .filter((data) => {
-                if (gender !== "all" && data.user.data.gender !== gender)
+                if (gender !== "all" && data.data.gender !== gender)
                     return false;
                 if (
                     searchLower &&
-                    !data.user.username.toLowerCase().includes(searchLower)
+                    !data.username.toLowerCase().includes(searchLower)
                 )
                     return false;
                 return true;
             })
-            .sort((a, b) =>
-                a.user.data.country.localeCompare(b.user.data.country),
-            );
+            .sort((a, b) => a.data.country.localeCompare(b.data.country));
     });
-
-    function initChat(item: {
-        conversation_id: number | null;
-        user: PublicUser;
-    }) {
-        chatStore.chatTarget.isUser = true;
-
-        chatStore.activeConversation = item as {
-            conversation_id: number;
-            user: PublicUser;
-        };
-    }
 </script>
 
 <!-- USERS -->
 <div class="bg-gray-100 min-w-75 flex flex-col overflow-hidden">
     <div class="flex flex-col overflow-hidden flex-1">
         <ul class="flex-1 overflow-y-auto">
-            {#each sortedUsers as item (item.user.id)}
-                {@render userItemRow(item)}
+            {#each sortedUsers as user}
+                {@render userItemRow(user)}
             {/each}
         </ul>
     </div>
@@ -49,34 +37,31 @@
 
 <!-- SNIPPETS-------------------------------- -->
 
-{#snippet userItemRow(item: {
-    conversation_id: number | null;
-    user: PublicUser;
-})}
+{#snippet userItemRow(user: User)}
     <li>
         <div class="flex items-center gap-1 w-full relative group">
             <button
                 class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
-                id={item.user.id.toString()}
-                onclick={() => initChat(item)}
+                id={user.id.toString()}
+                onclick={() => initChat(user)}
             >
                 <div class="flex items-center gap-2 w-full overflow-hidden">
-                    <GenderIcon gender={item.user.data.gender} />
+                    <GenderIcon gender={user.data.gender} />
                     <span class="truncate">
-                        {#if item.user.id === chatStore.currentUser?.id}
+                        {#if user.id === chatStore.currentUser?.id}
                             You
                         {:else}
-                            {item.user.username}
+                            {user.username}
                         {/if}
                     </span>
 
-                    {#if item.user.data.country && item.user.data.country !== "0"}
+                    {#if user.data.country && user.data.country !== "0"}
                         <span
                             class="font-bold ml-auto text-xs shrink-0 flex items-center gap-1"
                         >
-                            {item.user.data.country}
+                            {user.data.country}
                             <span
-                                class={`fi fi-${item.user.data.country.toLocaleLowerCase()}`}
+                                class={`fi fi-${user.data.country.toLocaleLowerCase()}`}
                             >
                             </span>
                         </span>
@@ -88,13 +73,3 @@
         </div>
     </li>
 {/snippet}
-
-<!-- {#snippet unreaStatus(id: string)}
-  {#if (chatStore.unread.get(id!) ?? 0) > 0}
-    <span
-      class="w-4 h-4 rounded-full bg-red-600 animate-pulse text-[10px] flex items-center justify-center text-white ml-auto"
-    >
-      {chatStore.unread.get(id!) ?? 0}
-    </span>
-  {/if}
-{/snippet} -->

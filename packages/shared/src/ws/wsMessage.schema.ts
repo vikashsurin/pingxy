@@ -1,7 +1,8 @@
+import { serveReceiptStatusSchema } from "../domain/message-receipt/message-receipt.schema";
 import { z } from "zod";
-import { wsMessageRequestPayload, wsMessageResponsePayload } from '../domain/message/message.schema';
-import { wsUsersOnline } from "../domain/user/user.schema";
-import { MessageReceiptRequestSchema } from '../domain/message-receipt/message-receipt.schema'
+import { clientNewMessageSchema, serverDeleteMessageSchema, serverNewMessageSchema, serverUpdateMessageSchema } from '../domain/message/message.schema';
+import { serverUsersOnlineSchema } from "../domain/user/user.schema";
+
 
 const wsEnum = z.enum([
   "system",
@@ -36,34 +37,29 @@ const wsEnum = z.enum([
 
 
 
-const createEnvelope = <
-  const Type extends z.infer<typeof wsEnum>,
-  T extends z.ZodTypeAny,
->(
-  type: Type,
-  payloadSchema: T,
-) =>
-  z.object({
-    id: z.uuid(),
-    type: z.literal(type),
-    payload: payloadSchema,
-  });
+// const createEnvelope = <
+//   const Type extends z.infer<typeof wsEnum>,
+//   T extends z.ZodTypeAny,
+// >(
+//   type: Type,
+//   payloadSchema: T,
+// ) =>
+//   z.object({
+//     id: z.uuid(),
+//     type: z.literal(type),
+//     payload: payloadSchema,
+//   });
 
 export const ClientPayloadSchema = z.discriminatedUnion("type", [
-  createEnvelope("message.new", wsMessageRequestPayload),
-  createEnvelope("message.update", wsMessageRequestPayload),
-  createEnvelope("message.delete", wsMessageRequestPayload),
-  createEnvelope("receipt.sent", MessageReceiptRequestSchema),
-  createEnvelope("receipt.delivered", MessageReceiptRequestSchema),
-  createEnvelope("receipt.read", MessageReceiptRequestSchema),
-  createEnvelope("receipt.failed", MessageReceiptRequestSchema),
+  clientNewMessageSchema,
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
-  createEnvelope("message.new", wsMessageResponsePayload),
-  createEnvelope("message.update", wsMessageResponsePayload),
-  createEnvelope("message.delete", wsMessageResponsePayload),
-  createEnvelope("user.online", wsUsersOnline),
+  serverNewMessageSchema,
+  serverUpdateMessageSchema,
+  serverDeleteMessageSchema,
+  serverUsersOnlineSchema,
+  serveReceiptStatusSchema
 ]);
 
 

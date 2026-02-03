@@ -1,6 +1,7 @@
 import { factory } from "@common/db/drizzle-factory";
 import { validate } from "@common/utils/validator";
-import { ClientPayloadSchema } from "@pingxy/shared/domain/message";
+import { ClientPayloadSchema } from '@pingxy/shared/ws/wsMessage.schema';
+
 import { MessageService } from "./message.service";
 
 export const MessageController = {

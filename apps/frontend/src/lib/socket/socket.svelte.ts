@@ -1,35 +1,8 @@
-import { chatStore, type ChatEntry } from "$lib/store/store.svelte";
-import type {
-  Message,
-  MessagePayload,
-  MessageReceipt,
-} from "@pingxy/shared/types";
-import {
-  markAsDelivered,
-  markAsRead,
-  receiptHandlers,
-} from "$lib/store/storeHelper.svelte";
-import { virtualStore } from "$lib/store/virtualStore.svelte";
-import {
-  ServerEventSchema,
-  type ServerEventType,
-} from "@pingxy/shared/domain";
-import { raw } from "hono/html";
-import { handleNewMessage } from "./socket.service.svelte";
+import { chatStore } from "$lib/store/store.svelte";
+import { getWebSocketUrl } from "./helper";
+import { messageHandler } from "./handler";
 
 export let socket: WebSocket | null = null;
-
-function getWebSocketUrl() {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-
-  // Helper for development: if on Vite default port, point to Backend port
-  if (window.location.port === "5173") {
-    return `${protocol}//${window.location.hostname}:3000/ws/`;
-  }
-
-  // Production or Docker/Nginx: use relative path
-  return `${protocol}//${window.location.host}/ws/`;
-}
 
 export function initSocket() {
   if (socket?.readyState === WebSocket.OPEN) return;
@@ -43,101 +16,24 @@ export function initSocket() {
 
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
+    // const parsedData = ServerEventSchema.safeParse(rawData);
+    // if (!parsedData.success) {
+    //   console.error("Invalid message format", parsedData.error);
+    //   return;
+    // }
+    // const data = parsedData.data;
 
     const handler = messageHandler[data.type];
     if (handler) {
       handler(data);
     }
   });
-  socket.addEventListener("message", (event) => {
-    const rawData = JSON.parse(event.data);
-    console.log({ rawData });
-    const parsedData = ServerEventSchema.safeParse(rawData);
-    if (!parsedData.success) {
-      console.error("Invalid message format", parsedData.error);
-      return;
-    }
-    const data = parsedData.data;
 
-    const handler = messageHandler[data.type];
-    if (handler) {
-      handler(data);
-    }
-  });
   socket.addEventListener("close", (event) => {
     console.log("disconnected");
     chatStore.isConnected = false;
   });
 }
-
-// MESSAGE HANDLER
-const messageHandler: Record<string, (data: any) => void> = {
-  system: (messagePayload: MessagePayload) => { },
-  "message.new": (data) => {
-    handleNewMessage(data as ServerEventType)
-  },
-  "users.online": (data) => {
-    const { users } = data.payload;
-    chatStore.usersOnline = users;
-  },
-  receipt_update: (messagePayload: MessagePayload) => {
-    console.log({ messagePayload });
-    const receipts = messagePayload.msgData?.receipt as MessageReceipt[];
-    if (!receipts?.length) return;
-
-    for (const receipt of receipts) {
-      receiptHandlers[receipt.status]?.(receipt);
-    }
-  },
-
-  notification: async (messagePayload: MessagePayload) => {
-    const conversationId = messagePayload.msgData?.message?.conversation_id;
-    const message = messagePayload.msgData?.message as Message;
-    const user_id = messagePayload.recipient?.id!;
-    const isActiveConversation =
-      chatStore.activeConversation?.conversation_id === conversationId;
-
-    // Mark as read, if active conversation is the same as the received message
-    // TODO: also can check if the scroll position is at the bottom, for precision
-    if (isActiveConversation) {
-      if (virtualStore.isAtBottom) {
-        await markAsRead({
-          message,
-          user_id,
-        });
-      } else {
-        await markAsDelivered({
-          message,
-          user_id,
-        });
-
-        chatStore.addUnreadMessage(conversationId!, message.message_id);
-      }
-    }
-  },
-
-  new_conversation: (messagePayload: MessagePayload) => {
-    // const conversationId = messagePayload.message.conversation_id;
-    // chatStore.conversations.add(conversationId!);
-    // chatStore.messages.set(conversationId!, message)
-  },
-
-  user_join: (messagePayload: MessagePayload) => { },
-  user_leave: (messagePayload: MessagePayload) => { },
-  users_online: (messagePayload: MessagePayload) => {
-    chatStore.onlineUsers = messagePayload?.data?.users;
-  },
-
-  user_offline: (messagePayload: MessagePayload) => {
-    // const id = messagePayload.users.id;
-    // const updatedOnlineUsers = chatStore.onlineUsers.filter((u) => u.id !== id);
-    // chatStore.onlineUsers = updatedOnlineUsers;
-  },
-
-  message_receipts: (messagePayload: MessagePayload) => { },
-  typing: (messagePayload: MessagePayload) => { },
-  error: (message: MessagePayload) => { },
-};
 
 export function getSocket() {
   return socket;

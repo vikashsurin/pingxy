@@ -1,16 +1,14 @@
-import { NewConversation } from "@pingxy/shared/types";
-
 import { ConversationRepository } from "./conversation.repository";
 
 export const ConversationService = {
-  create: async (conversation: NewConversation) => {
-    try {
-      return await ConversationRepository.insert(conversation);
-    } catch (error) {
-      console.error("Error creating conversation:", error);
-      throw new Error("Ersror creating conversation");
-    }
-  },
+  // create: async (conversation: NewConversation) => {
+  //   try {
+  //     return await ConversationRepository.insert(conversation);
+  //   } catch (error) {
+  //     console.error("Error creating conversation:", error);
+  //     throw new Error("Ersror creating conversation");
+  //   }
+  // },
 
   find: async (participantIds: number[]) => {
     // try {
@@ -21,15 +19,15 @@ export const ConversationService = {
     // }
   },
 
-  findByUser: async ({
-    userId1,
-    userId2,
+  findByUsers: async ({
+    currentUserId,
+    userId,
   }: {
-    userId1: number;
-    userId2: number;
+    currentUserId: number;
+    userId: number;
   }) => {
     try {
-      return await ConversationRepository.selectByUsersPrecise(userId1, userId2);
+      return await ConversationRepository.selectByUsersPrecise(currentUserId, userId);
     } catch (error) {
       console.error("Error finding conversation by user ids:", error);
       throw new Error("Error finding conversation by user ids");
@@ -37,20 +35,20 @@ export const ConversationService = {
   },
 
   findOrCreateByUsers: async ({
-    userId1,
-    userId2,
+    currentUserId,
+    userId,
   }: {
-    userId1: number;
-    userId2: number;
+    currentUserId: number;
+    userId: number;
   }) => {
     try {
-      const result = await ConversationService.findByUser({ userId1, userId2 });
+      const result = await ConversationRepository.selectByUsersPrecise(currentUserId, userId);
 
       if (result) {
         return result.conversation;
       }
 
-      const [conversation] = await ConversationService.create({
+      const [conversation] = await ConversationRepository.insert({
         conversation_type: "direct",
         created_at: new Date(Date.now()),
         updated_at: new Date(Date.now()),

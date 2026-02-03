@@ -1,5 +1,5 @@
-import { message_receipts } from "@pingxy/shared/db/schemas";
-import { NewMessageReceipt } from "@pingxy/shared/types";
+import { message_receipts } from "@pingxy/shared";
+import type { InsertReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import db from "src/common/db/client";
 
@@ -85,9 +85,12 @@ export const ReceiptRepository = {
   },
 
   insertBulkMessageReceipts: async (
-    messageReceipts: NewMessageReceipt[],
+    messageReceipts: InsertReceiptType,
   ) => {
-    return await db.insert(message_receipts).values(messageReceipts).returning();
+    return await db
+      .insert(message_receipts)
+      .values(messageReceipts)
+      .returning();
   },
 
   updateAllMessageReceiptsToRead: async ({
@@ -239,4 +242,4 @@ export const ReceiptRepository = {
         ),
       );
   },
-}
+};

@@ -1,6 +1,9 @@
-import { ConversationService } from "./conversation.service";
+import { factory } from "@common/db/drizzle-factory";
+import { validate } from "@common/utils/validator";
 import { Context } from "hono";
+import { z } from "zod";
 import { MessageService } from "../messages/message.service";
+import { ConversationService } from "./conversation.service";
 
 export const ConversationController = {
   getAll: async (c: Context) => {
@@ -30,5 +33,16 @@ export const ConversationController = {
       chat: result,
       hasMore: result.length === limit,
     });
-  }
+  },
+
+  getConversationByUserIds: factory.createHandlers(
+    validate("param", z.object({ currentUserId: z.coerce.number(), userId: z.coerce.number() })),
+    async (c) => {
+
+      const { currentUserId, userId } = c.req.valid('param');
+
+      const conversation = await ConversationService.findByUsers({ currentUserId, userId });
+
+      return c.json({ ...conversation });
+    })
 }

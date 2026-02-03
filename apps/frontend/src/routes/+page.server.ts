@@ -1,4 +1,4 @@
-import { capitalizeFirst } from "@pingxy/shared/utils";
+import { capitalizeFirst } from "@pingxy/shared/utils/string";
 import { fail, redirect, type Cookies } from "@sveltejs/kit";
 export async function load({ cookies }) {
   const token = cookies.get("_Host-session");
@@ -28,7 +28,7 @@ export const actions = {
     });
     if (!response.ok) {
       const error = await response.json();
-      console.error("error: ", error)
+      console.error("error: ", error);
       return fail(401, { username, invalid: error.error || "Login failed" });
     }
     const { user, _ } = await response.json();

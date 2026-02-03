@@ -1,11 +1,13 @@
+import { users } from "@pingxy/shared";
 import { NewUser } from "@pingxy/shared/domain/user";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
-import { userInsertSchema, users } from "@pingxy/shared/db/schemas";
+
+import { insertUserSchema } from "@pingxy/shared/domain/user";
 
 export const UserRepository = {
   insert: async (newUser: NewUser) => {
-    const user = userInsertSchema.parse(newUser);
+    const user = insertUserSchema.parse(newUser);
     return await db.insert(users).values(user).returning();
   },
 

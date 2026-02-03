@@ -1,4 +1,5 @@
-import { createSelectSchema } from "drizzle-zod";
-import { participants } from './participant.table'
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { participants } from './participant.table';
 
-export const participantSelectSchema = createSelectSchema(participants);
+export const insertParticipantSchema = createInsertSchema(participants);
+export const selectParticipantSchema = createSelectSchema(participants);

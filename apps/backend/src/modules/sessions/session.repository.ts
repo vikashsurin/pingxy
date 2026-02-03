@@ -1,11 +1,12 @@
-import { NewSession } from "@pingxy/shared/types";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
-import { sessions, users } from "@pingxy/shared/db/schemas";
+import { sessions, users } from "@pingxy/shared";
+import { InsertSessionType } from "@pingxy/shared/domain";
+
 
 export const SessionRepository = {
 
-  insertSession: async (session: NewSession) => {
+  insertSession: async (session: InsertSessionType) => {
     return await db.insert(sessions).values(session).returning();
   },
 

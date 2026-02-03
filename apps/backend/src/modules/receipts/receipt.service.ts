@@ -1,6 +1,10 @@
 import { publish } from "src/common/socket/pubsub";
 import { ReceiptRepository } from "./receipt.repository";
-import { MessagePayload } from "@pingxy/shared/types";
+import {
+  ClientMessageReceiptType,
+  MessagePayload,
+  ServerReceiptStatusType,
+} from "@pingxy/shared/types";
 
 export const ReceiptService = {
   createMessageReceipt: async ({
@@ -23,10 +27,10 @@ export const ReceiptService = {
     return messageReceipt;
   },
 
-  markAllAsRead: async (messagePayload: MessagePayload) => {
-    const conversation_id = messagePayload.data?.conversation_id;
-    const user_id = messagePayload.data?.user_id;
-    const ack_user_id = messagePayload.recipient?.id!;
+  markAllAsRead: async (messagePayload: ClientMessageReceiptType) => {
+    const conversation_id = messagePayload.payload.conversation_id;
+    const user_id = messagePayload.payload.user_id;
+    const ack_user_id = messagePayload.payload.recipient.id;
 
     if (conversation_id && user_id) {
       const messageReceipts =
@@ -34,11 +38,11 @@ export const ReceiptService = {
           conversation_id,
           user_id,
         });
-      const read: MessagePayload = {
-        type: "receipt_update",
+      const read: ServerReceiptStatusType = {
+        type: "receipt.update.status",
         id: messagePayload.id,
-        msgData: {
-          receipt: messageReceipts,
+        payload: {
+          receipts: messageReceipts,
         },
       };
       publish(`inbox:${ack_user_id}`, JSON.stringify(read));
@@ -48,10 +52,10 @@ export const ReceiptService = {
     return null;
   },
 
-  markAsDelivered: async (messagePayload: MessagePayload) => {
-    const message_id = messagePayload.data?.message_id!;
-    const user_id = messagePayload.data?.user_id!;
-    const ack_user_id = messagePayload.recipient?.id!;
+  markAsDelivered: async (messagePayload: ClientMessageReceiptType) => {
+    const message_id = messagePayload.payload.message_id;
+    const user_id = messagePayload.payload.user_id;
+    const ack_user_id = messagePayload.payload.recipient.id;
 
     console.log("marking as delivered::", message_id, user_id);
 
@@ -61,11 +65,11 @@ export const ReceiptService = {
         user_id,
       });
 
-    const delivered: MessagePayload = {
-      type: "receipt_update",
+    const delivered: ServerReceiptStatusType = {
+      type: "receipt.update.status",
       id: messagePayload.id,
-      msgData: {
-        receipt: messageReceipt,
+      payload: {
+        receipts: [messageReceipt],
       },
     };
     publish(`inbox:${ack_user_id}`, JSON.stringify(delivered));
@@ -73,21 +77,21 @@ export const ReceiptService = {
     return messageReceipt;
   },
 
-  markAsRead: async (messagePayload: MessagePayload) => {
-    const message_id = messagePayload.data?.message_id!;
-    const user_id = messagePayload.data?.user_id!;
-    const ack_user_id = messagePayload.recipient?.id!;
+  markAsRead: async (messagePayload: ClientMessageReceiptType) => {
+    const message_id = messagePayload.payload.message_id;
+    const user_id = messagePayload.payload.user_id;
+    const ack_user_id = messagePayload.payload.recipient.id;
 
     const messageReceipt = await ReceiptRepository.updateMessageReceiptToRead({
       message_id,
       user_id,
     });
 
-    const read: MessagePayload = {
-      type: "receipt_update",
+    const read: ServerReceiptStatusType = {
+      type: "receipt.update.status",
       id: messagePayload.id,
-      msgData: {
-        receipt: messageReceipt,
+      payload: {
+        receipts: [messageReceipt],
       },
     };
     publish(`inbox:${ack_user_id}`, JSON.stringify(read));

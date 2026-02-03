@@ -1,11 +1,11 @@
-import { conversations, participants } from "@pingxy/shared/db/schemas";
-import { NewParticipant } from "@pingxy/shared/types";
+import { conversations, participants } from "@pingxy/shared";
 import { aliasedTable, and, eq } from "drizzle-orm";
 import db, { type DB_TX } from "src/common/db/client";
+import { InsertParticipantType } from "@pingxy/shared/domain";
 
 export const ParticipantRepository = {
   insertParticipant: async (
-    participant: NewParticipant,
+    participant: InsertParticipantType,
     tx: DB_TX = db,
   ) => {
     return await tx

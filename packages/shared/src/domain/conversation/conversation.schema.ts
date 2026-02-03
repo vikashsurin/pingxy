@@ -1,6 +1,9 @@
 import { z } from "zod";
-import { createSelectSchema } from "drizzle-zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
 import { conversations } from './conversation.table'
+
+export const insertConversationSchema = createInsertSchema(conversations)
+export const selectConversationSchema = createSelectSchema(conversations);
 
 export const wsTypingPayload = z.object({
   conversation_id: z.number(),
@@ -9,5 +12,3 @@ export const wsTypingPayload = z.object({
     username: z.string(),
   }),
 });
-
-export const selectConversationSchema = createSelectSchema(conversations);
