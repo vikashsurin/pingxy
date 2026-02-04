@@ -6,103 +6,9 @@ import type {
 import type { ClientMessageReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
 
 import { getSocket } from "$lib/socket/socket.svelte";
-import { chatStore } from "./store.svelte";
+import { chatStore } from "../store.svelte";
+import { conn } from "$lib/utils/conn";
 
-/**
- * Mark a message as delivered via WebSocket
- */
-export async function markAsDelivered({
-  message,
-  user_id,
-}: {
-  message: Message;
-  user_id: number;
-}) {
-  const socket = getSocket();
-
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    console.warn("WebSocket not ready, cannot mark as delivered");
-    return;
-  }
-
-  const msgPayload: ClientMessageReceiptType = {
-    id: crypto.randomUUID(),
-    type: "receipt.delivered",
-    payload: {
-      conversation_id: message.conversation_id,
-      message_id: message.message_id,
-      user_id: user_id,
-      recipient: {
-        id: message.sender_id,
-      },
-    },
-  };
-  socket.send(JSON.stringify(msgPayload));
-}
-
-/**
- * Mark a message as read via WebSocket
- */
-export async function markAsRead({
-  message,
-  user_id,
-}: {
-  message: Message;
-  user_id: number;
-}) {
-  const socket = getSocket();
-
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    console.warn("WebSocket not ready, cannot mark as read");
-    return;
-  }
-
-  const msgPayload: ClientMessageReceiptType = {
-    type: "receipt.read",
-    id: crypto.randomUUID(),
-    payload: {
-      conversation_id: message.conversation_id,
-      message_id: message.message_id,
-      user_id: user_id,
-      recipient: {
-        id: message.sender_id,
-      },
-    },
-  };
-
-  socket.send(JSON.stringify(msgPayload));
-}
-
-/**
- * Mark all messages in the active conversation as read
- */
-export async function markAllAsRead(recipient_id: number) {
-  const socket = getSocket();
-
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    console.warn("WebSocket not ready, cannot mark all as read");
-    return;
-  }
-
-  if (!chatStore.activeConversation || !chatStore.currentUser) {
-    console.warn("No active conversation or user");
-    return;
-  }
-
-  const msgPayload: ClientMessageReceiptType = {
-    type: "receipts.mark_all_read",
-    id: crypto.randomUUID(),
-    payload: {
-      conversation_id: chatStore.activeConversation.conversation_id,
-      user_id: chatStore.currentUser.id,
-      recipient: {
-        id: recipient_id,
-      },
-    },
-  };
-
-  socket.send(JSON.stringify(msgPayload));
-}
 
 /**
  * Receipt status hierarchy for comparison
@@ -196,15 +102,6 @@ export const receiptHandlers: Record<
  * Process incoming receipt update
  * Call this from your WebSocket message handler
  */
-export function handleReceiptUpdate(receipt: MessageReceipt) {
-  const handler = receiptHandlers[receipt.status];
-
-  if (handler) {
-    handler(receipt);
-  } else {
-    console.warn(`Unknown receipt status: ${receipt.status}`);
-  }
-}
 
 
 export async function initChat(user: User) {
@@ -225,4 +122,105 @@ export async function initChat(user: User) {
     conversation_id: data.conversation.conversation_id,
     user: user
   }
+}
+
+
+export const receiptManager = {
+  markAsDelivered: async ({
+    message,
+    user_id,
+  }: {
+    message: Message;
+    user_id: number;
+  }) => {
+    const socket = getSocket();
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.warn("WebSocket not ready, cannot mark as delivered");
+      return;
+    }
+
+    const msgPayload: ClientMessageReceiptType = {
+      id: crypto.randomUUID(),
+      type: "receipt.delivered",
+      payload: {
+        conversation_id: message.conversation_id,
+        message_id: message.message_id,
+        user_id: user_id,
+        recipient: {
+          id: message.sender_id,
+        },
+      },
+    };
+    socket.send(JSON.stringify(msgPayload));
+  },
+
+  markAsRead: async ({
+    message,
+    user_id,
+  }: {
+    message: Message;
+    user_id: number;
+  }) => {
+    const socket = getSocket();
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.warn("WebSocket not ready, cannot mark as read");
+      return;
+    }
+
+    const msgPayload: ClientMessageReceiptType = {
+      type: "receipt.read",
+      id: crypto.randomUUID(),
+      payload: {
+        conversation_id: message.conversation_id,
+        message_id: message.message_id,
+        user_id: user_id,
+        recipient: {
+          id: message.sender_id,
+        },
+      },
+    };
+
+    socket.send(JSON.stringify(msgPayload));
+  },
+
+
+  markAllAsRead: async ({ conversation_id, recipient_id }: { conversation_id: number, recipient_id: number }) => {
+    const socket = getSocket();
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.warn("WebSocket not ready, cannot mark all as read");
+      return;
+    }
+
+    if (!chatStore.activeConversation || !chatStore.currentUser) {
+      console.warn("No active conversation or user");
+      return;
+    }
+
+
+    const msgPayload: ClientMessageReceiptType = {
+      type: "receipts.mark_all_read",
+      id: crypto.randomUUID(),
+      payload: {
+        conversation_id: conversation_id,
+        user_id: chatStore.currentUser.id,
+        recipient: {
+          id: recipient_id,
+        },
+      },
+    };
+
+    socket.send(JSON.stringify(msgPayload));
+  },
+
+  handleReceiptUpdate: (receipts: MessageReceipt[]) => {
+    for (const receipt of receipts) {
+      const handler = receiptHandlers[receipt.status];
+
+      handler ? handler(receipt) : console.warn(`Missing: ${receipt.status}`);
+    }
+  },
+
 }

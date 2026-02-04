@@ -11,7 +11,7 @@
     import { Tween } from "svelte/motion";
     import type { ChatEntry } from "$lib/store/store.svelte.js";
     import { virtualStore } from "$lib/store/virtualStore.svelte.js";
-    import { markAllAsRead } from "$lib/store/storeHelper.svelte";
+    import { receiptManager } from "$lib/store/managers/receipt.svelte";
     import { date } from "zod/v3";
 
     const LIMIT = $derived(chatStore.LIMIT);
@@ -25,9 +25,6 @@
             chatStore.activeConversation?.conversation_id ?? 0,
         ),
     );
-
-    // $inspect({ isatbottom: virtualStore.isAtBottom });
-    // $inspect({ shouldScrollToBottom: virtualStore.shouldScrollToBottom });
 
     // --- DOM Elements ---
     let scrollElement: HTMLDivElement | undefined = $state();
@@ -62,7 +59,6 @@
         }
         return resizeObserver;
     }
-    $inspect({ activeMessage: chatStore.activeMessages });
     // Calculate visible items using virtualStore
     let visibleRange = $derived.by(() => virtualStore.getVisibleRange());
 
@@ -88,7 +84,6 @@
             },
         };
     }
-    $inspect({ shouldScrollToBottom: virtualStore.shouldScrollToBottom });
 
     // --- Scroll Handler ---
     function handleScroll() {
@@ -141,7 +136,6 @@
     });
 
     $effect(() => {
-        console.log(performance.now());
         if (
             virtualStore.shouldScrollToBottom &&
             chatStore.activeMessages.length > 0
@@ -201,7 +195,6 @@
             visibleRangeStart: visibleRange.start,
         });
     }
-    // $inspect("activeMessages:", chatStore.activeMessages.length);
     // Jump to latest effect
     $effect(() => {
         if (virtualStore.visibleList) {
@@ -246,7 +239,10 @@
                 behavior: "instant",
             });
         }
-        await markAllAsRead(chatStore.activeConversation?.user.id!);
+        await receiptManager.markAllAsRead({
+            conversation_id: conversation_id!,
+            recipient_id: chatStore.activeConversation?.user.id!,
+        });
         chatStore.unread.delete(conversation_id!);
     }
 </script>

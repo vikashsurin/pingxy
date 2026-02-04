@@ -1,7 +1,6 @@
-import type { Message, User, MessageReceipt } from "@pingxy/shared/types/index";
-import { SvelteSet, SvelteMap } from "svelte/reactivity";
-import { virtualStore } from "./virtualStore.svelte";
-import { socketService } from "./store.socket.helper";
+import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
+import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import { messageManager } from "./managers/message.svelte";
 
 export type PrivateConversation = {
   conversation_id: number;
@@ -60,46 +59,40 @@ class ChatStore {
   });
 
   async sendMessage({ messageText }: { messageText: string }) {
-    await socketService.sendMessage({ messageText });
+    await messageManager.sendMessage({ messageText });
+  }
+
+
+  async initChat(user: User) {
+    // find a conversation id
+    const currentUserId: number = chatStore.currentUser?.id!
+    const userId: number = user.id
+
+    const response = await fetch(`/api/conversations/${currentUserId}/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    const data = await response.json()
+    console.log({ data })
+
+    chatStore.activeConversation = {
+      conversation_id: data.conversation.conversation_id,
+      user: user
+    }
   }
 
   async loadInitialMessages({ conversation_id }: { conversation_id: number }) {
-    if (!this.currentUser || !conversation_id) {
-      this.error = "No current user";
-      return;
-    }
 
-    try {
-      const response = await fetch(
-        `/api/conversations/${conversation_id}/messages/${this.currentUser.id}?limit=${this.LIMIT}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to load messages");
-      }
-
-      const body = await response.json();
-
-      virtualStore.absoluteLatestMessageId =
-        body.chat.at(-1).message.message_id;
-
-      // Initial load - just add messages without trimming
-      this.messages[conversation_id] = {};
-      for (const entry of body.chat) {
-        this.messages[conversation_id][entry.message.message_id] = entry;
-      }
-    } catch (error) {
-      this.error =
-        error instanceof Error ? error.message : "Failed to load messages";
-      console.error("Initial messages error:", error);
-      throw error;
+    if (this.currentUser) {
+      const currentUserId = this.currentUser.id
+      const limit = this.LIMIT
+      await messageManager.loadInitialMessages({
+        conversation_id,
+        currentUserId,
+        limit
+      })
     }
   }
 

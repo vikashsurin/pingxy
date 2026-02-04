@@ -47,9 +47,9 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 // --- Helpers ---
 const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void> = {
 
-  mark_all_as_read: async (ws, messagePayload) => {
-    if (messagePayload.data?.conversation_id && messagePayload.data.user_id) {
-      await ReceiptService.markAllAsRead(messagePayload)
+  "receipts.mark_all_read": async (ws, data: ClientMessageReceiptType) => {
+    if (data.payload.conversation_id && data.payload.user_id) {
+      await ReceiptService.markAllAsRead(data)
     }
   },
 
@@ -62,7 +62,7 @@ const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, da
   },
 
 
-  open_conversation: (ws, message) => {
+  'conversation.open': (ws, message) => {
     const conversationId = message.data?.conversation_id
     ws.data.activeConversations.add(conversationId!.toString());
     ws.subscribe(conversationId!.toString());

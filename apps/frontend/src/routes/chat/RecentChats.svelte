@@ -1,13 +1,13 @@
 <script lang="ts">
     import { getSocket } from "$lib/socket/socket.svelte";
+    import { receiptManager } from "$lib/store/managers/receipt.svelte";
     import {
         chatStore,
         type PrivateConversation,
     } from "$lib/store/store.svelte";
-    import type { MessagePayload } from "@pingxy/shared/types";
+    import type { ClientOpenConversationType } from "@pingxy/shared";
     import { onMount } from "svelte";
     import GenderIcon from "./GenderIcon.svelte";
-    import { markAllAsRead } from "$lib/store/storeHelper.svelte";
 
     onMount(async () => {
         const response = await fetch(`/api/conversations`, {
@@ -25,7 +25,11 @@
         chatStore.clearNotification(conversation.conversation_id!);
         chatStore.activeConversation = conversation;
 
-        await markAllAsRead(conversation.user.id);
+        await receiptManager.markAllAsRead({
+            conversation_id: conversation.conversation_id,
+            recipient_id: conversation.user.id,
+        });
+
         // Load messages for current conversation
         // await chatStore.loadMessages();
         await chatStore.loadInitialMessages({
@@ -37,12 +41,12 @@
         // Subscribe to current Conversation
         const socket = getSocket();
         if (socket && socket.readyState === WebSocket.OPEN) {
-            const messagePayload: MessagePayload = {
+            const messagePayload: ClientOpenConversationType = {
                 id: crypto.randomUUID(),
-                type: "open_conversation",
-                data: {
+                type: "conversation.open",
+                payload: {
                     conversation_id: conversation.conversation_id,
-                    user_id: user_id,
+                    user_id: user_id!,
                 },
             };
             socket.send(JSON.stringify(messagePayload));

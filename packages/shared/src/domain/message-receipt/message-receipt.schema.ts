@@ -7,12 +7,7 @@ import { message_receipts } from "./message-receipt.table";
 export const insertReceiptSchema = createInsertSchema(message_receipts)
 export const selectReceiptSchema = createSelectSchema(message_receipts)
 
-export const selectMessageReceiptSchema = createSelectSchema(message_receipts, {
-  created_at: z.coerce.date(),
-  delivered_at: z.coerce.date().nullable(),
-  read_at: z.coerce.date().nullable(),
-  updated_at: z.coerce.date(),
-});
+export const selectMessageReceiptSchema = createSelectSchema(message_receipts);
 
 export const dbInsertMessageReceiptSchema = createInsertSchema(message_receipts)
 
@@ -75,10 +70,12 @@ export const clientMessageReceiptSchema = z.object({
 
 export const serveReceiptStatusSchema = z.object({
   id: z.uuid(),
-  type: "receipt.update.status",
+  type: z.literal("receipt.update.status"),
   payload: z.object({
     receipts: z.union([
       z.array(selectMessageReceiptSchema)
     ])
   })
 })
+
+type K = z.infer<typeof selectMessageReceiptSchema>

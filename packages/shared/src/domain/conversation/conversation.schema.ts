@@ -12,3 +12,12 @@ export const wsTypingPayload = z.object({
     username: z.string(),
   }),
 });
+
+export const clientOpenConversationSchema = z.object({
+  id: z.uuid(),
+  type: z.literal('conversation.open'),
+  payload: z.object({
+    conversation_id: z.number(),
+    user_id: z.number(),
+  })
+})

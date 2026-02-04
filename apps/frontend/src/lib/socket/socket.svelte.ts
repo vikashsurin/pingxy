@@ -1,6 +1,6 @@
 import { chatStore } from "$lib/store/store.svelte";
-import { getWebSocketUrl } from "./helper";
 import { messageHandler } from "./handler";
+import { getWebSocketUrl } from "./helper";
 
 export let socket: WebSocket | null = null;
 

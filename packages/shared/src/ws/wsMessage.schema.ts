@@ -1,5 +1,6 @@
-import { serveReceiptStatusSchema } from "../domain/message-receipt/message-receipt.schema";
+import { clientOpenConversationSchema } from "domain/conversation/conversation.schema";
 import { z } from "zod";
+import { clientMessageReceiptSchema, serveReceiptStatusSchema } from "../domain/message-receipt/message-receipt.schema";
 import { clientNewMessageSchema, serverDeleteMessageSchema, serverNewMessageSchema, serverUpdateMessageSchema } from '../domain/message/message.schema';
 import { serverUsersOnlineSchema } from "../domain/user/user.schema";
 
@@ -44,7 +45,7 @@ const wsEnum = z.enum([
 //   type: Type,
 //   payloadSchema: T,
 // ) =>
-//   z.object({
+// open_conversation//   z.object({
 //     id: z.uuid(),
 //     type: z.literal(type),
 //     payload: payloadSchema,
@@ -52,6 +53,8 @@ const wsEnum = z.enum([
 
 export const ClientPayloadSchema = z.discriminatedUnion("type", [
   clientNewMessageSchema,
+  clientOpenConversationSchema,
+  clientMessageReceiptSchema
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [

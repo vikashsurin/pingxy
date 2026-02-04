@@ -2,7 +2,6 @@ import { publish } from "src/common/socket/pubsub";
 import { ReceiptRepository } from "./receipt.repository";
 import {
   ClientMessageReceiptType,
-  MessagePayload,
   ServerReceiptStatusType,
 } from "@pingxy/shared/types";
 
@@ -27,10 +26,10 @@ export const ReceiptService = {
     return messageReceipt;
   },
 
-  markAllAsRead: async (messagePayload: ClientMessageReceiptType) => {
-    const conversation_id = messagePayload.payload.conversation_id;
-    const user_id = messagePayload.payload.user_id;
-    const ack_user_id = messagePayload.payload.recipient.id;
+  markAllAsRead: async (data: ClientMessageReceiptType) => {
+    const conversation_id = data.payload.conversation_id;
+    const user_id = data.payload.user_id;
+    const ack_user_id = data.payload.recipient.id;
 
     if (conversation_id && user_id) {
       const messageReceipts =
@@ -40,7 +39,7 @@ export const ReceiptService = {
         });
       const read: ServerReceiptStatusType = {
         type: "receipt.update.status",
-        id: messagePayload.id,
+        id: data.id,
         payload: {
           receipts: messageReceipts,
         },
@@ -52,14 +51,16 @@ export const ReceiptService = {
     return null;
   },
 
-  markAsDelivered: async (messagePayload: ClientMessageReceiptType) => {
-    const message_id = messagePayload.payload.message_id;
-    const user_id = messagePayload.payload.user_id;
-    const ack_user_id = messagePayload.payload.recipient.id;
+  markAsDelivered: async (data: ClientMessageReceiptType) => {
+    const message_id = data.payload.message_id;
+    if (!message_id) return null;
+
+    const user_id = data.payload.user_id;
+    const ack_user_id = data.payload.recipient.id;
 
     console.log("marking as delivered::", message_id, user_id);
 
-    const messageReceipt =
+    const messageReceipts =
       await ReceiptRepository.updateMessageReceiptToDelivered({
         message_id,
         user_id,
@@ -67,36 +68,37 @@ export const ReceiptService = {
 
     const delivered: ServerReceiptStatusType = {
       type: "receipt.update.status",
-      id: messagePayload.id,
+      id: data.id,
       payload: {
-        receipts: [messageReceipt],
+        receipts: messageReceipts,
       },
     };
     publish(`inbox:${ack_user_id}`, JSON.stringify(delivered));
 
-    return messageReceipt;
+    return messageReceipts;
   },
 
-  markAsRead: async (messagePayload: ClientMessageReceiptType) => {
-    const message_id = messagePayload.payload.message_id;
-    const user_id = messagePayload.payload.user_id;
-    const ack_user_id = messagePayload.payload.recipient.id;
+  markAsRead: async (data: ClientMessageReceiptType) => {
+    const message_id = data.payload.message_id;
+    if (!message_id) return null;
+    const user_id = data.payload.user_id;
+    const ack_user_id = data.payload.recipient.id;
 
-    const messageReceipt = await ReceiptRepository.updateMessageReceiptToRead({
+    const messageReceipts = await ReceiptRepository.updateMessageReceiptToRead({
       message_id,
       user_id,
     });
 
     const read: ServerReceiptStatusType = {
       type: "receipt.update.status",
-      id: messagePayload.id,
+      id: data.id,
       payload: {
-        receipts: [messageReceipt],
+        receipts: messageReceipts,
       },
     };
     publish(`inbox:${ack_user_id}`, JSON.stringify(read));
 
-    return messageReceipt;
+    return messageReceipts;
   },
 
   // markAsSent : async ({

@@ -1,12 +1,8 @@
 <script lang="ts">
-    import { initChat } from "$lib/store/storeHelper.svelte";
     import type { User } from "@pingxy/shared/domain/user/user.types";
-    import { chatStore, type ChatEntry } from "$lib/store/store.svelte.js";
+    import { chatStore } from "$lib/store/store.svelte.js";
     import GenderIcon from "./GenderIcon.svelte";
-    $inspect("active conv:: ", chatStore.activeConversation);
     let { searchQuery, gender } = $props();
-    $inspect({ onlineUsers: chatStore.onlineUsers });
-
     let sortedUsers = $derived.by(() => {
         const searchLower = searchQuery.trim().toLowerCase();
         return chatStore.onlineUsers
@@ -22,6 +18,10 @@
             })
             .sort((a, b) => a.data.country.localeCompare(b.data.country));
     });
+
+    function handleOpenConversation(user: User) {
+        chatStore.initChat(user);
+    }
 </script>
 
 <!-- USERS -->
@@ -43,7 +43,7 @@
             <button
                 class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200"
                 id={user.id.toString()}
-                onclick={() => initChat(user)}
+                onclick={() => handleOpenConversation(user)}
             >
                 <div class="flex items-center gap-2 w-full overflow-hidden">
                     <GenderIcon gender={user.data.gender} />

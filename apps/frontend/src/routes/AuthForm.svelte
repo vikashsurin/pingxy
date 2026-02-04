@@ -5,6 +5,7 @@
     import { CircleAlert, CircleCheck } from "@lucide/svelte";
     import { enhance } from "$app/forms";
     import { chatStore } from "$lib/store/store.svelte.js";
+    import { type User } from "@pingxy/shared";
 
     let { form } = $props();
 
@@ -146,7 +147,7 @@
                         result.data !== undefined
                     ) {
                         console.log("huhu");
-                        chatStore.currentUser = result.data.user;
+                        chatStore.currentUser = result.data.user as User;
                     }
 
                     await update();
