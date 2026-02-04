@@ -5,11 +5,11 @@ import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { factory } from "./common/db/drizzle-factory.js";
 import { setServer } from "./common/socket/pubsub.js";
-import { socketHandlers } from "./common/socket/socketHandlers.js";
+import { socketHandler } from "./common/socket/socket.handler.js";
 import { WebSocketData } from "./common/socket/types.js";
 import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
-import { setupSocketListeners } from "./common/socket/listeners.js";
+import { setupSocketListeners } from "./common/socket/socket.listener.js";
 const app = factory.createApp();
 
 app.use(
@@ -73,7 +73,7 @@ setupSocketListeners();
 
 serve({
   development: true,
-  websocket: socketHandlers,
+  websocket: socketHandler,
 
   async fetch(req, server) {
     // Store server reference

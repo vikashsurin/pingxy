@@ -1,11 +1,11 @@
-import { getSocket } from "$lib/socket/socket.svelte";
+import { getSocket } from "$lib/socket/ws.svelte";
 
 export const conn = {
   checkSocketConnection(message?: string) {
     const socket = getSocket();
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.warn(message || 'websocket not ready');
-      return { warn: () => this, error: () => this };  // Chainable dummy
+      console.warn(message || "websocket not ready");
+      return { warn: () => this, error: () => this }; // Chainable dummy
     }
     return {
       warn: (msg: string) => {
@@ -15,7 +15,7 @@ export const conn = {
       error: (msg: string) => {
         console.error(msg);
         return this;
-      }
+      },
     };
-  }
+  },
 };

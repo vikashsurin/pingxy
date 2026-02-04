@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { getSocket } from "$lib/socket/socket.svelte";
+  import { getSocket } from "$lib/socket/ws.svelte";
   import { chatStore } from "$lib/store/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
-  import type { MessagePayload } from "@pingxy/shared/types";
+  // import type { MessagePayload } from "@pingxy/shared/types";
   import {
     ChevronDown,
     CircleChevronDown,
@@ -16,7 +16,7 @@
   let isMenuExpanded = $state(false);
 
   function handleLogout() {
-    const message: MessagePayload = {
+    const message  = {
       type: "user_offline",
       id: crypto.randomUUID(),
     };

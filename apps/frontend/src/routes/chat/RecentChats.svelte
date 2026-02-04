@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getSocket } from "$lib/socket/socket.svelte";
+    import { getSocket } from "$lib/socket/ws.svelte";
     import * as  receiptManager from "$lib/store/managers/receipt.svelte";
     import {
         chatStore,

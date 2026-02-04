@@ -1,6 +1,6 @@
 import type { Message, MessageReceipt } from "@pingxy/shared/types/index";
 import type { ClientMessageReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
-import { getSocket } from "$lib/socket/socket.svelte";
+import { getSocket } from "$lib/socket/ws.svelte";
 import { chatStore } from "../store.svelte";
 
 /**

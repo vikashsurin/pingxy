@@ -1,13 +1,13 @@
 import type { WebSocketHandler } from "bun";
-import { broadcastOnlineUsers, broadcastUserOffline } from "./socketHelpers";
+import { broadcastOnlineUsers, broadcastUserOffline } from "./socket.helpers";
 
 import { ClientMessageReceiptType } from "@pingxy/shared/types";
 
 import { ReceiptService } from "@modules/receipts";
-import { userSockets } from "./state";
+import { userSockets } from "./socket.state";
 import { WebSocketData } from "./types";
 
-export const socketHandlers: WebSocketHandler<WebSocketData> = {
+export const socketHandler: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
   open(ws) {
     const user = ws.data.user;

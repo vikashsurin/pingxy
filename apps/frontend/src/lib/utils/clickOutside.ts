@@ -3,7 +3,7 @@ import type { Action } from "svelte/action";
 
 export const clickOutside: Action<HTMLElement, () => void> = (
   node,
-  callback
+  callback,
 ) => {
   const handleClick = (event: MouseEvent) => {
     // Cast event.target to Node to use .contains()
