@@ -1,20 +1,20 @@
-import { ClientNewMessageType, ServerNewMessageType, UpdateMessageType } from "@pingxy/shared/types";
+import {
+  ClientNewMessageType,
+  ServerNewMessageType,
+  UpdateMessageType,
+} from "@pingxy/shared/types";
 import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
 import { ReceiptService } from "../receipts";
 import { MessageRepository } from "./message.repository";
 
-
 import { DOMAIN_EVENTS, eventBus } from "@common/events";
 import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
 
-
-
 export const MessageService = {
   sendMessage: async (body: ClientNewMessageType) => {
     try {
-
       const { message, recipient } = body.payload;
       // const result = await db.transaction(async (tx) => {
       //  TODO: Wrap it in transaction
@@ -57,7 +57,7 @@ export const MessageService = {
       eventBus.emit(DOMAIN_EVENTS.MESSAGES.SENT, {
         ...responseEnvelope,
       });
-      return;
+      return responseEnvelope;
     } catch (error) {
       console.error(error);
       throw new HTTPException(500, { message: "Failed to send message" });

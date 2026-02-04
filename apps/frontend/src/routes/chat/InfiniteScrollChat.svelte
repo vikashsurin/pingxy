@@ -11,7 +11,7 @@
     import { Tween } from "svelte/motion";
     import type { ChatEntry } from "$lib/store/store.svelte.js";
     import { virtualStore } from "$lib/store/virtualStore.svelte.js";
-    import { receiptManager } from "$lib/store/managers/receipt.svelte";
+    import * as receiptManager from "$lib/store/managers/receipt.svelte";
     import { date } from "zod/v3";
 
     const LIMIT = $derived(chatStore.LIMIT);
@@ -239,8 +239,9 @@
                 behavior: "instant",
             });
         }
-        await receiptManager.markAllAsRead({
+        await receiptManager.emitMarkAllRead({
             conversation_id: conversation_id!,
+            currentUser_id: chatStore.currentUser?.id!,
             recipient_id: chatStore.activeConversation?.user.id!,
         });
         chatStore.unread.delete(conversation_id!);

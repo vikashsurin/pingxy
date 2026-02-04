@@ -26,7 +26,7 @@ export const ReceiptService = {
     return messageReceipt;
   },
 
-  markAllAsRead: async (data: ClientMessageReceiptType) => {
+  processMarkAllRead: async (data: ClientMessageReceiptType) => {
     const conversation_id = data.payload.conversation_id;
     const user_id = data.payload.user_id;
     const ack_user_id = data.payload.recipient.id;
@@ -51,7 +51,7 @@ export const ReceiptService = {
     return null;
   },
 
-  markAsDelivered: async (data: ClientMessageReceiptType) => {
+  processDeliveryReceipt: async (data: ClientMessageReceiptType) => {
     const message_id = data.payload.message_id;
     if (!message_id) return null;
 
@@ -78,7 +78,7 @@ export const ReceiptService = {
     return messageReceipts;
   },
 
-  markAsRead: async (data: ClientMessageReceiptType) => {
+  processReadReceipt: async (data: ClientMessageReceiptType) => {
     const message_id = data.payload.message_id;
     if (!message_id) return null;
     const user_id = data.payload.user_id;

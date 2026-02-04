@@ -1,6 +1,6 @@
 import { message_receipts } from "@pingxy/shared";
 import type { InsertReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
-import { and, eq, inArray, isNull, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import db from "src/common/db/client";
 
 export const ReceiptRepository = {
@@ -84,9 +84,7 @@ export const ReceiptRepository = {
       );
   },
 
-  insertBulkMessageReceipts: async (
-    messageReceipts: InsertReceiptType,
-  ) => {
+  insertBulkMessageReceipts: async (messageReceipts: InsertReceiptType) => {
     return await db
       .insert(message_receipts)
       .values(messageReceipts)
@@ -203,19 +201,20 @@ export const ReceiptRepository = {
     message_id: number;
     user_id: number;
   }) => {
+    const now = new Date(Date.now());
     return await db
       .update(message_receipts)
       .set({
         status: "read",
-        read_at: new Date(Date.now()),
-        updated_at: new Date(Date.now()),
+        read_at: now,
+        updated_at: now,
+        delivered_at: sql`COALESCE(${message_receipts.delivered_at}, ${now})`,
       })
       .where(
         and(
           eq(message_receipts.message_id, message_id),
           eq(message_receipts.user_id, user_id),
           inArray(message_receipts.status, ["sent", "delivered"]),
-          // eq(message_receipts.status, "delivered")
         ),
       )
       .returning();

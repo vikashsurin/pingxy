@@ -1,6 +1,6 @@
 import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import { messageManager } from "./managers/message.svelte";
+import * as messageManager from "./managers/message.svelte";
 
 export type PrivateConversation = {
   conversation_id: number;
@@ -203,13 +203,13 @@ class ChatStore {
   }
 
   // Add a single message to a conversation (new message received/sent)
-  addMessage(conversationId: number, entry: ChatEntry) {
-    this.messages[conversationId] ??= {};
-    this.messages[conversationId][entry.message.message_id] = entry;
+  // addMessage(conversationId: number, entry: ChatEntry) {
+  //   this.messages[conversationId] ??= {};
+  //   this.messages[conversationId][entry.message.message_id] = entry;
 
-    // When adding new messages, trim oldest if needed
-    this.trimOldest(conversationId);
-  }
+  //   // When adding new messages, trim oldest if needed
+  //   this.trimOldest(conversationId);
+  // }
 
   // Get a message entry by conversation and message ID
   getEntry(conversationId: number, messageId: number): ChatEntry | undefined {

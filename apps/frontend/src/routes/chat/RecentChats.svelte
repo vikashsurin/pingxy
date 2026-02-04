@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getSocket } from "$lib/socket/socket.svelte";
-    import { receiptManager } from "$lib/store/managers/receipt.svelte";
+    import * as  receiptManager from "$lib/store/managers/receipt.svelte";
     import {
         chatStore,
         type PrivateConversation,
@@ -25,8 +25,9 @@
         chatStore.clearNotification(conversation.conversation_id!);
         chatStore.activeConversation = conversation;
 
-        await receiptManager.markAllAsRead({
+        await receiptManager.emitMarkAllRead({
             conversation_id: conversation.conversation_id,
+            currentUser_id: chatStore.currentUser?.id!,
             recipient_id: conversation.user.id,
         });
 

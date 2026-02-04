@@ -1,14 +1,11 @@
 import type { WebSocketHandler } from "bun";
 import { broadcastOnlineUsers, broadcastUserOffline } from "./socketHelpers";
 
-import {
-  ClientMessageReceiptType,
-} from "@pingxy/shared/types";
+import { ClientMessageReceiptType } from "@pingxy/shared/types";
 
-import { ReceiptService } from '@modules/receipts';
+import { ReceiptService } from "@modules/receipts";
 import { userSockets } from "./state";
 import { WebSocketData } from "./types";
-
 
 export const socketHandlers: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
@@ -21,9 +18,8 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
       socket: ws,
       user: user,
     });
-    ws.subscribe(`inbox:${user.id}`)
+    ws.subscribe(`inbox:${user.id}`);
     broadcastOnlineUsers();
-
   },
 
   async message(ws, message) {
@@ -45,44 +41,44 @@ export const socketHandlers: WebSocketHandler<WebSocketData> = {
 };
 
 // --- Helpers ---
-const messageHandler: Record<string, (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void> = {
-
+const messageHandler: Record<
+  string,
+  (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void
+> = {
   "receipts.mark_all_read": async (ws, data: ClientMessageReceiptType) => {
     if (data.payload.conversation_id && data.payload.user_id) {
-      await ReceiptService.markAllAsRead(data)
+      await ReceiptService.processMarkAllRead(data);
     }
   },
 
   "receipt.delivered": async (ws, messagePayload: ClientMessageReceiptType) => {
-    await ReceiptService.markAsDelivered(messagePayload)
+    await ReceiptService.processDeliveryReceipt(messagePayload);
   },
 
   "receipt.read": async (ws, messagePayload: ClientMessageReceiptType) => {
-    await ReceiptService.markAsRead(messagePayload)
+    await ReceiptService.processReadReceipt(messagePayload);
   },
 
-
-  'conversation.open': (ws, message) => {
-    const conversationId = message.data?.conversation_id
+  "conversation.open": (ws, message) => {
+    const conversationId = message.data?.conversation_id;
     ws.data.activeConversations.add(conversationId!.toString());
     ws.subscribe(conversationId!.toString());
-    console.log("subscribed")
+    console.log("subscribed");
   },
-
 
   subscribe: (ws, message) => {
-    const conversationId = message.msgData?.message?.conversation_id?.toString()
-    ws.subscribe(conversationId!)
+    const conversationId =
+      message.msgData?.message?.conversation_id?.toString();
+    ws.subscribe(conversationId!);
   },
 
-
   close_conversation: (ws, message) => {
-    const conversationId = message.msgData?.message?.conversation_id?.toString()
-    ws.data.activeConversations.delete(conversationId!)
+    const conversationId =
+      message.msgData?.message?.conversation_id?.toString();
+    ws.data.activeConversations.delete(conversationId!);
     ws.unsubscribe(conversationId!);
 
-    return
-
+    return;
   },
   error: (ws, message) => {
     console.log(message);
