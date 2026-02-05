@@ -11,37 +11,37 @@ export const ParticipantRepository = {
     return await tx
       .insert(participants)
       .values({
-        conversation_id: participant.conversation_id,
-        user_id: participant.user_id,
+        conversationId: participant.conversationId,
+        userId: participant.userId,
         role: participant.role,
-        joined_at: participant.joined_at,
-        left_at: participant.left_at,
-        is_active: participant.is_active,
+        joinedAt: participant.joinedAt,
+        leftAt: participant.leftAt,
+        isActive: participant.isActive,
       })
       .onConflictDoUpdate({
-        target: [participants.conversation_id, participants.user_id],
+        target: [participants.conversationId, participants.userId],
         set: {
-          left_at: null,
-          is_active: true,
+          leftAt: null,
+          isActive: true,
         },
       })
       .returning();
   },
 
   selectParticipant: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
   }) => {
     return await db
       .select()
       .from(participants)
       .where(
         and(
-          eq(participants.conversation_id, conversation_id),
-          eq(participants.user_id, user_id),
+          eq(participants.conversationId, conversationId),
+          eq(participants.userId, userId),
         ),
       )
       .limit(1);
@@ -51,7 +51,7 @@ export const ParticipantRepository = {
     return await db
       .select()
       .from(participants)
-      .where(eq(participants.participant_id, participantId))
+      .where(eq(participants.participantId, participantId))
       .limit(1);
   },
 
@@ -61,7 +61,7 @@ export const ParticipantRepository = {
     return await db
       .select()
       .from(participants)
-      .where(eq(participants.conversation_id, conversationId));
+      .where(eq(participants.conversationId, conversationId));
   },
 
   updateParticipantRole: async (
@@ -74,8 +74,8 @@ export const ParticipantRepository = {
       .set({ role })
       .where(
         and(
-          eq(participants.conversation_id, conversationId),
-          eq(participants.user_id, userId),
+          eq(participants.conversationId, conversationId),
+          eq(participants.userId, userId),
         ),
       )
       .returning();
@@ -89,8 +89,8 @@ export const ParticipantRepository = {
       .delete(participants)
       .where(
         and(
-          eq(participants.conversation_id, conversationId),
-          eq(participants.user_id, userId),
+          eq(participants.conversationId, conversationId),
+          eq(participants.userId, userId),
         ),
       )
       .returning();
@@ -102,8 +102,8 @@ export const ParticipantRepository = {
       .from(participants)
       .where(
         and(
-          eq(participants.conversation_id, conversationId),
-          eq(participants.is_active, true),
+          eq(participants.conversationId, conversationId),
+          eq(participants.isActive, true),
         ),
       );
   },
@@ -117,8 +117,8 @@ export const ParticipantRepository = {
       .from(participants)
       .where(
         and(
-          eq(participants.conversation_id, conversationId),
-          eq(participants.user_id, userId),
+          eq(participants.conversationId, conversationId),
+          eq(participants.userId, userId),
         ),
       )
       .limit(1);
@@ -133,20 +133,20 @@ export const ParticipantRepository = {
 
     return await db
       .select({
-        conversation_id: p1.conversation_id,
-        conversation_type: conversations.conversation_type,
+        conversationId: p1.conversationId,
+        conversationType: conversations.conversationType,
       })
       .from(p1)
-      .innerJoin(p2, eq(p1.conversation_id, p2.conversation_id))
+      .innerJoin(p2, eq(p1.conversationId, p2.conversationId))
       .innerJoin(
         conversations,
-        eq(p1.conversation_id, conversations.conversation_id),
+        eq(p1.conversationId, conversations.conversationId),
       )
       .where(
         and(
-          eq(p1.user_id, userId),
-          eq(p2.user_id, otherUserId),
-          eq(conversations.conversation_type, "direct"),
+          eq(p1.userId, userId),
+          eq(p2.userId, otherUserId),
+          eq(conversations.conversationType, "direct"),
         ),
       )
       .limit(1);

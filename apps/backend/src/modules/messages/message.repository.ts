@@ -1,6 +1,6 @@
 import { and, desc, eq, ne, lt, gt, asc } from "drizzle-orm";
 import db from "src/common/db/client";
-import { messages, message_receipts } from "@pingxy/shared";
+import { messages, messageReceipts } from "@pingxy/shared";
 import { type DB_TX } from "src/common/db/client";
 import { InsertMessageType, UpdateMessageType } from "@pingxy/shared/domain";
 
@@ -13,185 +13,185 @@ export const MessageRepository = {
     return tx
       .insert(messages)
       .values({
-        conversation_id: message.conversation_id,
-        client_message_id: message.client_message_id,
-        sender_id: message.sender_id,
+        conversationId: message.conversationId,
+        clientMessageId: message.clientMessageId,
+        senderId: message.senderId,
         content: message.content,
       })
       .returning();
   },
 
-  updateMessage: async (message_id: number, message: Partial<UpdateMessageType>) => {
+  updateMessage: async (messageId: number, message: Partial<UpdateMessageType>) => {
     return db
       .update(messages)
       .set({
         content: message.content,
-        updated_at: message.updated_at,
+        updatedAt: message.updatedAt,
       })
-      .where(eq(messages.message_id, message_id))
+      .where(eq(messages.messageId, messageId))
       .returning();
   },
 
-  deleteMessage: async (message_id: number) => {
+  deleteMessage: async (messageId: number) => {
     return db
       .delete(messages)
-      .where(eq(messages.message_id, message_id))
+      .where(eq(messages.messageId, messageId))
       .returning();
   },
 
-  selectMessageById: async (message_id: number) => {
+  selectMessageById: async (messageId: number) => {
     return db
       .select({
-        message_id: messages.message_id,
-        conversation_id: messages.conversation_id,
-        sender_id: messages.sender_id,
+        messageId: messages.messageId,
+        conversationId: messages.conversationId,
+        senderId: messages.senderId,
         content: messages.content,
-        created_at: messages.created_at,
-        updated_at: messages.updated_at,
-        deleted_at: messages.deleted_at,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        deletedAt: messages.deletedAt,
       })
       .from(messages)
-      .where(eq(messages.message_id, message_id));
+      .where(eq(messages.messageId, messageId));
   },
 
   // Select all messages of a conversation
-  selectMessagesByConversationId: async (conversation_id: number, tx: DB_TX = db) => {
+  selectMessagesByConversationId: async (conversationId: number, tx: DB_TX = db) => {
     return tx
       .select({
-        message_id: messages.message_id,
-        conversation_id: messages.conversation_id,
-        sender_id: messages.sender_id,
+        messageId: messages.messageId,
+        conversationId: messages.conversationId,
+        senderId: messages.senderId,
         content: messages.content,
-        created_at: messages.created_at,
-        updated_at: messages.updated_at,
-        deleted_at: messages.deleted_at,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        deletedAt: messages.deletedAt,
       })
       .from(messages)
-      .where(eq(messages.conversation_id, conversation_id))
-      .orderBy(desc(messages.created_at))
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(desc(messages.createdAt))
       .limit(50);
   },
 
   // selectMessagesAndReceiptsByConversation = async ({
-  //   conversation_id,
-  //   user_id,
+  //   conversationId,
+  //   userId,
   //   limit,
   //   tx = db,
   // }: {
-  //   conversation_id: number;
-  //   user_id: number;
+  //   conversationId: number;
+  //   userId: number;
   //   limit: number;
   //   tx: BunSQLDatabase | PgTransaction<any, any, any>;
   // }) => {
   //   const result = await tx
   //     .select({
   //       message: messages,
-  //       receipt: message_receipts,
+  //       receipt: messageReceipts,
   //     })
   //     .from(messages)
-  //     .where(eq(messages.conversation_id, conversation_id))
+  //     .where(eq(messages.conversationId, conversationId))
   //     .leftJoin(
-  //       message_receipts,
+  //       messageReceipts,
   //       and(
-  //         eq(messages.message_id, message_receipts.message_id),
-  //         ne(message_receipts.user_id, user_id)
+  //         eq(messages.messageId, messageReceipts.messageId),
+  //         ne(messageReceipts.userId, userId)
   //       )
   //     )
   //     .limit(limit)
-  //     .orderBy(desc(messages.created_at));
+  //     .orderBy(desc(messages.createdAt));
   //   return result;
   // },
 
   selectMessagesAndReceiptsByConversationForGroup: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
     tx = db,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
     tx: DB_TX;
   }) => {
     const result = await tx
       .select({
         message: messages,
-        receipt: message_receipts,
+        receipt: messageReceipts,
       })
       .from(messages)
-      .where(eq(messages.conversation_id, conversation_id))
+      .where(eq(messages.conversationId, conversationId))
       .leftJoin(
-        message_receipts,
-        eq(messages.message_id, message_receipts.message_id),
-        // No user_id filter - get ALL receipts
+        messageReceipts,
+        eq(messages.messageId, messageReceipts.messageId),
+        // No userId filter - get ALL receipts
       )
-      .orderBy(desc(messages.created_at));
+      .orderBy(desc(messages.createdAt));
     return result;
   },
 
   // Select all messages of a sender
-  selectMessagesBySenderId: async (sender_id: number) => {
+  selectMessagesBySenderId: async (senderId: number) => {
     return db
       .select({
-        message_id: messages.message_id,
-        conversation_id: messages.conversation_id,
-        sender_id: messages.sender_id,
+        messageId: messages.messageId,
+        conversationId: messages.conversationId,
+        senderId: messages.senderId,
         content: messages.content,
-        created_at: messages.created_at,
-        updated_at: messages.updated_at,
-        deleted_at: messages.deleted_at,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        deletedAt: messages.deletedAt,
       })
       .from(messages)
-      .where(eq(messages.sender_id, sender_id));
+      .where(eq(messages.senderId, senderId));
   },
 
   selectMessagesAndReceiptsByConversation: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
     before,
     after,
     limit,
     tx = db,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
     before: number | null;
     after: number | null;
     limit: number;
     tx: DB_TX;
   }) => {
     // Base condition: always filter by conversation
-    const baseCondition = eq(messages.conversation_id, conversation_id);
+    const baseCondition = eq(messages.conversationId, conversationId);
 
     // Build query based on pagination direction
     let query = tx
-      .select({ message: messages, receipt: message_receipts })
+      .select({ message: messages, receipt: messageReceipts })
       .from(messages)
       .leftJoin(
-        message_receipts,
+        messageReceipts,
         and(
-          eq(messages.message_id, message_receipts.message_id),
-          ne(message_receipts.user_id, user_id),
+          eq(messages.messageId, messageReceipts.messageId),
+          ne(messageReceipts.userId, userId),
         ),
       );
 
     if (before) {
       // Get messages OLDER than 'before'
       const result = await query
-        .where(and(baseCondition, lt(messages.message_id, before)))
-        .orderBy(desc(messages.message_id))
+        .where(and(baseCondition, lt(messages.messageId, before)))
+        .orderBy(desc(messages.messageId))
         .limit(limit);
 
       return result.reverse(); // Reverse to chronological order
     } else if (after) {
       // Get messages NEWER than 'after'
       return await query
-        .where(and(baseCondition, gt(messages.message_id, after)))
-        .orderBy(asc(messages.message_id))
+        .where(and(baseCondition, gt(messages.messageId, after)))
+        .orderBy(asc(messages.messageId))
         .limit(limit);
     } else {
       // Initial load: get latest messages
       const result = await query
         .where(baseCondition)
-        .orderBy(desc(messages.message_id))
+        .orderBy(desc(messages.messageId))
         .limit(limit);
 
       return result.reverse(); // Reverse to chronological order

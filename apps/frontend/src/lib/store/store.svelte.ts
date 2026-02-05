@@ -3,7 +3,7 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import * as messageManager from "./managers/message.svelte";
 
 export type PrivateConversation = {
-  conversation_id: number;
+  conversationId: number;
   user: User;
 };
 
@@ -30,7 +30,7 @@ class ChatStore {
   });
 
   activeConversation = $state<{
-    conversation_id: number;
+    conversationId: number;
     user: User;
   }>();
 
@@ -49,12 +49,12 @@ class ChatStore {
   activeMessages = $derived.by(() => {
     if (!this.activeConversation) return [];
 
-    const convMessages = this.messages[this.activeConversation.conversation_id];
+    const convMessages = this.messages[this.activeConversation.conversationId];
     if (!convMessages) return [];
 
-    // Convert to array and sort by message_id (chronological order)
+    // Convert to array and sort by messageId (chronological order)
     return Object.values(convMessages).sort(
-      (a, b) => a.message.message_id - b.message.message_id,
+      (a, b) => a.message.messageId - b.message.messageId,
     );
   });
 
@@ -78,18 +78,18 @@ class ChatStore {
     console.log({ data })
 
     chatStore.activeConversation = {
-      conversation_id: data.conversation.conversation_id,
+      conversationId: data.conversation.conversationId,
       user: user
     }
   }
 
-  async loadInitialMessages({ conversation_id }: { conversation_id: number }) {
+  async loadInitialMessages({ conversationId }: { conversationId: number }) {
 
     if (this.currentUser) {
       const currentUserId = this.currentUser.id
       const limit = this.LIMIT
       await messageManager.loadInitialMessages({
-        conversation_id,
+        conversationId,
         currentUserId,
         limit
       })
@@ -103,7 +103,7 @@ class ChatStore {
 
     // Add the older messages
     for (const entry of messagesArray) {
-      conversation[entry.message.message_id] = entry;
+      conversation[entry.message.messageId] = entry;
     }
 
     // Trim from bottom if exceeded limit
@@ -117,7 +117,7 @@ class ChatStore {
 
     // Add the newer messages
     for (const entry of messagesArray) {
-      conversation[entry.message.message_id] = entry;
+      conversation[entry.message.messageId] = entry;
     }
 
     // Trim from top if exceeded limit
@@ -170,11 +170,11 @@ class ChatStore {
 
   // Optimized version of buildNestedMap (for bulk initial loads)
   buildNestedMap(messagesArray: ChatEntry[]) {
-    // Group messages by conversation_id first
+    // Group messages by conversationId first
     const grouped = new Map<number, ChatEntry[]>();
 
     for (const entry of messagesArray) {
-      const convId = entry.message.conversation_id;
+      const convId = entry.message.conversationId;
       if (!grouped.has(convId)) {
         grouped.set(convId, []);
       }
@@ -185,7 +185,7 @@ class ChatStore {
     for (const [convId, entries] of grouped) {
       this.messages[convId] ??= {};
       for (const entry of entries) {
-        this.messages[convId][entry.message.message_id] = entry;
+        this.messages[convId][entry.message.messageId] = entry;
       }
     }
   }
@@ -198,14 +198,14 @@ class ChatStore {
     this.messages[conversationId] ??= {};
 
     for (const entry of messagesArray) {
-      this.messages[conversationId][entry.message.message_id] = entry;
+      this.messages[conversationId][entry.message.messageId] = entry;
     }
   }
 
   // Add a single message to a conversation (new message received/sent)
   // addMessage(conversationId: number, entry: ChatEntry) {
   //   this.messages[conversationId] ??= {};
-  //   this.messages[conversationId][entry.message.message_id] = entry;
+  //   this.messages[conversationId][entry.message.messageId] = entry;
 
   //   // When adding new messages, trim oldest if needed
   //   this.trimOldest(conversationId);
@@ -218,7 +218,7 @@ class ChatStore {
 
   // Update message receipt status (used by receipt handlers)
   updateReceipt(receipt: MessageReceipt) {
-    const entry = this.getEntry(receipt.conversation_id, receipt.message_id);
+    const entry = this.getEntry(receipt.conversationId, receipt.messageId);
     if (!entry) return;
 
     // Direct assignment - Svelte 5 handles granular reactivity
@@ -259,8 +259,8 @@ class ChatStore {
     delete this.messages[conversationId];
   }
 
-  async clearNotification(conversation_id: number) {
-    this.notifications.delete(conversation_id);
+  async clearNotification(conversationId: number) {
+    this.notifications.delete(conversationId);
   }
 
   async addUnreadMessage(conversationId: number, messageId: number) {

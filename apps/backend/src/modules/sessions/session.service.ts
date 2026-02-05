@@ -7,32 +7,32 @@ export const SessionService = {
 
   hashSessionToken: (token: string) => {
     const hasher = new Bun.CryptoHasher("sha256", secret);
-    const hashed_token = hasher.update(token).digest("hex");
-    return hashed_token;
+    const hashedToken = hasher.update(token).digest("hex");
+    return hashedToken;
   },
 
   createSession: async (
     token: string,
-    user_id: number,
-    ip_address: string,
-    user_agent: string | null | undefined,
+    userId: number,
+    ipAddress: string,
+    userAgent: string | null | undefined,
   ) => {
     try {
-      const hashed_token = SessionService.hashSessionToken(token);
-      const refresh_token = crypto.randomUUID();
-      const expires_at = Math.floor(Date.now() / 1000) + 30 * 60;
+      const hashedToken = SessionService.hashSessionToken(token);
+      const refreshToken = crypto.randomUUID();
+      const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
 
       const newSession: NewSession = {
-        hashed_token: hashed_token,
-        user_id: user_id,
-        ip_address: ip_address,
-        user_agent: user_agent,
-        refresh_token: refresh_token,
-        is_active: true,
-        last_activity: Math.floor(Date.now() / 1000),
-        created_at: Math.floor(Date.now() / 1000),
-        updated_at: Math.floor(Date.now() / 1000),
-        expires_at: expires_at,
+        hashedToken: hashedToken,
+        userId: userId,
+        ipAddress: ipAddress,
+        userAgent: userAgent,
+        refreshToken: refreshToken,
+        isActive: true,
+        lastActivity: Math.floor(Date.now() / 1000),
+        createdAt: Math.floor(Date.now() / 1000),
+        updatedAt: Math.floor(Date.now() / 1000),
+        expiresAt: expiresAt,
       };
       const [session] = await SessionRepository.insertSession(newSession);
       return session;
@@ -44,8 +44,8 @@ export const SessionService = {
 
   getSession: async (token: string) => {
     try {
-      const hashed_token = SessionService.hashSessionToken(token);
-      const [session] = await SessionRepository.selectSession(hashed_token);
+      const hashedToken = SessionService.hashSessionToken(token);
+      const [session] = await SessionRepository.selectSession(hashedToken);
       if (!session) {
         throw new Error("Session not found");
       }
@@ -58,8 +58,8 @@ export const SessionService = {
 
   revokeSession: async (token: string) => {
     try {
-      const hashed_token = SessionService.hashSessionToken(token);
-      const [result] = await SessionRepository.deleteSession(hashed_token);
+      const hashedToken = SessionService.hashSessionToken(token);
+      const [result] = await SessionRepository.deleteSession(hashedToken);
       if (!result) {
         throw new Error("Session not found");
       }
@@ -71,8 +71,8 @@ export const SessionService = {
 
   getSessionUser: async (token: string): Promise<PublicUser> => {
     try {
-      const hashed_token = SessionService.hashSessionToken(token);
-      const [result] = await SessionRepository.selectSessionUser(hashed_token);
+      const hashedToken = SessionService.hashSessionToken(token);
+      const [result] = await SessionRepository.selectSessionUser(hashedToken);
       if (!result) {
         throw new Error("User not found");
       }
@@ -85,8 +85,8 @@ export const SessionService = {
 
   extendSessionActivity: async (token: string) => {
     try {
-      const hashed_token = SessionService.hashSessionToken(token);
-      await SessionRepository.updateSessionActivity(hashed_token);
+      const hashedToken = SessionService.hashSessionToken(token);
+      await SessionRepository.updateSessionActivity(hashedToken);
     } catch (error) {
       console.error("Error updating session activity:", error);
     }

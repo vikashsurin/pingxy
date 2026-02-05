@@ -29,13 +29,13 @@ export const AuthController = {
         // Todo: Remove confirm password
         const body = c.req.valid("json");
         const info = getConnInfo(c);
-        const ip_address = info.remote.address!;
+        const ipAddress = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
 
         const { user, token } = await AuthService.register({
           body,
           info,
-          ip_address,
+          ipAddress,
           userAgent,
         });
 
@@ -52,7 +52,7 @@ export const AuthController = {
           user: user,
           token: token,
         });
-      } catch (error) { }
+      } catch (error) {}
     },
   ),
 
@@ -67,18 +67,18 @@ export const AuthController = {
     async (c) => {
       try {
         const info = getConnInfo(c);
-        const ip_address = info.remote.address!;
+        const ipAddress = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
 
-        const { username, password } = c.req.valid("json")
+        const { username, password } = c.req.valid("json");
 
-        console.log({ username, password })
+        console.log({ username, password });
 
         const { user, token } = await AuthService.login({
           username,
           password,
           info,
-          ip_address,
+          ipAddress,
           userAgent,
         });
 
@@ -106,7 +106,7 @@ export const AuthController = {
     validate("json", GuestUserRequestSchema),
     async (c) => {
       const info = getConnInfo(c);
-      const ip_address = info.remote.address!;
+      const ipAddress = info.remote.address!;
       const userAgent = c.req.header("User-Agent")!;
 
       const body = c.req.valid("json");
@@ -114,7 +114,7 @@ export const AuthController = {
       const { user, token } = await AuthService.guest({
         body,
         info,
-        ip_address,
+        ipAddress,
         userAgent,
       });
 
@@ -148,7 +148,7 @@ export const AuthController = {
     deleteCookie(c, "_Host-session");
 
     // Remove user from services, if the user is a guest
-    if (user.user_type === "guest") {
+    if (user.userType === "guest") {
       const removed = UserService.removeUser(user.id);
       if (!removed) {
         throw new Error("Error removing Guest user");

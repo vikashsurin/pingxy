@@ -19,27 +19,27 @@ export const MessageService = {
       // const result = await db.transaction(async (tx) => {
       //  TODO: Wrap it in transaction
       const conversation = await ConversationService.findOrCreateByUsers({
-        currentUserId: message.sender_id,
+        currentUserId: message.senderId,
         userId: recipient.id,
       });
 
       const participants = await ParticipantService.create({
-        conversation_id: conversation.conversation_id,
-        user1_id: message.sender_id,
-        user2_id: recipient.id,
+        conversationId: conversation.conversationId,
+        user1Id: message.senderId,
+        user2Id: recipient.id,
       });
 
       const [insertedMessage] = await MessageRepository.insertMessage({
-        conversation_id: conversation.conversation_id,
-        client_message_id: message.client_message_id,
-        sender_id: message.sender_id,
+        conversationId: conversation.conversationId,
+        clientMessageId: message.clientMessageId,
+        senderId: message.senderId,
         content: message.content,
       });
 
       const [messageReceipt] = await ReceiptService.createMessageReceipt({
-        conversation_id: conversation.conversation_id,
-        message_id: insertedMessage.message_id,
-        user_id: recipient.id,
+        conversationId: conversation.conversationId,
+        messageId: insertedMessage.messageId,
+        userId: recipient.id,
         status: "sent",
       });
       // })
@@ -50,7 +50,7 @@ export const MessageService = {
         payload: {
           message: insertedMessage,
           receipt: messageReceipt,
-          conversation_id: conversation.conversation_id,
+          conversationId: conversation.conversationId,
           recipient: recipient,
         },
       };
@@ -64,9 +64,9 @@ export const MessageService = {
     }
   },
 
-  getById: async (message_id: number) => {
+  getById: async (messageId: number) => {
     try {
-      return await MessageRepository.selectMessageById(message_id);
+      return await MessageRepository.selectMessageById(messageId);
     } catch (error) {
       console.error("Error getting message by id:", error);
       throw new Error("Error getting message by id");
@@ -74,21 +74,21 @@ export const MessageService = {
   },
 
   getByConversationId: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
   }) => {
     try {
       const [participant] = await ParticipantService.isParticipant({
-        conversation_id,
-        user_id,
+        conversationId,
+        userId,
       });
       if (!participant) throw new Error("Not a participant");
 
       return await MessageRepository.selectMessagesByConversationId(
-        conversation_id,
+        conversationId,
       );
     } catch (error) {
       console.error("Error getting messages by conversation id:", error);
@@ -97,29 +97,29 @@ export const MessageService = {
   },
 
   getMessagesAndReceiptsByConversation: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
     before,
     after,
     limit,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
     before: number | null;
     after: number | null;
     limit: number;
   }) => {
     try {
       const [participant] = await ParticipantService.isParticipant({
-        conversation_id,
-        user_id,
+        conversationId,
+        userId,
       });
       if (!participant) throw new Error("Not a participant");
 
       const result =
         await MessageRepository.selectMessagesAndReceiptsByConversation({
-          conversation_id,
-          user_id,
+          conversationId,
+          userId,
           before,
           after,
           limit,
@@ -138,27 +138,27 @@ export const MessageService = {
     }
   },
 
-  getBySenderId: async (sender_id: number) => {
+  getBySenderId: async (senderId: number) => {
     try {
-      return await MessageRepository.selectMessagesBySenderId(sender_id);
+      return await MessageRepository.selectMessagesBySenderId(senderId);
     } catch (error) {
       console.error("Error getting messages by sender id:", error);
       throw new Error("Error getting messages by sender id");
     }
   },
 
-  update: async (message_id: number, message: Partial<UpdateMessageType>) => {
+  update: async (messageId: number, message: Partial<UpdateMessageType>) => {
     try {
-      return await MessageRepository.updateMessage(message_id, message);
+      return await MessageRepository.updateMessage(messageId, message);
     } catch (error) {
       console.error("Error updating message:", error);
       throw new Error("Error updating message");
     }
   },
 
-  remove: async (message_id: number) => {
+  remove: async (messageId: number) => {
     try {
-      return await MessageRepository.deleteMessage(message_id);
+      return await MessageRepository.deleteMessage(messageId);
     } catch (error) {
       console.error("Error deleting message:", error);
       throw new Error("Error deleting message");
@@ -166,20 +166,20 @@ export const MessageService = {
   },
 
   // getLimitMessagesByConvId : async ({
-  //   conversation_id,
-  //   user_id,
+  //   conversationId,
+  //   userId,
   //   before,
   //   after,
   //   limit }: {
-  //     conversation_id: number,
-  //     user_id: number,
+  //     conversationId: number,
+  //     userId: number,
   //     before: number | null,
   //     after: number | null,
   //     limit: number
   //   }) => {
   //   const result = await MessageRepository.selectLimitedMessagesByConversation({
-  //     conversation_id,
-  //     user_id,
+  //     conversationId,
+  //     userId,
   //     before,
   //     after,
   //     limit,

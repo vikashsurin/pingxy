@@ -1,116 +1,113 @@
-import { message_receipts } from "@pingxy/shared";
+import { messageReceipts } from "@pingxy/shared";
 import type { InsertReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
 import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import db from "src/common/db/client";
 
 export const ReceiptRepository = {
   insertMessageReceipt: async ({
-    conversation_id,
-    message_id,
-    user_id,
+    conversationId,
+    messageId,
+    userId,
     status,
   }: {
-    conversation_id: number;
-    message_id: number;
-    user_id: number;
+    conversationId: number;
+    messageId: number;
+    userId: number;
     status: "sent" | "delivered" | "read";
   }) => {
     return await db
-      .insert(message_receipts)
+      .insert(messageReceipts)
       .values({
-        conversation_id,
-        message_id,
-        user_id,
+        conversationId,
+        messageId,
+        userId,
         status,
       })
       .returning();
   },
 
   updateMessageReceipt: async ({
-    receipt_id,
+    receiptId,
     status,
-    delivered_at,
-    read_at,
+    deliveredAt,
+    readAt,
   }: {
-    receipt_id: number;
+    receiptId: number;
     status: "sent" | "delivered" | "read";
-    delivered_at: Date;
-    read_at: Date;
+    deliveredAt: Date;
+    readAt: Date;
   }) => {
     return await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status,
-        delivered_at,
-        read_at,
+        deliveredAt,
+        readAt,
       })
-      .where(eq(message_receipts.receipt_id, receipt_id))
+      .where(eq(messageReceipts.receiptId, receiptId))
       .returning();
   },
 
-  selectReceiptsForMessage: async (message_id: number) => {
+  selectReceiptsForMessage: async (messageId: number) => {
     return await db
       .select({
-        receipt_id: message_receipts.receipt_id,
-        message_id: message_receipts.message_id,
-        user_id: message_receipts.user_id,
-        status: message_receipts.status,
-        delivered_at: message_receipts.delivered_at,
-        read_at: message_receipts.read_at,
-        created_at: message_receipts.created_at,
-        updated_at: message_receipts.updated_at,
+        receiptId: messageReceipts.receiptId,
+        messageId: messageReceipts.messageId,
+        userId: messageReceipts.userId,
+        status: messageReceipts.status,
+        deliveredAt: messageReceipts.deliveredAt,
+        readAt: messageReceipts.readAt,
+        createdAt: messageReceipts.createdAt,
+        updatedAt: messageReceipts.updatedAt,
       })
-      .from(message_receipts)
-      .where(eq(message_receipts.message_id, message_id));
+      .from(messageReceipts)
+      .where(eq(messageReceipts.messageId, messageId));
   },
 
-  selectUnreadMessagesForUser: async (user_id: number) => {
+  selectUnreadMessagesForUser: async (userId: number) => {
     return await db
       .select({
-        message_id: message_receipts.message_id,
-        user_id: message_receipts.user_id,
-        status: message_receipts.status,
-        delivered_at: message_receipts.delivered_at,
-        read_at: message_receipts.read_at,
-        created_at: message_receipts.created_at,
-        updated_at: message_receipts.updated_at,
+        messageId: messageReceipts.messageId,
+        userId: messageReceipts.userId,
+        status: messageReceipts.status,
+        deliveredAt: messageReceipts.deliveredAt,
+        readAt: messageReceipts.readAt,
+        createdAt: messageReceipts.createdAt,
+        updatedAt: messageReceipts.updatedAt,
       })
-      .from(message_receipts)
+      .from(messageReceipts)
       .where(
         and(
-          eq(message_receipts.user_id, user_id),
-          ne(message_receipts.status, "read"),
+          eq(messageReceipts.userId, userId),
+          ne(messageReceipts.status, "read"),
         ),
       );
   },
 
-  insertBulkMessageReceipts: async (messageReceipts: InsertReceiptType) => {
-    return await db
-      .insert(message_receipts)
-      .values(messageReceipts)
-      .returning();
+  insertBulkMessageReceipts: async (receipts: InsertReceiptType) => {
+    return await db.insert(messageReceipts).values(receipts).returning();
   },
 
   updateAllMessageReceiptsToRead: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
   }) => {
     return await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status: "read",
-        read_at: new Date(Date.now()),
-        updated_at: new Date(Date.now()),
+        readAt: new Date(Date.now()),
+        updatedAt: new Date(Date.now()),
       })
       .where(
         and(
-          eq(message_receipts.conversation_id, conversation_id),
-          eq(message_receipts.user_id, user_id),
-          ne(message_receipts.status, "read"),
-          isNull(message_receipts.read_at),
+          eq(messageReceipts.conversationId, conversationId),
+          eq(messageReceipts.userId, userId),
+          ne(messageReceipts.status, "read"),
+          isNull(messageReceipts.readAt),
         ),
       )
       .returning();
@@ -128,17 +125,17 @@ export const ReceiptRepository = {
     if (messageIds.length === 0) return;
 
     await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status: "read",
-        read_at: readAt,
-        updated_at: new Date(Date.now()),
+        readAt: readAt,
+        updatedAt: new Date(Date.now()),
       })
       .where(
         and(
-          eq(message_receipts.user_id, userId),
-          inArray(message_receipts.message_id, messageIds),
-          eq(message_receipts.status, "delivered"),
+          eq(messageReceipts.userId, userId),
+          inArray(messageReceipts.messageId, messageIds),
+          eq(messageReceipts.status, "delivered"),
         ),
       );
   },
@@ -155,89 +152,89 @@ export const ReceiptRepository = {
     if (messageIds.length === 0) return;
 
     await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status: "delivered",
-        delivered_at: deliveredAt,
-        updated_at: new Date(Date.now()),
+        deliveredAt: deliveredAt,
+        updatedAt: new Date(Date.now()),
       })
       .where(
         and(
-          eq(message_receipts.user_id, userId),
-          inArray(message_receipts.message_id, messageIds),
-          eq(message_receipts.status, "sent"),
+          eq(messageReceipts.userId, userId),
+          inArray(messageReceipts.messageId, messageIds),
+          eq(messageReceipts.status, "sent"),
         ),
       );
   },
 
   updateMessageReceiptToDelivered: async ({
-    message_id,
-    user_id,
+    messageId,
+    userId,
   }: {
-    message_id: number;
-    user_id: number;
+    messageId: number;
+    userId: number;
   }) => {
     return await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status: "delivered",
-        delivered_at: new Date(Date.now()),
-        updated_at: new Date(Date.now()),
+        deliveredAt: new Date(Date.now()),
+        updatedAt: new Date(Date.now()),
       })
       .where(
         and(
-          eq(message_receipts.message_id, message_id),
-          eq(message_receipts.user_id, user_id),
-          eq(message_receipts.status, "sent"),
+          eq(messageReceipts.messageId, messageId),
+          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.status, "sent"),
         ),
       )
       .returning();
   },
 
   updateMessageReceiptToRead: async ({
-    message_id,
-    user_id,
+    messageId,
+    userId,
   }: {
-    message_id: number;
-    user_id: number;
+    messageId: number;
+    userId: number;
   }) => {
     const now = new Date(Date.now());
     return await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status: "read",
-        read_at: now,
-        updated_at: now,
-        delivered_at: sql`COALESCE(${message_receipts.delivered_at}, ${now})`,
+        readAt: now,
+        updatedAt: now,
+        deliveredAt: sql`COALESCE(${messageReceipts.deliveredAt}, ${now})`,
       })
       .where(
         and(
-          eq(message_receipts.message_id, message_id),
-          eq(message_receipts.user_id, user_id),
-          inArray(message_receipts.status, ["sent", "delivered"]),
+          eq(messageReceipts.messageId, messageId),
+          eq(messageReceipts.userId, userId),
+          inArray(messageReceipts.status, ["sent", "delivered"]),
         ),
       )
       .returning();
   },
 
   updateMessageReceiptToSent: async ({
-    message_id,
-    user_id,
+    messageId,
+    userId,
   }: {
-    message_id: number;
-    user_id: number;
+    messageId: number;
+    userId: number;
   }) => {
     return await db
-      .update(message_receipts)
+      .update(messageReceipts)
       .set({
         status: "sent",
-        updated_at: new Date(Date.now()),
+        updatedAt: new Date(Date.now()),
       })
       .where(
         and(
-          eq(message_receipts.message_id, message_id),
-          eq(message_receipts.user_id, user_id),
-          eq(message_receipts.status, "read"),
+          eq(messageReceipts.messageId, messageId),
+          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.status, "read"),
         ),
       );
   },

@@ -46,7 +46,7 @@ const messageHandler: Record<
   (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void
 > = {
   "receipts.mark_all_read": async (ws, data: ClientMessageReceiptType) => {
-    if (data.payload.conversation_id && data.payload.user_id) {
+    if (data.payload.conversationId && data.payload.userId) {
       await ReceiptService.processMarkAllRead(data);
     }
   },
@@ -60,7 +60,7 @@ const messageHandler: Record<
   },
 
   "conversation.open": (ws, message) => {
-    const conversationId = message.data?.conversation_id;
+    const conversationId = message.data?.conversationId;
     ws.data.activeConversations.add(conversationId!.toString());
     ws.subscribe(conversationId!.toString());
     console.log("subscribed");
@@ -68,13 +68,13 @@ const messageHandler: Record<
 
   subscribe: (ws, message) => {
     const conversationId =
-      message.msgData?.message?.conversation_id?.toString();
+      message.msgData?.message?.conversationId?.toString();
     ws.subscribe(conversationId!);
   },
 
   close_conversation: (ws, message) => {
     const conversationId =
-      message.msgData?.message?.conversation_id?.toString();
+      message.msgData?.message?.conversationId?.toString();
     ws.data.activeConversations.delete(conversationId!);
     ws.unsubscribe(conversationId!);
 

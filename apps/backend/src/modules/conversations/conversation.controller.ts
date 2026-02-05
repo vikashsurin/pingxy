@@ -8,22 +8,22 @@ import { ConversationService } from "./conversation.service";
 export const ConversationController = {
   getAll: async (c: Context) => {
     const user = c.get("user");
-    const conversations = await ConversationService.getByUser({ user_id: user.id });
+    const conversations = await ConversationService.getByUser({ userId: user.id });
     return c.json({ conversations: conversations });
   },
 
   getAllMessagesAndReceipts: async (c: Context) => {
-    const conversation_id = Number(c.req.param("conversation_id"));
-    const user_id = Number(c.req.param("user_id"));
+    const conversationId = Number(c.req.param("conversationId"));
+    const userId = Number(c.req.param("userId"));
     const before = Number(c.req.query("before"));
     const after = Number(c.req.query("after"));
     const limit = Number(c.req.query("limit")) || 20;
 
-    console.log({ conversation_id, user_id, before, after, limit });
+    console.log({ conversationId, userId, before, after, limit });
 
     const result = await MessageService.getMessagesAndReceiptsByConversation({
-      conversation_id,
-      user_id,
+      conversationId,
+      userId,
       before,
       after,
       limit,

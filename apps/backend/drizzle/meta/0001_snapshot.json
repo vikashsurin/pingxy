@@ -1,6 +1,6 @@
 {
-  "id": "fcabf490-5415-49c6-a517-adb39b8322f3",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "0fcce62a-e6b6-4031-9520-03a8ad0bb7fd",
+  "prevId": "fcabf490-5415-49c6-a517-adb39b8322f3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -46,8 +46,8 @@
         }
       },
       "indexes": {
-        "blocked_users_blocker_id_blocked_id_idx": {
-          "name": "blocked_users_blocker_id_blocked_id_idx",
+        "blocked_users_blockerId_blockedIdIdx": {
+          "name": "blocked_users_blockerId_blockedIdIdx",
           "columns": [
             {
               "expression": "blocker_id",
@@ -67,8 +67,8 @@
           "method": "btree",
           "with": {}
         },
-        "blocked_users_blocker_id_idx": {
-          "name": "blocked_users_blocker_id_idx",
+        "blocked_users_blockerIdIdx": {
+          "name": "blocked_users_blockerIdIdx",
           "columns": [
             {
               "expression": "blocker_id",
@@ -82,8 +82,8 @@
           "method": "btree",
           "with": {}
         },
-        "blocked_users_blocked_id_idx": {
-          "name": "blocked_users_blocked_id_idx",
+        "blocked_users_blockedIdIdx": {
+          "name": "blocked_users_blockedIdIdx",
           "columns": [
             {
               "expression": "blocked_id",
@@ -208,8 +208,8 @@
         }
       },
       "indexes": {
-        "conversations_created_by_idx": {
-          "name": "conversations_created_by_idx",
+        "conversations_created_byIdx": {
+          "name": "conversations_created_byIdx",
           "columns": [
             {
               "expression": "created_by",
@@ -223,8 +223,8 @@
           "method": "btree",
           "with": {}
         },
-        "conversations_last_message_at_idx": {
-          "name": "conversations_last_message_at_idx",
+        "conversations_last_message_atIdx": {
+          "name": "conversations_last_message_atIdx",
           "columns": [
             {
               "expression": "last_message_at",
@@ -238,8 +238,8 @@
           "method": "btree",
           "with": {}
         },
-        "conversations_last_message_id_idx": {
-          "name": "conversations_last_message_id_idx",
+        "conversations_last_messageIdIdx": {
+          "name": "conversations_last_messageIdIdx",
           "columns": [
             {
               "expression": "last_message_id",
@@ -330,8 +330,8 @@
         }
       },
       "indexes": {
-        "message_reactions_message_id_user_id_emoji_idx": {
-          "name": "message_reactions_message_id_user_id_emoji_idx",
+        "message_reactions_messageId_userId_emojiIdx": {
+          "name": "message_reactions_messageId_userId_emojiIdx",
           "columns": [
             {
               "expression": "message_id",
@@ -357,8 +357,8 @@
           "method": "btree",
           "with": {}
         },
-        "message_reactions_message_id_idx": {
-          "name": "message_reactions_message_id_idx",
+        "message_reactions_messageIdIdx": {
+          "name": "message_reactions_messageIdIdx",
           "columns": [
             {
               "expression": "message_id",
@@ -481,8 +481,8 @@
         }
       },
       "indexes": {
-        "message_receipts_message_id_user_id_idx": {
-          "name": "message_receipts_message_id_user_id_idx",
+        "message_receipts_messageId_userIdIdx": {
+          "name": "message_receipts_messageId_userIdIdx",
           "columns": [
             {
               "expression": "message_id",
@@ -502,8 +502,8 @@
           "method": "btree",
           "with": {}
         },
-        "message_receipts_message_id_idx": {
-          "name": "message_receipts_message_id_idx",
+        "message_receipts_messageIdIdx": {
+          "name": "message_receipts_messageIdIdx",
           "columns": [
             {
               "expression": "message_id",
@@ -517,8 +517,8 @@
           "method": "btree",
           "with": {}
         },
-        "message_receipts_user_id_status_idx": {
-          "name": "message_receipts_user_id_status_idx",
+        "message_receipts_userId_statusIdx": {
+          "name": "message_receipts_userId_statusIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -538,8 +538,8 @@
           "method": "btree",
           "with": {}
         },
-        "message_receipts_read_at_idx": {
-          "name": "message_receipts_read_at_idx",
+        "message_receipts_read_atIdx": {
+          "name": "message_receipts_read_atIdx",
           "columns": [
             {
               "expression": "read_at",
@@ -553,8 +553,8 @@
           "method": "btree",
           "with": {}
         },
-        "message_receipts_conversation_id_idx": {
-          "name": "message_receipts_conversation_id_idx",
+        "message_receipts_conversationIdIdx": {
+          "name": "message_receipts_conversationIdIdx",
           "columns": [
             {
               "expression": "conversation_id",
@@ -568,8 +568,8 @@
           "method": "btree",
           "with": {}
         },
-        "message_receipts_conversation_id_user_id_read_at_idx": {
-          "name": "message_receipts_conversation_id_user_id_read_at_idx",
+        "message_receipts_conversationId_userId_read_atIdx": {
+          "name": "message_receipts_conversationId_userId_read_atIdx",
           "columns": [
             {
               "expression": "conversation_id",
@@ -808,8 +808,8 @@
         }
       },
       "indexes": {
-        "messages_conversation_id_idx": {
-          "name": "messages_conversation_id_idx",
+        "messages_conversationIdIdx": {
+          "name": "messages_conversationIdIdx",
           "columns": [
             {
               "expression": "conversation_id",
@@ -823,8 +823,8 @@
           "method": "btree",
           "with": {}
         },
-        "messages_sender_id_idx": {
-          "name": "messages_sender_id_idx",
+        "messages_senderIdIdx": {
+          "name": "messages_senderIdIdx",
           "columns": [
             {
               "expression": "sender_id",
@@ -838,8 +838,8 @@
           "method": "btree",
           "with": {}
         },
-        "messages_created_at_idx": {
-          "name": "messages_created_at_idx",
+        "messages_created_atIdx": {
+          "name": "messages_created_atIdx",
           "columns": [
             {
               "expression": "created_at",
@@ -853,8 +853,8 @@
           "method": "btree",
           "with": {}
         },
-        "messages_conversation_created_idx": {
-          "name": "messages_conversation_created_idx",
+        "messages_conversation_createdIdx": {
+          "name": "messages_conversation_createdIdx",
           "columns": [
             {
               "expression": "conversation_id",
@@ -874,8 +874,8 @@
           "method": "btree",
           "with": {}
         },
-        "messages_parent_id_idx": {
-          "name": "messages_parent_id_idx",
+        "messages_parentIdIdx": {
+          "name": "messages_parentIdIdx",
           "columns": [
             {
               "expression": "parent_message_id",
@@ -889,8 +889,8 @@
           "method": "btree",
           "with": {}
         },
-        "messages_sender_created_idx": {
-          "name": "messages_sender_created_idx",
+        "messages_sender_createdIdx": {
+          "name": "messages_sender_createdIdx",
           "columns": [
             {
               "expression": "sender_id",
@@ -910,8 +910,8 @@
           "method": "btree",
           "with": {}
         },
-        "messages_is_deleted_idx": {
-          "name": "messages_is_deleted_idx",
+        "messages_is_deletedIdx": {
+          "name": "messages_is_deletedIdx",
           "columns": [
             {
               "expression": "is_deleted",
@@ -1122,8 +1122,8 @@
         }
       },
       "indexes": {
-        "participants_user_idx": {
-          "name": "participants_user_idx",
+        "participants_userIdx": {
+          "name": "participants_userIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -1137,8 +1137,8 @@
           "method": "btree",
           "with": {}
         },
-        "participants_conversation_idx": {
-          "name": "participants_conversation_idx",
+        "participants_conversationIdx": {
+          "name": "participants_conversationIdx",
           "columns": [
             {
               "expression": "conversation_id",
@@ -1152,8 +1152,8 @@
           "method": "btree",
           "with": {}
         },
-        "participants_left_at_idx": {
-          "name": "participants_left_at_idx",
+        "participants_left_atIdx": {
+          "name": "participants_left_atIdx",
           "columns": [
             {
               "expression": "left_at",
@@ -1167,8 +1167,8 @@
           "method": "btree",
           "with": {}
         },
-        "participants_unread_idx": {
-          "name": "participants_unread_idx",
+        "participants_unreadIdx": {
+          "name": "participants_unreadIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -1188,8 +1188,8 @@
           "method": "btree",
           "with": {}
         },
-        "participants_user_active_idx": {
-          "name": "participants_user_active_idx",
+        "participants_user_activeIdx": {
+          "name": "participants_user_activeIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -1333,8 +1333,8 @@
         }
       },
       "indexes": {
-        "refresh_tokens_user_id_idx": {
-          "name": "refresh_tokens_user_id_idx",
+        "refresh_tokens_userIdIdx": {
+          "name": "refresh_tokens_userIdIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -1348,8 +1348,8 @@
           "method": "btree",
           "with": {}
         },
-        "refresh_token_user_id_session_id_idx": {
-          "name": "refresh_token_user_id_session_id_idx",
+        "refresh_token_userId_sessionIdIdx": {
+          "name": "refresh_token_userId_sessionIdIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -1369,8 +1369,8 @@
           "method": "btree",
           "with": {}
         },
-        "refresh_token_expires_at_idx": {
-          "name": "refresh_token_expires_at_idx",
+        "refresh_token_expires_atIdx": {
+          "name": "refresh_token_expires_atIdx",
           "columns": [
             {
               "expression": "expires_at",
@@ -1506,8 +1506,8 @@
         }
       },
       "indexes": {
-        "sessions_user_id_idx": {
-          "name": "sessions_user_id_idx",
+        "sessions_userIdIdx": {
+          "name": "sessions_userIdIdx",
           "columns": [
             {
               "expression": "user_id",
@@ -1521,8 +1521,8 @@
           "method": "btree",
           "with": {}
         },
-        "session_expires_at_idx": {
-          "name": "session_expires_at_idx",
+        "session_expires_atIdx": {
+          "name": "session_expires_atIdx",
           "columns": [
             {
               "expression": "expires_at",
@@ -1536,8 +1536,8 @@
           "method": "btree",
           "with": {}
         },
-        "sessions_ip_address_idx": {
-          "name": "sessions_ip_address_idx",
+        "sessions_ipAddressIdx": {
+          "name": "sessions_ipAddressIdx",
           "columns": [
             {
               "expression": "ip_address",
@@ -1551,8 +1551,8 @@
           "method": "btree",
           "with": {}
         },
-        "session_is_active_last_activity_idx": {
-          "name": "session_is_active_last_activity_idx",
+        "session_is_active_lastActivityIdx": {
+          "name": "session_is_active_lastActivityIdx",
           "columns": [
             {
               "expression": "is_active",
@@ -1671,8 +1671,8 @@
         }
       },
       "indexes": {
-        "users_username_idx": {
-          "name": "users_username_idx",
+        "users_usernameIdx": {
+          "name": "users_usernameIdx",
           "columns": [
             {
               "expression": "username",

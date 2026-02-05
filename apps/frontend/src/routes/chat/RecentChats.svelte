@@ -22,22 +22,22 @@
     });
 
     const handleClick = async (conversation: PrivateConversation) => {
-        chatStore.clearNotification(conversation.conversation_id!);
+        chatStore.clearNotification(conversation.conversationId!);
         chatStore.activeConversation = conversation;
 
         await receiptManager.emitMarkAllRead({
-            conversation_id: conversation.conversation_id,
-            currentUser_id: chatStore.currentUser?.id!,
-            recipient_id: conversation.user.id,
+            conversationId: conversation.conversationId,
+            currentuserId: chatStore.currentUser?.id!,
+            recipientId: conversation.user.id,
         });
 
         // Load messages for current conversation
         // await chatStore.loadMessages();
         await chatStore.loadInitialMessages({
-            conversation_id: conversation.conversation_id,
+            conversationId: conversation.conversationId,
         });
 
-        const user_id = chatStore.currentUser?.id;
+        const userId = chatStore.currentUser?.id;
 
         // Subscribe to current Conversation
         const socket = getSocket();
@@ -46,8 +46,8 @@
                 id: crypto.randomUUID(),
                 type: "conversation.open",
                 payload: {
-                    conversation_id: conversation.conversation_id,
-                    user_id: user_id!,
+                    conversationId: conversation.conversationId,
+                    userId: userId!,
                 },
             };
             socket.send(JSON.stringify(messagePayload));
@@ -82,15 +82,15 @@
     <li>
         <div class="flex items-center gap-1 w-full relative group">
             <button
-                class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200 {conversation.conversation_id ===
-                chatStore.activeConversation?.conversation_id
+                class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200 {conversation.conversationId ===
+                chatStore.activeConversation?.conversationId
                     ? 'bg-gray-400'
                     : ''}"
                 id={conversation.user.id.toString()}
                 onmouseenter={async () => {
                     // TODO optimize it
                     // await chatStore.preloadMessages({
-                    //     conversation_id: conversation.conversation_id,
+                    //     conversationId: conversation.conversationId,
                     // });
                 }}
                 onclick={async () => {
@@ -120,7 +120,7 @@
                     {/if}
                 </div>
 
-                {@render unreaStatus(conversation.conversation_id!)}
+                {@render unreaStatus(conversation.conversationId!)}
             </button>
         </div>
     </li>

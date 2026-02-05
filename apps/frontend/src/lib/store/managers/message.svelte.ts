@@ -14,29 +14,29 @@ import {
 } from "./receipt.svelte";
 
 export const loadInitialMessages = async ({
-  conversation_id,
+  conversationId,
   currentUserId,
   limit,
 }: {
-  conversation_id: number;
+  conversationId: number;
   currentUserId: number;
   limit: number;
 }) => {
-  if (!currentUserId || !conversation_id) {
+  if (!currentUserId || !conversationId) {
     throw new Error("Invalid conversation or user ID");
   }
 
   try {
     const data = await fetchMessages({
-      conversation_id,
+      conversationId,
       currentUserId,
       limit,
     });
 
-    virtualStore.absoluteLatestMessageId = data.chat.at(-1).message.message_id;
-    chatStore.messages[conversation_id] = {};
+    virtualStore.absoluteLatestMessageId = data.chat.at(-1).message.messageId;
+    chatStore.messages[conversationId] = {};
     for (const entry of data.chat) {
-      chatStore.messages[conversation_id][entry.message.message_id] = entry;
+      chatStore.messages[conversationId][entry.message.messageId] = entry;
     }
     return data;
   } catch (error) {
@@ -58,13 +58,13 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
     type: "message.new",
     payload: {
       message: {
-        conversation_id: chatStore.activeConversation.conversation_id,
-        client_message_id: crypto.randomUUID(),
+        conversationId: chatStore.activeConversation.conversationId,
+        clientMessageId: crypto.randomUUID(),
         content: messageText,
-        message_type: "text",
-        sender_id: chatStore.currentUser.id,
+        messageType: "text",
+        senderId: chatStore.currentUser.id,
       },
-      conversation_id: chatStore.activeConversation.conversation_id,
+      conversationId: chatStore.activeConversation.conversationId,
       recipient: {
         id: chatStore.activeConversation.user.id,
         username: chatStore.activeConversation.user.username,
@@ -109,19 +109,19 @@ export const handleIncomingMessage = async (data: ServerNewMessageType) => {
   const receipt = data.payload.receipt as MessageReceipt;
   // handleIncomingReceipts([receipt]);
   if (
-    chatStore.activeConversation?.conversation_id ===
-    data.payload.conversation_id
+    chatStore.activeConversation?.conversationId ===
+    data.payload.conversationId
   ) {
     console.log("mark as read");
     emitMarkRead({
       message: data.payload.message,
-      user_id: chatStore.currentUser?.id!,
+      userId: chatStore.currentUser?.id!,
     });
   } else {
     // Handle other cases if needed
     emitMarkDelivered({
       message: data.payload.message,
-      user_id: chatStore.currentUser?.id!,
+      userId: chatStore.currentUser?.id!,
     });
   }
 };
@@ -131,12 +131,12 @@ export const deleteMessage = async () => {};
 
 // Private
 const _addMessage = async (data: ServerNewMessageType) => {
-  const { message, conversation_id, receipt } = data.payload;
+  const { message, conversationId, receipt } = data.payload;
 
-  if (!chatStore.messages[conversation_id]) {
-    chatStore.messages[conversation_id] = {};
+  if (!chatStore.messages[conversationId]) {
+    chatStore.messages[conversationId] = {};
   }
-  chatStore.messages[conversation_id][message.message_id] = {
+  chatStore.messages[conversationId][message.messageId] = {
     message,
     receipt,
   };

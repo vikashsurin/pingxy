@@ -1,17 +1,17 @@
 type FetchMessagesParams = {
-  conversation_id: number;
+  conversationId: number;
   currentUserId: number;
   limit: number;
 };
 
 export const fetchMessages = async ({
-  conversation_id,
+  conversationId,
   currentUserId,
   limit,
 }: FetchMessagesParams) => {
   try {
     const response = await fetch(
-      `/api/conversations/${conversation_id}/messages/${currentUserId}?limit=${limit}`,
+      `/api/conversations/${conversationId}/messages/${currentUserId}?limit=${limit}`,
       {
         method: "GET",
         headers: {

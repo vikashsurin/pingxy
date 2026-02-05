@@ -37,7 +37,7 @@ class VirtualStore {
 
   isAtBottom = $derived.by(() => {
     if (this.absoluteLatestMessageId && this.visibleList.length > 0) {
-      if (this.absoluteLatestMessageId === this.visibleList.at(-1)?.entry.message.message_id) {
+      if (this.absoluteLatestMessageId === this.visibleList.at(-1)?.entry.message.messageId) {
         return true
 
       }
@@ -76,7 +76,7 @@ class VirtualStore {
 
     for (let i = 0; i < messages.length; i++) {
       newOffsets[i] = currentOffset;
-      currentOffset += this.getItemHeight(messages[i].message.message_id);
+      currentOffset += this.getItemHeight(messages[i].message.messageId);
     }
 
     this.offsetsCache = newOffsets;
@@ -144,8 +144,8 @@ class VirtualStore {
 
   // --- Data Loading ---
   async handleLoadOlder(params: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
     limit: number;
     scrollElement: HTMLDivElement | undefined;
     visibleRangeStart: number;
@@ -153,8 +153,8 @@ class VirtualStore {
     if (
       !this.hasMoreOlder ||
       this.isLoadingOlder ||
-      !params.conversation_id ||
-      !params.user_id
+      !params.conversationId ||
+      !params.userId
     ) {
       return;
     }
@@ -166,11 +166,11 @@ class VirtualStore {
     const anchorMsg = chatStore.activeMessages[anchorIndex];
     const oldAnchorOffset = this.offsetsCache[anchorIndex] || 0;
 
-    const oldestId = chatStore.getOldestMessageId(params.conversation_id);
+    const oldestId = chatStore.getOldestMessageId(params.conversationId);
 
     try {
       const response = await fetch(
-        `/api/conversations/${params.conversation_id}/messages/${params.user_id}?before=${oldestId}&limit=${params.limit}`,
+        `/api/conversations/${params.conversationId}/messages/${params.userId}?before=${oldestId}&limit=${params.limit}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -188,7 +188,7 @@ class VirtualStore {
 
       if (data.chat.length > 0) {
         chatStore.loadOlderMessages(
-          params.conversation_id,
+          params.conversationId,
           Array.from(data.chat)
         );
 
@@ -197,7 +197,7 @@ class VirtualStore {
         // Restore scroll position
         if (anchorMsg && params.scrollElement) {
           const newAnchorIndex = chatStore.activeMessages.findIndex(
-            (m) => m.message.message_id === anchorMsg.message.message_id
+            (m) => m.message.messageId === anchorMsg.message.messageId
           );
 
           if (newAnchorIndex !== -1) {
@@ -215,8 +215,8 @@ class VirtualStore {
   }
 
   async handleLoadNewer(params: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
     limit: number;
     scrollElement: HTMLDivElement | undefined;
     visibleRangeStart: number;
@@ -224,8 +224,8 @@ class VirtualStore {
     if (
       !this.hasMoreNewer ||
       this.isLoadingNewer ||
-      !params.conversation_id ||
-      !params.user_id
+      !params.conversationId ||
+      !params.userId
     ) {
       return;
     }
@@ -236,11 +236,11 @@ class VirtualStore {
     const anchorMsg = chatStore.activeMessages[anchorIndex];
     const oldAnchorOffset = this.offsetsCache[anchorIndex] || 0;
 
-    const newestId = chatStore.getNewestMessageId(params.conversation_id);
+    const newestId = chatStore.getNewestMessageId(params.conversationId);
 
     try {
       const response = await fetch(
-        `/api/conversations/${params.conversation_id}/messages/${params.user_id}?after=${newestId}&limit=${params.limit}`,
+        `/api/conversations/${params.conversationId}/messages/${params.userId}?after=${newestId}&limit=${params.limit}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -257,7 +257,7 @@ class VirtualStore {
 
       if (data.chat.length > 0) {
         chatStore.loadNewerMessages(
-          params.conversation_id,
+          params.conversationId,
           Array.from(data.chat)
         );
 
@@ -265,7 +265,7 @@ class VirtualStore {
 
         if (anchorMsg && params.scrollElement) {
           const newAnchorIndex = chatStore.activeMessages.findIndex(
-            (m) => m.message.message_id === anchorMsg.message.message_id
+            (m) => m.message.messageId === anchorMsg.message.messageId
           );
 
           if (newAnchorIndex !== -1) {

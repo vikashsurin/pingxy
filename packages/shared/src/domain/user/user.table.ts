@@ -12,17 +12,17 @@ export const users = table(
   "users",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    user_type: userTypesEnum("user_type").default("guest"),
+    userType: userTypesEnum("user_type").default("guest"),
     username: t.text().notNull().unique(),
-    hashed_password: t.text(),
+    hashedPassword: t.text(),
     data: t.jsonb().notNull(),
-    last_seen_at: t.timestamp({ withTimezone: true }),
-    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
-    updated_at: t
+    lastSeenAt: t.timestamp({ withTimezone: true }),
+    createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: t
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [t.uniqueIndex("users_username_idx").on(table.username)],
+  (table) => [t.uniqueIndex("users_usernameIdx").on(table.username)],
 );

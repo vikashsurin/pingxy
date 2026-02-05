@@ -11,19 +11,19 @@ export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages);
 export const updateMessageSchema = createUpdateSchema(messages);
 
-export const db_messageInsertSchema = createInsertSchema(messages);
+export const dbMessageInsertSchema = createInsertSchema(messages);
 export const dbSelectMessageSchema = createSelectSchema(messages);
 // export const selectMessageSchema = createSelectSchema(messages, {
-//   created_at: z.coerce.date(),
-//   updated_at: z.coerce.date(),
-//   deleted_at: z.coerce.date().nullable(),
+//   createdAt: z.coerce.date(),
+//   updatedAt: z.coerce.date(),
+//   deletedAt: z.coerce.date().nullable(),
 // });
 
 // Todo: check if message receipt schema is needed
 export const wsMessageResponsePayload = z.object({
   message: selectMessageSchema,
   receipt: selectMessageReceiptSchema,
-  conversation_id: z.number(),
+  conversationId: z.number(),
   recipient: z.object({
     id: z.number(),
     username: z.string(),
@@ -31,11 +31,11 @@ export const wsMessageResponsePayload = z.object({
 });
 
 export const clientInsertMessageSchema = insertMessageSchema.pick({
-  conversation_id: true,
-  client_message_id: true,
+  conversationId: true,
+  clientMessageId: true,
   content: true,
-  message_type: true,
-  sender_id: true,
+  messageType: true,
+  senderId: true,
 });
 
 export const clientNewMessageSchema = z.object({
@@ -43,7 +43,7 @@ export const clientNewMessageSchema = z.object({
   type: z.literal("message.new"),
   payload: z.object({
     message: clientInsertMessageSchema,
-    conversation_id: z.number(),
+    conversationId: z.number(),
     recipient: z.object({
       id: z.number(),
       username: z.string(),
@@ -57,7 +57,7 @@ export const serverNewMessageSchema = z.object({
   payload: z.object({
     message: selectMessageSchema,
     receipt: selectMessageReceiptSchema,
-    conversation_id: z.number(),
+    conversationId: z.number(),
     recipient: z.object({
       id: z.number(),
       username: z.string(),
@@ -70,7 +70,7 @@ export const serverUpdateMessageSchema = z.object({
   payload: z.object({
     message: selectMessageSchema,
     receipt: selectMessageReceiptSchema,
-    conversation_id: z.number(),
+    conversationId: z.number(),
     recipient: z.object({
       id: z.number(),
       username: z.string(),
@@ -83,7 +83,7 @@ export const serverDeleteMessageSchema = z.object({
   payload: z.object({
     message: selectMessageSchema,
     receipt: selectMessageReceiptSchema,
-    conversation_id: z.number(),
+    conversationId: z.number(),
     recipient: z.object({
       id: z.number(),
       username: z.string(),

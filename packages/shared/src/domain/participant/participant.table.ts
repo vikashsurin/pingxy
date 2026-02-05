@@ -13,43 +13,43 @@ export const participantRoleEnum = pgEnum("role", [
 export const participants = table(
   "participants",
   {
-    participant_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    conversation_id: t.integer().notNull(),
-    user_id: t.integer().notNull(),
+    participantId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversationId: t.integer().notNull(),
+    userId: t.integer().notNull(),
     role: participantRoleEnum("role").default("member").notNull(), // owner, admin, member
-    joined_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
-    left_at: t.timestamp({ withTimezone: true }), // When user left the conversation
+    joinedAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    leftAt: t.timestamp({ withTimezone: true }), // When user left the conversation
 
     // Per-user conversation settings
-    is_active: t.boolean().default(true).notNull(),
-    is_muted: t.boolean().default(false).notNull(),
-    muted_until: t.timestamp({ withTimezone: true }),
-    is_pinned: t.boolean().default(false).notNull(),
-    is_archived: t.boolean().default(false).notNull(), // User-level archive
-    last_read_message_id: t.integer(), // Track what user has read
-    last_read_at: t.timestamp({ withTimezone: true }),
-    unread_count: t.integer().default(0).notNull(), // User-specific unread
+    isActive: t.boolean().default(true).notNull(),
+    isMuted: t.boolean().default(false).notNull(),
+    mutedUntil: t.timestamp({ withTimezone: true }),
+    isPinned: t.boolean().default(false).notNull(),
+    isArchived: t.boolean().default(false).notNull(), // User-level archive
+    lastReadMessageId: t.integer(), // Track what user has read
+    lastReadAt: t.timestamp({ withTimezone: true }),
+    unreadCount: t.integer().default(0).notNull(), // User-specific unread
 
     // Notifications
-    notification_settings: t.jsonb("notification_settings"),
+    notificationSettings: t.jsonb("notification_settings"),
 
     // Soft delete
-    is_deleted: t.boolean().default(false).notNull(),
-    deleted_at: t.timestamp({ withTimezone: true }),
+    isDeleted: t.boolean().default(false).notNull(),
+    deletedAt: t.timestamp({ withTimezone: true }),
   },
   (table) => [
     t
       .foreignKey({
         name: "participants_conversation_fk",
-        columns: [table.conversation_id],
-        foreignColumns: [conversations.conversation_id],
+        columns: [table.conversationId],
+        foreignColumns: [conversations.conversationId],
       })
       .onDelete("cascade"),
 
     t
       .foreignKey({
         name: "participants_user_fk",
-        columns: [table.user_id],
+        columns: [table.userId],
         foreignColumns: [users.id],
       })
       .onDelete("cascade"),
@@ -57,25 +57,25 @@ export const participants = table(
     t
       .foreignKey({
         name: "participants_last_read_message_fk",
-        columns: [table.last_read_message_id],
-        foreignColumns: [messages.message_id],
+        columns: [table.lastReadMessageId],
+        foreignColumns: [messages.messageId],
       })
       .onDelete("set null"),
 
     // CRITICAL: Prevent duplicate participants
     t
       .unique("participants_conversation_user_full_unique")
-      .on(table.conversation_id, table.user_id),
+      .on(table.conversationId, table.userId),
 
     // Indexes for common queries
-    t.index("participants_user_idx").on(table.user_id),
-    t.index("participants_conversation_idx").on(table.conversation_id),
-    t.index("participants_left_at_idx").on(table.left_at),
-    t.index("participants_unread_idx").on(table.user_id, table.unread_count),
+    t.index("participants_userIdx").on(table.userId),
+    t.index("participants_conversationIdx").on(table.conversationId),
+    t.index("participants_left_atIdx").on(table.leftAt),
+    t.index("participants_unreadIdx").on(table.userId, table.unreadCount),
 
     // Composite for fetching user's active conversations
     t
-      .index("participants_user_active_idx")
-      .on(table.user_id, table.is_deleted, table.left_at),
+      .index("participants_user_activeIdx")
+      .on(table.userId, table.isDeleted, table.leftAt),
   ],
 );

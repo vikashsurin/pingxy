@@ -2,8 +2,6 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { UserRepository } from "./user.repository";
 import { NewUser } from "@pingxy/shared/domain/user";
 
-
-
 describe("Users Table Schema", async () => {
   beforeAll(async () => {
     // Clear table before tests if needed
@@ -13,11 +11,17 @@ describe("Users Table Schema", async () => {
   const userId = 3;
   const userName = "TestUser2";
 
+  test.only("should return all users", async () => {
+    const result = await UserRepository.selectAll();
+    console.log({ result });
+    expect(result).toBeArray();
+  });
+
   test("should insert a user", async () => {
     const newUser: NewUser = {
-      user_type: "user" as const,
+      userType: "user" as const,
       username: userName,
-      hashed_password: "password",
+      hashedPassword: "password",
       data: { role: "admin" },
     };
     const result = await UserRepository.insert(newUser);

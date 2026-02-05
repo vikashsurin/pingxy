@@ -15,7 +15,7 @@ const STATUS_PRIORITY: Record<MessageReceipt["status"], number> = {
 
 type ReceiptParams = {
   message: Message;
-  user_id: number;
+  userId: number;
 };
 
 // --- OUTBOUND: EMITTERS (Client -> Server) ---
@@ -26,7 +26,7 @@ export const emitMarkSent = async () => {
   // Logic for local UI transition if needed
 };
 
-export const emitMarkRead = async ({ message, user_id }: ReceiptParams) => {
+export const emitMarkRead = async ({ message, userId }: ReceiptParams) => {
   const socket = validateSocket();
   if (!socket) return;
 
@@ -34,10 +34,10 @@ export const emitMarkRead = async ({ message, user_id }: ReceiptParams) => {
     type: "receipt.read",
     id: crypto.randomUUID(),
     payload: {
-      conversation_id: message.conversation_id,
-      message_id: message.message_id,
-      user_id: user_id,
-      recipient: { id: message.sender_id },
+      conversationId: message.conversationId,
+      messageId: message.messageId,
+      userId: userId,
+      recipient: { id: message.senderId },
     },
   };
 
@@ -46,7 +46,7 @@ export const emitMarkRead = async ({ message, user_id }: ReceiptParams) => {
 
 export const emitMarkDelivered = async ({
   message,
-  user_id,
+  userId,
 }: ReceiptParams) => {
   const socket = validateSocket();
   if (!socket) return;
@@ -55,23 +55,23 @@ export const emitMarkDelivered = async ({
     id: crypto.randomUUID(),
     type: "receipt.delivered",
     payload: {
-      conversation_id: message.conversation_id,
-      message_id: message.message_id,
-      user_id: user_id,
-      recipient: { id: message.sender_id },
+      conversationId: message.conversationId,
+      messageId: message.messageId,
+      userId: userId,
+      recipient: { id: message.senderId },
     },
   };
   socket.send(JSON.stringify(payload));
 };
 
 export const emitMarkAllRead = async ({
-  conversation_id,
-  currentUser_id,
-  recipient_id,
+  conversationId,
+  currentuserId,
+  recipientId,
 }: {
-  conversation_id: number;
-  currentUser_id: number;
-  recipient_id: number;
+  conversationId: number;
+  currentuserId: number;
+  recipientId: number;
 }) => {
   const socket = validateSocket();
   if (!socket || !chatStore.currentUser) return;
@@ -80,9 +80,9 @@ export const emitMarkAllRead = async ({
     type: "receipts.mark_all_read",
     id: crypto.randomUUID(),
     payload: {
-      conversation_id,
-      user_id: currentUser_id,
-      recipient: { id: recipient_id },
+      conversationId,
+      userId: currentuserId,
+      recipient: { id: recipientId },
     },
   };
 
@@ -120,10 +120,10 @@ function validateSocket() {
  * Prevents "Status Regressions" (e.g., delivered arriving after read).
  */
 function applyReceiptUpdateToStore(receipt: MessageReceipt) {
-  const entry = chatStore.getEntry(receipt.conversation_id, receipt.message_id);
+  const entry = chatStore.getEntry(receipt.conversationId, receipt.messageId);
 
   if (!entry) {
-    console.warn(`Message not found: ${receipt.message_id}`);
+    console.warn(`Message not found: ${receipt.messageId}`);
     return;
   }
 

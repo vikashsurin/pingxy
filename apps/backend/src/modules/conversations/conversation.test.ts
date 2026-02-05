@@ -9,11 +9,11 @@ describe("Conversations Table Schema", () => {
   const userId = 1;
   // test("should insert a new conversation", async () => {
   //   const newConversation = {
-  //     conversation_type: "direct" as const,
+  //     conversationType: "direct" as const,
   //     name: "Test Conversation",
-  //     created_by: userId,
-  //     created_at: new Date(Date.now()),
-  //     updated_at: new Date(Date.now()),
+  //     createdBy: userId,
+  //     createdAt: new Date(Date.now()),
+  //     updatedAt: new Date(Date.now()),
   //   };
   //   // const result = await queries.insertConversation(newConversation);
   //   // expect(result).toHaveLength(1);

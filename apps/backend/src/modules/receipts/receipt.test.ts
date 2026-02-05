@@ -13,9 +13,9 @@ describe("Message Receipts Table Schema", () => {
 
   test("should insert a new message receipt", async () => {
     const newMessageReceipt: NewMessageReceipt = {
-      conversation_id: 1,
-      message_id: 49,
-      user_id: 2,
+      conversationId: 1,
+      messageId: 49,
+      userId: 2,
       status: "sent",
     };
     const result = await ReceiptRepository.insertMessageReceipt(newMessageReceipt);
@@ -24,10 +24,10 @@ describe("Message Receipts Table Schema", () => {
 
   test("should update a message receipt", async () => {
     const result = await ReceiptRepository.updateMessageReceipt({
-      receipt_id: 9,
+      receiptId: 9,
       status: "delivered" as const,
-      delivered_at: new Date(Date.now()),
-      read_at: new Date(Date.now()),
+      deliveredAt: new Date(Date.now()),
+      readAt: new Date(Date.now()),
     });
     expect(result).toHaveLength(1);
   });
@@ -45,15 +45,15 @@ describe("Message Receipts Table Schema", () => {
   test("should insert bulk message receipts", async () => {
     const newMessageReceipts: NewMessageReceipt[] = [
       {
-        conversation_id: 1,
-        message_id: 39,
-        user_id: 2,
+        conversationId: 1,
+        messageId: 39,
+        userId: 2,
         status: "sent",
       },
       {
-        conversation_id: 1,
-        message_id: 48,
-        user_id: 2,
+        conversationId: 1,
+        messageId: 48,
+        userId: 2,
         status: "sent",
       },
     ];

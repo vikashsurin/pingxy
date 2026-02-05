@@ -4,22 +4,22 @@ import { pgTable as table } from "drizzle-orm/pg-core";
 import { sessions } from "../session/session.table";
 import { users } from "../user/user.table";
 
-export const refresh_tokens = table(
+export const refreshTokens = table(
   "refresh_tokens",
   {
-    token_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    refresh_token: t.text().notNull(),
-    user_id: t.integer().notNull(),
-    session_id: t.integer().notNull(),
-    created_at: t.integer().default(sql`extract(epoch from now())`),
-    updated_at: t.integer().default(sql`extract(epoch from now())`),
-    expires_at: t.integer(),
+    tokenId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    refreshToken: t.text().notNull(),
+    userId: t.integer().notNull(),
+    sessionId: t.integer().notNull(),
+    createdAt: t.integer().default(sql`extract(epoch from now())`),
+    updatedAt: t.integer().default(sql`extract(epoch from now())`),
+    expiresAt: t.integer(),
   },
   (table) => [
     t
       .foreignKey({
         name: "user_fk",
-        columns: [table.user_id],
+        columns: [table.userId],
         foreignColumns: [users.id],
       })
       .onDelete("cascade"),
@@ -27,15 +27,15 @@ export const refresh_tokens = table(
     t
       .foreignKey({
         name: "session_fk",
-        columns: [table.session_id],
-        foreignColumns: [sessions.session_id],
+        columns: [table.sessionId],
+        foreignColumns: [sessions.sessionId],
       })
       .onDelete("cascade"),
 
-    t.index("refresh_tokens_user_id_idx").on(table.user_id),
+    t.index("refresh_tokens_userIdIdx").on(table.userId),
     t
-      .index("refresh_token_user_id_session_id_idx")
-      .on(table.user_id, table.session_id),
-    t.index("refresh_token_expires_at_idx").on(table.expires_at),
+      .index("refresh_token_userId_sessionIdIdx")
+      .on(table.userId, table.sessionId),
+    t.index("refresh_token_expires_atIdx").on(table.expiresAt),
   ],
 );

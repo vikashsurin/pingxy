@@ -11,12 +11,12 @@ describe("Participants Table Schema", () => {
 
   // test("should insert a new participant", async () => {
   //   const newParticipant: NewParticipant = {
-  //     conversation_id: 7,
-  //     user_id: 1,
+  //     conversationId: 7,
+  //     userId: 1,
   //     role: "member" as const,
-  //     joined_at: new Date(Date.now()),
-  //     left_at: new Date(Date.now()),
-  //     is_active: true,
+  //     joinedAt: new Date(Date.now()),
+  //     leftAt: new Date(Date.now()),
+  //     isActive: true,
   //   };
   //   const result = await queries.insertParticipant(newParticipant);
   //   expect(result).toHaveLength(1);
@@ -24,8 +24,8 @@ describe("Participants Table Schema", () => {
 
   test("should get if a participant is valid", async () => {
     const participant = await ParticipantRepository.selectParticipant({
-      conversation_id: 2,
-      user_id: 2,
+      conversationId: 2,
+      userId: 2,
     });
     expect(participant).toBeTruthy();
   });

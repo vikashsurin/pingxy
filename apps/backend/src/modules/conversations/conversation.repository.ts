@@ -23,7 +23,7 @@ export const ConversationRepository = {
     return await db
       .select()
       .from(conversations)
-      .where(eq(conversations.conversation_id, id))
+      .where(eq(conversations.conversationId, id))
       .limit(1);
   },
 
@@ -36,11 +36,11 @@ export const ConversationRepository = {
 
     // Subquery: Find conversation IDs that have both users
     const conversationsWithBothUsers = db
-      .select({ conversation_id: participants.conversation_id })
+      .select({ conversationId: participants.conversationId })
       .from(participants)
-      .where(inArray(participants.user_id, userIds))
-      .groupBy(participants.conversation_id)
-      .having(sql`count(distinct ${participants.user_id}) = 2`)
+      .where(inArray(participants.userId, userIds))
+      .groupBy(participants.conversationId)
+      .having(sql`count(distinct ${participants.userId}) = 2`)
       .as("matched_conversations");
 
     // Main query: Get the conversation, but only if it has exactly 2 participants total
@@ -50,16 +50,16 @@ export const ConversationRepository = {
       .innerJoin(
         conversationsWithBothUsers,
         eq(
-          conversations.conversation_id,
-          conversationsWithBothUsers.conversation_id,
+          conversations.conversationId,
+          conversationsWithBothUsers.conversationId,
         ),
       )
       .innerJoin(
         participants,
-        eq(participants.conversation_id, conversations.conversation_id),
+        eq(participants.conversationId, conversations.conversationId),
       )
-      .groupBy(conversations.conversation_id, conversations.created_at)
-      .having(sql`count(${participants.user_id}) = 2`);
+      .groupBy(conversations.conversationId, conversations.createdAt)
+      .having(sql`count(${participants.userId}) = 2`);
 
     return result[0] || null;
   },
@@ -71,28 +71,28 @@ export const ConversationRepository = {
     // Get conversations with all participant details
     const result = await db
       .select({
-        conversation_id: conversations.conversation_id,
-        created_at: conversations.created_at,
+        conversationId: conversations.conversationId,
+        createdAt: conversations.createdAt,
         user: {
           id: users.id,
           username: users.username,
-          user_type: users.user_type,
+          userType: users.userType,
           data: users.data,
-          last_seen_at: users.last_seen_at,
+          lastSeenAt: users.lastSeenAt,
         },
       })
       .from(conversations)
-      .innerJoin(p1, eq(p1.conversation_id, conversations.conversation_id))
+      .innerJoin(p1, eq(p1.conversationId, conversations.conversationId))
       .innerJoin(
         p2,
         and(
-          eq(p2.conversation_id, conversations.conversation_id),
-          ne(p2.user_id, userId),
+          eq(p2.conversationId, conversations.conversationId),
+          ne(p2.userId, userId),
         ),
       )
-      .innerJoin(users, eq(users.id, p2.user_id))
-      .where(eq(p1.user_id, userId))
-      .orderBy(desc(conversations.created_at))
+      .innerJoin(users, eq(users.id, p2.userId))
+      .where(eq(p1.userId, userId))
+      .orderBy(desc(conversations.createdAt))
       .limit(10);
     return result;
   },
@@ -118,16 +118,16 @@ export const ConversationRepository = {
       // Join first participant (id1)
       .innerJoin(
         participants,
-        eq(conversations.conversation_id, participants.conversation_id),
+        eq(conversations.conversationId, participants.conversationId),
       )
       // Join second participant (id2) to ensure both are in the result
-      .innerJoin(p2, eq(conversations.conversation_id, p2.conversation_id))
+      .innerJoin(p2, eq(conversations.conversationId, p2.conversationId))
       .where(
         and(
-          eq(conversations.conversation_type, "direct"),
-          eq(conversations.is_deleted, false),
-          eq(participants.user_id, id1),
-          eq(p2.user_id, id2),
+          eq(conversations.conversationType, "direct"),
+          eq(conversations.isDeleted, false),
+          eq(participants.userId, id1),
+          eq(p2.userId, id2),
         ),
       )
       .limit(1);
@@ -139,7 +139,7 @@ export const ConversationRepository = {
   delete: async (id: number) => {
     return await db
       .delete(conversations)
-      .where(eq(conversations.conversation_id, id))
+      .where(eq(conversations.conversationId, id))
       .returning();
   },
 

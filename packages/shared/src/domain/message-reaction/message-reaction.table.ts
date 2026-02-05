@@ -3,15 +3,15 @@ import { pgTable as table } from "drizzle-orm/pg-core";
 import { messages } from "../message/message.table";
 import { users } from "../user/user.table";
 
-export const message_reactions = table(
+export const messageReactions = table(
   "message_reactions",
   {
-    reaction_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    message_id: t.integer().notNull(),
-    user_id: t.integer().notNull(),
+    reactionId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    messageId: t.integer().notNull(),
+    userId: t.integer().notNull(),
     emoji: t.varchar("emoji", { length: 10 }).notNull(),
-    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
-    updated_at: t
+    createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: t
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
@@ -21,23 +21,23 @@ export const message_reactions = table(
     t
       .foreignKey({
         name: "message_fk",
-        columns: [table.message_id],
-        foreignColumns: [messages.message_id],
+        columns: [table.messageId],
+        foreignColumns: [messages.messageId],
       })
       .onDelete("cascade"),
 
     t
       .foreignKey({
         name: "user_fk",
-        columns: [table.user_id],
+        columns: [table.userId],
         foreignColumns: [users.id],
       })
       .onDelete("cascade"),
 
     t
-      .uniqueIndex("message_reactions_message_id_user_id_emoji_idx")
-      .on(table.message_id, table.user_id, table.emoji),
+      .uniqueIndex("message_reactions_messageId_userId_emojiIdx")
+      .on(table.messageId, table.userId, table.emoji),
 
-    t.index("message_reactions_message_id_idx").on(table.message_id),
+    t.index("message_reactions_messageIdIdx").on(table.messageId),
   ],
 );

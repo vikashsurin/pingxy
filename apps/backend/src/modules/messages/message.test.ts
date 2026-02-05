@@ -13,9 +13,9 @@ describe("Messages Table Schema", () => {
 
   test("should insert a new message", async () => {
     const newMessage: NewMessage = {
-      conversation_id: 1,
-      sender_id: userId,
-      client_message_id: "123",
+      conversationId: 1,
+      senderId: userId,
+      clientMessageId: "123",
       content: "Hello",
     };
     const result = await MessageRepository.insertMessage(newMessage);
@@ -49,8 +49,8 @@ describe("Messages Table Schema", () => {
 
   // test("should select messages and receipts by conversation id", async () => {
   //   const result = await queries.selectMessagesAndReceiptsByConversation({
-  //     conversation_id: 3,
-  //     user_id: 1,
+  //     conversationId: 3,
+  //     userId: 1,
   //     tx: db
   //   });
   //   expect(result).toBeDefined();
@@ -58,8 +58,8 @@ describe("Messages Table Schema", () => {
 
   test("should select limited messages by conversation id", async () => {
     const result = await MessageRepository.selectMessagesAndReceiptsByConversation({
-      conversation_id: 3,
-      user_id: 1,
+      conversationId: 3,
+      userId: 1,
       before: null,
       after: null,
       limit: 10,

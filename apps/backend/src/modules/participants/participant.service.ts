@@ -6,33 +6,33 @@ export const ParticipantService = {
   // Todo: create multiple participants for  group
   // or change name , symantically
   create: async ({
-    conversation_id,
-    user1_id,
-    user2_id,
+    conversationId,
+    user1Id,
+    user2Id,
   }: {
-    conversation_id: number;
-    user1_id: number;
-    user2_id: number;
+    conversationId: number;
+    user1Id: number;
+    user2Id: number;
   }) => {
     try {
       return await db.transaction(async (tx) => {
         const [p1] = await ParticipantRepository.insertParticipant(
           {
-            conversation_id,
-            user_id: user1_id,
+            conversationId,
+            userId: user1Id,
             role: "member",
-            joined_at: new Date(Date.now()),
-            is_active: true,
+            joinedAt: new Date(Date.now()),
+            isActive: true,
           },
           tx,
         );
         const [p2] = await ParticipantRepository.insertParticipant(
           {
-            conversation_id,
-            user_id: user2_id,
+            conversationId,
+            userId: user2Id,
             role: "member",
-            joined_at: new Date(Date.now()),
-            is_active: true,
+            joinedAt: new Date(Date.now()),
+            isActive: true,
           },
           tx,
         );
@@ -44,9 +44,9 @@ export const ParticipantService = {
     }
   },
 
-  getById: async (participant_id: number) => {
+  getById: async (participantId: number) => {
     try {
-      return await ParticipantRepository.selectParticipantById(participant_id);
+      return await ParticipantRepository.selectParticipantById(participantId);
     } catch (error) {
       console.error("Error getting participant by id:", error);
       throw new Error("Error getting participant by id");
@@ -54,16 +54,16 @@ export const ParticipantService = {
   },
 
   isParticipant: async ({
-    conversation_id,
-    user_id,
+    conversationId,
+    userId,
   }: {
-    conversation_id: number;
-    user_id: number;
+    conversationId: number;
+    userId: number;
   }) => {
     try {
       return await ParticipantRepository.selectParticipant({
-        conversation_id,
-        user_id,
+        conversationId,
+        userId,
       });
     } catch (error) {
       console.error("Error getting participant:", error);
@@ -71,10 +71,10 @@ export const ParticipantService = {
     }
   },
 
-  getParticipantsByConversationId: async (conversation_id: number) => {
+  getParticipantsByConversationId: async (conversationId: number) => {
     try {
       return await ParticipantRepository.selectParticipantsByConversationId(
-        conversation_id,
+        conversationId,
       );
     } catch (error) {
       console.error("Error getting participants by conversation id:", error);

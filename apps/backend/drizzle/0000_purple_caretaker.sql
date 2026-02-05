@@ -38,9 +38,9 @@ CREATE TABLE "message_receipts" (
 	"message_id" integer NOT NULL,
 	"user_id" integer NOT NULL,
 	"status" "status" NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"delivered_at" timestamp with time zone,
 	"read_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -68,7 +68,7 @@ CREATE TABLE "messages" (
 	"is_flagged" boolean DEFAULT false,
 	"flagged_at" timestamp with time zone,
 	"flagged_reason" text,
-	CONSTRAINT "messages_client_message_id_unique" UNIQUE("client_message_id")
+	CONSTRAINT "messages_clientMessageId_unique" UNIQUE("client_message_id")
 );
 --> statement-breakpoint
 CREATE TABLE "participants" (
@@ -114,7 +114,7 @@ CREATE TABLE "sessions" (
 	"created_at" integer DEFAULT extract(epoch from now()),
 	"updated_at" integer DEFAULT extract(epoch from now()),
 	"expires_at" integer,
-	CONSTRAINT "sessions_hashed_token_unique" UNIQUE("hashed_token")
+	CONSTRAINT "sessions_hashedToken_unique" UNIQUE("hashed_token")
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

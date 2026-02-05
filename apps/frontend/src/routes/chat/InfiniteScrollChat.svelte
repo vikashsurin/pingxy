@@ -16,13 +16,13 @@
 
     const LIMIT = $derived(chatStore.LIMIT);
 
-    const user_id = $derived(chatStore.currentUser?.id);
-    const conversation_id = $derived(
-        chatStore.activeConversation?.conversation_id,
+    const userId = $derived(chatStore.currentUser?.id);
+    const conversationId = $derived(
+        chatStore.activeConversation?.conversationId,
     );
     let unread = $derived(
         chatStore.unread.get(
-            chatStore.activeConversation?.conversation_id ?? 0,
+            chatStore.activeConversation?.conversationId ?? 0,
         ),
     );
 
@@ -106,11 +106,11 @@
 
     // Clean cache when conversation changes
     $effect(() => {
-        const convId = conversation_id;
+        const convId = conversationId;
 
         if (convId) {
             const currentIds = new Set(
-                chatStore.activeMessages.map((m) => m.message.message_id),
+                chatStore.activeMessages.map((m) => m.message.messageId),
             );
 
             virtualStore.cleanCacheForConversation(currentIds);
@@ -120,8 +120,8 @@
     // --- Lifecycle ---
     onMount(() => {
         virtualStore.shouldScrollToBottom = true;
-        if (conversation_id) {
-            chatStore.loadInitialMessages({ conversation_id });
+        if (conversationId) {
+            chatStore.loadInitialMessages({ conversationId });
         }
         virtualStore.hasMoreOlder = true;
 
@@ -173,11 +173,11 @@
 
     // --- Data Loading Wrappers ---
     async function handleLoadOlder() {
-        if (!conversation_id || !user_id) return;
+        if (!conversationId || !userId) return;
 
         await virtualStore.handleLoadOlder({
-            conversation_id,
-            user_id,
+            conversationId,
+            userId,
             limit: LIMIT,
             scrollElement,
             visibleRangeStart: visibleRange.start,
@@ -185,11 +185,11 @@
     }
 
     async function handleLoadNewer() {
-        if (!conversation_id || !user_id) return;
+        if (!conversationId || !userId) return;
 
         await virtualStore.handleLoadNewer({
-            conversation_id,
-            user_id,
+            conversationId,
+            userId,
             limit: LIMIT,
             scrollElement,
             visibleRangeStart: visibleRange.start,
@@ -199,7 +199,7 @@
     $effect(() => {
         if (virtualStore.visibleList) {
             const currentLastId =
-                virtualStore.visibleList.at(-1)?.entry.message.message_id;
+                virtualStore.visibleList.at(-1)?.entry.message.messageId;
             if (currentLastId && virtualStore.absoluteLatestMessageId) {
                 if (
                     currentLastId <
@@ -217,7 +217,7 @@
         virtualStore.shouldScrollToBottom = true;
         if (virtualStore.jumpToLatest && scrollElement) {
             chatStore.loadInitialMessages({
-                conversation_id: conversation_id!,
+                conversationId: conversationId!,
             });
 
             scrollElement.scrollTo({
@@ -231,7 +231,7 @@
         virtualStore.shouldScrollToBottom = true;
         if (scrollElement) {
             chatStore.loadInitialMessages({
-                conversation_id: conversation_id!,
+                conversationId: conversationId!,
             });
 
             scrollElement.scrollTo({
@@ -240,11 +240,11 @@
             });
         }
         await receiptManager.emitMarkAllRead({
-            conversation_id: conversation_id!,
-            currentUser_id: chatStore.currentUser?.id!,
-            recipient_id: chatStore.activeConversation?.user.id!,
+            conversationId: conversationId!,
+            currentuserId: chatStore.currentUser?.id!,
+            recipientId: chatStore.activeConversation?.user.id!,
         });
-        chatStore.unread.delete(conversation_id!);
+        chatStore.unread.delete(conversationId!);
     }
 </script>
 
@@ -273,9 +273,9 @@
                 {@render startOfConversation()}
             {/if}
 
-            {#each virtualStore.visibleList as { entry, index } (entry.message.message_id)}
+            {#each virtualStore.visibleList as { entry, index } (entry.message.messageId)}
                 <li
-                    use:measure={entry.message.message_id}
+                    use:measure={entry.message.messageId}
                     style:width="100%"
                     style:transform="translateY({virtualStore.offsetsCache[
                         index
@@ -299,7 +299,7 @@
         ></div>
     </div>
 
-    {#if virtualStore.jumpToLatest && !chatStore.unread.has(conversation_id!)}
+    {#if virtualStore.jumpToLatest && !chatStore.unread.has(conversationId!)}
         <button
             class="absolute z-50 bottom-10 right-1/2 translate-x-1/2"
             onclick={handleJumpToLatest}
@@ -313,7 +313,7 @@
         </button>
     {/if}
 
-    {#if chatStore.unread.has(conversation_id!)}
+    {#if chatStore.unread.has(conversationId!)}
         <button
             class="absolute z-50 bottom-10 right-1/2 translate-x-1/2"
             onclick={handleNewMessage}
@@ -370,17 +370,17 @@
 
 <!-- Snippet: Message Item -->
 {#snippet messageItem(item: ChatEntry)}
-    {#if item.message.sender_id !== chatStore.currentUser?.id}
+    {#if item.message.senderId !== chatStore.currentUser?.id}
         <div
             class="flex flex-col p-2 bg-gray-200 w-max max-w-[70%] px-3 rounded-lg list-none"
         >
             <div class="flex flex-col">
-                <span class="font-bold text-xl">{item.message.message_id}</span>
+                <span class="font-bold text-xl">{item.message.messageId}</span>
                 <span data-attr-msg class="whitespace-pre-wrap"
                     >{item.message.content}</span
                 >
                 <span data-attr-date class="text-xs text-gray-600 mt-1">
-                    {new Date(item.message.created_at).toLocaleString([], {
+                    {new Date(item.message.createdAt).toLocaleString([], {
                         day: "numeric",
                         month: "short",
                         hour: "numeric",
@@ -395,7 +395,7 @@
             class="flex flex-col bg-gray-700 text-white ml-auto p-2 px-3 rounded-lg list-none w-max max-w-[70%]"
         >
             <div class="flex flex-col">
-                <span class="font-bold text-xl">{item.message.message_id}</span>
+                <span class="font-bold text-xl">{item.message.messageId}</span>
                 <span data-attr-msg class="whitespace-pre-wrap"
                     >{item.message.content}</span
                 >
@@ -403,7 +403,7 @@
                     class="text-xs flex items-center justify-end gap-2 opacity-90 mt-1"
                 >
                     <span data-attr-date>
-                        {new Date(item.message.created_at).toLocaleString([], {
+                        {new Date(item.message.createdAt).toLocaleString([], {
                             day: "numeric",
                             month: "short",
                             hour: "numeric",

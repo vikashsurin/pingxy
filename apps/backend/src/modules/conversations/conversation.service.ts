@@ -49,9 +49,9 @@ export const ConversationService = {
       }
 
       const [conversation] = await ConversationRepository.insert({
-        conversation_type: "direct",
-        created_at: new Date(Date.now()),
-        updated_at: new Date(Date.now()),
+        conversationType: "direct",
+        createdAt: new Date(Date.now()),
+        updatedAt: new Date(Date.now()),
       });
 
       return conversation;
@@ -72,9 +72,9 @@ export const ConversationService = {
     // }
   },
 
-  getById: async (conversation_id: number) => {
+  getById: async (conversationId: number) => {
     try {
-      return await ConversationRepository.selectById(conversation_id);
+      return await ConversationRepository.selectById(conversationId);
     } catch (error) {
       console.error("Error getting conversation by id:", error);
       throw new Error("Error getting conversation by id");
@@ -82,21 +82,21 @@ export const ConversationService = {
   },
 
   getByUser: async ({
-    user_id,
+    userId,
   }: {
-    user_id: number;
+    userId: number;
   }) => {
     try {
-      return await ConversationRepository.selectByUserId(user_id);
+      return await ConversationRepository.selectByUserId(userId);
     } catch (error) {
       console.error("Error getting conversations by user id:", error);
       throw new Error("Error getting conversations by user id");
     }
   },
 
-  delete: async (conversation_id: number) => {
+  delete: async (conversationId: number) => {
     try {
-      return await ConversationRepository.delete(conversation_id);
+      return await ConversationRepository.delete(conversationId);
     } catch (error) {
       console.error("Error removing conversation:", error);
       throw new Error("Error removing conversation");

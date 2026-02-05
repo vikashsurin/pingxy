@@ -7,35 +7,35 @@ import {
 
 export const ReceiptService = {
   createMessageReceipt: async ({
-    conversation_id,
-    message_id,
-    user_id,
+    conversationId,
+    messageId,
+    userId,
     status,
   }: {
-    conversation_id: number;
-    message_id: number;
-    user_id: number;
+    conversationId: number;
+    messageId: number;
+    userId: number;
     status: "sent" | "delivered" | "read";
   }) => {
     const messageReceipt = await ReceiptRepository.insertMessageReceipt({
-      conversation_id,
-      message_id,
-      user_id,
+      conversationId,
+      messageId,
+      userId,
       status,
     });
     return messageReceipt;
   },
 
   processMarkAllRead: async (data: ClientMessageReceiptType) => {
-    const conversation_id = data.payload.conversation_id;
-    const user_id = data.payload.user_id;
-    const ack_user_id = data.payload.recipient.id;
+    const conversationId = data.payload.conversationId;
+    const userId = data.payload.userId;
+    const ackUserId = data.payload.recipient.id;
 
-    if (conversation_id && user_id) {
+    if (conversationId && userId) {
       const messageReceipts =
         await ReceiptRepository.updateAllMessageReceiptsToRead({
-          conversation_id,
-          user_id,
+          conversationId,
+          userId,
         });
       const read: ServerReceiptStatusType = {
         type: "receipt.update.status",
@@ -44,7 +44,7 @@ export const ReceiptService = {
           receipts: messageReceipts,
         },
       };
-      publish(`inbox:${ack_user_id}`, JSON.stringify(read));
+      publish(`inbox:${ackUserId}`, JSON.stringify(read));
 
       return messageReceipts;
     }
@@ -52,18 +52,18 @@ export const ReceiptService = {
   },
 
   processDeliveryReceipt: async (data: ClientMessageReceiptType) => {
-    const message_id = data.payload.message_id;
-    if (!message_id) return null;
+    const messageId = data.payload.messageId;
+    if (!messageId) return null;
 
-    const user_id = data.payload.user_id;
-    const ack_user_id = data.payload.recipient.id;
+    const userId = data.payload.userId;
+    const ackUserId = data.payload.recipient.id;
 
-    console.log("marking as delivered::", message_id, user_id);
+    console.log("marking as delivered::", messageId, userId);
 
     const messageReceipts =
       await ReceiptRepository.updateMessageReceiptToDelivered({
-        message_id,
-        user_id,
+        messageId,
+        userId,
       });
 
     const delivered: ServerReceiptStatusType = {
@@ -73,20 +73,20 @@ export const ReceiptService = {
         receipts: messageReceipts,
       },
     };
-    publish(`inbox:${ack_user_id}`, JSON.stringify(delivered));
+    publish(`inbox:${ackUserId}`, JSON.stringify(delivered));
 
     return messageReceipts;
   },
 
   processReadReceipt: async (data: ClientMessageReceiptType) => {
-    const message_id = data.payload.message_id;
-    if (!message_id) return null;
-    const user_id = data.payload.user_id;
-    const ack_user_id = data.payload.recipient.id;
+    const messageId = data.payload.messageId;
+    if (!messageId) return null;
+    const userId = data.payload.userId;
+    const ackUserId = data.payload.recipient.id;
 
     const messageReceipts = await ReceiptRepository.updateMessageReceiptToRead({
-      message_id,
-      user_id,
+      messageId,
+      userId,
     });
 
     const read: ServerReceiptStatusType = {
@@ -96,21 +96,21 @@ export const ReceiptService = {
         receipts: messageReceipts,
       },
     };
-    publish(`inbox:${ack_user_id}`, JSON.stringify(read));
+    publish(`inbox:${ackUserId}`, JSON.stringify(read));
 
     return messageReceipts;
   },
 
   // markAsSent : async ({
-  //   message_id,
-  //   user_id
+  //   messageId,
+  //   userId
   // }: {
-  //   message_id: number,
-  //   user_id: number
+  //   messageId: number,
+  //   userId: number
   // }) => {
   //   const messageReceipt = await ReceiptRepository.updateMessageReceiptToSent({
-  //     message_id,
-  //     user_id
+  //     messageId,
+  //     userId
   //   });
   //   return messageReceipt;
   // }

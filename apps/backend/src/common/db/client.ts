@@ -6,26 +6,26 @@ import { PgTransaction } from "drizzle-orm/pg-core";
 
 // import * as schema from "@pingxy/shared/db/schemas";
 import {
-  blocked_users,
+  blockedUsers,
   conversations,
-  message_reactions,
-  message_receipts,
+  messageReactions,
+  messageReceipts,
   messages,
   participants,
-  refresh_tokens,
+  refreshTokens,
   sessions,
-  users
+  users,
 } from "@pingxy/shared/domain";
 
 export const schema = {
   users,
-  blocked_users,
+  blockedUsers,
   conversations,
-  message_reactions,
-  message_receipts,
+  messageReactions,
+  messageReceipts,
   messages,
   participants,
-  refresh_tokens,
+  refreshTokens,
   sessions,
 };
 
@@ -50,15 +50,14 @@ const client =
 
 if (process.env.NODE_ENV !== "production") globalForDb.conn = client;
 
-// 3. Export Drizzle
 export const db = drizzle({
-  client,
+  connection: process.env.DATABASE_URL,
   schema,
+  casing: "snake_case",
 });
-
-
-
 
 export default db;
 
-export type DB_TX = BunSQLDatabase<typeof schema> | PgTransaction<any, any, any>
+export type DB_TX =
+  | BunSQLDatabase<typeof schema>
+  | PgTransaction<any, any, any>;

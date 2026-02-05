@@ -10,15 +10,15 @@ export const conversationTypesEnum = t.pgEnum("conversation_type", [
 export const conversations = table(
   "conversations",
   {
-    conversation_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    conversation_type: conversationTypesEnum().default("direct"),
+    conversationId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversationType: conversationTypesEnum().default("direct"),
     name: t.varchar("name", { length: 100 }),
-    last_message_id: t.integer(),
-    last_message_at: t.timestamp({ withTimezone: true }),
-    is_deleted: t.boolean().default(false).notNull(),
-    created_by: t.integer(),
-    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
-    updated_at: t
+    lastMessageId: t.integer(),
+    lastMessageAt: t.timestamp({ withTimezone: true }),
+    isDeleted: t.boolean().default(false).notNull(),
+    createdBy: t.integer(),
+    createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: t
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
@@ -28,14 +28,14 @@ export const conversations = table(
     t
       .foreignKey({
         name: "conversations_created_by_fk",
-        columns: [table.created_by],
+        columns: [table.createdBy],
         foreignColumns: [users.id],
       })
       .onDelete("cascade")
       .onUpdate("cascade"),
 
-    t.index("conversations_created_by_idx").on(table.created_by),
-    t.index("conversations_last_message_at_idx").on(table.last_message_at),
-    t.index("conversations_last_message_id_idx").on(table.last_message_id),
+    t.index("conversations_created_byIdx").on(table.createdBy),
+    t.index("conversations_last_message_atIdx").on(table.lastMessageAt),
+    t.index("conversations_last_messageIdIdx").on(table.lastMessageId),
   ],
 );

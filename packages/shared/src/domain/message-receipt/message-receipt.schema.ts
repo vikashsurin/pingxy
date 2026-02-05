@@ -1,24 +1,24 @@
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
-import { message_receipts } from "./message-receipt.table";
+import { messageReceipts } from "./message-receipt.table";
 
 
 
-export const insertReceiptSchema = createInsertSchema(message_receipts)
-export const selectReceiptSchema = createSelectSchema(message_receipts)
+export const insertReceiptSchema = createInsertSchema(messageReceipts)
+export const selectReceiptSchema = createSelectSchema(messageReceipts)
 
-export const selectMessageReceiptSchema = createSelectSchema(message_receipts);
+export const selectMessageReceiptSchema = createSelectSchema(messageReceipts);
 
-export const dbInsertMessageReceiptSchema = createInsertSchema(message_receipts)
+export const dbInsertMessageReceiptSchema = createInsertSchema(messageReceipts)
 
 export const wsReceiptPayload = z.object({
-  message_id: z.number(),
-  user_id: z.number(),
+  messageId: z.number(),
+  userId: z.number(),
   status: z.enum(["delivered", "read"]),
 });
 
 
-export const messageReceiptInsertSchema = createInsertSchema(message_receipts)
+export const messageReceiptInsertSchema = createInsertSchema(messageReceipts)
 export const MessageReceiptRequestSchema = z.object({
   recipient: z.object({
     id: z.number()
@@ -26,23 +26,23 @@ export const MessageReceiptRequestSchema = z.object({
 })
 
 
-export const clientInsertMessageReceiptSchema = createInsertSchema(message_receipts).pick({
-  conversation_id: true,
-  message_id: true,
-  user_id: true,
+export const clientInsertMessageReceiptSchema = createInsertSchema(messageReceipts).pick({
+  conversationId: true,
+  messageId: true,
+  userId: true,
 })
 
-export const clientUpdateMessageReceiptSchema = createUpdateSchema(message_receipts).pick({
-  conversation_id: true,
-  message_id: true,
-  user_id: true,
+export const clientUpdateMessageReceiptSchema = createUpdateSchema(messageReceipts).pick({
+  conversationId: true,
+  messageId: true,
+  userId: true,
 })
 
 
-export const insertMessageReceiptSchema = createInsertSchema(message_receipts).pick({
-  conversation_id: true,
-  message_id: true,
-  user_id: true,
+export const insertMessageReceiptSchema = createInsertSchema(messageReceipts).pick({
+  conversationId: true,
+  messageId: true,
+  userId: true,
 })
 
 
@@ -58,9 +58,9 @@ export const clientMessageReceiptSchema = z.object({
   id: z.uuid(),
   type: wsMREnum,
   payload: z.object({
-    conversation_id: z.number(),
-    message_id: z.number().optional(),
-    user_id: z.number(),
+    conversationId: z.number(),
+    messageId: z.number().optional(),
+    userId: z.number(),
     recipient: z.object({
       id: z.number()
     })

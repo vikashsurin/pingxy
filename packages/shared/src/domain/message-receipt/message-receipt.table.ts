@@ -10,18 +10,18 @@ export const messageReceiptStatusEnum = pgEnum("status", [
   "read",
 ]);
 
-export const message_receipts = table(
+export const messageReceipts = table(
   "message_receipts",
   {
-    receipt_id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    conversation_id: t.integer().notNull(),
-    message_id: t.integer().notNull(),
-    user_id: t.integer().notNull(),
+    receiptId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    conversationId: t.integer().notNull(),
+    messageId: t.integer().notNull(),
+    userId: t.integer().notNull(),
     status: messageReceiptStatusEnum("status").notNull(),
-    created_at: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
-    delivered_at: t.timestamp({ withTimezone: true }),
-    read_at: t.timestamp({ withTimezone: true }),
-    updated_at: t
+    createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+    deliveredAt: t.timestamp({ withTimezone: true }),
+    readAt: t.timestamp({ withTimezone: true }),
+    updatedAt: t
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
@@ -31,37 +31,37 @@ export const message_receipts = table(
     t
       .foreignKey({
         name: "message_fk",
-        columns: [table.message_id],
-        foreignColumns: [messages.message_id],
+        columns: [table.messageId],
+        foreignColumns: [messages.messageId],
       })
       .onDelete("cascade"),
 
     t
       .foreignKey({
         name: "user_fk",
-        columns: [table.user_id],
+        columns: [table.userId],
         foreignColumns: [users.id],
       })
       .onDelete("cascade"),
 
     t.foreignKey({
       name: "conversation_fk",
-      columns: [table.conversation_id],
-      foreignColumns: [conversations.conversation_id],
+      columns: [table.conversationId],
+      foreignColumns: [conversations.conversationId],
     }),
 
     t
-      .uniqueIndex("message_receipts_message_id_user_id_idx")
-      .on(table.message_id, table.user_id),
+      .uniqueIndex("message_receipts_messageId_userIdIdx")
+      .on(table.messageId, table.userId),
 
-    t.index("message_receipts_message_id_idx").on(table.message_id),
+    t.index("message_receipts_messageIdIdx").on(table.messageId),
     t
-      .index("message_receipts_user_id_status_idx")
-      .on(table.user_id, table.status),
-    t.index("message_receipts_read_at_idx").on(table.read_at),
-    t.index("message_receipts_conversation_id_idx").on(table.conversation_id),
+      .index("message_receipts_userId_statusIdx")
+      .on(table.userId, table.status),
+    t.index("message_receipts_read_atIdx").on(table.readAt),
+    t.index("message_receipts_conversationIdIdx").on(table.conversationId),
     t
-      .index("message_receipts_conversation_id_user_id_read_at_idx")
-      .on(table.conversation_id, table.user_id, table.read_at),
+      .index("message_receipts_conversationId_userId_read_atIdx")
+      .on(table.conversationId, table.userId, table.readAt),
   ],
 );

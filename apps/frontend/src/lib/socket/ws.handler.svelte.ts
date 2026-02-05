@@ -25,26 +25,26 @@ export const messageHandler: Record<string, (data: any) => void> = {
   },
 
   notification: async (messagePayload: ServerNewMessageType) => {
-    const conversationId = messagePayload.payload.message.conversation_id;
+    const conversationId = messagePayload.payload.message.conversationId;
     const message = messagePayload.payload.message as Message;
-    const user_id = messagePayload.payload.recipient.id;
+    const userId = messagePayload.payload.recipient.id;
 
     const isActiveConversation =
-      chatStore.activeConversation?.conversation_id === conversationId;
+      chatStore.activeConversation?.conversationId === conversationId;
 
     if (isActiveConversation) {
       if (virtualStore.isAtBottom) {
         await receiptManager.emitMarkRead({
           message,
-          user_id,
+          userId,
         });
       } else {
         await receiptManager.emitMarkDelivered({
           message,
-          user_id,
+          userId,
         });
 
-        chatStore.addUnreadMessage(conversationId!, message.message_id);
+        chatStore.addUnreadMessage(conversationId!, message.messageId);
       }
     }
   },

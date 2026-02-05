@@ -14,11 +14,11 @@ describe("Sessions Table Schema", async () => {
   const sid = "123";
   test("should insert a session", async () => {
     const session: NewSession = {
-      ip_address: "127.0.0.1",
-      hashed_token: "hashed_token_example",
-      user_id: userId,
-      expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
-      last_activity: Math.floor(Date.now() / 1000),
+      ipAddress: "127.0.0.1",
+      hashedToken: "hashed_token_example",
+      userId: userId,
+      expiresAt: Math.floor(Date.now() / 1000) + 60 * 60,
+      lastActivity: Math.floor(Date.now() / 1000),
     };
     const result = await SessionRepository.insertSession(session);
     expect(result).toHaveLength(1);

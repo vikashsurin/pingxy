@@ -3,61 +3,59 @@ import db from "src/common/db/client";
 import { sessions, users } from "@pingxy/shared";
 import { InsertSessionType } from "@pingxy/shared/domain";
 
-
 export const SessionRepository = {
-
   insertSession: async (session: InsertSessionType) => {
     return await db.insert(sessions).values(session).returning();
   },
 
-  selectSession: async (hashed_token: string) => {
+  selectSession: async (hashedToken: string) => {
     return await db
       .select()
       .from(sessions)
-      .where(eq(sessions.hashed_token, hashed_token))
+      .where(eq(sessions.hashedToken, hashedToken))
       .limit(1);
   },
 
-  selectSessionUser: async (hashed_token: string) => {
+  selectSessionUser: async (hashedToken: string) => {
     return await db
       .select({
         session: {
-          session_id: sessions.session_id,
-          user_id: sessions.user_id,
-          last_activity: sessions.last_activity,
-          is_active: sessions.is_active,
-          ip_address: sessions.ip_address,
+          sessionId: sessions.sessionId,
+          userId: sessions.userId,
+          lastActivity: sessions.lastActivity,
+          isActive: sessions.isActive,
+          ipAddress: sessions.ipAddress,
         },
         user: {
           id: users.id,
           username: users.username,
-          user_type: users.user_type,
+          userType: users.userType,
           data: users.data,
-          last_seen_at: users.last_seen_at,
-          created_at: users.created_at,
-          updated_at: users.updated_at,
+          lastSeenAt: users.lastSeenAt,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
         },
       })
       .from(sessions)
-      .innerJoin(users, eq(sessions.user_id, users.id))
-      .where(eq(sessions.hashed_token, hashed_token))
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.hashedToken, hashedToken))
       .limit(1);
   },
 
-  updateSessionActivity: async (hashed_token: string) => {
+  updateSessionActivity: async (hashedToken: string) => {
     return await db
       .update(sessions)
-      .set({ last_activity: Math.floor(Date.now() / 1000) })
-      .where(eq(sessions.hashed_token, hashed_token))
+      .set({ lastActivity: Math.floor(Date.now() / 1000) })
+      .where(eq(sessions.hashedToken, hashedToken))
       .returning();
   },
 
-  deleteSession: async (hashed_token: string) => {
+  deleteSession: async (hashedToken: string) => {
     return await db
       .delete(sessions)
-      .where(eq(sessions.hashed_token, hashed_token))
+      .where(eq(sessions.hashedToken, hashedToken))
       .returning({
-        session_id: sessions.session_id,
+        sessionId: sessions.sessionId,
       });
   },
-}
+};

@@ -72,11 +72,11 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
 // // 1. Define your Payloads clearly
 // export const wsMessageRequestPayload = z.object({
 //   message: z.object({
-//     conversation_id: z.number(),
-//     client_message_id: z.string(),
+//     conversationId: z.number(),
+//     clientMessageId: z.string(),
 //     content: z.string(),
 //     message_type: z.enum(["text", "image", "video", "file"]),
-//     sender_id: z.number(),
+//     senderId: z.number(),
 //   }),
 //   recipient: z.object({ id: z.number(), username: z.string() }),
 // });
@@ -84,7 +84,7 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
 // export const wsMessageResponsePayload = z.object({
 //   message: selectMessageSchema, // The one we fixed with z.coerce.date()
 //   receipt: selectMessageReceiptSchema.optional(),
-//   conversation_id: z.number(),
+//   conversationId: z.number(),
 //   recipient: z.object({ id: z.number(), username: z.string() }),
 // });
 

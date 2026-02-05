@@ -10,7 +10,7 @@ conversationRouter.use(authMiddleware);
 conversationRouter.get("/", ConversationController.getAll);
 
 // GET all the messages and receipts from a conversation
-conversationRouter.get("/:conversation_id/messages/:user_id", ConversationController.getAllMessagesAndReceipts);
+conversationRouter.get("/:conversationId/messages/:userId", ConversationController.getAllMessagesAndReceipts);
 
 // GET a conversation by user id's
 conversationRouter.get("/:currentUserId/:userId", ...ConversationController.getConversationByUserIds);

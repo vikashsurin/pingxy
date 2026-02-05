@@ -8,7 +8,7 @@ export function setupSocketListeners() {
     switch (data.type) {
       case "message.new": {
         const recipient = data.payload.recipient;
-        const conversationId = data.payload.conversation_id;
+        const conversationId = data.payload.conversationId;
 
         // Broadcast message
         publish(`${conversationId}`, JSON.stringify(data));
