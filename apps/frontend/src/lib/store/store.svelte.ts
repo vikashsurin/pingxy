@@ -1,9 +1,10 @@
 import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import * as messageManager from "./managers/message.svelte";
+import { fetchConversation } from "./services/api";
 
 export type PrivateConversation = {
-  conversationId: number;
+  conversationId: number | null;
   user: User;
 };
 
@@ -29,10 +30,7 @@ class ChatStore {
     data: {},
   });
 
-  activeConversation = $state<{
-    conversationId: number;
-    user: User;
-  }>();
+  activeConversation = $state<PrivateConversation>();
 
   conversations = $state<PrivateConversation[]>([]);
   notifications = new SvelteSet<number>();
@@ -47,7 +45,8 @@ class ChatStore {
 
   // Optimized: Only get messages for the active conversation
   activeMessages = $derived.by(() => {
-    if (!this.activeConversation) return [];
+    if (!this.activeConversation || !this.activeConversation.conversationId)
+      return [];
 
     const convMessages = this.messages[this.activeConversation.conversationId];
     if (!convMessages) return [];
@@ -62,37 +61,43 @@ class ChatStore {
     await messageManager.sendMessage({ messageText });
   }
 
-
   async initChat(user: User) {
-    // find a conversation id
-    const currentUserId: number = chatStore.currentUser?.id!
-    const userId: number = user.id
+    const currentUserId: number = chatStore.currentUser?.id!;
+    const userId: number = user.id;
 
-    const response = await fetch(`/api/conversations/${currentUserId}/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    const data = await response.json()
-    console.log({ data })
+    const conversation = await fetchConversation({ currentUserId, userId });
 
-    chatStore.activeConversation = {
-      conversationId: data.conversation.conversationId,
-      user: user
+    if (!conversation) {
+      this.setActiveConversation({
+        conversationId: null,
+        user,
+      });
+      return;
+    } else {
+      this.setActiveConversation({
+        conversationId: conversation.conversationId,
+        user,
+      });
+      return;
     }
   }
 
-  async loadInitialMessages({ conversationId }: { conversationId: number }) {
+  setActiveConversation({ conversationId, user }: PrivateConversation) {
+    chatStore.activeConversation = {
+      conversationId: conversationId,
+      user: user,
+    };
+  }
 
+  async loadInitialMessages({ conversationId }: { conversationId: number }) {
     if (this.currentUser) {
-      const currentUserId = this.currentUser.id
-      const limit = this.LIMIT
+      const currentUserId = this.currentUser.id;
+      const limit = this.LIMIT;
       await messageManager.loadInitialMessages({
         conversationId,
         currentUserId,
-        limit
-      })
+        limit,
+      });
     }
   }
 

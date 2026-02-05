@@ -77,7 +77,7 @@ export const emitMarkAllRead = async ({
   if (!socket || !chatStore.currentUser) return;
 
   const payload: ClientMessageReceiptType = {
-    type: "receipts.mark_all_read",
+    type: "receipt.mark_all_read",
     id: crypto.randomUUID(),
     payload: {
       conversationId,

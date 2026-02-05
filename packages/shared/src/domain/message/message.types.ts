@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {
-  clientNewMessageSchema,
+  clientMessageSchema,
   insertMessageSchema,
   selectMessageSchema,
-  serverNewMessageSchema,
-  updateMessageSchema
+  serverMessageSchema,
+  updateMessageSchema,
 } from "./message.schema";
 
 export type InsertMessageType = z.infer<typeof insertMessageSchema>;
@@ -14,5 +14,5 @@ export type selectMessageType = z.infer<typeof selectMessageSchema>;
 export type SendMessageRequest = z.infer<typeof insertMessageSchema>;
 export type Message = z.infer<typeof selectMessageSchema>;
 
-export type ClientNewMessageType = z.infer<typeof clientNewMessageSchema>
-export type ServerNewMessageType = z.infer<typeof serverNewMessageSchema>;
+export type ClientMessageType = z.infer<typeof clientMessageSchema>;
+export type ServerMessageType = z.infer<typeof serverMessageSchema>;

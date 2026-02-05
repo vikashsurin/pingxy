@@ -1,37 +1,37 @@
 <script lang="ts">
-    import { chatStore } from "$lib/store/store.svelte";
+  import { chatStore } from "$lib/store/store.svelte";
 
-    let messageText = $state("");
+  let messageText = $state("");
 
-    async function handleSend() {
-        chatStore.sendMessage({ messageText });
-        messageText = "";
-    }
+  async function handleSend() {
+    chatStore.sendMessage({ messageText });
+    messageText = "";
+  }
 
-    function handleInput() {
-        // chatStore.handleTyping();
-    }
+  function handleInput() {
+    // chatStore.handleTyping();
+  }
 </script>
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
-    <input
-        type="text"
-        placeholder="Message"
-        bind:value={messageText}
-        class="flex-1 outline p-2 focus:outline-1 focus:outline-blue-500 rounded-md border border-gray-300"
-        oninput={handleInput}
-        onkeypress={(e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                messageText = messageText.trim();
-                handleSend();
-            }
-        }}
-    />
-    <button
-        class="bg-blue-500 hover:bg-blue-600 transition-colors text-white px-4 py-2 rounded-md font-medium"
-        onclick={handleSend}
-    >
-        Send
-    </button>
+  <input
+    type="text"
+    placeholder="Message"
+    bind:value={messageText}
+    class="flex-1 outline p-2 focus:outline-1 focus:outline-blue-500 rounded-md border border-gray-300"
+    oninput={handleInput}
+    onkeypress={(e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        messageText = messageText.trim();
+        handleSend();
+      }
+    }}
+  />
+  <button
+    class="bg-blue-500 hover:bg-blue-600 transition-colors text-white px-4 py-2 rounded-md font-medium"
+    onclick={handleSend}
+  >
+    Send
+  </button>
 </div>

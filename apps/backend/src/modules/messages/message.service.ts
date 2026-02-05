@@ -1,6 +1,6 @@
 import {
-  ClientNewMessageType,
-  ServerNewMessageType,
+  ClientMessageType,
+  ServerMessageType,
   UpdateMessageType,
 } from "@pingxy/shared/types";
 import { ConversationService } from "../conversations";
@@ -13,7 +13,7 @@ import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
 
 export const MessageService = {
-  sendMessage: async (body: ClientNewMessageType) => {
+  sendMessage: async (body: ClientMessageType) => {
     try {
       const { message, recipient } = body.payload;
       // const result = await db.transaction(async (tx) => {
@@ -44,7 +44,7 @@ export const MessageService = {
       });
       // })
 
-      const responseEnvelope: ServerNewMessageType = {
+      const responseEnvelope: ServerMessageType = {
         id: body.id,
         type: body.type,
         payload: {

@@ -38,7 +38,7 @@ export const ReceiptService = {
           userId,
         });
       const read: ServerReceiptStatusType = {
-        type: "receipt.update.status",
+        type: "receipt.mark_all_read",
         id: data.id,
         payload: {
           receipts: messageReceipts,
@@ -67,7 +67,7 @@ export const ReceiptService = {
       });
 
     const delivered: ServerReceiptStatusType = {
-      type: "receipt.update.status",
+      type: "receipt.delivered",
       id: data.id,
       payload: {
         receipts: messageReceipts,
@@ -90,7 +90,7 @@ export const ReceiptService = {
     });
 
     const read: ServerReceiptStatusType = {
-      type: "receipt.update.status",
+      type: "receipt.read",
       id: data.id,
       payload: {
         receipts: messageReceipts,

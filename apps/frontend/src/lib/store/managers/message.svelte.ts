@@ -1,17 +1,12 @@
 import type {
-  ClientNewMessageType,
+  ClientMessageType,
   MessageReceipt,
-  ServerNewMessageType,
+  ServerMessageType,
 } from "@pingxy/shared";
+import { fetchMessages, createMessage } from "../services/api";
 import { chatStore } from "../store.svelte";
 import { virtualStore } from "../virtualStore.svelte";
-import { fetchMessages } from "../services/api";
-import Chatbox from "../../../routes/chat/Chatbox.svelte";
-import {
-  handleIncomingReceipts,
-  emitMarkRead,
-  emitMarkDelivered,
-} from "./receipt.svelte";
+import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -52,48 +47,31 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
     chatStore.error = "No active conversation or user";
     return;
   }
+  const conversationId = chatStore.activeConversation.conversationId;
 
-  const envelope: ClientNewMessageType = {
+  const envelope: ClientMessageType = {
     id: crypto.randomUUID(),
     type: "message.new",
     payload: {
       message: {
-        conversationId: chatStore.activeConversation.conversationId,
+        conversationId: conversationId,
         clientMessageId: crypto.randomUUID(),
         content: messageText,
         messageType: "text",
         senderId: chatStore.currentUser.id,
       },
-      conversationId: chatStore.activeConversation.conversationId,
+      conversationId: conversationId,
       recipient: {
         id: chatStore.activeConversation.user.id,
         username: chatStore.activeConversation.user.username,
       },
     },
   };
+  console.log({ envelope });
   try {
-    const response = await fetch(`/api/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        ...envelope,
-      }),
-    });
+    const result = await createMessage(envelope);
 
-    if (!response.ok) {
-      const error = await response.json();
-      // Custom error for ui
-      // Example: Failed to send message
-      throw new Error(error.message || "Failed to send message");
-    }
-
-    const data = await response.json();
-    const result = data.result as ServerNewMessageType;
-
-    await _addMessage(result);
+    await addMessageToState(result);
     return null;
   } catch (error) {
     chatStore.error =
@@ -103,14 +81,13 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
 };
 
-export const handleIncomingMessage = async (data: ServerNewMessageType) => {
-  _addMessage(data);
+export const handleIncomingMessage = async (data: ServerMessageType) => {
+  addMessageToState(data);
   console.log("handle read receipt");
-  const receipt = data.payload.receipt as MessageReceipt;
+  // const receipt = data.payload.receipt as MessageReceipt;
   // handleIncomingReceipts([receipt]);
   if (
-    chatStore.activeConversation?.conversationId ===
-    data.payload.conversationId
+    chatStore.activeConversation?.conversationId === data.payload.conversationId
   ) {
     console.log("mark as read");
     emitMarkRead({
@@ -130,7 +107,7 @@ export const updateMessage = async () => {};
 export const deleteMessage = async () => {};
 
 // Private
-const _addMessage = async (data: ServerNewMessageType) => {
+const addMessageToState = async (data: ServerMessageType) => {
   const { message, conversationId, receipt } = data.payload;
 
   if (!chatStore.messages[conversationId]) {

@@ -3,7 +3,7 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-import { z } from "zod";
+import { optional, z } from "zod";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { messages } from "./message.table";
 
@@ -30,20 +30,23 @@ export const wsMessageResponsePayload = z.object({
   }),
 });
 
-export const clientInsertMessageSchema = insertMessageSchema.pick({
-  conversationId: true,
-  clientMessageId: true,
-  content: true,
-  messageType: true,
-  senderId: true,
-});
+export const clientInsertMessageSchema = insertMessageSchema
+  .pick({
+    clientMessageId: true,
+    content: true,
+    messageType: true,
+    senderId: true,
+  })
+  .extend({
+    conversationId: z.number().nullable(),
+  });
 
-export const clientNewMessageSchema = z.object({
+export const clientMessageSchema = z.object({
   id: z.uuid(),
   type: z.literal("message.new"),
   payload: z.object({
     message: clientInsertMessageSchema,
-    conversationId: z.number(),
+    conversationId: z.number().nullable(),
     recipient: z.object({
       id: z.number(),
       username: z.string(),
@@ -51,7 +54,7 @@ export const clientNewMessageSchema = z.object({
   }),
 });
 
-export const serverNewMessageSchema = z.object({
+export const serverMessageSchema = z.object({
   id: z.uuid(),
   type: z.literal("message.new"),
   payload: z.object({
@@ -64,6 +67,7 @@ export const serverNewMessageSchema = z.object({
     }),
   }),
 });
+
 export const serverUpdateMessageSchema = z.object({
   id: z.uuid(),
   type: z.literal("message.update"),

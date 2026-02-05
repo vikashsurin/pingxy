@@ -1,9 +1,16 @@
 import { clientOpenConversationSchema } from "domain/conversation/conversation.schema";
 import { z } from "zod";
-import { clientMessageReceiptSchema, serveReceiptStatusSchema } from "../domain/message-receipt/message-receipt.schema";
-import { clientNewMessageSchema, serverDeleteMessageSchema, serverNewMessageSchema, serverUpdateMessageSchema } from '../domain/message/message.schema';
+import {
+  clientMessageReceiptSchema,
+  serveReceiptStatusSchema,
+} from "../domain/message-receipt/message-receipt.schema";
+import {
+  clientMessageSchema,
+  serverDeleteMessageSchema,
+  serverMessageSchema,
+  serverUpdateMessageSchema,
+} from "../domain/message/message.schema";
 import { serverUsersOnlineSchema } from "../domain/user/user.schema";
-
 
 const wsEnum = z.enum([
   "system",
@@ -33,10 +40,8 @@ const wsEnum = z.enum([
   "receipt.failed",
 
   "receipts.mark_all_delivered",
-  "receipts.mark_all_read",
+  "receipt.mark_all_read",
 ]);
-
-
 
 // const createEnvelope = <
 //   const Type extends z.infer<typeof wsEnum>,
@@ -52,20 +57,18 @@ const wsEnum = z.enum([
 //   });
 
 export const ClientPayloadSchema = z.discriminatedUnion("type", [
-  clientNewMessageSchema,
+  clientMessageSchema,
   clientOpenConversationSchema,
-  clientMessageReceiptSchema
+  clientMessageReceiptSchema,
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
-  serverNewMessageSchema,
+  serverMessageSchema,
   serverUpdateMessageSchema,
   serverDeleteMessageSchema,
   serverUsersOnlineSchema,
-  serveReceiptStatusSchema
+  serveReceiptStatusSchema,
 ]);
-
-
 
 //TODO: Implement PROPER GENERIC SCHEMA
 

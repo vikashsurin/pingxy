@@ -8,7 +8,9 @@ import { ConversationService } from "./conversation.service";
 export const ConversationController = {
   getAll: async (c: Context) => {
     const user = c.get("user");
-    const conversations = await ConversationService.getByUser({ userId: user.id });
+    const conversations = await ConversationService.getByUser({
+      userId: user.id,
+    });
     return c.json({ conversations: conversations });
   },
 
@@ -36,13 +38,22 @@ export const ConversationController = {
   },
 
   getConversationByUserIds: factory.createHandlers(
-    validate("param", z.object({ currentUserId: z.coerce.number(), userId: z.coerce.number() })),
+    validate(
+      "param",
+      z.object({ currentUserId: z.coerce.number(), userId: z.coerce.number() }),
+    ),
     async (c) => {
+      const { currentUserId, userId } = c.req.valid("param");
 
-      const { currentUserId, userId } = c.req.valid('param');
+      const conversation = await ConversationService.findByUsers({
+        currentUserId,
+        userId,
+      });
 
-      const conversation = await ConversationService.findByUsers({ currentUserId, userId });
-
+      if (!conversation) {
+        return c.json({});
+      }
       return c.json({ ...conversation });
-    })
-}
+    },
+  ),
+};
