@@ -1,5 +1,5 @@
 import { chatStore } from "$lib/store/store.svelte";
-import { messageHandler } from "./ws.handler.svelte";
+import { handleGenericEvent } from "./dispatcher";
 import { getWebSocketUrl } from "./ws.helpers";
 
 export let socket: WebSocket | null = null;
@@ -16,17 +16,7 @@ export function initSocket() {
 
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
-    // const parsedData = ServerEventSchema.safeParse(rawData);
-    // if (!parsedData.success) {
-    //   console.error("Invalid message format", parsedData.error);
-    //   return;
-    // }
-    // const data = parsedData.data;
-
-    const handler = messageHandler[data.type];
-    if (handler) {
-      handler(data);
-    }
+    handleGenericEvent(data);
   });
 
   socket.addEventListener("close", (event) => {
