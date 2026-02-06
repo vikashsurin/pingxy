@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll } from "bun:test";
-import { NewMessageReceipt } from "@pingxy/shared/types";
 import { ReceiptRepository } from "./receipt.repository";
+import type { DBInsertMessageReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
 
 describe("Message Receipts Table Schema", () => {
   beforeAll(async () => {
@@ -12,7 +12,7 @@ describe("Message Receipts Table Schema", () => {
   // });
 
   test("should insert a new message receipt", async () => {
-    const newMessageReceipt: NewMessageReceipt = {
+    const newMessageReceipt: DBInsertMessageReceiptType = {
       conversationId: 1,
       messageId: 49,
       userId: 2,

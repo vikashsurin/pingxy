@@ -1,14 +1,114 @@
-import { z } from 'zod';
-import { clientMessageReceiptSchema, dbInsertMessageReceiptSchema, insertReceiptSchema, selectMessageReceiptSchema, selectReceiptSchema, serveReceiptStatusSchema, wsReceiptPayload } from './message-receipt.schema';
+import { z } from "zod";
+import {
+  dbInsertMessageReceiptSchema,
+  insertReceiptSchema,
+  receiptEventSchema,
+  receiptReqSchema,
+  selectMessageReceiptSchema,
+  selectReceiptSchema,
+  wsReceiptPayload,
+} from "./message-receipt.schema";
+import type { SocketEventEnvelope } from "../../socket/base";
+import type { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
 
 export type InsertReceiptType = z.infer<typeof insertReceiptSchema>;
 export type SelectReceiptType = z.infer<typeof selectReceiptSchema>;
 
 export type MessageReceipt = z.infer<typeof selectMessageReceiptSchema>;
-export type ReceiptPayloadType = z.infer<typeof wsReceiptPayload>
+export type ReceiptPayloadType = z.infer<typeof wsReceiptPayload>;
 
-export type ClientMessageReceiptType = z.infer<typeof clientMessageReceiptSchema>;
+export type DBInsertMessageReceiptType = z.infer<
+  typeof dbInsertMessageReceiptSchema
+>;
 
-export type ServerReceiptStatusType = z.infer<typeof serveReceiptStatusSchema>;
+export type ReceiptRequestType = z.infer<typeof receiptReqSchema>;
+export type ReceiptEventType = z.infer<typeof receiptEventSchema>;
 
-export type DBInsertMessageReceiptType = z.infer<typeof dbInsertMessageReceiptSchema>;
+export interface ReceiptEventMap {
+  [DOMAIN_EVENTS.RECEIPTS.SENT]: SocketEventEnvelope<
+    typeof DOMAIN_EVENTS.RECEIPTS.SENT,
+    {
+      conversationId: number;
+      messageId: number;
+      userId: number;
+      recipient: {
+        id: number;
+        name: string;
+      };
+    }
+  >;
+  [DOMAIN_EVENTS.RECEIPTS.DELIVER]: SocketEventEnvelope<
+    typeof DOMAIN_EVENTS.RECEIPTS.DELIVER,
+    {
+      conversationId: number;
+      messageId: number;
+      userId: number;
+      recipient: {
+        id: number;
+        name: string;
+      };
+    }
+  >;
+  [DOMAIN_EVENTS.RECEIPTS.READ]: SocketEventEnvelope<
+    typeof DOMAIN_EVENTS.RECEIPTS.READ,
+    {
+      conversationId: number;
+      messageId: number;
+      userId: number;
+      recipient: {
+        id: number;
+        name: string;
+      };
+    }
+  >;
+  [DOMAIN_EVENTS.RECEIPTS.ALL_DELIVER]: SocketEventEnvelope<
+    typeof DOMAIN_EVENTS.RECEIPTS.ALL_DELIVER,
+    {
+      conversationId: number;
+      messageId: number;
+      userId: number;
+    }
+  >;
+  [DOMAIN_EVENTS.RECEIPTS.ALL_READ]: SocketEventEnvelope<
+    typeof DOMAIN_EVENTS.RECEIPTS.ALL_READ,
+    {
+      conversationId: number;
+      messageId: number;
+      userId: number;
+      recipient: {
+        id: number;
+        name: string;
+      };
+    }
+  >;
+  [SERVER_EVENTS.RECEIPTS.SENT]: SocketEventEnvelope<
+    typeof SERVER_EVENTS.RECEIPTS.SENT,
+    {
+      receipt: MessageReceipt;
+    }
+  >;
+  [SERVER_EVENTS.RECEIPTS.DELIVERED]: SocketEventEnvelope<
+    typeof SERVER_EVENTS.RECEIPTS.DELIVERED,
+    {
+      receipts: MessageReceipt[];
+    }
+  >;
+  [SERVER_EVENTS.RECEIPTS.READ]: SocketEventEnvelope<
+    typeof SERVER_EVENTS.RECEIPTS.READ,
+    {
+      receipts: MessageReceipt[];
+    }
+  >;
+  [SERVER_EVENTS.RECEIPTS.ALL_DELIVERED]: SocketEventEnvelope<
+    typeof SERVER_EVENTS.RECEIPTS.ALL_DELIVERED,
+    {
+      receipts: MessageReceipt[];
+    }
+  >;
+  [SERVER_EVENTS.RECEIPTS.ALL_READ]: SocketEventEnvelope<
+    typeof SERVER_EVENTS.RECEIPTS.ALL_READ,
+    {
+      receipts: MessageReceipt[];
+    }
+  >;
+}

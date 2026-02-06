@@ -1,9 +1,7 @@
+import { SERVER_EVENTS } from "@pingxy/shared/socket/events";
+import type { SocketEventMap } from "@pingxy/shared/socket/types";
 import { publish } from "src/common/socket/pubsub";
 import { ReceiptRepository } from "./receipt.repository";
-import {
-  ClientMessageReceiptType,
-  ServerReceiptStatusType,
-} from "@pingxy/shared/types";
 
 export const ReceiptService = {
   createMessageReceipt: async ({
@@ -26,7 +24,7 @@ export const ReceiptService = {
     return messageReceipt;
   },
 
-  processMarkAllRead: async (data: ClientMessageReceiptType) => {
+  processMarkAllRead: async (data: SocketEventMap["req:receipts.all.read"]) => {
     const conversationId = data.payload.conversationId;
     const userId = data.payload.userId;
     const ackUserId = data.payload.recipient.id;
@@ -37,8 +35,8 @@ export const ReceiptService = {
           conversationId,
           userId,
         });
-      const read: ServerReceiptStatusType = {
-        type: "receipt.mark_all_read",
+      const read: SocketEventMap["event:receipts.all.read"] = {
+        type: SERVER_EVENTS.RECEIPTS.ALL_READ,
         id: data.id,
         payload: {
           receipts: messageReceipts,
@@ -51,7 +49,7 @@ export const ReceiptService = {
     return null;
   },
 
-  processDeliveryReceipt: async (data: ClientMessageReceiptType) => {
+  processDeliveryReceipt: async (data: SocketEventMap["req:receipt.deliver"]) => {
     const messageId = data.payload.messageId;
     if (!messageId) return null;
 
@@ -66,8 +64,8 @@ export const ReceiptService = {
         userId,
       });
 
-    const delivered: ServerReceiptStatusType = {
-      type: "receipt.delivered",
+    const delivered: SocketEventMap["event:receipt.delivered"] = {
+      type: SERVER_EVENTS.RECEIPTS.DELIVERED,
       id: data.id,
       payload: {
         receipts: messageReceipts,
@@ -78,7 +76,7 @@ export const ReceiptService = {
     return messageReceipts;
   },
 
-  processReadReceipt: async (data: ClientMessageReceiptType) => {
+  processReadReceipt: async (data: SocketEventMap["req:receipt.read"]) => {
     const messageId = data.payload.messageId;
     if (!messageId) return null;
     const userId = data.payload.userId;
@@ -89,8 +87,8 @@ export const ReceiptService = {
       userId,
     });
 
-    const read: ServerReceiptStatusType = {
-      type: "receipt.read",
+    const read: SocketEventMap['event:receipt.read'] = {
+      type: SERVER_EVENTS.RECEIPTS.READ,
       id: data.id,
       payload: {
         receipts: messageReceipts,

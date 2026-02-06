@@ -5,6 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod";
 import { messageReceipts } from "./message-receipt.table";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
 
 export const insertReceiptSchema = createInsertSchema(messageReceipts);
 export const selectReceiptSchema = createSelectSchema(messageReceipts);
@@ -50,17 +51,24 @@ export const insertMessageReceiptSchema = createInsertSchema(
   userId: true,
 });
 
-const wsMREnum = z.enum([
-  "receipt.sent",
-  "receipt.delivered",
-  "receipt.read",
-  "receipt.failed",
-  "receipt.mark_all_read",
+const reqEnums = z.enum([
+  DOMAIN_EVENTS.RECEIPTS.SENT,
+  DOMAIN_EVENTS.RECEIPTS.DELIVER,
+  DOMAIN_EVENTS.RECEIPTS.READ,
+  DOMAIN_EVENTS.RECEIPTS.FAIL,
+  DOMAIN_EVENTS.RECEIPTS.ALL_READ,
+]);
+const eventEnums = z.enum([
+  SERVER_EVENTS.RECEIPTS.SENT,
+  SERVER_EVENTS.RECEIPTS.DELIVERED,
+  SERVER_EVENTS.RECEIPTS.READ,
+  SERVER_EVENTS.RECEIPTS.FAILED,
+  SERVER_EVENTS.RECEIPTS.ALL_READ,
 ]);
 
-export const clientMessageReceiptSchema = z.object({
+export const receiptReqSchema = z.object({
   id: z.uuid(),
-  type: wsMREnum,
+  type: reqEnums,
   payload: z.object({
     conversationId: z.number(),
     messageId: z.number().optional(),
@@ -70,10 +78,18 @@ export const clientMessageReceiptSchema = z.object({
     }),
   }),
 });
+``;
 
-export const serveReceiptStatusSchema = z.object({
+const enums = z.enum([
+  "event:receipts.all.read",
+  "event:receipt.delivered",
+  "event:receipt.read",
+  "event:receipt.failed",
+]);
+export type LL = z.infer<typeof receiptReqSchema>;
+export const receiptEventSchema = z.object({
   id: z.uuid(),
-  type: wsMREnum,
+  type: enums,
   payload: z.object({
     receipts: z.union([z.array(selectMessageReceiptSchema)]),
   }),

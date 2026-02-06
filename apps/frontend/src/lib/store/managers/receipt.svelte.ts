@@ -1,6 +1,6 @@
-import type { Message, MessageReceipt } from "@pingxy/shared/types/index";
-import type { ClientMessageReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
-import { getSocket } from "$lib/socket/ws.svelte";
+import { getSocket } from "$lib/socket/socket.svelte";
+import { DOMAIN_EVENTS } from "@pingxy/shared/socket/events";
+import type { Message, MessageReceipt, ReceiptRequestType } from "@pingxy/shared/types/index";
 import { chatStore } from "../store.svelte";
 
 /**
@@ -30,8 +30,8 @@ export const emitMarkRead = async ({ message, userId }: ReceiptParams) => {
   const socket = validateSocket();
   if (!socket) return;
 
-  const payload: ClientMessageReceiptType = {
-    type: "receipt.read",
+  const payload: ReceiptRequestType = {
+    type: DOMAIN_EVENTS.RECEIPTS.READ,
     id: crypto.randomUUID(),
     payload: {
       conversationId: message.conversationId,
@@ -51,9 +51,9 @@ export const emitMarkDelivered = async ({
   const socket = validateSocket();
   if (!socket) return;
 
-  const payload: ClientMessageReceiptType = {
+  const payload: ReceiptRequestType = {
     id: crypto.randomUUID(),
-    type: "receipt.delivered",
+    type: DOMAIN_EVENTS.RECEIPTS.DELIVER,
     payload: {
       conversationId: message.conversationId,
       messageId: message.messageId,
@@ -76,8 +76,8 @@ export const emitMarkAllRead = async ({
   const socket = validateSocket();
   if (!socket || !chatStore.currentUser) return;
 
-  const payload: ClientMessageReceiptType = {
-    type: "receipt.mark_all_read",
+  const payload: ReceiptRequestType = {
+    type: DOMAIN_EVENTS.RECEIPTS.ALL_READ,
     id: crypto.randomUUID(),
     payload: {
       conversationId,

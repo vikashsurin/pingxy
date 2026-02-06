@@ -1,9 +1,7 @@
-import type {
-  ClientMessageType,
-  MessageReceipt,
-  ServerMessageType,
-} from "@pingxy/shared";
-import { fetchMessages, createMessage } from "../services/api";
+import type { MessageCreatedType, MessageCreateType } from "@pingxy/shared";
+import { DOMAIN_EVENTS } from "@pingxy/shared/socket/events";
+import type { ServerEventType } from "@pingxy/shared/socket/types";
+import { createMessage, fetchMessages } from "../services/api";
 import { chatStore } from "../store.svelte";
 import { virtualStore } from "../virtualStore.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
@@ -49,12 +47,12 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
   const conversationId = chatStore.activeConversation.conversationId;
 
-  const envelope: ClientMessageType = {
+  const envelope: MessageCreateType = {
     id: crypto.randomUUID(),
-    type: "message.new",
+    type: DOMAIN_EVENTS.MESSAGES.CREATE,
     payload: {
       message: {
-        conversationId: conversationId,
+        conversationId: conversationId!,
         clientMessageId: crypto.randomUUID(),
         content: messageText,
         messageType: "text",
@@ -81,7 +79,7 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
 };
 
-export const handleIncomingMessage = async (data: ServerMessageType) => {
+export const handleIncomingMessage = async (data: ServerEventType) => {
   addMessageToState(data);
   console.log("handle read receipt");
   // const receipt = data.payload.receipt as MessageReceipt;
@@ -103,11 +101,11 @@ export const handleIncomingMessage = async (data: ServerMessageType) => {
   }
 };
 
-export const updateMessage = async () => {};
-export const deleteMessage = async () => {};
+export const updateMessage = async () => { };
+export const deleteMessage = async () => { };
 
 // Private
-const addMessageToState = async (data: ServerMessageType) => {
+const addMessageToState = async (data: MessageCreatedType) => {
   const { message, conversationId, receipt } = data.payload;
 
   if (!chatStore.messages[conversationId]) {

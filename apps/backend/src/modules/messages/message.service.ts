@@ -1,19 +1,17 @@
-import {
-  ClientMessageType,
-  ServerMessageType,
-  UpdateMessageType,
-} from "@pingxy/shared/types";
+import type { ServerEventType, SocketEventMap } from "@pingxy/shared/socket/types";
 import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
 import { ReceiptService } from "../receipts";
 import { MessageRepository } from "./message.repository";
 
-import { DOMAIN_EVENTS, eventBus } from "@common/events";
+import { eventBus } from "@common/events";
+import { DOMAIN_EVENTS } from "@pingxy/shared/socket/events";
+import { SERVER_EVENTS } from "@pingxy/shared/socket/events";
 import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
 
 export const MessageService = {
-  sendMessage: async (body: ClientMessageType) => {
+  sendMessage: async (body: SocketEventMap["req:message.sent"]) => {
     try {
       const { message, recipient } = body.payload;
       // const result = await db.transaction(async (tx) => {
@@ -44,9 +42,9 @@ export const MessageService = {
       });
       // })
 
-      const responseEnvelope: ServerMessageType = {
+      const responseEnvelope: ServerEventType = {
         id: body.id,
-        type: body.type,
+        type: SERVER_EVENTS.MESSAGES.CREATED,
         payload: {
           message: insertedMessage,
           receipt: messageReceipt,
@@ -147,7 +145,7 @@ export const MessageService = {
     }
   },
 
-  update: async (messageId: number, message: Partial<UpdateMessageType>) => {
+  update: async (messageId: number, message: any) => {
     try {
       return await MessageRepository.updateMessage(messageId, message);
     } catch (error) {

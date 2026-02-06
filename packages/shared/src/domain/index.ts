@@ -7,4 +7,3 @@ export * from "./blocked-user";
 export * from "./session";
 export * from "./participant";
 export * from "./refresh-token";
-export * from "../ws";

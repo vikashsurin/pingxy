@@ -6,6 +6,7 @@ import {
 import { optional, z } from "zod";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { messages } from "./message.table";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
 
 export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages);
@@ -41,9 +42,9 @@ export const clientInsertMessageSchema = insertMessageSchema
     conversationId: z.number().nullable(),
   });
 
-export const clientMessageSchema = z.object({
+export const messageCreateSchema = z.object({
   id: z.uuid(),
-  type: z.literal("message.new"),
+  type: z.literal(DOMAIN_EVENTS.MESSAGES.CREATE),
   payload: z.object({
     message: clientInsertMessageSchema,
     conversationId: z.number().nullable(),
@@ -54,36 +55,9 @@ export const clientMessageSchema = z.object({
   }),
 });
 
-export const serverMessageSchema = z.object({
+export const messageCreatedSchema = z.object({
   id: z.uuid(),
-  type: z.literal("message.new"),
-  payload: z.object({
-    message: selectMessageSchema,
-    receipt: selectMessageReceiptSchema,
-    conversationId: z.number(),
-    recipient: z.object({
-      id: z.number(),
-      username: z.string(),
-    }),
-  }),
-});
-
-export const serverUpdateMessageSchema = z.object({
-  id: z.uuid(),
-  type: z.literal("message.update"),
-  payload: z.object({
-    message: selectMessageSchema,
-    receipt: selectMessageReceiptSchema,
-    conversationId: z.number(),
-    recipient: z.object({
-      id: z.number(),
-      username: z.string(),
-    }),
-  }),
-});
-export const serverDeleteMessageSchema = z.object({
-  id: z.uuid(),
-  type: z.literal("message.delete"),
+  type: z.literal(SERVER_EVENTS.MESSAGES.CREATED),
   payload: z.object({
     message: selectMessageSchema,
     receipt: selectMessageReceiptSchema,

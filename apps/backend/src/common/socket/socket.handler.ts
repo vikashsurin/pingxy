@@ -1,9 +1,8 @@
 import type { WebSocketHandler } from "bun";
 import { broadcastOnlineUsers, broadcastUserOffline } from "./socket.helpers";
 
-import { ClientMessageReceiptType } from "@pingxy/shared/types";
-
 import { ReceiptService } from "@modules/receipts";
+import { SERVER_EVENTS } from "@pingxy/shared/socket/events";
 import { userSockets } from "./socket.state";
 import { WebSocketData } from "./types";
 
@@ -45,17 +44,17 @@ const messageHandler: Record<
   string,
   (ws: Bun.ServerWebSocket<WebSocketData>, data: any) => void
 > = {
-  "receipt.mark_all_read": async (ws, data: ClientMessageReceiptType) => {
+  [SERVER_EVENTS.RECEIPTS.ALL_READ]: async (ws, data) => {
     if (data.payload.conversationId && data.payload.userId) {
       await ReceiptService.processMarkAllRead(data);
     }
   },
 
-  "receipt.delivered": async (ws, messagePayload: ClientMessageReceiptType) => {
+  [SERVER_EVENTS.RECEIPTS.DELIVERED]: async (ws, messagePayload) => {
     await ReceiptService.processDeliveryReceipt(messagePayload);
   },
 
-  "receipt.read": async (ws, messagePayload: ClientMessageReceiptType) => {
+  [SERVER_EVENTS.RECEIPTS.READ]: async (ws, messagePayload) => {
     await ReceiptService.processReadReceipt(messagePayload);
   },
 
