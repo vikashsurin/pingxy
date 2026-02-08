@@ -65,6 +65,7 @@ export const AuthController = {
       }),
     ),
     async (c) => {
+      console.log("login called")
       try {
         const info = getConnInfo(c);
         const ipAddress = info.remote.address!;

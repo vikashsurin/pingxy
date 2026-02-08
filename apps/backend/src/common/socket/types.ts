@@ -1,6 +1,6 @@
-import { PublicUser } from "@pingxy/shared/types";
+import { User } from "@pingxy/shared/types";
 
 export type WebSocketData = {
-    user: PublicUser;
+    user: User;
     activeConversations: Set<string>
 };

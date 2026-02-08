@@ -1,4 +1,4 @@
-import type { ClientMessageType } from "@pingxy/shared";
+import type { SocketEventMap } from "@pingxy/shared";
 
 type FetchMessagesParams = {
   conversationId: number;
@@ -35,7 +35,9 @@ export const fetchMessages = async ({
   }
 };
 
-export const createMessage = async (envelope: ClientMessageType) => {
+export const createMessage = async (
+  envelope: SocketEventMap["req:message.create"],
+) => {
   try {
     const response = await fetch(`/api/messages`, {
       method: "POST",

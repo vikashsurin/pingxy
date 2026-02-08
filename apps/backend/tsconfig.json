@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
+    "noEmit": true,
     "strict": true,
     "lib": [
       "ESNext",
@@ -21,6 +23,9 @@
       "@pingxy/shared/*": [
         "../../packages/shared/src/*"
       ]
-    }
-  }
+    },
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

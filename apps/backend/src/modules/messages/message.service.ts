@@ -1,17 +1,20 @@
-import type { ServerEventType, SocketEventMap } from "@pingxy/shared/socket/types";
+import type {
+  ServerEventType,
+  SocketEventMap,
+} from "@pingxy/shared/socket/types";
 import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
 import { ReceiptService } from "../receipts";
 import { MessageRepository } from "./message.repository";
 
 import { eventBus } from "@common/events";
-import { DOMAIN_EVENTS } from "@pingxy/shared/socket/events";
-import { SERVER_EVENTS } from "@pingxy/shared/socket/events";
+import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
+import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
 
 export const MessageService = {
-  sendMessage: async (body: SocketEventMap["req:message.sent"]) => {
+  sendMessage: async (body: SocketEventMap["req:message.create"]) => {
     try {
       const { message, recipient } = body.payload;
       // const result = await db.transaction(async (tx) => {

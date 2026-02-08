@@ -1,15 +1,16 @@
 import { fail, redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
+import type { Actions } from "@sveltejs/kit";
 
-const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL
+const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL;
 
-export const actions = {
+export const actions: Actions = {
   pause: async ({ request, fetch }) => {
     const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/pause`, {
       method: "POST",
       headers: {
-        cookie: request.headers.get("cookie") || ""
-      }
+        cookie: request.headers.get("cookie") || "",
+      },
     });
 
     if (!response.ok) {
@@ -25,8 +26,8 @@ export const actions = {
     const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/me`, {
       method: "DELETE",
       headers: {
-        cookie: request.headers.get("cookie") || ""
-      }
+        cookie: request.headers.get("cookie") || "",
+      },
     });
 
     if (!response.ok) {
@@ -34,5 +35,5 @@ export const actions = {
     }
 
     throw redirect(303, "/chat/logout");
-  }
+  },
 };

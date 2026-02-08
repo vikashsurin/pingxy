@@ -4,6 +4,7 @@ import {
   createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod";
+import { SERVER_EVENTS } from "../../constants/index";
 import {
   MAX_NAME_LENGTH,
   MAX_PASSWORD_LENGTH,
@@ -52,13 +53,16 @@ export const UserResponseSchema = createSelectSchema(users)
   })
   .extend({
     data: UserMetaDataSchema,
+    lastSeenAt: z.coerce.date(),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
   });
 
 export const UserUpdateSchema = createUpdateSchema(users);
 
-export const serverUsersOnlineSchema = z.object({
+export const usersOnlineSchema = z.object({
   id: z.uuid(),
-  type: z.literal("users.online"),
+  type: z.literal(SERVER_EVENTS.USERS.ONLINE),
   payload: z.object({
     users: z.array(UserResponseSchema),
   }),

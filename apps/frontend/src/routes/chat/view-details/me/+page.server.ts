@@ -1,9 +1,10 @@
 import { fail } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
+import type { Actions } from "./$types.js";
 
-const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL
+const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL;
 
-export const actions = {
+export const actions: Actions = {
   update: async ({ request, cookies, fetch }) => {
     const data = await request.formData();
     const country = data.get("country");
@@ -19,16 +20,16 @@ export const actions = {
     const payload = {
       country,
       bio,
-      gender
+      gender,
     };
 
     const response = await fetch(`${INTERNAL_BACKEND_URL}/api/users/me`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        cookie: request.headers.get("cookie") || ""
+        cookie: request.headers.get("cookie") || "",
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

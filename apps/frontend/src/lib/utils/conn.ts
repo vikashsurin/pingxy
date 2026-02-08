@@ -1,4 +1,4 @@
-import { getSocket } from "$lib/socket/ws.svelte";
+import { getSocket } from "$lib/socket/socket.svelte";
 
 export const conn = {
   checkSocketConnection(message?: string) {

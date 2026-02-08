@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { NewSession } from "@pingxy/shared/types";
+import { NewSession, Session } from "@pingxy/shared/types";
 import { SessionRepository } from "./session.repository";
 describe("Sessions Table Schema", async () => {
   beforeAll(async () => {

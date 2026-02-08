@@ -1,7 +1,8 @@
 <script lang="ts">
-  import type { User } from "@pingxy/shared/domain/user/user.types";
   import { chatStore } from "$lib/store/store.svelte.js";
+  import type { User } from "@pingxy/shared/domain/user/user.types";
   import GenderIcon from "./GenderIcon.svelte";
+
   let { searchQuery, gender } = $props();
   let sortedUsers = $derived.by(() => {
     const searchLower = searchQuery.trim().toLowerCase();
@@ -15,7 +16,8 @@
       .sort((a, b) => a.data.country.localeCompare(b.data.country));
   });
 
-  $inspect({ activeConve: chatStore.activeConversation });
+  $inspect({ onlineUsers: chatStore.onlineUsers });
+
   function handleOpenConversation(user: User) {
     chatStore.initChat(user);
   }

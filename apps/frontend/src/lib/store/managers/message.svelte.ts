@@ -1,6 +1,9 @@
 import type { MessageCreatedType, MessageCreateType } from "@pingxy/shared";
-import { DOMAIN_EVENTS } from "@pingxy/shared/socket/events";
-import type { ServerEventType } from "@pingxy/shared/socket/types";
+import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
+import type {
+  ServerEventType,
+  SocketEventMap,
+} from "@pingxy/shared/socket/types";
 import { createMessage, fetchMessages } from "../services/api";
 import { chatStore } from "../store.svelte";
 import { virtualStore } from "../virtualStore.svelte";
@@ -47,18 +50,17 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
   const conversationId = chatStore.activeConversation.conversationId;
 
-  const envelope: MessageCreateType = {
+  const envelope: SocketEventMap["req:message.create"] = {
     id: crypto.randomUUID(),
     type: DOMAIN_EVENTS.MESSAGES.CREATE,
     payload: {
       message: {
-        conversationId: conversationId!,
+        conversationId: conversationId ?? null,
         clientMessageId: crypto.randomUUID(),
         content: messageText,
-        messageType: "text",
         senderId: chatStore.currentUser.id,
       },
-      conversationId: conversationId,
+      conversationId: conversationId ?? null,
       recipient: {
         id: chatStore.activeConversation.user.id,
         username: chatStore.activeConversation.user.username,
@@ -101,8 +103,8 @@ export const handleIncomingMessage = async (data: ServerEventType) => {
   }
 };
 
-export const updateMessage = async () => { };
-export const deleteMessage = async () => { };
+export const updateMessage = async () => {};
+export const deleteMessage = async () => {};
 
 // Private
 const addMessageToState = async (data: MessageCreatedType) => {

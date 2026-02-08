@@ -1,4 +1,4 @@
-import { NewSession, PublicUser } from "@pingxy/shared/types";
+import { NewSession, Session, User } from "@pingxy/shared/types";
 import { SessionRepository } from "./session.repository";
 
 const secret = "temp_secret";
@@ -69,7 +69,7 @@ export const SessionService = {
     }
   },
 
-  getSessionUser: async (token: string): Promise<PublicUser> => {
+  getSessionUser: async (token: string): Promise<User> => {
     try {
       const hashedToken = SessionService.hashSessionToken(token);
       const [result] = await SessionRepository.selectSessionUser(hashedToken);
@@ -77,7 +77,7 @@ export const SessionService = {
         throw new Error("User not found");
       }
       // Result returns { session, user }
-      return result.user as PublicUser;
+      return result.user as User;
     } catch (error) {
       throw new Error("Error getting user!");
     }

@@ -1,6 +1,9 @@
 import { capitalizeFirst } from "@pingxy/shared/utils/string";
 import { fail, redirect, type Cookies } from "@sveltejs/kit";
-export async function load({ cookies }) {
+import type { PageServerLoad } from "./$types";
+import type { Actions } from "./$types";
+
+export const load: PageServerLoad = async ({ cookies }) => {
   const token = cookies.get("_Host-session");
 
   if (token) {
@@ -9,9 +12,9 @@ export async function load({ cookies }) {
   if (!token) return { success: false };
 
   return { success: true };
-}
+};
 
-export const actions = {
+export const actions: Actions = {
   login: async ({ request, fetch, cookies }) => {
     const data = await request.formData();
     const username = data.get("username") as string;

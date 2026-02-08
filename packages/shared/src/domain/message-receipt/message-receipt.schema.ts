@@ -5,7 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod";
 import { messageReceipts } from "./message-receipt.table";
-import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 
 export const insertReceiptSchema = createInsertSchema(messageReceipts);
 export const selectReceiptSchema = createSelectSchema(messageReceipts);

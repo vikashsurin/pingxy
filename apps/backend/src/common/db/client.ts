@@ -3,7 +3,6 @@ import "dotenv/config";
 import { drizzle } from "drizzle-orm/bun-sql";
 import { BunSQLDatabase } from "drizzle-orm/bun-sql";
 import { PgTransaction } from "drizzle-orm/pg-core";
-
 // import * as schema from "@pingxy/shared/db/schemas";
 import {
   blockedUsers,
@@ -51,7 +50,7 @@ const client =
 if (process.env.NODE_ENV !== "production") globalForDb.conn = client;
 
 export const db = drizzle({
-  connection: process.env.DATABASE_URL,
+  client,
   schema,
   casing: "snake_case",
 });

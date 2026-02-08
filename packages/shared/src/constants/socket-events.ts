@@ -13,7 +13,9 @@ export const DOMAIN_EVENTS = {
     ALL_DELIVER: "req:receipts.all.deliver",
     ALL_READ: "req:receipts.all.read",
   },
-  USERS: {},
+  USERS: {
+    ONLINE: "req:users.online",
+  },
 } as const;
 
 export const SERVER_EVENTS = {
@@ -30,6 +32,9 @@ export const SERVER_EVENTS = {
     FAILED: "event:receipt.failed",
     ALL_DELIVERED: "event:receipts.all.delivered",
     ALL_READ: "event:receipts.all.read",
+  },
+  USERS: {
+    ONLINE: "event:users.online",
   },
 } as const;
 

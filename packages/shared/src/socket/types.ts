@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { MessageEventMap, ReceiptEventMap } from "../domain";
+import type { MessageEventMap, ReceiptEventMap, UserEventMap } from "../domain";
 import type { ClientReqSchema, ServerEventSchema } from "./schema";
 
-export type SocketEventMap = MessageEventMap & ReceiptEventMap;
+export type SocketEventMap = MessageEventMap & ReceiptEventMap & UserEventMap;
 
 export type SocketHandlers = {
   [K in keyof SocketEventMap]?: (data: SocketEventMap[K]) => void;

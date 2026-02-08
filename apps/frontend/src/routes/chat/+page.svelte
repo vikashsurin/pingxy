@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { initSocket } from "$lib/socket/ws.svelte";
+    import { initSocket } from "$lib/socket/socket.svelte";
 
     import { onMount } from "svelte";
 

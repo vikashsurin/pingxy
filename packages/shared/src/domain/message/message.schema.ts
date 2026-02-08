@@ -6,9 +6,9 @@ import {
 import { optional, z } from "zod";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { messages } from "./message.table";
-import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 
-export const insertMessageSchema = createInsertSchema(messages);
+// export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages);
 export const updateMessageSchema = createUpdateSchema(messages);
 
@@ -31,22 +31,23 @@ export const wsMessageResponsePayload = z.object({
   }),
 });
 
-export const clientInsertMessageSchema = insertMessageSchema
+export const InsertMessageSchema = createInsertSchema(messages)
   .pick({
     clientMessageId: true,
     content: true,
-    messageType: true,
     senderId: true,
   })
   .extend({
     conversationId: z.number().nullable(),
   });
 
+// export const messageCreateSchema =
+
 export const messageCreateSchema = z.object({
   id: z.uuid(),
   type: z.literal(DOMAIN_EVENTS.MESSAGES.CREATE),
   payload: z.object({
-    message: clientInsertMessageSchema,
+    message: InsertMessageSchema,
     conversationId: z.number().nullable(),
     recipient: z.object({
       id: z.number(),

@@ -1,8 +1,8 @@
 import type { WebSocketHandler } from "bun";
-import { broadcastOnlineUsers, broadcastUserOffline } from "./socket.helpers";
-
+// import { broadcastUserOffline } from "./socket.helpers";
+import * as handler from "./handlers/index";
 import { ReceiptService } from "@modules/receipts";
-import { SERVER_EVENTS } from "@pingxy/shared/socket/events";
+import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import { userSockets } from "./socket.state";
 import { WebSocketData } from "./types";
 
@@ -18,7 +18,7 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
       user: user,
     });
     ws.subscribe(`inbox:${user.id}`);
-    broadcastOnlineUsers();
+    handler.broadcastOnlineUsers();
   },
 
   async message(ws, message) {
@@ -35,7 +35,7 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
     const id = ws.data.user.id;
     const username = ws.data.user.username;
 
-    broadcastUserOffline(id, username);
+    handler.broadcastUserOffline(id, username);
   },
 };
 

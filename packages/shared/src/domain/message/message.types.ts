@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  insertMessageSchema,
+  InsertMessageSchema,
   selectMessageSchema,
   updateMessageSchema,
   messageCreateSchema,
@@ -8,30 +8,31 @@ import {
 } from "./message.schema";
 import type { SocketEventEnvelope } from "../../socket/base";
 import type { MessageReceipt } from "../message-receipt/message-receipt.types";
-import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 
-export type InsertMessageType = z.infer<typeof insertMessageSchema>;
+export type InsertMessageType = z.infer<typeof InsertMessageSchema>;
 export type UpdateMessageType = z.infer<typeof updateMessageSchema>;
 export type selectMessageType = z.infer<typeof selectMessageSchema>;
 
-export type SendMessageRequest = z.infer<typeof insertMessageSchema>;
+export type SendMessageRequest = z.infer<typeof InsertMessageSchema>;
 export type Message = z.infer<typeof selectMessageSchema>;
 
-export type MessageCreateType = z.infer<typeof messageCreateSchema>;
+export type MessageCreateType = z.infer<typeof InsertMessageSchema>;
 export type MessageCreatedType = z.infer<typeof messageCreatedSchema>;
 
 export interface MessageEventMap {
   [DOMAIN_EVENTS.MESSAGES.CREATE]: SocketEventEnvelope<
     typeof DOMAIN_EVENTS.MESSAGES.CREATE,
     {
-      message: Message;
-      conversationId: number;
+      message: MessageCreateType;
+      conversationId: number | null;
       recipient: {
         id: number;
         username: string;
       };
     }
   >;
+
   [DOMAIN_EVENTS.MESSAGES.SENT]: SocketEventEnvelope<
     typeof DOMAIN_EVENTS.MESSAGES.SENT,
     {
@@ -115,5 +116,4 @@ export interface MessageEventMap {
       };
     }
   >;
-
 }

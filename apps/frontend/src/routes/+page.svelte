@@ -2,7 +2,6 @@
     import AuthForm from "./AuthForm.svelte";
     import Footer from "./Footer.svelte";
     import logo from "$lib/assets/logo.svg";
-    import BannerNotification from "$lib/components/BannerNotification.svelte";
     import { Info } from "@lucide/svelte";
     let { form } = $props();
 </script>

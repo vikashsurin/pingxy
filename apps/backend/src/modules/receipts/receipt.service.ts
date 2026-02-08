@@ -1,4 +1,4 @@
-import { SERVER_EVENTS } from "@pingxy/shared/socket/events";
+import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { SocketEventMap } from "@pingxy/shared/socket/types";
 import { publish } from "src/common/socket/pubsub";
 import { ReceiptRepository } from "./receipt.repository";

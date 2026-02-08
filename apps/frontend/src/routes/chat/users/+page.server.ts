@@ -1,8 +1,9 @@
 import { redirect } from "@sveltejs/kit";
 import { jwtDecode } from "jwt-decode";
-import type { User } from "@pingxy/shared/types";
+import type { User } from "@pingxy/shared/domain/user/user.types";
+import type { PageServerLoad } from "./$types";
 
-export async function load({ request, cookies }) {
+export const load: PageServerLoad = async ({ request, cookies }) => {
   const token = cookies.get("sessionid");
 
   if (!token) {
@@ -23,4 +24,4 @@ export async function load({ request, cookies }) {
   const data = await response.json();
 
   return { success: true, user: user, users: data.users };
-}
+};

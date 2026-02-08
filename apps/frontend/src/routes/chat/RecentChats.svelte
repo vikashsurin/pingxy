@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getSocket } from "$lib/socket/ws.svelte";
+    import { getSocket } from "$lib/socket/socket.svelte";
     import * as  receiptManager from "$lib/store/managers/receipt.svelte";
     import {
         chatStore,
@@ -22,6 +22,8 @@
     });
 
     const handleClick = async (conversation: PrivateConversation) => {
+      if(!conversation.conversationId) return;
+
         chatStore.clearNotification(conversation.conversationId!);
         chatStore.activeConversation = conversation;
 

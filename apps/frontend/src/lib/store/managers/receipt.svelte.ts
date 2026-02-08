@@ -1,6 +1,10 @@
 import { getSocket } from "$lib/socket/socket.svelte";
-import { DOMAIN_EVENTS } from "@pingxy/shared/socket/events";
-import type { Message, MessageReceipt, ReceiptRequestType } from "@pingxy/shared/types/index";
+import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
+import type {
+  Message,
+  MessageReceipt,
+  ReceiptRequestType,
+} from "@pingxy/shared/types/index";
 import { chatStore } from "../store.svelte";
 
 /**
@@ -44,10 +48,7 @@ export const emitMarkRead = async ({ message, userId }: ReceiptParams) => {
   socket.send(JSON.stringify(payload));
 };
 
-export const emitMarkDelivered = async ({
-  message,
-  userId,
-}: ReceiptParams) => {
+export const emitMarkDelivered = async ({ message, userId }: ReceiptParams) => {
   const socket = validateSocket();
   if (!socket) return;
 

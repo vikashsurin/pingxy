@@ -9,7 +9,10 @@ import {
   wsReceiptPayload,
 } from "./message-receipt.schema";
 import type { SocketEventEnvelope } from "../../socket/base";
-import type { DOMAIN_EVENTS, SERVER_EVENTS } from "../../socket/events";
+import type {
+  DOMAIN_EVENTS,
+  SERVER_EVENTS,
+} from "../../constants/socket-events";
 
 export type InsertReceiptType = z.infer<typeof insertReceiptSchema>;
 export type SelectReceiptType = z.infer<typeof selectReceiptSchema>;

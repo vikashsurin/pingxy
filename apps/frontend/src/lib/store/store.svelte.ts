@@ -4,7 +4,7 @@ import * as messageManager from "./managers/message.svelte";
 import { fetchConversation } from "./services/api";
 
 export type PrivateConversation = {
-  conversationId: number | null;
+  conversationId: number | null | undefined;
   user: User;
 };
 
@@ -70,16 +70,15 @@ class ChatStore {
     if (!conversation) {
       this.setActiveConversation({
         conversationId: null,
-        user,
+        user: user,
       });
-      return;
-    } else {
       this.setActiveConversation({
         conversationId: conversation.conversationId,
-        user,
+        user: user,
       });
-      return;
+    } else {
     }
+    return;
   }
 
   setActiveConversation({ conversationId, user }: PrivateConversation) {
