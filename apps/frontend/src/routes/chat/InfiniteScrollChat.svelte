@@ -11,7 +11,7 @@
     import { Tween } from "svelte/motion";
     import type { ChatEntry } from "$lib/store/store.svelte.js";
     import { virtualStore } from "$lib/store/virtualStore.svelte.js";
-    import * as receiptManager from "$lib/store/managers/receipt.svelte";
+    import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
     import { date } from "zod/v3";
 
     const LIMIT = $derived(chatStore.LIMIT);

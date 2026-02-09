@@ -1,6 +1,7 @@
-import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
-import type { SocketEventMap } from "@pingxy/shared/socket/types";
-import { publish } from "src/common/socket/pubsub";
+import { eventBus } from "@common/events";
+import { createServerEvent } from "@common/socket/socket.factory";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
+import type { ClientReqMap } from "@pingxy/shared/socket/types";
 import { ReceiptRepository } from "./receipt.repository";
 
 export const ReceiptService = {
@@ -24,7 +25,9 @@ export const ReceiptService = {
     return messageReceipt;
   },
 
-  processMarkAllRead: async (data: SocketEventMap["req:receipts.all.read"]) => {
+  processMarkAllRead: async (
+    data: ClientReqMap[typeof DOMAIN_EVENTS.RECEIPTS.ALL_READ],
+  ) => {
     const conversationId = data.payload.conversationId;
     const userId = data.payload.userId;
     const ackUserId = data.payload.recipient.id;
@@ -35,21 +38,24 @@ export const ReceiptService = {
           conversationId,
           userId,
         });
-      const read: SocketEventMap["event:receipts.all.read"] = {
-        type: SERVER_EVENTS.RECEIPTS.ALL_READ,
-        id: data.id,
-        payload: {
-          receipts: messageReceipts,
+
+      const event = createServerEvent(SERVER_EVENTS.RECEIPTS.ALL_READ, {
+        receipts: messageReceipts,
+        recipient: {
+          id: ackUserId,
         },
-      };
-      publish(`inbox:${ackUserId}`, JSON.stringify(read));
+      });
+
+      eventBus.emit(SERVER_EVENTS.RECEIPTS.ALL_READ, event);
 
       return messageReceipts;
     }
     return null;
   },
 
-  processDeliveryReceipt: async (data: SocketEventMap["req:receipt.deliver"]) => {
+  processDeliveryReceipt: async (
+    data: ClientReqMap[typeof DOMAIN_EVENTS.RECEIPTS.DELIVER],
+  ) => {
     const messageId = data.payload.messageId;
     if (!messageId) return null;
 
@@ -64,19 +70,20 @@ export const ReceiptService = {
         userId,
       });
 
-    const delivered: SocketEventMap["event:receipt.delivered"] = {
-      type: SERVER_EVENTS.RECEIPTS.DELIVERED,
-      id: data.id,
-      payload: {
-        receipts: messageReceipts,
+    const event = createServerEvent(SERVER_EVENTS.RECEIPTS.DELIVERED, {
+      receipts: messageReceipts,
+      recipient: {
+        id: ackUserId,
       },
-    };
-    publish(`inbox:${ackUserId}`, JSON.stringify(delivered));
+    });
 
+    eventBus.emit(SERVER_EVENTS.RECEIPTS.DELIVERED, event);
     return messageReceipts;
   },
 
-  processReadReceipt: async (data: SocketEventMap["req:receipt.read"]) => {
+  processReadReceipt: async (
+    data: ClientReqMap[typeof DOMAIN_EVENTS.RECEIPTS.READ],
+  ) => {
     const messageId = data.payload.messageId;
     if (!messageId) return null;
     const userId = data.payload.userId;
@@ -87,29 +94,14 @@ export const ReceiptService = {
       userId,
     });
 
-    const read: SocketEventMap['event:receipt.read'] = {
-      type: SERVER_EVENTS.RECEIPTS.READ,
-      id: data.id,
-      payload: {
-        receipts: messageReceipts,
+    const event = createServerEvent(SERVER_EVENTS.RECEIPTS.READ, {
+      receipts: messageReceipts,
+      recipient: {
+        id: ackUserId,
       },
-    };
-    publish(`inbox:${ackUserId}`, JSON.stringify(read));
+    });
 
+    eventBus.emit(SERVER_EVENTS.RECEIPTS.READ, event);
     return messageReceipts;
   },
-
-  // markAsSent : async ({
-  //   messageId,
-  //   userId
-  // }: {
-  //   messageId: number,
-  //   userId: number
-  // }) => {
-  //   const messageReceipt = await ReceiptRepository.updateMessageReceiptToSent({
-  //     messageId,
-  //     userId
-  //   });
-  //   return messageReceipt;
-  // }
 };

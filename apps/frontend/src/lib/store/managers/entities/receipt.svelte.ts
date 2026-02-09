@@ -4,8 +4,10 @@ import type {
   Message,
   MessageReceipt,
   ReceiptRequestType,
+  ServerEventMap,
 } from "@pingxy/shared/types/index";
-import { chatStore } from "../store.svelte";
+import { chatStore } from "../../store.svelte";
+import { createClientReq } from "..";
 
 /**
  * Priority used to ensure we don't overwrite a 'read' status
@@ -34,17 +36,12 @@ export const emitMarkRead = async ({ message, userId }: ReceiptParams) => {
   const socket = validateSocket();
   if (!socket) return;
 
-  const payload: ReceiptRequestType = {
-    type: DOMAIN_EVENTS.RECEIPTS.READ,
-    id: crypto.randomUUID(),
-    payload: {
-      conversationId: message.conversationId,
-      messageId: message.messageId,
-      userId: userId,
-      recipient: { id: message.senderId },
-    },
-  };
-
+  const payload = createClientReq(DOMAIN_EVENTS.RECEIPTS.READ, {
+    conversationId: message.conversationId,
+    messageId: message.messageId,
+    userId: userId,
+    recipient: { id: message.senderId },
+  });
   socket.send(JSON.stringify(payload));
 };
 

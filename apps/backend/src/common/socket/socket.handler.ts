@@ -1,8 +1,8 @@
-import type { WebSocketHandler } from "bun";
-// import { broadcastUserOffline } from "./socket.helpers";
-import * as handler from "./handlers/index";
 import { ReceiptService } from "@modules/receipts";
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
+import type { WebSocketHandler } from "bun";
+import { onSocketMessage } from "./dispatcher";
+import { emitDisconnected, emitUserList } from "./handlers/handler.user";
 import { userSockets } from "./socket.state";
 import { WebSocketData } from "./types";
 
@@ -18,24 +18,16 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
       user: user,
     });
     ws.subscribe(`inbox:${user.id}`);
-    handler.broadcastOnlineUsers();
+    emitUserList();
   },
 
   async message(ws, message) {
-    if (typeof message !== "string") return;
-    const data = JSON.parse(message);
-    const handler = messageHandler[data.type];
-    if (handler) {
-      handler(ws, data);
-    }
+    onSocketMessage(ws, message);
   },
 
   close(ws) {
+    emitDisconnected(ws.data.user);
     console.log("closed connection");
-    const id = ws.data.user.id;
-    const username = ws.data.user.username;
-
-    handler.broadcastUserOffline(id, username);
   },
 };
 

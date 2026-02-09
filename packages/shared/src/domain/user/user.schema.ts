@@ -14,7 +14,7 @@ import {
 import { users } from "./user.table";
 
 export const insertUserSchema = createInsertSchema(users);
-export const selectUserSchema = createSelectSchema(users);
+// export const selectUserSchema = createSelectSchema(users);
 
 const UserMetaDataSchema = z.object({
   gender: z.string(),
@@ -45,9 +45,7 @@ export const RegisterUserRequestSchema = BaseUserSchema.extend({
 
 export const GuestUserRequestSchema = BaseUserSchema;
 
-export const UserInsertSchema = createInsertSchema(users);
-
-export const UserResponseSchema = createSelectSchema(users)
+export const selectUserSchema = createSelectSchema(users)
   .omit({
     hashedPassword: true,
   })
@@ -58,12 +56,28 @@ export const UserResponseSchema = createSelectSchema(users)
     updatedAt: z.coerce.date(),
   });
 
-export const UserUpdateSchema = createUpdateSchema(users);
+// export const UserUpdateSchema = createUpdateSchema(users);
 
-export const usersOnlineSchema = z.object({
+export const usersList = z.object({
   id: z.uuid(),
-  type: z.literal(SERVER_EVENTS.USERS.ONLINE),
+  type: z.literal(SERVER_EVENTS.USERS.LIST),
   payload: z.object({
-    users: z.array(UserResponseSchema),
+    users: z.array(selectUserSchema),
+  }),
+});
+
+export const userConnectedSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(SERVER_EVENTS.USERS.CONNECTED),
+  payload: z.object({
+    user: selectUserSchema,
+  }),
+});
+
+export const userDisconnectedSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(SERVER_EVENTS.USERS.DISCONNECTED),
+  payload: z.object({
+    user: selectUserSchema,
   }),
 });

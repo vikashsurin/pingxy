@@ -1,14 +1,27 @@
-import { handlers } from "./handlers";
 import { ServerEventSchema } from "@pingxy/shared/socket/schema";
+import { handlers } from "./handlers/index";
+import { z } from "zod";
 
 export const handleGenericEvent = (rawData: unknown) => {
-  // Todo: Can wrap in try catch
-  const result = ServerEventSchema.safeParse(rawData);
-  if (!result.success) {
-    console.error(result.error);
-    return;
-  }
+  try {
+    const result = ServerEventSchema.safeParse(rawData);
 
-  const handler = (handlers as any)[result.data.type];
-  if (handler) handler(result.data);
+    if (!result.success) {
+      console.error(
+        "[Socket] Received invalid server event:",
+        z.treeifyError(result.error),
+      );
+      return;
+    }
+
+    const handler = handlers[result.data.type];
+
+    if (handler) {
+      handler(result.data as any);
+    } else {
+      console.warn(`[Socket] No frontend handler for: ${result.data.type}`);
+    }
+  } catch (err) {
+    console.error("[Socket] Critical error in event dispatcher:", err);
+  }
 };

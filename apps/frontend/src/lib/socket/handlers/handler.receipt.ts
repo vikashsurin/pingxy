@@ -1,8 +1,8 @@
-import * as receiptManager from "$lib/store/managers/receipt.svelte";
+import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
-import { type SocketHandlers } from "@pingxy/shared/socket/types";
+import type { SocketHandler } from "./index";
 
-export const receiptHandler: SocketHandlers = {
+export const receiptHandler: SocketHandler = {
   [SERVER_EVENTS.RECEIPTS.DELIVERED]: (data) => {
     const receipts = data.payload.receipts;
 
@@ -11,7 +11,6 @@ export const receiptHandler: SocketHandlers = {
   },
   [SERVER_EVENTS.RECEIPTS.READ]: (data) => {
     const receipts = data.payload.receipts;
-
     if (!receipts) return;
     receiptManager.handleIncomingReceipts(receipts);
   },

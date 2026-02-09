@@ -4,13 +4,18 @@ import {
   createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod";
-import { messageReceipts } from "./message-receipt.table";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
+import { messageReceipts } from "./message-receipt.table";
 
 export const insertReceiptSchema = createInsertSchema(messageReceipts);
 export const selectReceiptSchema = createSelectSchema(messageReceipts);
 
-export const selectMessageReceiptSchema = createSelectSchema(messageReceipts);
+export const selectMessageReceiptSchema = createSelectSchema(messageReceipts, {
+  createdAt: z.coerce.date(),
+  deliveredAt: z.coerce.date().nullable(),
+  readAt: z.coerce.date().nullable(),
+  updatedAt: z.coerce.date(),
+});
 
 export const dbInsertMessageReceiptSchema = createInsertSchema(messageReceipts);
 
@@ -57,6 +62,7 @@ const reqEnums = z.enum([
   DOMAIN_EVENTS.RECEIPTS.READ,
   DOMAIN_EVENTS.RECEIPTS.FAIL,
   DOMAIN_EVENTS.RECEIPTS.ALL_READ,
+  DOMAIN_EVENTS.RECEIPTS.ALL_DELIVER,
 ]);
 const eventEnums = z.enum([
   SERVER_EVENTS.RECEIPTS.SENT,
@@ -64,6 +70,7 @@ const eventEnums = z.enum([
   SERVER_EVENTS.RECEIPTS.READ,
   SERVER_EVENTS.RECEIPTS.FAILED,
   SERVER_EVENTS.RECEIPTS.ALL_READ,
+  SERVER_EVENTS.RECEIPTS.ALL_DELIVERED,
 ]);
 
 export const receiptReqSchema = z.object({
@@ -78,20 +85,23 @@ export const receiptReqSchema = z.object({
     }),
   }),
 });
-``;
 
-const enums = z.enum([
-  "event:receipts.all.read",
-  "event:receipt.delivered",
-  "event:receipt.read",
-  "event:receipt.failed",
-]);
+// const enums = z.enum([
+//   "event:receipts.all.read",
+//   "event:receipt.delivered",
+//   "event:receipt.read",
+//   "event:receipt.failed",
+// ]);
+
 export type LL = z.infer<typeof receiptReqSchema>;
 export const receiptEventSchema = z.object({
   id: z.uuid(),
-  type: enums,
+  type: eventEnums,
   payload: z.object({
-    receipts: z.union([z.array(selectMessageReceiptSchema)]),
+    receipts: z.array(selectMessageReceiptSchema).optional(),
+    recipient: z.object({
+      id: z.number(),
+    }),
   }),
 });
 

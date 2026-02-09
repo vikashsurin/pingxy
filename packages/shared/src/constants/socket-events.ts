@@ -14,11 +14,19 @@ export const DOMAIN_EVENTS = {
     ALL_READ: "req:receipts.all.read",
   },
   USERS: {
-    ONLINE: "req:users.online",
+    LIST: "req:users.list",
+    CONNECTED: "req:user.connected",
+    DISCONNECTEDT: "req:user.disconnected",
+  },
+  CONVERSATIONS: {
+    OPEN: "req:conversation.open",
   },
 } as const;
 
 export const SERVER_EVENTS = {
+  ERRORS: {
+    SYSTEM: "event:error.system",
+  },
   MESSAGES: {
     SENT: "event:message.sent",
     CREATED: "event:message.created",
@@ -34,7 +42,12 @@ export const SERVER_EVENTS = {
     ALL_READ: "event:receipts.all.read",
   },
   USERS: {
-    ONLINE: "event:users.online",
+    LIST: "event:users.list",
+    CONNECTED: "event:user.connected",
+    DISCONNECTED: "event:user.disconnected",
+  },
+  CONVERSATIONS: {
+    OPEN: "event:conversation.open",
   },
 } as const;
 
@@ -42,5 +55,5 @@ type ExtractEvents<T> = T extends object
   ? { [K in keyof T]: ExtractEvents<T[K]> }[keyof T]
   : T;
 
-export type DomainEvent = ExtractEvents<typeof DOMAIN_EVENTS>;
-export type ServerEvent = ExtractEvents<typeof SERVER_EVENTS>;
+// export type DomainEvent = ExtractEvents<typeof DOMAIN_EVENTS>;
+// export type ServerEvent = ExtractEvents<typeof SERVER_EVENTS>;

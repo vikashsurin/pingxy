@@ -1,13 +1,18 @@
-import type { MessageCreatedType, MessageCreateType } from "@pingxy/shared";
+import type {
+  MessageCreatedType,
+  MessageCreateType,
+  SERVER_EVENTS,
+} from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type {
+  ServerEventMap,
   ServerEventType,
-  SocketEventMap,
 } from "@pingxy/shared/socket/types";
-import { createMessage, fetchMessages } from "../services/api";
-import { chatStore } from "../store.svelte";
-import { virtualStore } from "../virtualStore.svelte";
+import { createMessage, fetchMessages } from "../../services/api";
+import { chatStore } from "../../store.svelte";
+import { virtualStore } from "../../virtualStore.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
+import { createClientReq } from "..";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -50,24 +55,20 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
   const conversationId = chatStore.activeConversation.conversationId;
 
-  const envelope: SocketEventMap["req:message.create"] = {
-    id: crypto.randomUUID(),
-    type: DOMAIN_EVENTS.MESSAGES.CREATE,
-    payload: {
-      message: {
-        conversationId: conversationId ?? null,
-        clientMessageId: crypto.randomUUID(),
-        content: messageText,
-        senderId: chatStore.currentUser.id,
-      },
+  const envelope = createClientReq(DOMAIN_EVENTS.MESSAGES.CREATE, {
+    message: {
       conversationId: conversationId ?? null,
-      recipient: {
-        id: chatStore.activeConversation.user.id,
-        username: chatStore.activeConversation.user.username,
-      },
+      clientMessageId: crypto.randomUUID(),
+      content: messageText,
+      senderId: chatStore.currentUser.id,
     },
-  };
-  console.log({ envelope });
+    conversationId: conversationId ?? null,
+    recipient: {
+      id: chatStore.activeConversation.user.id,
+      username: chatStore.activeConversation.user.username,
+    },
+  });
+
   try {
     const result = await createMessage(envelope);
 
@@ -81,15 +82,14 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
 };
 
-export const handleIncomingMessage = async (data: ServerEventType) => {
+export const handleIncomingMessage = async (
+  data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
+) => {
   addMessageToState(data);
-  console.log("handle read receipt");
-  // const receipt = data.payload.receipt as MessageReceipt;
-  // handleIncomingReceipts([receipt]);
+
   if (
     chatStore.activeConversation?.conversationId === data.payload.conversationId
   ) {
-    console.log("mark as read");
     emitMarkRead({
       message: data.payload.message,
       userId: chatStore.currentUser?.id!,
@@ -107,7 +107,9 @@ export const updateMessage = async () => {};
 export const deleteMessage = async () => {};
 
 // Private
-const addMessageToState = async (data: MessageCreatedType) => {
+const addMessageToState = async (
+  data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
+) => {
   const { message, conversationId, receipt } = data.payload;
 
   if (!chatStore.messages[conversationId]) {

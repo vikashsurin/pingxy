@@ -60,7 +60,6 @@ export interface ReceiptEventMap {
       userId: number;
       recipient: {
         id: number;
-        name: string;
       };
     }
   >;
@@ -80,7 +79,6 @@ export interface ReceiptEventMap {
       userId: number;
       recipient: {
         id: number;
-        name: string;
       };
     }
   >;
@@ -88,30 +86,45 @@ export interface ReceiptEventMap {
     typeof SERVER_EVENTS.RECEIPTS.SENT,
     {
       receipt: MessageReceipt;
+      recipient: {
+        id: number;
+      };
     }
   >;
   [SERVER_EVENTS.RECEIPTS.DELIVERED]: SocketEventEnvelope<
     typeof SERVER_EVENTS.RECEIPTS.DELIVERED,
     {
       receipts: MessageReceipt[];
+      recipient: {
+        id: number;
+      };
     }
   >;
   [SERVER_EVENTS.RECEIPTS.READ]: SocketEventEnvelope<
     typeof SERVER_EVENTS.RECEIPTS.READ,
     {
       receipts: MessageReceipt[];
+      recipient: {
+        id: number;
+      };
     }
   >;
   [SERVER_EVENTS.RECEIPTS.ALL_DELIVERED]: SocketEventEnvelope<
     typeof SERVER_EVENTS.RECEIPTS.ALL_DELIVERED,
     {
       receipts: MessageReceipt[];
+      recipient: {
+        id: number;
+      };
     }
   >;
   [SERVER_EVENTS.RECEIPTS.ALL_READ]: SocketEventEnvelope<
     typeof SERVER_EVENTS.RECEIPTS.ALL_READ,
     {
       receipts: MessageReceipt[];
+      recipient: {
+        id: number;
+      };
     }
   >;
 }

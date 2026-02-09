@@ -16,8 +16,6 @@
       .sort((a, b) => a.data.country.localeCompare(b.data.country));
   });
 
-  $inspect({ onlineUsers: chatStore.onlineUsers });
-
   function handleOpenConversation(user: User) {
     chatStore.initChat(user);
   }

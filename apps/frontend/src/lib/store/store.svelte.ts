@@ -1,6 +1,6 @@
 import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import * as messageManager from "./managers/message.svelte";
+import * as messageManager from "./managers/entities/message.svelte";
 import { fetchConversation } from "./services/api";
 
 export type PrivateConversation = {

@@ -9,27 +9,16 @@ import { messages } from "./message.table";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 
 // export const insertMessageSchema = createInsertSchema(messages);
-export const selectMessageSchema = createSelectSchema(messages);
+export const selectMessageSchema = createSelectSchema(messages, {
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  deletedAt: z.coerce.date().nullable(),
+});
+
 export const updateMessageSchema = createUpdateSchema(messages);
 
 export const dbMessageInsertSchema = createInsertSchema(messages);
 export const dbSelectMessageSchema = createSelectSchema(messages);
-// export const selectMessageSchema = createSelectSchema(messages, {
-//   createdAt: z.coerce.date(),
-//   updatedAt: z.coerce.date(),
-//   deletedAt: z.coerce.date().nullable(),
-// });
-
-// Todo: check if message receipt schema is needed
-export const wsMessageResponsePayload = z.object({
-  message: selectMessageSchema,
-  receipt: selectMessageReceiptSchema,
-  conversationId: z.number(),
-  recipient: z.object({
-    id: z.number(),
-    username: z.string(),
-  }),
-});
 
 export const InsertMessageSchema = createInsertSchema(messages)
   .pick({
@@ -40,8 +29,6 @@ export const InsertMessageSchema = createInsertSchema(messages)
   .extend({
     conversationId: z.number().nullable(),
   });
-
-// export const messageCreateSchema =
 
 export const messageCreateSchema = z.object({
   id: z.uuid(),

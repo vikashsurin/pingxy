@@ -1,23 +1,22 @@
-import { userSockets } from "../socket.state";
-import type { User } from "@pingxy/shared/types";
-import type { SocketEventMap } from "@pingxy/shared/socket/types";
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
+import type { User } from "@pingxy/shared/types";
+import { createServerEvent } from "../socket.factory";
+import { userSockets } from "../socket.state";
 
-export function broadcastOnlineUsers() {
+import { SocketHandler } from "./index";
+
+export const userHandler: SocketHandler = {};
+
+export const emitUserList = () => {
   const users: User[] = [];
-
-  console.log({ userss: userSockets });
 
   for (const [id, data] of userSockets.entries()) {
     users.push({ ...data.user });
   }
-  const message: SocketEventMap["event:users.online"] = {
-    id: crypto.randomUUID(),
-    type: SERVER_EVENTS.USERS.ONLINE,
-    payload: {
-      users: users,
-    },
-  };
+
+  const message = createServerEvent(SERVER_EVENTS.USERS.LIST, {
+    users: users,
+  });
 
   for (const [id, data] of userSockets.entries()) {
     try {
@@ -26,25 +25,32 @@ export function broadcastOnlineUsers() {
       console.error(`Failed to send to user ${id}: `, error);
     }
   }
-  console.log(`Broadcasted online users: ${users.length} users`);
-}
+};
 
-export function broadcastUserOffline(userId: number, username: string) {
-  userSockets.delete(userId);
-  const message = {
-    type: "user_offline",
-    id: crypto.randomUUID(),
-    // users: {
-    //   id: userId,
-    //   username: username,
-    // }
-  };
+export const emitConnected = (user: User) => {
+  const message = createServerEvent(SERVER_EVENTS.USERS.CONNECTED, {
+    user: user,
+  });
 
   for (const [id, data] of userSockets.entries()) {
     try {
       data.socket.send(JSON.stringify(message));
     } catch (error) {
-      console.error(`Failed to send to user ${id}:`, error);
+      console.error(`Failed to send to user ${id}: `, error);
     }
   }
-}
+};
+
+export const emitDisconnected = (user: User) => {
+  const message = createServerEvent(SERVER_EVENTS.USERS.DISCONNECTED, {
+    user: user,
+  });
+
+  for (const [id, data] of userSockets.entries()) {
+    try {
+      data.socket.send(JSON.stringify(message));
+    } catch (error) {
+      console.error(`Failed to send to user ${id}: `, error);
+    }
+  }
+};
