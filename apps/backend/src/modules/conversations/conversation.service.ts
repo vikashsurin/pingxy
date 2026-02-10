@@ -1,23 +1,6 @@
 import { ConversationRepository } from "./conversation.repository";
 
 export const ConversationService = {
-  // create: async (conversation: NewConversation) => {
-  //   try {
-  //     return await ConversationRepository.insert(conversation);
-  //   } catch (error) {
-  //     console.error("Error creating conversation:", error);
-  //     throw new Error("Ersror creating conversation");
-  //   }
-  // },
-
-  find: async (participantIds: number[]) => {
-    // try {
-    //   return await ConversationRepository.selectConversationByParticipantIds(participantIds);
-    // } catch (error) {
-    //   console.error("Error finding conversation:", error);
-    //   throw new Error("Error finding conversation");
-    // }
-  },
 
   findByUsers: async ({
     currentUserId,
@@ -67,14 +50,6 @@ export const ConversationService = {
     }
   },
 
-  findByParticipant: async (participantIds: number[]) => {
-    // try {
-    //   return await ConversationRepository.selectConversationByParticipantIds(participantIds);
-    // } catch (error) {
-    //   console.error("Error finding conversation by participant ids:", error);
-    //   throw new Error("Error finding conversation by participant ids");
-    // }
-  },
 
   getById: async (conversationId: number) => {
     try {

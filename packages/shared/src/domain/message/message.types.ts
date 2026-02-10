@@ -5,6 +5,7 @@ import {
   updateMessageSchema,
   messageCreateSchema,
   messageCreatedSchema,
+  dbMessageInsertSchema,
 } from "./message.schema";
 import type { SocketEventEnvelope } from "../../socket/base";
 import type { MessageReceipt } from "../message-receipt/message-receipt.types";
@@ -14,6 +15,7 @@ export type InsertMessageType = z.infer<typeof InsertMessageSchema>;
 export type UpdateMessageType = z.infer<typeof updateMessageSchema>;
 export type selectMessageType = z.infer<typeof selectMessageSchema>;
 
+export type DbInsertMessageType = z.infer<typeof dbMessageInsertSchema>;
 export type SendMessageRequest = z.infer<typeof InsertMessageSchema>;
 export type Message = z.infer<typeof selectMessageSchema>;
 

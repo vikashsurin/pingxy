@@ -30,7 +30,7 @@ export const MessageService = {
       });
 
       const [insertedMessage] = await MessageRepository.insertMessage({
-        conversationId: conversation.conversationId,
+        conversationId: conversation.conversationId!,
         clientMessageId: message.clientMessageId,
         senderId: message.senderId,
         content: message.content,

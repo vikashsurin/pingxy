@@ -17,7 +17,12 @@ export const selectMessageSchema = createSelectSchema(messages, {
 
 export const updateMessageSchema = createUpdateSchema(messages);
 
-export const dbMessageInsertSchema = createInsertSchema(messages);
+export const dbMessageInsertSchema = createInsertSchema(messages).pick({
+  conversationId: true,
+  clientMessageId: true,
+  content: true,
+  senderId: true,
+});
 export const dbSelectMessageSchema = createSelectSchema(messages);
 
 export const InsertMessageSchema = createInsertSchema(messages)

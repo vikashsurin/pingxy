@@ -1,11 +1,10 @@
-import { and, desc, eq, ne, lt, gt, asc } from "drizzle-orm";
-import db from "src/common/db/client";
-import { messages, messageReceipts } from "@pingxy/shared";
-import { type DB_TX } from "src/common/db/client";
-import { InsertMessageType, UpdateMessageType } from "@pingxy/shared/domain";
+import { messageReceipts, messages } from "@pingxy/shared";
+import { DbInsertMessageType, UpdateMessageType } from "@pingxy/shared/domain";
+import { and, asc, desc, eq, gt, lt, ne } from "drizzle-orm";
+import db, { type DB_TX } from "src/common/db/client";
 
 export const MessageRepository = {
-  insertMessage: async (message: InsertMessageType, tx: DB_TX = db) => {
+  insertMessage: async (message: DbInsertMessageType, tx: DB_TX = db) => {
     return tx
       .insert(messages)
       .values({
@@ -20,8 +19,9 @@ export const MessageRepository = {
   updateMessage: async (
     messageId: number,
     message: Partial<UpdateMessageType>,
+    tx: DB_TX = db,
   ) => {
-    return db
+    return tx
       .update(messages)
       .set({
         content: message.content,
@@ -38,8 +38,8 @@ export const MessageRepository = {
       .returning();
   },
 
-  selectMessageById: async (messageId: number) => {
-    return db
+  selectMessageById: async (messageId: number, tx: DB_TX = db) => {
+    return tx
       .select({
         messageId: messages.messageId,
         conversationId: messages.conversationId,
@@ -106,7 +106,6 @@ export const MessageRepository = {
 
   selectMessagesAndReceiptsByConversationForGroup: async ({
     conversationId,
-    userId,
     tx = db,
   }: {
     conversationId: number;
@@ -130,8 +129,8 @@ export const MessageRepository = {
   },
 
   // Select all messages of a sender
-  selectMessagesBySenderId: async (senderId: number) => {
-    return db
+  selectMessagesBySenderId: async (senderId: number, tx: DB_TX = db) => {
+    return tx
       .select({
         messageId: messages.messageId,
         conversationId: messages.conversationId,
