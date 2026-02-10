@@ -26,7 +26,7 @@
     await receiptManager.emitMarkAllRead({
       conversationId: conversation.conversationId,
       currentuserId: chatStore.currentUser?.id!,
-      recipientId: conversation.user.id,
+      senderId: conversation.user.id,
     });
 
     // Load messages for current conversation

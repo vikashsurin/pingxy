@@ -43,6 +43,11 @@ export const MessageService = {
         status: "sent",
       });
 
+      await ParticipantService.incrementUnreadCount({
+        conversationId: conversation.conversationId,
+        senderId: message.senderId,
+      });
+
       const responseEnvelope = createServerEvent(
         SERVER_EVENTS.MESSAGES.CREATED,
         {
@@ -161,6 +166,19 @@ export const MessageService = {
     } catch (error) {
       console.error("Error deleting message:", error);
       throw new Error("Error deleting message");
+    }
+  },
+
+  findLatest: async (conversationId: number) => {
+    try {
+      const [result] =
+        await MessageRepository.selectLatestMessageByConversationId(
+          conversationId,
+        );
+      return result.message;
+    } catch (error) {
+      console.error("Error finding first message:", error);
+      throw new Error("Error finding first message");
     }
   },
 

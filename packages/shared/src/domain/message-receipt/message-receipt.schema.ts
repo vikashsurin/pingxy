@@ -80,18 +80,11 @@ export const receiptReqSchema = z.object({
     conversationId: z.number(),
     messageId: z.number().optional(),
     userId: z.number(),
-    recipient: z.object({
+    sender: z.object({
       id: z.number(),
     }),
   }),
 });
-
-// const enums = z.enum([
-//   "event:receipts.all.read",
-//   "event:receipt.delivered",
-//   "event:receipt.read",
-//   "event:receipt.failed",
-// ]);
 
 export type LL = z.infer<typeof receiptReqSchema>;
 export const receiptEventSchema = z.object({

@@ -27,7 +27,10 @@ export const ConversationService = {
     userId: number;
   }) => {
     try {
-      return await ConversationRepository.selectByUsersPrecise(currentUserId, userId);
+      return await ConversationRepository.selectByUsersPrecise(
+        currentUserId,
+        userId,
+      );
     } catch (error) {
       console.error("Error finding conversation by user ids:", error);
       throw new Error("Error finding conversation by user ids");
@@ -42,7 +45,10 @@ export const ConversationService = {
     userId: number;
   }) => {
     try {
-      const result = await ConversationRepository.selectByUsersPrecise(currentUserId, userId);
+      const result = await ConversationRepository.selectByUsersPrecise(
+        currentUserId,
+        userId,
+      );
 
       if (result) {
         return result.conversation;
@@ -61,9 +67,7 @@ export const ConversationService = {
     }
   },
 
-  findByParticipant: async (
-    participantIds: number[],
-  ) => {
+  findByParticipant: async (participantIds: number[]) => {
     // try {
     //   return await ConversationRepository.selectConversationByParticipantIds(participantIds);
     // } catch (error) {
@@ -81,11 +85,7 @@ export const ConversationService = {
     }
   },
 
-  getByUser: async ({
-    userId,
-  }: {
-    userId: number;
-  }) => {
+  getByUser: async ({ userId }: { userId: number }) => {
     try {
       return await ConversationRepository.selectByUserId(userId);
     } catch (error) {
@@ -102,4 +102,4 @@ export const ConversationService = {
       throw new Error("Error removing conversation");
     }
   },
-}
+};

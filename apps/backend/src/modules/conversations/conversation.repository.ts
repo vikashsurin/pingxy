@@ -1,21 +1,13 @@
-import {
-  conversations,
-  participants,
-  users
-} from "@pingxy/shared/domain";
+import { conversations, participants, users } from "@pingxy/shared/domain";
 import { type InsertConversationType } from "@pingxy/shared/types";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "src/common/db/client";
 
-
 import { type DB_TX } from "src/common/db/client";
 
 export const ConversationRepository = {
-  insert: async (
-    conversation: InsertConversationType,
-    tx: DB_TX = db,
-  ) => {
+  insert: async (conversation: InsertConversationType, tx: DB_TX = db) => {
     return await tx.insert(conversations).values(conversation).returning();
   },
 
@@ -28,10 +20,7 @@ export const ConversationRepository = {
   },
 
   // Select conversation by 2 distinct Users
-  selectByUsersPrecise: async (
-    userId1: number,
-    userId2: number,
-  ) => {
+  selectByUsersPrecise: async (userId1: number, userId2: number) => {
     const userIds = [userId1, userId2].sort(); // Sort for consistency
 
     // Subquery: Find conversation IDs that have both users
@@ -142,5 +131,4 @@ export const ConversationRepository = {
       .where(eq(conversations.conversationId, id))
       .returning();
   },
-
-}
+};

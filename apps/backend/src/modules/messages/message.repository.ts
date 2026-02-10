@@ -4,12 +4,8 @@ import { messages, messageReceipts } from "@pingxy/shared";
 import { type DB_TX } from "src/common/db/client";
 import { InsertMessageType, UpdateMessageType } from "@pingxy/shared/domain";
 
-
 export const MessageRepository = {
-  insertMessage: async (
-    message: InsertMessageType,
-    tx: DB_TX = db,
-  ) => {
+  insertMessage: async (message: InsertMessageType, tx: DB_TX = db) => {
     return tx
       .insert(messages)
       .values({
@@ -21,7 +17,10 @@ export const MessageRepository = {
       .returning();
   },
 
-  updateMessage: async (messageId: number, message: Partial<UpdateMessageType>) => {
+  updateMessage: async (
+    messageId: number,
+    message: Partial<UpdateMessageType>,
+  ) => {
     return db
       .update(messages)
       .set({
@@ -55,7 +54,10 @@ export const MessageRepository = {
   },
 
   // Select all messages of a conversation
-  selectMessagesByConversationId: async (conversationId: number, tx: DB_TX = db) => {
+  selectMessagesByConversationId: async (
+    conversationId: number,
+    tx: DB_TX = db,
+  ) => {
     return tx
       .select({
         messageId: messages.messageId,
@@ -196,5 +198,17 @@ export const MessageRepository = {
 
       return result.reverse(); // Reverse to chronological order
     }
+  },
+
+  selectLatestMessageByConversationId: async (
+    conversationId: number,
+    tx: DB_TX = db,
+  ) => {
+    return tx
+      .select({ message: messages })
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(desc(messages.messageId))
+      .limit(1);
   },
 };

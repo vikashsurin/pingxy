@@ -44,6 +44,7 @@ class ChatStore {
   readonly LIMIT = 20;
 
   // Optimized: Only get messages for the active conversation
+  // Format : messages: { [messageId]: {ChatEntry}, [messageId]: {ChatEntry} }
   activeMessages = $derived.by(() => {
     if (!this.activeConversation || !this.activeConversation.conversationId)
       return [];
@@ -205,7 +206,6 @@ class ChatStore {
       this.messages[conversationId][entry.message.messageId] = entry;
     }
   }
-
 
   // Get a message entry by conversation and message ID
   getEntry(conversationId: number, messageId: number): ChatEntry | undefined {

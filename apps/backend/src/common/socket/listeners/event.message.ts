@@ -7,7 +7,7 @@ export const messageListener: BusListener = {
     const recipient = data.payload.recipient;
     const conversationId = data.payload.conversationId;
     // Broadcast message
-    publish(`${conversationId}`, JSON.stringify(data));
+    // publish(`${conversationId}`, JSON.stringify(data));
 
     // If the user is not subscribed
     // Notify of new message via inbox

@@ -1,10 +1,6 @@
-import type {
-  SERVER_EVENTS
-} from "@pingxy/shared";
+import type { SERVER_EVENTS } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
-import type {
-  ServerEventMap
-} from "@pingxy/shared/socket/types";
+import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
 import { createMessage, fetchMessages } from "../../services/api";
 import { chatStore } from "../../store.svelte";
@@ -68,8 +64,8 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
 
   try {
     const result = await createMessage(envelope);
-
     await addMessageToState(result);
+
     return null;
   } catch (error) {
     chatStore.error =
@@ -87,21 +83,23 @@ export const handleIncomingMessage = async (
   if (
     chatStore.activeConversation?.conversationId === data.payload.conversationId
   ) {
-    emitMarkRead({
-      message: data.payload.message,
-      userId: chatStore.currentUser?.id!,
-    });
+    if (data.payload.message.senderId !== chatStore.currentUser?.id) {
+      emitMarkRead({
+        message: data.payload.message,
+        userId: chatStore.currentUser?.id!,
+      });
+    }
   } else {
     // Handle other cases if needed
     emitMarkDelivered({
       message: data.payload.message,
-      userId: chatStore.currentUser?.id!,
+      userId: data.payload.recipient.id,
     });
   }
 };
 
-export const updateMessage = async () => { };
-export const deleteMessage = async () => { };
+export const updateMessage = async () => {};
+export const deleteMessage = async () => {};
 
 // Private
 const addMessageToState = async (

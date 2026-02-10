@@ -1,11 +1,10 @@
-import { conversations, participants } from "@pingxy/shared";
-import { aliasedTable, and, eq } from "drizzle-orm";
+import { conversations, ParticipantInsertType, participants } from "@pingxy/shared";
+import { aliasedTable, and, eq, ne, sql } from "drizzle-orm";
 import db, { type DB_TX } from "src/common/db/client";
-import { InsertParticipantType } from "@pingxy/shared/domain";
 
 export const ParticipantRepository = {
   insertParticipant: async (
-    participant: InsertParticipantType,
+    participant: ParticipantInsertType,
     tx: DB_TX = db,
   ) => {
     return await tx
@@ -55,9 +54,7 @@ export const ParticipantRepository = {
       .limit(1);
   },
 
-  selectParticipantsByConversationId: async (
-    conversationId: number,
-  ) => {
+  selectParticipantsByConversationId: async (conversationId: number) => {
     return await db
       .select()
       .from(participants)
@@ -81,10 +78,7 @@ export const ParticipantRepository = {
       .returning();
   },
 
-  deleteParticipant: async (
-    conversationId: number,
-    userId: number,
-  ) => {
+  deleteParticipant: async (conversationId: number, userId: number) => {
     return await db
       .delete(participants)
       .where(
@@ -151,4 +145,47 @@ export const ParticipantRepository = {
       )
       .limit(1);
   },
-}
+
+  incrementUnreadCount: async ({
+    conversationId,
+    senderId,
+  }: {
+    conversationId: number;
+    senderId: number;
+  }) => {
+    return await db
+      .update(participants)
+      .set({ unreadCount: sql`${participants.unreadCount}+1` })
+      .where(
+        and(
+          eq(participants.conversationId, conversationId),
+          ne(participants.userId, senderId),
+        ),
+      );
+  },
+
+  resetUnreadCount: async ({
+    userId,
+    conversationId,
+    messageId,
+  }: {
+    userId: number;
+    conversationId: number;
+    messageId: number;
+  }) => {
+    const now = new Date(Date.now());
+    return await db
+      .update(participants)
+      .set({
+        unreadCount: 0,
+        lastReadMessageId: messageId,
+        lastReadAt: now,
+      })
+      .where(
+        and(
+          eq(participants.userId, userId),
+          eq(participants.conversationId, conversationId),
+        ),
+      );
+  },
+};

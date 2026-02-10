@@ -1,4 +1,6 @@
-import type { SocketEventMap } from "@pingxy/shared";
+// import type { SocketEventMap } from "@pingxy/shared";
+
+import type { ClientReqMap } from "@pingxy/shared";
 
 type FetchMessagesParams = {
   conversationId: number;
@@ -36,7 +38,7 @@ export const fetchMessages = async ({
 };
 
 export const createMessage = async (
-  envelope: SocketEventMap["req:message.create"],
+  envelope: ClientReqMap["req:message.create"],
 ) => {
   try {
     const response = await fetch(`/api/messages`, {
@@ -59,7 +61,6 @@ export const createMessage = async (
 
     const data = await response.json();
 
-    console.log({ data });
     return data.result;
   } catch (error) {
     console.error("Failed to send message");

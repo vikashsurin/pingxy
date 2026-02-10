@@ -41,7 +41,7 @@ export const emitMarkRead = async ({ message, userId }: ReceiptParams) => {
     conversationId: message.conversationId,
     messageId: message.messageId,
     userId: userId,
-    recipient: { id: message.senderId },
+    sender: { id: message.senderId },
   });
   socket.send(JSON.stringify(payload));
 };
@@ -57,7 +57,7 @@ export const emitMarkDelivered = async ({ message, userId }: ReceiptParams) => {
       conversationId: message.conversationId,
       messageId: message.messageId,
       userId: userId,
-      recipient: { id: message.senderId },
+      sender: { id: message.senderId },
     },
   };
   socket.send(JSON.stringify(payload));
@@ -66,11 +66,11 @@ export const emitMarkDelivered = async ({ message, userId }: ReceiptParams) => {
 export const emitMarkAllRead = async ({
   conversationId,
   currentuserId,
-  recipientId,
+  senderId,
 }: {
   conversationId: number;
   currentuserId: number;
-  recipientId: number;
+  senderId: number;
 }) => {
   const socket = validateSocket();
   if (!socket || !chatStore.currentUser) return;
@@ -81,7 +81,7 @@ export const emitMarkAllRead = async ({
     payload: {
       conversationId,
       userId: currentuserId,
-      recipient: { id: recipientId },
+      sender: { id: senderId },
     },
   };
 

@@ -1,6 +1,6 @@
 import { messageReceipts } from "@pingxy/shared";
 import type { InsertReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
-import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import db from "src/common/db/client";
 
 export const ReceiptRepository = {
@@ -241,5 +241,21 @@ export const ReceiptRepository = {
           eq(messageReceipts.status, "read"),
         ),
       );
+  },
+
+  selectUnreadCountForUser: async (userId: number) => {
+    return await db
+      .select({
+        count: count(),
+        conversationId: messageReceipts.conversationId,
+      })
+      .from(messageReceipts)
+      .where(
+        and(
+          eq(messageReceipts.userId, userId),
+          ne(messageReceipts.status, "read"),
+        ),
+      )
+      .groupBy(messageReceipts.conversationId);
   },
 };

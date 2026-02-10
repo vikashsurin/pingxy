@@ -1,18 +1,16 @@
 <script lang="ts">
+    import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
+    import type { ChatEntry } from "$lib/store/store.svelte.js";
     import { chatStore } from "$lib/store/store.svelte.js";
-    import { onMount, tick } from "svelte";
+    import { virtualStore } from "$lib/store/virtualStore.svelte.js";
     import {
+        BellRing,
         Check,
         CheckCheck,
-        BellRing,
         CircleArrowDown,
         Loader,
     } from "@lucide/svelte";
-    import { Tween } from "svelte/motion";
-    import type { ChatEntry } from "$lib/store/store.svelte.js";
-    import { virtualStore } from "$lib/store/virtualStore.svelte.js";
-    import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
-    import { date } from "zod/v3";
+    import { onMount } from "svelte";
 
     const LIMIT = $derived(chatStore.LIMIT);
 
@@ -242,7 +240,7 @@
         await receiptManager.emitMarkAllRead({
             conversationId: conversationId!,
             currentuserId: chatStore.currentUser?.id!,
-            recipientId: chatStore.activeConversation?.user.id!,
+            senderId: chatStore.activeConversation?.user.id!,
         });
         chatStore.unread.delete(conversationId!);
     }

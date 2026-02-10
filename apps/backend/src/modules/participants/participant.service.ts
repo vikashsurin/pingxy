@@ -1,4 +1,3 @@
-import { NewParticipant } from "@pingxy/shared/types";
 import db from "src/common/db/client";
 import { ParticipantRepository } from "./participant.repository";
 
@@ -108,6 +107,44 @@ export const ParticipantService = {
     } catch (error) {
       console.error("Error removing participant:", error);
       throw new Error("Error removing participant");
+    }
+  },
+
+  incrementUnreadCount: async ({
+    conversationId,
+    senderId,
+  }: {
+    conversationId: number;
+    senderId: number;
+  }) => {
+    try {
+      return await ParticipantRepository.incrementUnreadCount({
+        conversationId,
+        senderId,
+      });
+    } catch (error) {
+      console.error("Error updating unread count:", error);
+      throw new Error("Error updating unread count");
+    }
+  },
+  resetUnreadCount: async ({
+    userId,
+    conversationId,
+    messageId,
+  }: {
+    userId: number;
+    conversationId: number;
+    messageId: number;
+  }) => {
+    try {
+      return await ParticipantRepository.resetUnreadCount({
+        userId,
+        conversationId,
+        messageId
+      });
+    } catch (error) {
+      console.error("Error updating unread count:", error);
+      throw new Error("Error updating unread count");
     }
   },
 };

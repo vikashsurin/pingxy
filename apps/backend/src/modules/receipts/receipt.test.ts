@@ -18,7 +18,8 @@ describe("Message Receipts Table Schema", () => {
       userId: 2,
       status: "sent",
     };
-    const result = await ReceiptRepository.insertMessageReceipt(newMessageReceipt);
+    const result =
+      await ReceiptRepository.insertMessageReceipt(newMessageReceipt);
     expect(result).toHaveLength(1);
   });
 
@@ -57,7 +58,13 @@ describe("Message Receipts Table Schema", () => {
         status: "sent",
       },
     ];
-    const result = await ReceiptRepository.insertBulkMessageReceipts(newMessageReceipts);
+    const result =
+      await ReceiptRepository.insertBulkMessageReceipts(newMessageReceipts);
     expect(result).toHaveLength(2);
+  });
+
+  test.only("should return unread message count for a user", async () => {
+    const result = await ReceiptRepository.selectUnreadCountForUser(3);
+    console.log({ unread: result });
   });
 });
