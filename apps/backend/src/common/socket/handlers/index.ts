@@ -1,9 +1,9 @@
 import { ClientReq } from "@pingxy/shared/types";
 import { type WebSocketData } from "../types";
-import { conversationHandler } from "./handler.conversation";
-import { messageHandler } from "./handler.message";
-import { receiptHandler } from "./handler.receipt";
-import { userHandler } from "./handler.user";
+import { conversationHandler } from "./socket.conversation";
+import { messageHandler } from "./socket.message";
+import { receiptHandler } from "./socket.receipt";
+import { userHandler } from "./socket.user";
 
 export type ClientReqMap = {
   [R in ClientReq as R["type"]]: R;

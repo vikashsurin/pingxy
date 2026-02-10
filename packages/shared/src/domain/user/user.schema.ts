@@ -1,10 +1,6 @@
-import {
-  createInsertSchema,
-  createSelectSchema,
-  createUpdateSchema,
-} from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { SERVER_EVENTS } from "../../constants/index";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/index";
 import {
   MAX_NAME_LENGTH,
   MAX_PASSWORD_LENGTH,
@@ -16,7 +12,7 @@ import { users } from "./user.table";
 export const insertUserSchema = createInsertSchema(users);
 // export const selectUserSchema = createSelectSchema(users);
 
-const UserMetaDataSchema = z.object({
+export const UserMetaDataSchema = z.object({
   gender: z.string(),
   age: z.number().min(18, "Age must be a positive number"),
   country: z.string(),
@@ -51,7 +47,7 @@ export const selectUserSchema = createSelectSchema(users)
   })
   .extend({
     data: UserMetaDataSchema,
-    lastSeenAt: z.coerce.date(),
+    lastSeenAt: z.coerce.date().nullable(),
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
   });
@@ -66,6 +62,30 @@ export const usersList = z.object({
   }),
 });
 
+// combine similar schemas
+export const userConnectSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.USERS.CONNECT),
+  payload: z.object({
+    user: selectUserSchema,
+  }),
+});
+
+export const userLogoutSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.USERS.LOGOUT),
+  payload: z.object({
+    user: selectUserSchema,
+  }),
+});
+
+export const userDisconnectSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.USERS.DISCONNECT),
+  payload: z.object({
+    user: selectUserSchema,
+  }),
+});
 export const userConnectedSchema = z.object({
   id: z.uuid(),
   type: z.literal(SERVER_EVENTS.USERS.CONNECTED),
@@ -77,6 +97,22 @@ export const userConnectedSchema = z.object({
 export const userDisconnectedSchema = z.object({
   id: z.uuid(),
   type: z.literal(SERVER_EVENTS.USERS.DISCONNECTED),
+  payload: z.object({
+    user: selectUserSchema,
+  }),
+});
+
+export const userLoggedInSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(SERVER_EVENTS.USERS.LOGIN),
+  payload: z.object({
+    user: selectUserSchema,
+  }),
+});
+
+export const userLoggedOutSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(SERVER_EVENTS.USERS.LOGOUT),
   payload: z.object({
     user: selectUserSchema,
   }),

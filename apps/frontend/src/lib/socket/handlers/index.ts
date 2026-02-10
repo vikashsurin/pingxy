@@ -1,8 +1,8 @@
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
-import { messageHandler } from "./handler.message";
-import { receiptHandler } from "./handler.receipt";
-import { userHandler } from "./handler.user";
-import { errorHandler } from "./handler.error";
+import { messageHandler } from "./socket.message";
+import { receiptHandler } from "./socket.receipt";
+import { userHandler } from "./socket.user";
+import { errorHandler } from "./socket.error";
 
 export type SocketHandler = {
   [K in keyof ServerEventMap]?: (

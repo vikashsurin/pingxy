@@ -1,11 +1,16 @@
-import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { User } from "@pingxy/shared/types";
 import { createServerEvent } from "../socket.factory";
-import { userSockets } from "../socket.state";
+import { userSockets } from "../state/socketState";
 
 import { SocketHandler } from "./index";
 
-export const userHandler: SocketHandler = {};
+export const userHandler: SocketHandler = {
+  [DOMAIN_EVENTS.USERS.LOGOUT]: async (socket, data) => {
+    socket.unsubscribe(`inbox:${data.payload.user.id}`);
+    socket.unsubscribe(":server");
+  },
+};
 
 export const emitUserList = () => {
   const users: User[] = [];

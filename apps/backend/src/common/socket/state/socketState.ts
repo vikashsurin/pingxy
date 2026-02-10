@@ -1,5 +1,5 @@
 import { User } from "@pingxy/shared/types";
-import { WebSocketData } from "./types";
+import { WebSocketData } from "../types";
 export let announcedUsers: Set<string> = new Set();
 
 export type UserSocketData = {

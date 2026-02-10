@@ -206,14 +206,6 @@ class ChatStore {
     }
   }
 
-  // Add a single message to a conversation (new message received/sent)
-  // addMessage(conversationId: number, entry: ChatEntry) {
-  //   this.messages[conversationId] ??= {};
-  //   this.messages[conversationId][entry.message.messageId] = entry;
-
-  //   // When adding new messages, trim oldest if needed
-  //   this.trimOldest(conversationId);
-  // }
 
   // Get a message entry by conversation and message ID
   getEntry(conversationId: number, messageId: number): ChatEntry | undefined {

@@ -7,9 +7,15 @@ export const userHandler: SocketHandler = {
     userManager.setOnlineUsers(data.payload.users);
   },
   [SERVER_EVENTS.USERS.CONNECTED]: (data) => {
-    // userManager.addOnlineUser(data.payload.user);
+    userManager.addOnlineUser(data.payload.user);
   },
   [SERVER_EVENTS.USERS.DISCONNECTED]: (data) => {
     // userManager.removeOnlineUser(data.payload.user);
+  },
+  [SERVER_EVENTS.USERS.LOGIN]: (data) => {
+    userManager.addOnlineUser(data.payload.user);
+  },
+  [SERVER_EVENTS.USERS.LOGOUT]: (data) => {
+    userManager.removeOnlineUser(data.payload.user);
   },
 };

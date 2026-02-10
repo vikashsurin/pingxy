@@ -6,15 +6,20 @@ import {
 } from "../domain/message-receipt/message-receipt.schema";
 
 import {
-  messageCreateSchema,
   messageCreatedSchema,
+  messageCreateSchema,
 } from "../domain/message/message.schema";
 
 import { openConversationSchema } from "../domain/conversation/conversation.schema";
 
 import {
   userConnectedSchema,
+  userConnectSchema,
   userDisconnectedSchema,
+  userDisconnectSchema,
+  userLoggedInSchema,
+  userLoggedOutSchema,
+  userLogoutSchema,
   usersList,
 } from "../domain/user/user.schema";
 
@@ -31,6 +36,9 @@ export const ClientReqSchema = z.discriminatedUnion("type", [
   messageCreateSchema,
   receiptReqSchema,
   openConversationSchema,
+  userConnectSchema,
+  userDisconnectSchema,
+  userLogoutSchema,
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
@@ -40,4 +48,6 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
   userConnectedSchema,
   userDisconnectedSchema,
   receiptEventSchema,
+  userLoggedInSchema,
+  userLoggedOutSchema,
 ]);

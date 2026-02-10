@@ -1,18 +1,15 @@
 import type {
-  MessageCreatedType,
-  MessageCreateType,
-  SERVER_EVENTS,
+  SERVER_EVENTS
 } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type {
-  ServerEventMap,
-  ServerEventType,
+  ServerEventMap
 } from "@pingxy/shared/socket/types";
+import { createClientReq } from "..";
 import { createMessage, fetchMessages } from "../../services/api";
 import { chatStore } from "../../store.svelte";
 import { virtualStore } from "../../virtualStore.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
-import { createClientReq } from "..";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -103,8 +100,8 @@ export const handleIncomingMessage = async (
   }
 };
 
-export const updateMessage = async () => {};
-export const deleteMessage = async () => {};
+export const updateMessage = async () => { };
+export const deleteMessage = async () => { };
 
 // Private
 const addMessageToState = async (

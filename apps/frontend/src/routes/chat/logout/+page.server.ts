@@ -7,5 +7,7 @@ export const load: LayoutServerLoad = async ({ fetch, cookies, locals }) => {
   cookies.delete("_Host-session", { path: "/" });
 
   locals.user = null;
+
+
   throw redirect(302, "/");
 };

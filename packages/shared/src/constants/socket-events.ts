@@ -15,8 +15,10 @@ export const DOMAIN_EVENTS = {
   },
   USERS: {
     LIST: "req:users.list",
-    CONNECTED: "req:user.connected",
-    DISCONNECTEDT: "req:user.disconnected",
+    CONNECT: "req:user.connect",
+    DISCONNECT: "req:user.disconnect",
+    LOGOUT: "req:user.logout",
+    LOGIN: "req:user.login",
   },
   CONVERSATIONS: {
     OPEN: "req:conversation.open",
@@ -45,6 +47,8 @@ export const SERVER_EVENTS = {
     LIST: "event:users.list",
     CONNECTED: "event:user.connected",
     DISCONNECTED: "event:user.disconnected",
+    LOGIN: "event:user.login",
+    LOGOUT: "event:user.logout",
   },
   CONVERSATIONS: {
     OPEN: "event:conversation.open",

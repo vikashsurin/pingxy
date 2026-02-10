@@ -8,6 +8,7 @@ import type {
 } from "@pingxy/shared/types/index";
 import { chatStore } from "../../store.svelte";
 import { createClientReq } from "..";
+import { validateSocket } from "$lib/store/helpers";
 
 /**
  * Priority used to ensure we don't overwrite a 'read' status
@@ -103,15 +104,6 @@ export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
 // --- PRIVATE HELPERS ---
 // These are not exported, so they will be bundled only if the
 // exported functions above are used.
-
-function validateSocket() {
-  const socket = getSocket();
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    console.warn("WebSocket not ready");
-    return null;
-  }
-  return socket;
-}
 
 /**
  * Central logic for updating the chatStore.

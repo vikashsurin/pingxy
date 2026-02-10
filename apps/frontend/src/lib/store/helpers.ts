@@ -1,5 +1,4 @@
 import { getSocket } from "$lib/socket/socket.svelte";
-import type { ClientReqType, ClientReqMap } from "@pingxy/shared/socket/types";
 
 export function validateSocket() {
   const socket = getSocket();

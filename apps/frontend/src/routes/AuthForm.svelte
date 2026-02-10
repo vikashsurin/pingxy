@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { enhance } from "$app/forms";
     import countries from "$lib/countires.json";
+    import { chatStore } from "$lib/store/store.svelte.js";
     import { debounce } from "$lib/utils/debounce";
     import { CircleAlert, CircleCheck } from "@lucide/svelte";
-    import { enhance } from "$app/forms";
-    import { chatStore } from "$lib/store/store.svelte.js";
     import { type User } from "@pingxy/shared";
+    import { onMount } from "svelte";
 
     let { form } = $props();
 
@@ -146,7 +146,6 @@
                         result.type === "success" &&
                         result.data !== undefined
                     ) {
-                        console.log("huhu");
                         chatStore.currentUser = result.data.user as User;
                     }
 

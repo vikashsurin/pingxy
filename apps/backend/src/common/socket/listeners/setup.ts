@@ -1,6 +1,6 @@
-import { messageListener } from "./listener.message";
-import { receiptListener } from "./listener.receipt";
-import { userListener } from "./listener.user";
+import { messageListener } from "./event.message";
+import { receiptListener } from "./event.receipt";
+import { userListener } from "./event.user";
 import { registerBusListeners } from "./register";
 
 export function setupSocketListeners() {

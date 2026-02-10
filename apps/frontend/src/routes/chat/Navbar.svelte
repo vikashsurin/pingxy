@@ -1,34 +1,11 @@
 <script lang="ts">
-  import { getSocket } from "$lib/socket/socket.svelte";
-  import { chatStore } from "$lib/store/store.svelte";
+  import { handleLogout } from "$lib/store/managers/entities/user.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
-  // import type { MessagePayload } from "@pingxy/shared/types";
-  import {
-    ChevronDown,
-    CircleChevronDown,
-    CircleUserRound,
-    Menu,
-    X,
-  } from "@lucide/svelte";
+  import { CircleChevronDown, CircleUserRound, Menu, X } from "@lucide/svelte";
   let { username } = $props();
   let expandMenu = $state(false);
 
   let isMenuExpanded = $state(false);
-
-  function handleLogout() {
-    const message  = {
-      type: "user_offline",
-      id: crypto.randomUUID(),
-    };
-
-    const socket = getSocket();
-
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(message));
-    }
-
-    chatStore.reset();
-  }
 </script>
 
 <!-- FOR MOBILE -->
@@ -61,7 +38,7 @@
             href="/chat/logout"
             data-sveltekit-preload-data={false}
             class="underline text-red-500 hover:text-red-500 active:text-red-700"
-            >Logout</a
+            onclick={handleLogout}>Logout</a
           >
         </div>
       </div>

@@ -1,10 +1,14 @@
+import { eventBus } from "@common/events";
+import { createServerEvent } from "@common/socket/socket.factory";
+import { SessionService } from "@modules/sessions";
+import { UserService } from "@modules/users";
+import { SERVER_EVENTS } from "@pingxy/shared/constants";
 import {
   NewUser,
   RegisterGuest,
   RegisterUser,
+  UserMetaDataSchema,
 } from "@pingxy/shared/domain/user";
-import { SessionService } from "@modules/sessions";
-import { UserService } from "@modules/users";
 import { ConnInfo } from "hono/conninfo";
 import { HTTPException } from "hono/http-exception";
 
@@ -69,6 +73,14 @@ export const AuthService = {
 
     await SessionService.createSession(token, user.id, ipAddress, userAgent);
 
+    // Emit USER LOGIN EVENT
+    const validatedData = UserMetaDataSchema.parse(user.data)
+
+    const event = createServerEvent(SERVER_EVENTS.USERS.LOGIN, {
+      user: { ...user, data: validatedData },
+    });
+    eventBus.emit(SERVER_EVENTS.USERS.LOGIN, event);
+
     return {
       user: user,
       token: token,
@@ -100,5 +112,25 @@ export const AuthService = {
       user: null,
       token: token,
     };
+  },
+
+  logout: async (cookie: string) => {
+    const user = await SessionService.getSessionUser(cookie);
+    const success = await SessionService.revokeSession(cookie);
+    if (!success) {
+      throw new Error("Failed to Logout user");
+    }
+
+    // Remove user from db, if the user is a guest
+    if (user.userType === "guest") {
+      const removed = UserService.removeUser(user.id);
+      if (!removed) {
+        throw new Error("Error removing Guest user");
+      }
+    }
+    const event = createServerEvent(SERVER_EVENTS.USERS.LOGOUT, { user });
+    eventBus.emit(SERVER_EVENTS.USERS.LOGOUT, event);
+
+    return success;
   },
 };

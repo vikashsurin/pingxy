@@ -95,12 +95,14 @@ export const ReceiptRepository = {
     conversationId: number;
     userId: number;
   }) => {
+    const now = new Date(Date.now());
     return await db
       .update(messageReceipts)
       .set({
         status: "read",
-        readAt: new Date(Date.now()),
-        updatedAt: new Date(Date.now()),
+        readAt: now,
+        updatedAt: now,
+        deliveredAt: sql`COALESCE(${messageReceipts.deliveredAt}, ${now})`,
       })
       .where(
         and(
@@ -123,6 +125,7 @@ export const ReceiptRepository = {
     readAt: Date;
   }) => {
     if (messageIds.length === 0) return;
+    const now = new Date(Date.now());
 
     await db
       .update(messageReceipts)
@@ -130,6 +133,7 @@ export const ReceiptRepository = {
         status: "read",
         readAt: readAt,
         updatedAt: new Date(Date.now()),
+        deliveredAt: sql`COALESCE(${messageReceipts.deliveredAt}, ${now})`,
       })
       .where(
         and(

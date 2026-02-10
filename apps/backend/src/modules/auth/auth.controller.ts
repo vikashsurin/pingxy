@@ -1,11 +1,9 @@
+import { factory } from "@common/db/drizzle-factory";
+import { validate } from "@common/utils/validator";
 import {
   GuestUserRequestSchema,
   RegisterUserRequestSchema,
 } from "@pingxy/shared/domain/user";
-import { factory } from "@common/db/drizzle-factory";
-import { validate } from "@common/utils/validator";
-import { SessionService } from "@modules/sessions";
-import { UserService } from "@modules/users";
 import { Context } from "hono";
 import { getConnInfo } from "hono/bun";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
@@ -65,7 +63,7 @@ export const AuthController = {
       }),
     ),
     async (c) => {
-      console.log("login called")
+      console.log("login called");
       try {
         const info = getConnInfo(c);
         const ipAddress = info.remote.address!;
@@ -140,21 +138,13 @@ export const AuthController = {
     if (!cookie) {
       return c.json({ error: "Missing Auth token" }, 401);
     }
-    const user = await SessionService.getSessionUser(cookie);
-    const success = await SessionService.revokeSession(cookie);
+
+    const success = await AuthService.logout(cookie);
     if (!success) {
-      throw new Error("Failed to Logout user");
+      return c.json({ error: "Failed to logout user" }, 500);
     }
 
     deleteCookie(c, "_Host-session");
-
-    // Remove user from services, if the user is a guest
-    if (user.userType === "guest") {
-      const removed = UserService.removeUser(user.id);
-      if (!removed) {
-        throw new Error("Error removing Guest user");
-      }
-    }
     return c.json({ message: "Logged out successfully" });
   },
 };

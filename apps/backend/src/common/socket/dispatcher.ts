@@ -1,7 +1,7 @@
 import { ClientReqSchema } from "@pingxy/shared/socket";
 import { z } from "zod";
 import { handlers } from "./handlers";
-import { sendError } from "./socket.helper";
+import { sendError } from "./helpers/socketHelper";
 import { WebSocketData } from "./types";
 
 export const onSocketMessage = (
@@ -12,6 +12,8 @@ export const onSocketMessage = (
     const parsedData = JSON.parse(rawData.toString());
 
     const result = ClientReqSchema.safeParse(parsedData);
+
+    console.log({ result });
 
     if (!result.success) {
       console.error("Invalid socket payload:", z.treeifyError(result.error));

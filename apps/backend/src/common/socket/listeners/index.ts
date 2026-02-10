@@ -5,4 +5,3 @@ export type BusListener = {
     data: ServerEventMap[K],
   ) => void | Promise<void>;
 };
-
