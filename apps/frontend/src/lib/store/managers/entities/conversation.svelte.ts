@@ -1,7 +1,8 @@
+import { fetchConversations } from "$lib/store/services/api/conversation";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type { ClientReqMap } from "@pingxy/shared/socket/types";
 import { validateSocket } from "../../helpers";
-import type { PrivateConversation } from "../../store.svelte";
+import { chatStore, type PrivateConversation } from "../../store.svelte";
 
 export const subscribeToConversation = async ({
   conversation,
@@ -25,4 +26,11 @@ export const subscribeToConversation = async ({
   };
 
   socket.send(JSON.stringify(message));
+};
+
+export const getAllConversations = async () => {
+  const conversations = await fetchConversations();
+  conversations.forEach((element: any) => {
+    chatStore.conversations[element.conversationId] = element;
+  });
 };

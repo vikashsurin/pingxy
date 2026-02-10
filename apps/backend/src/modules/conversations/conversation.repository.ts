@@ -60,8 +60,8 @@ export const ConversationRepository = {
     // Get conversations with all participant details
     const result = await db
       .select({
+        unreadCount: p1.unreadCount,
         conversationId: conversations.conversationId,
-        createdAt: conversations.createdAt,
         user: {
           id: users.id,
           username: users.username,

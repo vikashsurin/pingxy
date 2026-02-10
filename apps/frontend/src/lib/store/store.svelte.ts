@@ -3,7 +3,10 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import * as messageManager from "./managers/entities/message.svelte";
 import { fetchConversation } from "./services/api";
 
+type UserWithStatus = User & { isOnline: boolean };
+
 export type PrivateConversation = {
+  unreadCount: number;
   conversationId: number | null | undefined;
   user: User;
 };
@@ -13,10 +16,14 @@ export type ChatEntry = {
   receipt: MessageReceipt;
 };
 
+type Target =
+  | { isUser: true; user: User }
+  | { isUser: false; user: User; conversationId: number; unreadCount: number };
+
 // Proper type for chat target instead of any
-export type ChatTarget =
-  | { isUser: true; data: User }
-  | { isUser: false; data: Record<string, never> };
+// export type ChatTarget =
+//   | { isUser: true; data: User }
+//   | { isUser: false; data: PrivateConversation | {} };
 
 class ChatStore {
   isConnected = $state<boolean>(false);
@@ -25,14 +32,46 @@ class ChatStore {
   onlineUsers = $state<User[]>([]);
   searchQuery = $state<string>("");
 
-  chatTarget = $state<ChatTarget>({
-    isUser: false,
-    data: {},
-  });
+  target = $state<Target | null>(null);
+
+  // chatTarget = $state<ChatTarget>({
+  //   isUser: false,
+  //   data: {},
+  // });
 
   activeConversation = $state<PrivateConversation>();
 
-  conversations = $state<PrivateConversation[]>([]);
+  // chatPartner = $derived.by(() => {
+  //   if (this.activeConversation) return this.activeConversation.user;
+  //   if (this.target.isUser) return this.target.data;
+  //   return null;
+  // });
+
+  conversations = $state<Record<number, PrivateConversation>>({});
+
+  displayConversations = $derived.by(
+    (): (PrivateConversation & { user: UserWithStatus })[] => {
+      const onlineMap = new Map(this.onlineUsers.map((u) => [u.id, u]));
+
+      return Object.values(this.conversations).map((convo) => ({
+        ...convo,
+        user: {
+          ...convo.user,
+          isOnline: onlineMap.has(convo.user.id),
+        },
+      }));
+    },
+  );
+
+  totalUnreadCount = $derived.by(() => {
+    return Object.values(this.conversations).reduce(
+      (acc, conv) => acc + (conv.unreadCount || 0),
+      0,
+    );
+  });
+
+  hasUnreadMessages = $derived(this.totalUnreadCount > 0);
+
   notifications = new SvelteSet<number>();
 
   // Nested structure: { [conversationId]: { [messageId]: ChatEntry } }
@@ -70,10 +109,12 @@ class ChatStore {
 
     if (!conversation) {
       this.setActiveConversation({
+        unreadCount: 0,
         conversationId: null,
         user: user,
       });
       this.setActiveConversation({
+        unreadCount: 0,
         conversationId: conversation.conversationId,
         user: user,
       });
@@ -84,6 +125,7 @@ class ChatStore {
 
   setActiveConversation({ conversationId, user }: PrivateConversation) {
     chatStore.activeConversation = {
+      unreadCount: 0,
       conversationId: conversationId,
       user: user,
     };

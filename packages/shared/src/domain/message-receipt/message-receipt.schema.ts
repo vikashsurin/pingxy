@@ -91,6 +91,7 @@ export const receiptEventSchema = z.object({
   id: z.uuid(),
   type: eventEnums,
   payload: z.object({
+    userId: z.number(),
     receipts: z.array(selectMessageReceiptSchema).optional(),
     recipient: z.object({
       id: z.number(),

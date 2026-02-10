@@ -3,11 +3,6 @@ import { DOMAIN_EVENTS } from "@pingxy/shared/constants";
 import { SocketHandler } from "./index";
 
 export const receiptHandler: SocketHandler = {
-  [DOMAIN_EVENTS.RECEIPTS.ALL_READ]: async (socket, data) => {
-    if (data.payload.conversationId && data.payload.userId) {
-      await ReceiptService.processMarkAllRead(data);
-    }
-  },
   [DOMAIN_EVENTS.RECEIPTS.DELIVER]: async (socket, data) => {
     if (data.payload.conversationId && data.payload.userId) {
       console.log("message delivery request:: ", data);
@@ -19,6 +14,11 @@ export const receiptHandler: SocketHandler = {
 
     if (data.payload.conversationId && data.payload.userId) {
       await ReceiptService.processReadReceipt(data);
+    }
+  },
+  [DOMAIN_EVENTS.RECEIPTS.ALL_READ]: async (socket, data) => {
+    if (data.payload.conversationId && data.payload.userId) {
+      await ReceiptService.processMarkAllRead(data);
     }
   },
 };

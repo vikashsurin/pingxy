@@ -11,5 +11,8 @@ export const receiptListener: BusListener = {
   },
   [SERVER_EVENTS.RECEIPTS.ALL_READ]: async (data) => {
     publish(`inbox:${data.payload.recipient.id}`, JSON.stringify(data));
+    // Inform the user that all receipts have been read
+    // So the user can update their UI accordingly -> set unreadCount to 0
+    publish(`inbox:${data.payload.userId}`, JSON.stringify(data));
   },
 };

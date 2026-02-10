@@ -1,20 +1,15 @@
 <script lang="ts">
-  import { subscribeToConversation } from "$lib/store/managers/entities/conversation.svelte";
+  import {
+    getAllConversations,
+    subscribeToConversation,
+  } from "$lib/store/managers/entities/conversation.svelte";
   import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
   import { chatStore, type PrivateConversation } from "$lib/store/store.svelte";
   import { onMount } from "svelte";
   import GenderIcon from "./GenderIcon.svelte";
 
   onMount(async () => {
-    const response = await fetch(`/api/conversations`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const data = await response.json();
-    chatStore.conversations = data.conversations;
+    await getAllConversations();
   });
 
   const handleClick = async (conversation: PrivateConversation) => {
@@ -22,6 +17,12 @@
 
     chatStore.clearNotification(conversation.conversationId!);
     chatStore.activeConversation = conversation;
+    chatStore.target = {
+      user: conversation.user,
+      isUser: false,
+      conversationId: conversation.conversationId!,
+      unreadCount: 0,
+    };
 
     await receiptManager.emitMarkAllRead({
       conversationId: conversation.conversationId,
@@ -42,10 +43,10 @@
 
 <div class="flex-1 flex flex-col overflow-hidden">
   <ul class=" overflow-y-auto w-full">
-    {#if chatStore.conversations.length < 0}
+    {#if Object.keys(chatStore.conversations).length < 0}
       {@render userItemRowSkeleton()}
     {:else}
-      {#each chatStore.conversations as conversation}
+      {#each Object.values(chatStore.conversations) as conversation}
         {@render userItemRow(conversation)}
       {/each}
     {/if}
@@ -102,6 +103,15 @@
               >
               </span>
             </span>
+            {#if conversation.unreadCount && conversation.unreadCount > 0}
+              <span
+                class="text-xs bg-red-600 p-1 h-5 w-5 flex items-center justify-center text-white rounded-full border border-red-800"
+              >
+                {conversation.unreadCount}
+              </span>
+            {:else}
+              <span></span>
+            {/if}
           {/if}
         </div>
 

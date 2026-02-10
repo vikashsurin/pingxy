@@ -41,13 +41,6 @@ export const ReceiptService = {
           userId,
         });
 
-      const event = createServerEvent(SERVER_EVENTS.RECEIPTS.ALL_READ, {
-        receipts: messageReceipts,
-        recipient: {
-          id: readerId,
-        },
-      });
-
       const latestMessage = await MessageService.findLatest(conversationId);
 
       await ParticipantService.resetUnreadCount({
@@ -56,6 +49,13 @@ export const ReceiptService = {
         messageId: latestMessage.messageId,
       });
 
+      const event = createServerEvent(SERVER_EVENTS.RECEIPTS.ALL_READ, {
+        receipts: messageReceipts,
+        userId: userId,
+        recipient: {
+          id: readerId,
+        },
+      });
       eventBus.emit(SERVER_EVENTS.RECEIPTS.ALL_READ, event);
 
       return messageReceipts;
@@ -80,6 +80,7 @@ export const ReceiptService = {
 
     const event = createServerEvent(SERVER_EVENTS.RECEIPTS.DELIVERED, {
       receipts: messageReceipts,
+      userId: userId,
       recipient: {
         id: ackUserId,
       },
@@ -105,6 +106,7 @@ export const ReceiptService = {
 
     const event = createServerEvent(SERVER_EVENTS.RECEIPTS.READ, {
       receipts: messageReceipts,
+      userId: userId,
       recipient: {
         id: senderId,
       },

@@ -62,7 +62,9 @@ export const ConversationService = {
 
   getByUser: async ({ userId }: { userId: number }) => {
     try {
-      return await ConversationRepository.selectByUserId(userId);
+      const result = await ConversationRepository.selectByUserId(userId);
+      console.log({ result })
+      return result;
     } catch (error) {
       console.error("Error getting conversations by user id:", error);
       throw new Error("Error getting conversations by user id");

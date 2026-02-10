@@ -17,6 +17,7 @@
   });
 
   function handleOpenConversation(user: User) {
+    chatStore.target = { isUser: true, user: user };
     chatStore.initChat(user);
   }
 </script>

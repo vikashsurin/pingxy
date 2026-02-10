@@ -1,4 +1,5 @@
 import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
+import { chatStore } from "$lib/store/store.svelte";
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { SocketHandler } from "./index";
 
@@ -24,6 +25,12 @@ export const receiptHandler: SocketHandler = {
     const receipts = data.payload.receipts;
 
     if (!receipts) return;
+
     receiptManager.handleIncomingReceipts(receipts);
+
+    // Reset the unread count for a conversation
+    receipts.forEach(receipt => {
+      chatStore.conversations[receipt.conversationId].unreadCount = 0;
+    })
   },
 };

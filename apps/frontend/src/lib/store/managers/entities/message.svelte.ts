@@ -75,10 +75,37 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
 };
 
+// export const handleIncomingMessage = async (
+//   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
+// ) => {
+//   addMessageToState(data);
+
+//   if (
+//     chatStore.activeConversation?.conversationId === data.payload.conversationId
+//   ) {
+//     if (data.payload.message.senderId !== chatStore.currentUser?.id) {
+//       emitMarkRead({
+//         message: data.payload.message,
+//         userId: chatStore.currentUser?.id!,
+//       });
+//     }
+//   } else {
+//     // Handle other cases if needed
+//     emitMarkDelivered({
+//       message: data.payload.message,
+//       userId: data.payload.recipient.id,
+//     });
+
+//     chatStore.conversations[data.payload.conversationId].unreadCount += 1;
+//   }
+// };
 export const handleIncomingMessage = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
+  const { conversationId, message, recipient } = data.payload;
+  const currentUserId = chatStore.currentUser?.id;
   addMessageToState(data);
+
 
   if (
     chatStore.activeConversation?.conversationId === data.payload.conversationId
@@ -95,11 +122,13 @@ export const handleIncomingMessage = async (
       message: data.payload.message,
       userId: data.payload.recipient.id,
     });
+
+    chatStore.conversations[data.payload.conversationId].unreadCount += 1;
   }
 };
 
-export const updateMessage = async () => {};
-export const deleteMessage = async () => {};
+export const updateMessage = async () => { };
+export const deleteMessage = async () => { };
 
 // Private
 const addMessageToState = async (
