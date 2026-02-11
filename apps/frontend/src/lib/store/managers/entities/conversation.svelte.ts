@@ -35,11 +35,13 @@ export const initConversations = async () => {
   });
 };
 
-export const resetUnreadCount = async (conversationId: number) => {
-  chatStore.conversations[conversationId].unreadCount = 0;
+export const resetUnreadCount = (conversationId: number) => {
+  if (chatStore.conversations[conversationId]) {
+    chatStore.conversations[conversationId].unreadCount = 0;
+  }
 };
 
-export const setUnreadCount = async (conversationId: number) => {
+export const setUnreadCount = (conversationId: number) => {
   if (chatStore.conversations[conversationId]) {
     chatStore.conversations[conversationId].unreadCount++;
   }

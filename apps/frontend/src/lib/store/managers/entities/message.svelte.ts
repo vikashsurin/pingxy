@@ -58,6 +58,7 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
       senderId: chatStore.currentUser.id,
     },
     conversationId: conversationId ?? null,
+    sender: chatStore.currentUser,
     recipient: {
       id: chatStore.activeConversation.user.id,
       username: chatStore.activeConversation.user.username,
@@ -80,21 +81,21 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
 export const handleIncomingMessage = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
-  const { conversationId, message, recipient } = data.payload;
-  const currentUserId = chatStore.currentUser?.id;
+  // const { conversationId, message, recipient } = data.payload;
+  // const currentUserId = chatStore.currentUser?.id;
 
   addMessageToState(data);
 
-  const isCurrentlyViewing =
-    chatStore.activeConversation?.conversationId === conversationId;
-  const isFromMe = message.senderId === currentUserId;
+  // const isCurrentlyViewing =
+  //   chatStore.activeConversation?.conversationId === conversationId;
+  // const isFromMe = message.senderId === currentUserId;
 
-  if (isCurrentlyViewing && !isFromMe) {
-    emitMarkRead({ message, userId: currentUserId! });
-  } else {
-    emitMarkDelivered({ message, userId: recipient.id });
-    setUnreadCount(conversationId);
-  }
+  // if (isCurrentlyViewing && !isFromMe) {
+  //   emitMarkRead({ message, userId: currentUserId! });
+  // } else {
+  //   emitMarkDelivered({ message, userId: recipient.id });
+  //   // setUnreadCount(conversationId);
+  // }
 };
 
 export const updateMessage = async () => {};
@@ -104,32 +105,41 @@ export const deleteMessage = async () => {};
 const addMessageToState = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
-  const { message, conversationId, receipt } = data.payload;
+  const { message, conversationId, sender, receipt } = data.payload;
+  const currentUser = chatStore.currentUser;
+  const otherUser = chatStore.activeConversation?.user;
 
   if (!chatStore.messages[conversationId]) {
-    if (message.senderId === chatStore.currentUser?.id) {
-      // Create new conversation in case it doesn't exist
-      chatStore.conversations[conversationId] = {
-        unreadCount: 0,
-        conversationId: conversationId,
-        user: chatStore.activeConversation?.user!,
-      };
-      chatStore.messages[conversationId] = {};
-    } else {
-      // Create new conversation in case it doesn't exist
-      // also fetch sender's user data
-      const user = await getUser(message.senderId);
-
-      chatStore.conversations[conversationId] = {
-        unreadCount: 1,
-        conversationId: conversationId,
-        user: user,
-      };
-      chatStore.messages[conversationId] = {};
-    }
+    chatStore.messages[conversationId] = {};
   }
+
+  if (!chatStore.conversations[conversationId]) {
+    const partner = message.senderId === currentUser?.id ? otherUser : sender;
+
+    chatStore.conversations[conversationId] = {
+      unreadCount: 0,
+      conversationId: conversationId,
+      user: partner!,
+    };
+  }
+
   chatStore.messages[conversationId][message.messageId] = {
     message,
     receipt,
   };
+
+  const isFromMe = message.senderId === currentUser?.id;
+  const isViewing =
+    chatStore.activeConversation?.conversationId === conversationId;
+
+  if (!isFromMe) {
+    if (isViewing) {
+      emitMarkRead({ message, userId: currentUser?.id! });
+    } else {
+      emitMarkDelivered({ message, userId: currentUser?.id! });
+      setUnreadCount(conversationId);
+    }
+  }
+
+  chatStore.drainPendingReceipts(conversationId);
 };

@@ -15,14 +15,7 @@ export const removeOnlineUser = (user: User) => {
   chatStore.onlineUsers = chatStore.onlineUsers.filter((u) => u.id !== user.id);
 };
 
-export const handleLogin = () => {
-  // const message = createClientReq(DOMAIN_EVENTS.USERS.LOGIN, {
-  //   user: chatStore.currentUser!,
-  // });
-  // const socket = validateSocket();
-  // if (!socket) return
-  // socket.send(JSON.stringify(message));
-};
+export const handleLogin = () => {};
 
 export const handleLogout = () => {
   const message = createClientReq(DOMAIN_EVENTS.USERS.LOGOUT, {
@@ -32,7 +25,6 @@ export const handleLogout = () => {
   const socket = validateSocket();
   if (!socket) return;
   socket.send(JSON.stringify(message));
-  // socket.close()
 
   chatStore.reset();
 };

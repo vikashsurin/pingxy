@@ -85,19 +85,39 @@ export const emitMarkAllRead = async ({
   resetUnreadCount(conversationId);
 };
 
-export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
-  const hasMessage = () => {
-    for (const _ in chatStore.messages) return true;
-    return false;
-  };
+// export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
+//   const hasMessage = () => {
+//     for (const _ in chatStore.messages) return true;
+//     return false;
+//   };
 
-  if (hasMessage()) {
-    for (const receipt of receipts) {
-      const messages = chatStore.messages[receipt.conversationId];
-      console.log({ messages: $state.snapshot(messages) });
-      if (messages && messages[receipt.messageId]) {
-        applyReceiptUpdateToStore(messages[receipt.messageId], receipt);
+//   if (hasMessage()) {
+//     for (const receipt of receipts) {
+//       const messages = chatStore.messages[receipt.conversationId];
+//       console.log({ messages: $state.snapshot(messages) });
+//       if (messages && messages[receipt.messageId]) {
+//         applyReceiptUpdateToStore(messages[receipt.messageId], receipt);
+//       }
+//     }
+//   }
+// };
+export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
+  for (const receipt of receipts) {
+    const conversationMessages = chatStore.messages[receipt.conversationId];
+
+    // If we have the messages, update them immediately
+    if (conversationMessages && conversationMessages[receipt.messageId]) {
+      applyReceiptUpdateToStore(
+        conversationMessages[receipt.messageId],
+        receipt,
+      );
+    }
+    // If we don't have them yet, store the receipt in a buffer
+    else {
+      if (!chatStore.pendingReceipts[receipt.conversationId]) {
+        chatStore.pendingReceipts[receipt.conversationId] = [];
       }
+      chatStore.pendingReceipts[receipt.conversationId].push(receipt);
     }
   }
 };

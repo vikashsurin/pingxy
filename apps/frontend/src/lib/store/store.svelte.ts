@@ -2,6 +2,7 @@ import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import * as messageManager from "./managers/entities/message.svelte";
 import { fetchConversation } from "./services/api";
+import { handleIncomingReceipts } from "./managers/entities/receipt.svelte";
 
 type UserWithStatus = User & { isOnline: boolean };
 
@@ -55,6 +56,8 @@ class ChatStore {
   });
 
   hasUnreadMessages = $derived(this.totalUnreadCount > 0);
+
+  pendingReceipts = $state<Record<number, MessageReceipt[]>>({});
 
   notifications = new SvelteSet<number>();
 
@@ -246,6 +249,22 @@ class ChatStore {
 
   async clearNotification(conversationId: number) {
     this.notifications.delete(conversationId);
+  }
+
+  drainPendingReceipts(conversationId: number) {
+    const receipts = this.pendingReceipts[conversationId];
+
+    if (receipts && receipts.length > 0) {
+      console.log(
+        `Draining ${receipts.length} receipts for conversation ${conversationId}`,
+      );
+
+      // Reuse your existing logic
+      handleIncomingReceipts(receipts);
+
+      // Clear the memory
+      delete this.pendingReceipts[conversationId];
+    }
   }
 
   reset() {

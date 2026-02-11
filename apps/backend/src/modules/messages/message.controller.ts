@@ -1,12 +1,12 @@
 import { factory } from "@common/db/drizzle-factory";
 import { validate } from "@common/utils/validator";
-import { ClientReqSchema } from "@pingxy/shared/socket/schema";
+import { messageCreateSchema } from "@pingxy/shared/domain/message/message.schema";
 
 import { MessageService } from "./message.service";
 
 export const MessageController = {
   create: factory.createHandlers(
-    validate("json", ClientReqSchema),
+    validate("json", messageCreateSchema),
     async (c) => {
       const body = c.req.valid("json");
 

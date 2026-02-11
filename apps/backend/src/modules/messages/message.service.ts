@@ -15,7 +15,7 @@ export const MessageService = {
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
   ) => {
     try {
-      const { message, recipient } = body.payload;
+      const { message, recipient, sender } = body.payload;
       // const result = await db.transaction(async (tx) => {
       //  TODO: Wrap it in transaction
       const conversation = await ConversationService.findOrCreateByUsers({
@@ -54,6 +54,7 @@ export const MessageService = {
           message: insertedMessage,
           receipt: messageReceipt,
           conversationId: conversation.conversationId,
+          sender: sender,
           recipient: recipient,
         },
       );
