@@ -1,8 +1,8 @@
 import { blockedUsers } from "@pingxy/shared";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import db, { DB_TX } from "src/common/db/client";
 
-export const BlockedRepository = {
+export const BlocksRepository = {
   insert: async ({
     blockerId,
     blockedId,
@@ -106,6 +106,27 @@ export const BlockedRepository = {
       throw new Error("Failed to select blocked user");
     }
     return result;
+  },
+
+  exists: async ({
+    blockerId,
+    blockedId,
+    tx = db,
+  }: {
+    blockerId: number;
+    blockedId: number;
+    tx?: DB_TX;
+  }) => {
+    const [result] = await tx
+      .select()
+      .from(blockedUsers)
+      .where(
+        and(
+          eq(blockedUsers.blockerId, blockerId),
+          eq(blockedUsers.blockedId, blockedId),
+        ),
+      );
+    return !!result;
   },
 
   countBlocked: async ({

@@ -1,7 +1,7 @@
 import { factory } from "@common/db/drizzle-factory";
 import { validate } from "@common/utils/validator";
 import { z } from "zod";
-import { BlockedUserService } from "./blocked.service";
+import { BlockService } from "./block.service";
 
 export const BlocksController = {
   block: factory.createHandlers(
@@ -11,7 +11,7 @@ export const BlocksController = {
     ),
     async (c) => {
       const { blockerId, blockedId } = c.req.valid("json");
-      const result = await BlockedUserService.block({ blockerId, blockedId });
+      const result = await BlockService.block({ blockerId, blockedId });
       return c.json(result);
     },
   ),
@@ -19,7 +19,7 @@ export const BlocksController = {
     validate("param", z.object({ blockId: z.coerce.number() })),
     async (c) => {
       const { blockId } = c.req.valid("param");
-      const result = await BlockedUserService.unblock({ blockId });
+      const result = await BlockService.unblock({ blockId });
       return c.json(result);
     },
   ),
@@ -27,7 +27,7 @@ export const BlocksController = {
     validate("param", z.object({ blockId: z.coerce.number() })),
     async (c) => {
       const { blockId } = c.req.valid("param");
-      const result = await BlockedUserService.findById({ blockId });
+      const result = await BlockService.findById({ blockId });
       return c.json(result);
     },
   ),
@@ -35,7 +35,7 @@ export const BlocksController = {
     validate("param", z.object({ blockerId: z.coerce.number() })),
     async (c) => {
       const { blockerId } = c.req.valid("param");
-      const result = await BlockedUserService.listBlocked({ blockerId });
+      const result = await BlockService.listBlocked({ blockerId });
       return c.json(result);
     },
   ),
@@ -43,7 +43,7 @@ export const BlocksController = {
     validate("param", z.object({ blockedId: z.coerce.number() })),
     async (c) => {
       const { blockedId } = c.req.valid("param");
-      const result = await BlockedUserService.listBlockers({ blockedId });
+      const result = await BlockService.listBlockers({ blockedId });
       return c.json(result);
     },
   ),
@@ -54,7 +54,7 @@ export const BlocksController = {
     ),
     async (c) => {
       const { blockerId, blockedId } = c.req.valid("param");
-      const result = await BlockedUserService.find({ blockerId, blockedId });
+      const result = await BlockService.find({ blockerId, blockedId });
       return c.json(result);
     },
   ),
@@ -62,12 +62,12 @@ export const BlocksController = {
     validate("param", z.object({ blockerId: z.coerce.number() })),
     async (c) => {
       const { blockerId } = c.req.valid("param");
-      const result = await BlockedUserService.countBlocked({ blockerId });
+      const result = await BlockService.countBlocked({ blockerId });
       return c.json(result);
     },
   ),
   getAllBlocks: factory.createHandlers(async (c) => {
-    const result = await BlockedUserService.listAll();
+    const result = await BlockService.listAll();
     return c.json(result);
   }),
 };

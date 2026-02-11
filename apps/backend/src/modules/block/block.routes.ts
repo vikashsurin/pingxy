@@ -1,5 +1,5 @@
 import { factory } from "src/common/db/drizzle-factory";
-import { BlocksController } from "./blocked.controller";
+import { BlocksController } from "./block.controller";
 
 export const blockedRouter = factory.createApp();
 
