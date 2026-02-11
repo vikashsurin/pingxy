@@ -63,4 +63,13 @@ export const BlockedUserService = {
         }
     },
 
+    listAll: async () => {
+        try {
+            const blockedUsers = await BlockedRepository.selectAll()
+            return blockedUsers
+        } catch (error) {
+            throw new Error('error getting blocked users')
+        }
+    },
+
 }
