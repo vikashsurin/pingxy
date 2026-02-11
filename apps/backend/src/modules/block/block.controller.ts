@@ -39,6 +39,14 @@ export const BlocksController = {
       return c.json(result);
     },
   ),
+  listBlockedUsersWithInfo: factory.createHandlers(
+    validate("param", z.object({ blockerId: z.coerce.number() })),
+    async (c) => {
+      const { blockerId } = c.req.valid("param");
+      const result = await BlockService.listBlockedUsersWithInfo({ blockerId });
+      return c.json(result);
+    },
+  ),
   listWhoBlockedUser: factory.createHandlers(
     validate("param", z.object({ blockedId: z.coerce.number() })),
     async (c) => {

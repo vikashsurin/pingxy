@@ -65,6 +65,8 @@ class ChatStore {
   messages = $state<Record<number, Record<number, ChatEntry>>>({});
   unread = new SvelteMap<number, number[]>();
 
+  blockedUserIds = $state<Set<number>>(new Set());
+
   // Maximum messages to keep in memory per conversation
   private readonly MESSAGE_LIMIT = 100;
   readonly LIMIT = 20;

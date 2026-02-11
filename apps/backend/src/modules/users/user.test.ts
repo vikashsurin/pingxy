@@ -70,8 +70,13 @@ describe("Users Table Schema", async () => {
     expect(user).toBeDefined();
   });
 
-  test.only("should return a user", async () => {
+  test("should return a user", async () => {
     const user = await UserService.getUserById(userId);
     console.log({ user });
+  });
+
+  test.only("should return many users", async () => {
+    const users = await UserRepository.selectManyByIds({ ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] });
+    console.log({ users });
   });
 });

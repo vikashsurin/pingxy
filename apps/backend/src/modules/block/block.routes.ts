@@ -3,33 +3,33 @@ import { BlocksController } from "./block.controller";
 
 export const blockedRouter = factory.createApp();
 
-// Core Operations
-blockedRouter.post("/", ...BlocksController.block);
-blockedRouter.delete("/:blockId", ...BlocksController.unblock);
-
-// blocked user
-blockedRouter.get("/:blockId", ...BlocksController.getBlock);
-
-// for admin
-blockedRouter.get("/", ...BlocksController.getAllBlocks);
-
-// Users I blocked
+// 1. Static/Specific Routes First
+blockedRouter.get(
+  "/blocker/:blockerId/with-info",
+  ...BlocksController.listBlockedUsersWithInfo,
+);
+blockedRouter.get(
+  "/blocker/:blockerId/block-count",
+  ...BlocksController.getBlockCountForUser,
+);
 blockedRouter.get("/blocker/:blockerId", ...BlocksController.listBlockedUsers);
 
-// Users who blocked me
+// 2. Specific "Reverse" lookup
 blockedRouter.get(
   "/blocked/:blockedId",
   ...BlocksController.listWhoBlockedUser,
 );
 
-// Unique block
+// 3. Multi-parameter route (placed before single param)
 blockedRouter.get(
   "/:blockerId/:blockedId",
   ...BlocksController.getBlockBetween,
 );
 
-// Count blocked users
-blockedRouter.get(
-  "/blocker/:blockerId/block-count",
-  ...BlocksController.getBlockCountForUser,
-);
+// 4. Generic ID Routes Last (The "Catch-alls")
+blockedRouter.get("/:blockId", ...BlocksController.getBlock);
+
+// 5. Root/Admin
+blockedRouter.get("/", ...BlocksController.getAllBlocks);
+blockedRouter.post("/", ...BlocksController.block);
+blockedRouter.delete("/:blockId", ...BlocksController.unblock);

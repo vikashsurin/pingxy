@@ -1,13 +1,8 @@
 <script lang="ts">
   import { chatStore } from "$lib/store/store.svelte";
-  import {
-    Ban,
-    EllipsisVertical,
-    Eye,
-    type Icon as IconType,
-  } from "@lucide/svelte";
-  import GenderIcon from "../../routes/chat/GenderIcon.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
+  import { Ban, EllipsisVertical, Eye } from "@lucide/svelte";
+  import GenderIcon from "../../routes/chat/GenderIcon.svelte";
 
   const currentUser = $derived(chatStore.currentUser);
 
@@ -30,7 +25,6 @@
         <span class={`fi fi-${partner?.data.country.toLocaleLowerCase()}`}
         ></span>
       {/if}
-      <span></span>
 
       <EllipsisVertical
         size={24}
@@ -46,15 +40,25 @@
       use:clickOutside={() => (toggleMenu = false)}
       class="absolute top-full right-0 bg-gray-100 py-1 border mt-1 border-gray-300 min-w-30"
     >
-      {@render menuItem(Ban, "Block")}
-      {@render menuItem(Eye, "View")}
+      {@render blockMenuItem()}
+      {@render viewMenuItem()}
     </div>
   {/if}
 </div>
 
-{#snippet menuItem(Icon: typeof IconType, label: string)}
+{#snippet blockMenuItem()}
+  <button
+    class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300"
+    onclick={() => blockUser(partner?.id)}
+  >
+    <Ban size={14} />
+    <span>Block</span>
+  </button>
+{/snippet}
+
+{#snippet viewMenuItem()}
   <button class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300">
-    <Icon size={14} />
-    <span>{label}</span>
+    <Eye size={14} />
+    <span>View</span>
   </button>
 {/snippet}

@@ -1,3 +1,4 @@
+import { UserRepository } from "@modules/users/user.repository";
 import { BlocksRepository } from "./block.repository";
 
 export const BlockService = {
@@ -45,6 +46,19 @@ export const BlockService = {
     }
   },
 
+  listBlockedUsersWithInfo: async ({ blockerId }: { blockerId: number }) => {
+    try {
+      const blocked = await BlocksRepository.selectAllBlocked({ blockerId });
+      const blockedIds = blocked.map((user) => user.blockedId);
+      const blockedUsers = await UserRepository.selectManyByIds({
+        ids: blockedIds,
+      });
+      return blockedUsers;
+    } catch (error) {
+      throw new Error("error getting blocked users with info");
+    }
+  },
+
   listBlockers: async ({ blockedId }: { blockedId: number }) => {
     try {
       const blockedUsers = await BlocksRepository.selectBlockers({ blockedId });
@@ -89,7 +103,7 @@ export const BlockService = {
     }
   },
 
-  exists: async ({
+  hasBlock: async ({
     blockerId,
     blockedId,
   }: {

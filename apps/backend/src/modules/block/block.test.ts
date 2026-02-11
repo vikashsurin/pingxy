@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { BlocksRepository } from "./block.repository";
+import { BlockService } from "./block.service";
 
 describe("BlocksRepository", () => {
-  beforeAll(async () => {});
+  beforeAll(async () => { });
 
   it("should block a user", async () => {
     const blockedUser = await BlocksRepository.insert({
@@ -45,7 +46,7 @@ describe("BlocksRepository", () => {
     expect(blockedUsers).toBeDefined();
   });
 
-  it.only("should check if block exists", async () => {
+  it("should check if block exists", async () => {
     const exists = await BlocksRepository.exists({ blockerId, blockedId });
     console.log({ exists });
     expect(exists).toBeBoolean();
@@ -61,5 +62,13 @@ describe("BlocksRepository", () => {
     const blocks = await BlocksRepository.selectAll();
     console.log({ blocks });
     expect(blocks).toBeArray();
+  });
+
+  it.only("should list blocked users with info", async () => {
+    const blockedUsers = await BlockService.listBlockedUsersWithInfo({
+      blockerId: 2,
+    });
+    console.log({ blockedUsers });
+    expect(blockedUsers).toBeArray();
   });
 });

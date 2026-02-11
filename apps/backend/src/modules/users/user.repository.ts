@@ -1,7 +1,7 @@
 import { users } from "@pingxy/shared";
 import { NewUser } from "@pingxy/shared/domain/user";
-import { eq } from "drizzle-orm";
-import db from "src/common/db/client";
+import { eq, inArray } from "drizzle-orm";
+import db, { DB_TX } from "src/common/db/client";
 
 import { insertUserSchema } from "@pingxy/shared/domain/user";
 
@@ -44,6 +44,16 @@ export const UserRepository = {
       })
       .from(users)
       .where(eq(users.username, username));
+  },
+
+  selectManyByIds: async ({ ids, tx = db }: { ids: number[], tx?: DB_TX }) => {
+    return await tx
+      .select({
+        id: users.id,
+        username: users.username,
+      })
+      .from(users)
+      .where(inArray(users.id, ids));
   },
 
   selectAll: async () => {
