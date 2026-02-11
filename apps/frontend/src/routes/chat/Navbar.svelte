@@ -8,46 +8,7 @@
   let isMenuExpanded = $state(false);
 </script>
 
-<!-- FOR MOBILE -->
-<div class="lg:hidden justify-between items-center">
-  <div class="relative flex w-full justify-between items-center">
-    <a href="/" class="font-bold text-2xl">Logo</a>
-    {#if expandMenu}
-      <X onclick={() => (expandMenu = false)} class="ml-auto" />
-    {:else}
-      <Menu onclick={() => (expandMenu = true)} class="ml-auto" />
-    {/if}
-    {#if expandMenu}
-      <div
-        class="absolute w-full flex-1 left-0 right-0 top-full bg-amber-500 z-999 h-dvh p-6"
-      >
-        <div class="flex flex-col gap-2 text-sm">
-          {@render link("/about", "About")}
-          {@render link("/contact", "Contact")}
-          {@render link("/feedback", "Feedback")}
-          {@render link("/support", "Support")}
-
-          <p class="text-md mt-4">
-            Logged in as
-            <span class="text-green-600 font-bold">
-              <CircleUserRound />
-              {username}
-            </span>
-          </p>
-          <a
-            href="/chat/logout"
-            data-sveltekit-preload-data={false}
-            class="underline text-red-500 hover:text-red-500 active:text-red-700"
-            onclick={handleLogout}>Logout</a
-          >
-        </div>
-      </div>
-    {/if}
-  </div>
-</div>
-
-<!-- FOR DESKTOP -->
-<div class="hidden justify-between items-center mx-4 lg:flex py-2 z-999">
+<div class="hidden justify-between items-center mx-4 lg:flex py-2 z-100">
   <div class="flex gap-2 text-sm">
     <a href="/" class="font-bold">Logo</a>
     {@render link("/about", "About")}
@@ -70,7 +31,7 @@
       <!-- MENU POPUP -->
       {#if isMenuExpanded}
         <div
-          class="absolute py-1 flex flex-col top-full min-w-50 right-0 bg-white border border-gray-200 rounded"
+          class="absolute py-1 flex flex-col top-full min-w-50 right-0 bg-white border border-gray-200 rounded z-100"
         >
           {@render menuItem("/chat/view-details/me", "View details")}
           {@render menuItem("/chat/upgrade-to-pro", "Upgrade to Pro")}
