@@ -28,9 +28,19 @@ export const subscribeToConversation = async ({
   socket.send(JSON.stringify(message));
 };
 
-export const getAllConversations = async () => {
+export const initConversations = async () => {
   const conversations = await fetchConversations();
   conversations.forEach((element: any) => {
     chatStore.conversations[element.conversationId] = element;
   });
+};
+
+export const resetUnreadCount = async (conversationId: number) => {
+  chatStore.conversations[conversationId].unreadCount = 0;
+};
+
+export const setUnreadCount = async (conversationId: number) => {
+  if (chatStore.conversations[conversationId]) {
+    chatStore.conversations[conversationId].unreadCount++;
+  }
 };

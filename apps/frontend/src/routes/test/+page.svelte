@@ -1,21 +1,10 @@
 <script lang="ts">
-  import VirtualList from "./VirtualList.svelte";
+  import { getUser } from "$lib/store/services/api/user";
 
-  let list = $state(Array.from({ length: 100 }, (_, i) => i));
-  let push = $state(false);
-  function handlePrepend() {
-    let startIndex = list.length;
-    list = [...Array.from({ length: 20 }, (_, i) => i + startIndex), ...list];
-    push = false;
-  }
-  function handlePush() {
-    let startIndex = list.length;
-    list = [...list, ...Array.from({ length: 20 }, (_, i) => i + startIndex)];
-    push = true;
+  async function fetchUser() {
+    const user = await getUser(5);
+    console.log({ user });
   }
 </script>
 
-<VirtualList itemHeight={60} />
-
-<button onclick={() => handlePush()}>Push</button>
-<button onclick={() => handlePrepend()}>Prepend</button>
+<button onclick={fetchUser}>fetchUser</button>

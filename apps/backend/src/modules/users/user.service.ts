@@ -1,6 +1,6 @@
-import { NewUser, UserInsertSchema } from "@pingxy/shared/domain/user";
-import { UserRepository } from "./user.repository";
+import { NewUser } from "@pingxy/shared/domain/user";
 import { HTTPException } from "hono/http-exception";
+import { UserRepository } from "./user.repository";
 
 export const UserService = {
   createUser: async (newUser: NewUser) => {
@@ -38,9 +38,9 @@ export const UserService = {
       throw new Error("Error getting user by username");
     }
   },
-  getUserById: async (id: string) => {
+  getUserById: async (id: number) => {
     try {
-      const user = await UserRepository.selectById(Number(id));
+      const [user] = await UserRepository.selectById(id);
 
       if (!user) {
         console.warn("User not found");

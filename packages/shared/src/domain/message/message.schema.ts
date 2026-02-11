@@ -3,10 +3,10 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-import { optional, z } from "zod";
+import { z } from "zod";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { messages } from "./message.table";
-import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 
 // export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages, {

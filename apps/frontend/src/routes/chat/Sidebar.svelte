@@ -1,5 +1,6 @@
 <script lang="ts">
   import { chatStore } from "$lib/store/store.svelte";
+  import { MessageCircleWarning } from "@lucide/svelte";
   import OnlineUsers from "./OnlineUsers.svelte";
   import RecentChats from "./RecentChats.svelte";
   import SidebarFilter from "./SidebarFilter.svelte";
@@ -8,13 +9,6 @@
   let gender = $state("all");
   let showUsers = $state(true);
 
-  //   const hasUnreadMessages = $derived.by(() => {
-  //     return Object.values(chatStore.conversations).forEach((conversation) => {
-  //       if (conversation.unreadCount && conversation.unreadCount > 0) return true;
-  //     });
-  //   });
-
-  $inspect({ hasUnreadMessages: chatStore.hasUnreadMessages });
 </script>
 
 <div class="">
@@ -31,13 +25,15 @@
     </button>
 
     <button
-      class="justify-center w-full hover:bg-amber-400 {!showUsers
+      class="justify-center flex w-full items-center gap-2 hover:bg-amber-400 {!showUsers
         ? 'bg-amber-400'
         : ''}"
       onclick={() => (showUsers = false)}
     >
       Chats
-      <!-- {#if chatStore.conversations } -->
+      {#if chatStore.hasUnreadMessages }
+        <div class="bg-red-600 w-5 h-5 flex items-center justify-center rounded-full text-white border border-red-800 text-xs">{chatStore.totalUnreadCount}</div>
+      {/if}
     </button>
   </div>
 

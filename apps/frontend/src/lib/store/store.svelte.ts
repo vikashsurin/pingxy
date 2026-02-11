@@ -20,11 +20,6 @@ type Target =
   | { isUser: true; user: User }
   | { isUser: false; user: User; conversationId: number; unreadCount: number };
 
-// Proper type for chat target instead of any
-// export type ChatTarget =
-//   | { isUser: true; data: User }
-//   | { isUser: false; data: PrivateConversation | {} };
-
 class ChatStore {
   isConnected = $state<boolean>(false);
   currentUser = $state<User | null | undefined>(undefined);
@@ -34,18 +29,7 @@ class ChatStore {
 
   target = $state<Target | null>(null);
 
-  // chatTarget = $state<ChatTarget>({
-  //   isUser: false,
-  //   data: {},
-  // });
-
   activeConversation = $state<PrivateConversation>();
-
-  // chatPartner = $derived.by(() => {
-  //   if (this.activeConversation) return this.activeConversation.user;
-  //   if (this.target.isUser) return this.target.data;
-  //   return null;
-  // });
 
   conversations = $state<Record<number, PrivateConversation>>({});
 
@@ -113,13 +97,14 @@ class ChatStore {
         conversationId: null,
         user: user,
       });
+    } else {
       this.setActiveConversation({
         unreadCount: 0,
         conversationId: conversation.conversationId,
         user: user,
       });
-    } else {
     }
+
     return;
   }
 
@@ -237,32 +222,6 @@ class ChatStore {
     }
   }
 
-  // Method to update messages for a specific conversation
-  updateConversationMessages(
-    conversationId: number,
-    messagesArray: ChatEntry[],
-  ) {
-    this.messages[conversationId] ??= {};
-
-    for (const entry of messagesArray) {
-      this.messages[conversationId][entry.message.messageId] = entry;
-    }
-  }
-
-  // Get a message entry by conversation and message ID
-  getEntry(conversationId: number, messageId: number): ChatEntry | undefined {
-    return this.messages[conversationId]?.[messageId];
-  }
-
-  // Update message receipt status (used by receipt handlers)
-  updateReceipt(receipt: MessageReceipt) {
-    const entry = this.getEntry(receipt.conversationId, receipt.messageId);
-    if (!entry) return;
-
-    // Direct assignment - Svelte 5 handles granular reactivity
-    entry.receipt = receipt;
-  }
-
   // Get the oldest message ID in a conversation (for loading older messages)
   getOldestMessageId(conversationId: number): number | null {
     const conversation = this.messages[conversationId];
@@ -285,27 +244,8 @@ class ChatStore {
     return Math.max(...messageIds);
   }
 
-  // Get current message count for a conversation
-  getMessageCount(conversationId: number): number {
-    const conversation = this.messages[conversationId];
-    if (!conversation) return 0;
-    return Object.keys(conversation).length;
-  }
-
-  // Clear messages for a specific conversation (useful when switching chats)
-  clearConversationMessages(conversationId: number) {
-    delete this.messages[conversationId];
-  }
-
   async clearNotification(conversationId: number) {
     this.notifications.delete(conversationId);
-  }
-
-  async addUnreadMessage(conversationId: number, messageId: number) {
-    const unreadMessages = this.unread.get(conversationId) || [];
-    if (!unreadMessages.includes(messageId)) {
-      this.unread.set(conversationId, [...unreadMessages, messageId]);
-    }
   }
 
   reset() {

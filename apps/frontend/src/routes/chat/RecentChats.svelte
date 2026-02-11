@@ -1,16 +1,8 @@
 <script lang="ts">
-  import {
-    getAllConversations,
-    subscribeToConversation,
-  } from "$lib/store/managers/entities/conversation.svelte";
+  import { subscribeToConversation } from "$lib/store/managers/entities/conversation.svelte";
   import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
   import { chatStore, type PrivateConversation } from "$lib/store/store.svelte";
-  import { onMount } from "svelte";
   import GenderIcon from "./GenderIcon.svelte";
-
-  onMount(async () => {
-    await getAllConversations();
-  });
 
   const handleClick = async (conversation: PrivateConversation) => {
     if (!conversation.conversationId) return;

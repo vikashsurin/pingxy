@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { UserRepository } from "./user.repository";
 import { NewUser } from "@pingxy/shared/domain/user";
+import { UserService } from "./user.service";
 
 describe("Users Table Schema", async () => {
   beforeAll(async () => {
@@ -8,10 +9,10 @@ describe("Users Table Schema", async () => {
     // await db.delete(users);
   });
 
-  const userId = 3;
+  const userId = 4;
   const userName = "TestUser2";
 
-  test.only("should return all users", async () => {
+  test("should return all users", async () => {
     const result = await UserRepository.selectAll();
     console.log({ result });
     expect(result).toBeArray();
@@ -61,5 +62,16 @@ describe("Users Table Schema", async () => {
   test("should delete a user", async () => {
     const result = await UserRepository.delete(userId);
     expect(result).toHaveLength(1);
+  });
+
+  test("should return a user", async () => {
+    const user = await UserRepository.selectById(userId);
+    console.log({ user });
+    expect(user).toBeDefined();
+  });
+
+  test.only("should return a user", async () => {
+    const user = await UserService.getUserById(userId);
+    console.log({ user });
   });
 });

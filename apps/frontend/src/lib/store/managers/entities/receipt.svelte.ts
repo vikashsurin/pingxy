@@ -1,14 +1,13 @@
-import { getSocket } from "$lib/socket/socket.svelte";
+import { validateSocket } from "$lib/store/helpers";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type {
   Message,
   MessageReceipt,
   ReceiptRequestType,
-  ServerEventMap,
 } from "@pingxy/shared/types/index";
-import { chatStore } from "../../store.svelte";
 import { createClientReq } from "..";
-import { validateSocket } from "$lib/store/helpers";
+import { chatStore, type ChatEntry } from "../../store.svelte";
+import { resetUnreadCount } from "./conversation.svelte";
 
 /**
  * Priority used to ensure we don't overwrite a 'read' status
@@ -24,10 +23,6 @@ type ReceiptParams = {
   message: Message;
   userId: number;
 };
-
-// --- OUTBOUND: EMITTERS (Client -> Server) ---
-// These are treeshakeable named exports.
-// Use 'emit' prefix for anything sending a socket packet.
 
 export const emitMarkSent = async () => {
   // Logic for local UI transition if needed
@@ -86,37 +81,28 @@ export const emitMarkAllRead = async ({
   };
 
   socket.send(JSON.stringify(payload));
+
+  resetUnreadCount(conversationId);
 };
 
-// --- INBOUND: HANDLERS (Server -> Client) ---
-// Use 'handle' prefix for functions that process incoming socket data.
-
-/**
- * Entry point for the socket message listener.
- * Called when 'receipt' type events arrive.
- */
 export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
-  for (const receipt of receipts) {
-    applyReceiptUpdateToStore(receipt);
+  const hasMessage = () => {
+    for (const _ in chatStore.messages) return true;
+    return false;
+  };
+
+  if (hasMessage()) {
+    for (const receipt of receipts) {
+      const messages = chatStore.messages[receipt.conversationId];
+      console.log({ messages: $state.snapshot(messages) });
+      if (messages && messages[receipt.messageId]) {
+        applyReceiptUpdateToStore(messages[receipt.messageId], receipt);
+      }
+    }
   }
 };
 
-// --- PRIVATE HELPERS ---
-// These are not exported, so they will be bundled only if the
-// exported functions above are used.
-
-/**
- * Central logic for updating the chatStore.
- * Prevents "Status Regressions" (e.g., delivered arriving after read).
- */
-function applyReceiptUpdateToStore(receipt: MessageReceipt) {
-  const entry = chatStore.getEntry(receipt.conversationId, receipt.messageId);
-
-  if (!entry) {
-    console.warn(`Message not found: ${receipt.messageId}`);
-    return;
-  }
-
+function applyReceiptUpdateToStore(entry: ChatEntry, receipt: MessageReceipt) {
   const currentStatus = entry.receipt.status;
   const newStatus = receipt.status;
 
@@ -124,7 +110,6 @@ function applyReceiptUpdateToStore(receipt: MessageReceipt) {
   if (STATUS_PRIORITY[newStatus] > STATUS_PRIORITY[currentStatus]) {
     entry.receipt = receipt;
   } else if (newStatus === "read") {
-    // "Read" is terminal; always ensure it is applied if received
     entry.receipt = receipt;
   }
 }

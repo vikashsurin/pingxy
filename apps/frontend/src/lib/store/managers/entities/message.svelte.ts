@@ -6,6 +6,8 @@ import { createMessage, fetchMessages } from "../../services/api";
 import { chatStore } from "../../store.svelte";
 import { virtualStore } from "../../virtualStore.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
+import { setUnreadCount } from "./conversation.svelte";
+import { getUser } from "../../services/api/user";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -64,7 +66,7 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
 
   try {
     const result = await createMessage(envelope);
-    await addMessageToState(result);
+    addMessageToState(result);
 
     return null;
   } catch (error) {
@@ -75,60 +77,28 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
   }
 };
 
-// export const handleIncomingMessage = async (
-//   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
-// ) => {
-//   addMessageToState(data);
-
-//   if (
-//     chatStore.activeConversation?.conversationId === data.payload.conversationId
-//   ) {
-//     if (data.payload.message.senderId !== chatStore.currentUser?.id) {
-//       emitMarkRead({
-//         message: data.payload.message,
-//         userId: chatStore.currentUser?.id!,
-//       });
-//     }
-//   } else {
-//     // Handle other cases if needed
-//     emitMarkDelivered({
-//       message: data.payload.message,
-//       userId: data.payload.recipient.id,
-//     });
-
-//     chatStore.conversations[data.payload.conversationId].unreadCount += 1;
-//   }
-// };
 export const handleIncomingMessage = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
   const { conversationId, message, recipient } = data.payload;
   const currentUserId = chatStore.currentUser?.id;
+
   addMessageToState(data);
 
+  const isCurrentlyViewing =
+    chatStore.activeConversation?.conversationId === conversationId;
+  const isFromMe = message.senderId === currentUserId;
 
-  if (
-    chatStore.activeConversation?.conversationId === data.payload.conversationId
-  ) {
-    if (data.payload.message.senderId !== chatStore.currentUser?.id) {
-      emitMarkRead({
-        message: data.payload.message,
-        userId: chatStore.currentUser?.id!,
-      });
-    }
+  if (isCurrentlyViewing && !isFromMe) {
+    emitMarkRead({ message, userId: currentUserId! });
   } else {
-    // Handle other cases if needed
-    emitMarkDelivered({
-      message: data.payload.message,
-      userId: data.payload.recipient.id,
-    });
-
-    chatStore.conversations[data.payload.conversationId].unreadCount += 1;
+    emitMarkDelivered({ message, userId: recipient.id });
+    setUnreadCount(conversationId);
   }
 };
 
-export const updateMessage = async () => { };
-export const deleteMessage = async () => { };
+export const updateMessage = async () => {};
+export const deleteMessage = async () => {};
 
 // Private
 const addMessageToState = async (
@@ -137,7 +107,26 @@ const addMessageToState = async (
   const { message, conversationId, receipt } = data.payload;
 
   if (!chatStore.messages[conversationId]) {
-    chatStore.messages[conversationId] = {};
+    if (message.senderId === chatStore.currentUser?.id) {
+      // Create new conversation in case it doesn't exist
+      chatStore.conversations[conversationId] = {
+        unreadCount: 0,
+        conversationId: conversationId,
+        user: chatStore.activeConversation?.user!,
+      };
+      chatStore.messages[conversationId] = {};
+    } else {
+      // Create new conversation in case it doesn't exist
+      // also fetch sender's user data
+      const user = await getUser(message.senderId);
+
+      chatStore.conversations[conversationId] = {
+        unreadCount: 1,
+        conversationId: conversationId,
+        user: user,
+      };
+      chatStore.messages[conversationId] = {};
+    }
   }
   chatStore.messages[conversationId][message.messageId] = {
     message,

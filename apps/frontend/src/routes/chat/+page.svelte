@@ -7,10 +7,13 @@
 
   import Chatbox from "./Chatbox.svelte";
 
+  import { initConversations } from "$lib/store/managers/entities/conversation.svelte";
+
   import AdSidebar from "./AdSidebar.svelte";
 
   onMount(() => {
     initSocket();
+    initConversations();
   });
 </script>
 

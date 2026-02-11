@@ -23,14 +23,18 @@
   // --- DOM Elements ---
   let scrollElement: HTMLDivElement | undefined = $state();
 
+  // --- Scroll Optimization ---
+  let scrollTicking = false;
+
   // --- ResizeObserver ---
   let resizeObserver: ResizeObserver;
   const elementToId = new Map<HTMLElement, number>();
+  let recalcScheduled = false;
 
   function getObserver() {
     if (!resizeObserver) {
       resizeObserver = new ResizeObserver((entries) => {
-        let needsRecalc = false;
+        const updates: Array<{ id: number; height: number }> = [];
 
         for (const entry of entries) {
           const id = elementToId.get(entry.target as HTMLElement);
@@ -39,19 +43,31 @@
             const oldHeight = virtualStore.getItemHeight(id);
 
             if (oldHeight !== newHeight) {
-              virtualStore.setItemHeight(id, newHeight);
-              needsRecalc = true;
+              updates.push({ id, height: newHeight });
             }
           }
         }
 
-        if (needsRecalc) {
-          virtualStore.recalculateOffsets();
+        if (updates.length > 0) {
+          // Batch all updates
+          for (const { id, height } of updates) {
+            virtualStore.setItemHeight(id, height);
+          }
+
+          // Schedule single recalc
+          if (!recalcScheduled) {
+            recalcScheduled = true;
+            requestAnimationFrame(() => {
+              virtualStore.recalculateOffsets();
+              recalcScheduled = false;
+            });
+          }
         }
       });
     }
     return resizeObserver;
   }
+
   // Calculate visible items using virtualStore
   let visibleRange = $derived.by(() => virtualStore.getVisibleRange());
 
@@ -78,22 +94,43 @@
     };
   }
 
-  // --- Scroll Handler ---
-  function handleScroll() {
-    if (scrollElement) {
-      virtualStore.scrollTop = scrollElement.scrollTop;
-    }
+  // --- Passive Scroll Action ---
+  function passiveScroll(node: HTMLElement) {
+    const handleScrollPassive = () => {
+      if (!scrollTicking) {
+        requestAnimationFrame(() => {
+          virtualStore.scrollTop = node.scrollTop;
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    };
+
+    node.addEventListener("scroll", handleScrollPassive, { passive: true });
+
+    return {
+      destroy() {
+        node.removeEventListener("scroll", handleScrollPassive);
+      },
+    };
   }
 
   // --- Effects ---
 
   // Recalculate when messages change
   let lastMessageCount = 0;
+  let recalcTimeout: ReturnType<typeof setTimeout>;
+
   $effect(() => {
     const currentCount = chatStore.activeMessages.length;
     if (currentCount !== lastMessageCount) {
       lastMessageCount = currentCount;
-      virtualStore.recalculateOffsets();
+
+      // Debounce recalculation
+      clearTimeout(recalcTimeout);
+      recalcTimeout = setTimeout(() => {
+        virtualStore.recalculateOffsets();
+      }, 16); // ~1 frame delay
     }
   });
 
@@ -125,6 +162,7 @@
     return () => {
       resizeObserver?.disconnect();
       elementToId.clear();
+      clearTimeout(recalcTimeout);
     };
   });
 
@@ -133,15 +171,19 @@
       virtualStore.shouldScrollToBottom &&
       chatStore.activeMessages.length > 0
     ) {
-      scrollElement?.scrollBy({
-        top: virtualStore.totalHeight,
-        behavior: "instant",
+      requestAnimationFrame(() => {
+        scrollElement?.scrollBy({
+          top: virtualStore.totalHeight,
+          behavior: "instant",
+        });
       });
     }
   });
 
   // --- Intersection Observer ---
   function intersectionObserver(node: HTMLElement, callback: () => void) {
+    const margin = Math.max(virtualStore.viewportHeight * 2, 400);
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -150,7 +192,7 @@
       },
       {
         root: scrollElement,
-        rootMargin: "400px 0px",
+        rootMargin: `${margin}px 0px`,
         threshold: 0.1,
       },
     );
@@ -166,7 +208,10 @@
 
   // --- Data Loading Wrappers ---
   async function handleLoadOlder() {
-    if (!conversationId || !userId) return;
+    if (!conversationId || !userId || !scrollElement) return;
+
+    const prevScrollHeight = scrollElement.scrollHeight;
+    const prevScrollTop = scrollElement.scrollTop;
 
     await virtualStore.handleLoadOlder({
       conversationId,
@@ -174,6 +219,15 @@
       limit: LIMIT,
       scrollElement,
       visibleRangeStart: visibleRange.start,
+    });
+
+    // Use rAF for smoother position restoration
+    requestAnimationFrame(() => {
+      if (scrollElement) {
+        const newScrollHeight = scrollElement.scrollHeight;
+        const heightDiff = newScrollHeight - prevScrollHeight;
+        scrollElement.scrollTop = prevScrollTop + heightDiff;
+      }
     });
   }
 
@@ -188,6 +242,7 @@
       visibleRangeStart: visibleRange.start,
     });
   }
+
   // Jump to latest effect
   $effect(() => {
     if (virtualStore.visibleList) {
@@ -210,9 +265,11 @@
         conversationId: conversationId!,
       });
 
-      scrollElement.scrollTo({
-        top: virtualStore.totalHeight,
-        behavior: "instant",
+      requestAnimationFrame(() => {
+        scrollElement?.scrollTo({
+          top: virtualStore.totalHeight,
+          behavior: "instant",
+        });
       });
     }
   }
@@ -224,9 +281,11 @@
         conversationId: conversationId!,
       });
 
-      scrollElement.scrollTo({
-        top: virtualStore.totalHeight,
-        behavior: "instant",
+      requestAnimationFrame(() => {
+        scrollElement?.scrollTo({
+          top: virtualStore.totalHeight,
+          behavior: "instant",
+        });
       });
     }
     await receiptManager.emitMarkAllRead({
@@ -245,7 +304,7 @@
     data-virtual-list
     style:height="100%"
     class="flex-1 overflow-auto border-4"
-    onscroll={handleScroll}
+    use:passiveScroll
   >
     <div
       use:intersectionObserver={handleLoadOlder}
@@ -267,7 +326,10 @@
         <li
           use:measure={entry.message.messageId}
           style:width="100%"
-          style:transform="translateY({virtualStore.offsetsCache[index]}px)"
+          style:transform="translateY({virtualStore.offsetsCache[index]}px)
+          translateZ(0)"
+          style:will-change="transform"
+          style:backface-visibility="hidden"
           class="absolute left-0 top-0 py-2"
         >
           {@render messageItem(entry)}

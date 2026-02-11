@@ -37,4 +37,29 @@ export const UserController = {
       }
     },
   ),
+
+  getUserById: factory.createHandlers(
+    validate(
+      "param",
+      z.object({
+        id: z.coerce.number(),
+      }),
+    ),
+    async (c) => {
+      try {
+        const { id } = c.req.valid("param");
+
+        const user = await UserService.getUserById(id);
+
+        if (!user) {
+          return c.json({ error: "User not found" }, 404);
+        }
+
+        return c.json(user);
+      } catch (error) {
+        console.log(error);
+        return c.json({ error: "Something went wrong" }, 500);
+      }
+    },
+  ),
 };
