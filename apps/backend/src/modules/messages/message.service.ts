@@ -9,64 +9,72 @@ import { createServerEvent } from "@common/socket/socket.factory";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
+import { BlockService } from "@modules/block/block.service";
 
 export const MessageService = {
   sendMessage: async (
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
   ) => {
-    try {
-      const { message, recipient, sender } = body.payload;
-      // const result = await db.transaction(async (tx) => {
-      //  TODO: Wrap it in transaction
-      const conversation = await ConversationService.findOrCreateByUsers({
-        currentUserId: message.senderId,
-        userId: recipient.id,
-      });
+    const { message, recipient, sender } = body.payload;
+    // const result = await db.transaction(async (tx) => {
+    //  TODO: Wrap it in transaction
 
-      const participants = await ParticipantService.create({
-        conversationId: conversation.conversationId,
-        user1Id: message.senderId,
-        user2Id: recipient.id,
-      });
+    const hasBlock = await BlockService.hasBlock({
+      blockerId: message.senderId,
+      blockedId: recipient.id,
+    });
 
-      const [insertedMessage] = await MessageRepository.insertMessage({
-        conversationId: conversation.conversationId!,
-        clientMessageId: message.clientMessageId,
-        senderId: message.senderId,
-        content: message.content,
+    if (hasBlock) {
+      throw new HTTPException(400, {
+        message: "User is blocked",
       });
-
-      const [messageReceipt] = await ReceiptService.createMessageReceipt({
-        conversationId: conversation.conversationId,
-        messageId: insertedMessage.messageId,
-        userId: recipient.id,
-        status: "sent",
-      });
-
-      await ParticipantService.incrementUnreadCount({
-        conversationId: conversation.conversationId,
-        senderId: message.senderId,
-      });
-
-      const responseEnvelope = createServerEvent(
-        SERVER_EVENTS.MESSAGES.CREATED,
-        {
-          message: insertedMessage,
-          receipt: messageReceipt,
-          conversationId: conversation.conversationId,
-          sender: sender,
-          recipient: recipient,
-        },
-      );
-
-      eventBus.emit(SERVER_EVENTS.MESSAGES.CREATED, {
-        ...responseEnvelope,
-      });
-      return responseEnvelope;
-    } catch (error) {
-      console.error(error);
-      throw new HTTPException(500, { message: "Failed to send message" });
     }
+
+    const conversation = await ConversationService.findOrCreateByUsers({
+      currentUserId: message.senderId,
+      userId: recipient.id,
+    });
+
+    const participants = await ParticipantService.create({
+      conversationId: conversation.conversationId,
+      user1Id: message.senderId,
+      user2Id: recipient.id,
+    });
+
+    const [insertedMessage] = await MessageRepository.insertMessage({
+      conversationId: conversation.conversationId!,
+      clientMessageId: message.clientMessageId,
+      senderId: message.senderId,
+      content: message.content,
+    });
+
+    const [messageReceipt] = await ReceiptService.createMessageReceipt({
+      conversationId: conversation.conversationId,
+      messageId: insertedMessage.messageId,
+      userId: recipient.id,
+      status: "sent",
+    });
+
+    await ParticipantService.incrementUnreadCount({
+      conversationId: conversation.conversationId,
+      senderId: message.senderId,
+    });
+
+    const responseEnvelope = createServerEvent(
+      SERVER_EVENTS.MESSAGES.CREATED,
+      {
+        message: insertedMessage,
+        receipt: messageReceipt,
+        conversationId: conversation.conversationId,
+        sender: sender,
+        recipient: recipient,
+      },
+    );
+
+    eventBus.emit(SERVER_EVENTS.MESSAGES.CREATED, {
+      ...responseEnvelope,
+    });
+    return responseEnvelope;
   },
 
   getById: async (messageId: number) => {

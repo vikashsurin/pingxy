@@ -1,6 +1,13 @@
 import { UserRepository } from "@modules/users/user.repository";
 import { BlocksRepository } from "./block.repository";
-
+import { z } from "zod";
+import {
+  blockedUserInfoSchema,
+  blockedUserSelectSchema,
+} from "@pingxy/shared/domain/blocked-user/blocked-user.schema";
+import { createServerEvent } from "@common/socket/socket.factory";
+import { SERVER_EVENTS } from "@pingxy/shared/constants";
+import { eventBus } from "@common/events";
 export const BlockService = {
   block: async ({
     blockerId,
@@ -20,6 +27,15 @@ export const BlockService = {
   unblock: async ({ blockId }: { blockId: number }) => {
     try {
       const unblocked = await BlocksRepository.deleteById({ blockId });
+
+      if (!unblocked) {
+        throw new Error("error unblocking user");
+      }
+      const event = createServerEvent(SERVER_EVENTS.BLOCKS.UNBLOCKED, {
+        ...unblocked,
+      });
+      eventBus.emit(SERVER_EVENTS.BLOCKS.UNBLOCKED, event);
+
       return unblocked;
     } catch (error) {
       throw new Error("error unblocking user");
@@ -40,6 +56,7 @@ export const BlockService = {
       const blockedUsers = await BlocksRepository.selectAllBlocked({
         blockerId,
       });
+
       return blockedUsers;
     } catch (error) {
       throw new Error("error getting blocked users");
@@ -47,12 +64,25 @@ export const BlockService = {
   },
 
   listBlockedUsersWithInfo: async ({ blockerId }: { blockerId: number }) => {
+    type Block = Partial<z.infer<typeof blockedUserSelectSchema>>;
+
     try {
       const blocked = await BlocksRepository.selectAllBlocked({ blockerId });
-      const blockedIds = blocked.map((user) => user.blockedId);
-      const blockedUsers = await UserRepository.selectManyByIds({
+      const blockedMap = new Map<number, Block>();
+
+      blocked.forEach((block) => {
+        blockedMap.set(block.blockedId, { ...block });
+      });
+
+      const blockedIds = blocked.map(({ blockedId }) => blockedId);
+
+      const users = await UserRepository.selectManyByIds({
         ids: blockedIds,
       });
+      const blockedUsers = users.map((user) => ({
+        ...user,
+        block: blockedMap.get(user.id),
+      }));
       return blockedUsers;
     } catch (error) {
       throw new Error("error getting blocked users with info");

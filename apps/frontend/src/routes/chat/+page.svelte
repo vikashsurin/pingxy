@@ -10,11 +10,16 @@
   import { initConversations } from "$lib/store/managers/entities/conversation.svelte";
 
   import AdSidebar from "./AdSidebar.svelte";
+  import { initBlocks } from "$lib/store/managers/entities/block.svelte";
+  import { chatStore } from "$lib/store/store.svelte";
 
-  onMount(() => {
+  onMount(async () => {
     initSocket();
-    initConversations();
+    await initConversations();
+    await initBlocks();
   });
+
+  $inspect({ blockedUserIds: chatStore.blockedUserIds });
 </script>
 
 <div class="grid grid-cols-2 h-screen overflow-hidden">

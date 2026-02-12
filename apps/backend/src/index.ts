@@ -26,36 +26,31 @@ app.use(prettyJSON());
 app.use(logger());
 
 app.onError((err, ctx) => {
-  console.error({ err });
+  // Always log the actual error object for the developer
+  console.error("DEBUG:", err);
 
+  // 1. Handled HTTP Exceptions (400, 401, 403, 404, etc.)
   if (err instanceof HTTPException) {
-    return ctx.json(
-      {
-        success: false,
-        message: err.message,
-      },
-      err.status,
-    );
-  }
-
-  if (err.name === "ZodError") {
-    return ctx.json(
-      {
-        success: false,
-        error: "Validation Error",
-        details: err.message,
-      },
-      400,
-    );
-  }
-
-  return ctx.json(
-    {
+    return ctx.json({
       success: false,
-      message: "Internal Server Error",
-    },
-    500,
-  );
+      message: err.message, // This will be "User is blocked"
+    }, err.status);
+  }
+
+  // 2. Zod Validation Errors
+  if (err.name === "ZodError") {
+    return ctx.json({
+      success: false,
+      error: "Validation Error",
+      details: err.message,
+    }, 400);
+  }
+
+  // 3. Unhandled System Crashes (The "Oops" moments)
+  return ctx.json({
+    success: false,
+    message: "An unexpected error occurred", // Masked for security
+  }, 500);
 });
 
 app.get("/api/", (c) => {

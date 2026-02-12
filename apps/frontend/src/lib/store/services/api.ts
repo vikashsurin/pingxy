@@ -53,17 +53,13 @@ export const createMessage = async (
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      // Custom error for ui
-      // Example: Failed to send message
-      throw new Error(error.message || "Failed to send message");
+      throw new Error("Failed to send dfdf");
     }
 
     const data = await response.json();
 
     return data.result;
   } catch (error) {
-    console.error("Failed to send message");
     throw error;
   }
 };

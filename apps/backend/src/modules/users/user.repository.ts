@@ -46,7 +46,15 @@ export const UserRepository = {
       .where(eq(users.username, username));
   },
 
-  selectManyByIds: async ({ ids, tx = db }: { ids: number[], tx?: DB_TX }) => {
+  selectManyByIds: async ({
+    ids,
+
+    tx = db,
+  }: {
+    ids: number[];
+
+    tx?: DB_TX;
+  }) => {
     return await tx
       .select({
         id: users.id,

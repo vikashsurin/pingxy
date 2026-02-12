@@ -6,7 +6,7 @@
   let { searchQuery, gender } = $props();
   let sortedUsers = $derived.by(() => {
     const searchLower = searchQuery.trim().toLowerCase();
-    return chatStore.onlineUsers
+    return chatStore.visibleOnlineUsers
       .filter((data) => {
         if (gender !== "all" && data.data.gender !== gender) return false;
         if (searchLower && !data.username.toLowerCase().includes(searchLower))

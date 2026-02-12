@@ -5,9 +5,8 @@ import { createClientReq } from "..";
 import { createMessage, fetchMessages } from "../../services/api";
 import { chatStore } from "../../store.svelte";
 import { virtualStore } from "../../virtualStore.svelte";
-import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
 import { setUnreadCount } from "./conversation.svelte";
-import { getUser } from "../../services/api/user";
+import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -36,7 +35,7 @@ export const loadInitialMessages = async ({
     }
     return data;
   } catch (error) {
-    chatStore.error =
+    chatStore.errorMessage =
       error instanceof Error ? error.message : "Failed to load messages";
     console.error("Load initial messages error:", error);
     throw error;
@@ -45,7 +44,7 @@ export const loadInitialMessages = async ({
 
 export const sendMessage = async ({ messageText }: { messageText: string }) => {
   if (!chatStore.activeConversation || !chatStore.currentUser) {
-    chatStore.error = "No active conversation or user";
+    chatStore.errorMessage = "No active conversation or user";
     return;
   }
   const conversationId = chatStore.activeConversation.conversationId;
@@ -71,31 +70,15 @@ export const sendMessage = async ({ messageText }: { messageText: string }) => {
 
     return null;
   } catch (error) {
-    chatStore.error =
-      error instanceof Error ? error.message : "Failed to send message";
-    console.error("Send message error:", error);
-    throw error;
+    chatStore.setErrorMessage("Failed to send message");
+    console.warn("Failed to send message!");
   }
 };
 
 export const handleIncomingMessage = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
-  // const { conversationId, message, recipient } = data.payload;
-  // const currentUserId = chatStore.currentUser?.id;
-
   addMessageToState(data);
-
-  // const isCurrentlyViewing =
-  //   chatStore.activeConversation?.conversationId === conversationId;
-  // const isFromMe = message.senderId === currentUserId;
-
-  // if (isCurrentlyViewing && !isFromMe) {
-  //   emitMarkRead({ message, userId: currentUserId! });
-  // } else {
-  //   emitMarkDelivered({ message, userId: recipient.id });
-  //   // setUnreadCount(conversationId);
-  // }
 };
 
 export const updateMessage = async () => {};

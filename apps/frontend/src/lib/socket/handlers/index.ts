@@ -1,8 +1,9 @@
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
+import { blockHandler } from "./socket.block";
+import { errorHandler } from "./socket.error";
 import { messageHandler } from "./socket.message";
 import { receiptHandler } from "./socket.receipt";
 import { userHandler } from "./socket.user";
-import { errorHandler } from "./socket.error";
 
 export type SocketHandler = {
   [K in keyof ServerEventMap]?: (
@@ -15,4 +16,5 @@ export const handlers: SocketHandler = {
   ...messageHandler,
   ...receiptHandler,
   ...userHandler,
+  ...blockHandler,
 };

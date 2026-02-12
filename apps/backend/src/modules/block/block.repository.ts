@@ -121,9 +121,15 @@ export const BlocksRepository = {
       .select()
       .from(blockedUsers)
       .where(
-        and(
-          eq(blockedUsers.blockerId, blockerId),
-          eq(blockedUsers.blockedId, blockedId),
+        or(
+          and(
+            eq(blockedUsers.blockerId, blockerId),
+            eq(blockedUsers.blockedId, blockedId),
+          ),
+          and(
+            eq(blockedUsers.blockerId, blockedId),
+            eq(blockedUsers.blockedId, blockerId),
+          ),
         ),
       );
     return !!result;

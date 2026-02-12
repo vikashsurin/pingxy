@@ -3,6 +3,7 @@
   import { clickOutside } from "$lib/utils/clickOutside";
   import { Ban, EllipsisVertical, Eye } from "@lucide/svelte";
   import GenderIcon from "../../routes/chat/GenderIcon.svelte";
+  import { blockUser } from "$lib/store/managers/entities/block.svelte";
 
   const currentUser = $derived(chatStore.currentUser);
 
@@ -37,6 +38,7 @@
   {/if}
   {#if toggleMenu}
     <div
+      style="z-index: 999;"
       use:clickOutside={() => (toggleMenu = false)}
       class="absolute top-full right-0 bg-gray-100 py-1 border mt-1 border-gray-300 min-w-30"
     >
@@ -49,7 +51,7 @@
 {#snippet blockMenuItem()}
   <button
     class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300"
-    onclick={() => blockUser(partner?.id)}
+    onclick={() => blockUser(partner?.id!)}
   >
     <Ban size={14} />
     <span>Block</span>

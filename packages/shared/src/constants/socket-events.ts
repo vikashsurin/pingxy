@@ -50,6 +50,9 @@ export const SERVER_EVENTS = {
     LOGIN: "event:user.login",
     LOGOUT: "event:user.logout",
   },
+  BLOCKS: {
+    UNBLOCKED: "event:blocks.unblocked",
+  },
   CONVERSATIONS: {
     OPEN: "event:conversation.open",
   },

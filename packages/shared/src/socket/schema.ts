@@ -12,6 +12,7 @@ import {
 
 import { openConversationSchema } from "../domain/conversation/conversation.schema";
 
+import { userUnblockedSchema } from "../domain/blocked-user/blocked-user.schema";
 import {
   userConnectedSchema,
   userConnectSchema,
@@ -50,4 +51,5 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
   receiptEventSchema,
   userLoggedInSchema,
   userLoggedOutSchema,
+  userUnblockedSchema
 ]);

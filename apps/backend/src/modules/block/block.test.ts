@@ -46,8 +46,8 @@ describe("BlocksRepository", () => {
     expect(blockedUsers).toBeDefined();
   });
 
-  it("should check if block exists", async () => {
-    const exists = await BlocksRepository.exists({ blockerId, blockedId });
+  it.only("should check if block exists", async () => {
+    const exists = await BlocksRepository.exists({ blockerId: 5, blockedId: 9 });
     console.log({ exists });
     expect(exists).toBeBoolean();
   });
@@ -64,11 +64,11 @@ describe("BlocksRepository", () => {
     expect(blocks).toBeArray();
   });
 
-  it.only("should list blocked users with info", async () => {
+  it("should list blocked users with info", async () => {
     const blockedUsers = await BlockService.listBlockedUsersWithInfo({
       blockerId: 2,
     });
-    console.log({ blockedUsers });
+    console.log("blocked Users:", blockedUsers);
     expect(blockedUsers).toBeArray();
   });
 });
