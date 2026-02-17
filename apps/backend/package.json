@@ -1,5 +1,5 @@
 {
-  "name": "@chat/backend",
+  "name": "@pingxy/backend",
   "scripts": {
     "dev": "bun run --hot --watch src/index.ts",
     "db:push": "drizzle-kit push",

@@ -29,7 +29,7 @@ export const AuthController = {
         const info = getConnInfo(c);
         const ipAddress = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
-
+        console.log({ body });
         const { user, token } = await AuthService.register({
           body,
           info,

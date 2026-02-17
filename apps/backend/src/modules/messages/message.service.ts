@@ -60,16 +60,13 @@ export const MessageService = {
       senderId: message.senderId,
     });
 
-    const responseEnvelope = createServerEvent(
-      SERVER_EVENTS.MESSAGES.CREATED,
-      {
-        message: insertedMessage,
-        receipt: messageReceipt,
-        conversationId: conversation.conversationId,
-        sender: sender,
-        recipient: recipient,
-      },
-    );
+    const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
+      message: insertedMessage,
+      receipt: messageReceipt,
+      conversationId: conversation.conversationId,
+      sender: sender,
+      recipient: recipient,
+    });
 
     eventBus.emit(SERVER_EVENTS.MESSAGES.CREATED, {
       ...responseEnvelope,
