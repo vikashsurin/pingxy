@@ -15,9 +15,12 @@
   });
 </script>
 
-<div class=" relative flex flex-col h-full overflow-hidden">
+<div class=" relative flex flex-col overflow-hidden">
   <ChatboxHeader />
-  <InfiniteScrollChat />
+  <div class="bg-amber-400 h-full">
+    <InfiniteScrollChat />
+  </div>
+
   {#if chatStore.errorMessage}
     <div
       in:fly={{ y: 20, duration: 200 }}

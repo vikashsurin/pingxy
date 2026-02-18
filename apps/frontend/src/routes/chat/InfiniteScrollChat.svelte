@@ -297,12 +297,11 @@
   }
 </script>
 
-<div style:height="100%" class="overflow-auto relative">
+<div class="overflow-auto relative border-red-500 border-10">
   <div
     bind:this={scrollElement}
     bind:clientHeight={virtualStore.viewportHeight}
     data-virtual-list
-    style:height="100%"
     class="flex-1 overflow-auto border-4"
     use:passiveScroll
   >

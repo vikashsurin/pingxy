@@ -24,7 +24,7 @@
 </script>
 
 <!-- USERS -->
-<div class="bg-gray-100 min-w-75 flex flex-col overflow-hidden">
+<div class="bg-white min-w-75 flex flex-col overflow-hidden">
   <div class="flex flex-col overflow-hidden flex-1">
     <ul class="flex-1 overflow-y-auto">
       {#each sortedUsers as user}
