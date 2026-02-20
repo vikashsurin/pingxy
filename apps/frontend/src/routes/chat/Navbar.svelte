@@ -1,12 +1,7 @@
 <script lang="ts">
     import { handleLogout } from "$lib/store/managers/entities/user.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
-    import {
-        CircleChevronDown,
-        CircleUserRound,
-        Menu,
-        X,
-    } from "@lucide/svelte";
+    import { CircleChevronDown } from "@lucide/svelte";
     let { username } = $props();
     let expandMenu = $state(false);
 
@@ -43,7 +38,7 @@
                     {@render menuItem("/chat/settings", "Settings")}
                     <a
                         title="Logout"
-                        href="/auth/logout"
+                        href="/logout"
                         data-sveltekit-preload-data={false}
                         onclick={handleLogout}
                         class="py-1 px-3 text-red-500 text-sm hover:bg-gray-100 active:text-red-600"

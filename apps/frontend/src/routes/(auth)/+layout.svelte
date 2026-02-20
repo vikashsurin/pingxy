@@ -32,18 +32,18 @@
 
 {#snippet tabs()}
     <p class="text-center font-bold text-lg py-3">
-        {currentPath === "/auth/login"
+        {currentPath === "/login"
             ? "Welcome back!"
-            : currentPath === "/auth/register"
+            : currentPath === "/register"
               ? "Create an account"
               : "Guest Access"}
     </p>
     <div class="flex gap-2 bg-gray-100 p-1 rounded-lg my-4">
         {#each ["login", "register", "guest"] as action}
             <a
-                href={`/auth/${action}`}
+                href={`/${action}`}
                 class="flex-1 py-1 text-sm px-6 font-medium rounded-md capitalize transition-all duration-200 hover:text-sky-600 {currentPath ===
-                `/auth/${action}`
+                `/${action}`
                     ? 'bg-white text-sky-600'
                     : ''}"
             >

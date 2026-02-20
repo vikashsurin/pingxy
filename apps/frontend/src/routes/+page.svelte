@@ -1,9 +1,7 @@
 <script lang="ts">
-    import AuthForm from "./AuthForm.svelte";
-    import Footer from "./Footer.svelte";
     import logo from "$lib/assets/logo.svg";
     import { Info } from "@lucide/svelte";
-    let { form } = $props();
+    import Footer from "./Footer.svelte";
 </script>
 
 <div id="main" class="grid h-screen justify-center items-center">

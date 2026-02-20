@@ -4,8 +4,10 @@
   import { Ban, EllipsisVertical, Eye } from "@lucide/svelte";
   import GenderIcon from "../../routes/chat/GenderIcon.svelte";
   import { blockUser } from "$lib/store/managers/entities/block.svelte";
+  import { enhance } from "$app/forms";
 
   const currentUser = $derived(chatStore.currentUser);
+  let isBlocking = $state(false);
 
   const partner = $derived(chatStore.target?.user);
   let toggleMenu = $state(false);
@@ -49,13 +51,40 @@
 </div>
 
 {#snippet blockMenuItem()}
-  <button
-    class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300"
-    onclick={() => blockUser(partner?.id!)}
+  <form
+    action="?/block"
+    method="POST"
+    use:enhance={() => {
+      isBlocking = true;
+
+      return async ({ result, update }) => {
+        if (result.type === "success" && result.data) {
+          const actionResult = result.data as {
+            success: boolean;
+            blocked: { blockedId: number };
+          };
+
+          chatStore.blockedUserIds.add(actionResult.blocked.blockedId);
+        }
+        await update();
+        isBlocking = false;
+      };
+    }}
   >
-    <Ban size={14} />
-    <span>Block</span>
-  </button>
+    <input type="hidden" name="userId" value={partner?.id} />
+    <button
+      class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300"
+    >
+      <Ban size={14} />
+      {#if isBlocking}
+        <span>Blocking...</span>
+      {:else if chatStore.blockedUserIds.has(partner?.id!)}
+        <span>Blocked</span>
+      {:else}
+        <span>Block</span>
+      {/if}
+    </button>
+  </form>
 {/snippet}
 
 {#snippet viewMenuItem()}

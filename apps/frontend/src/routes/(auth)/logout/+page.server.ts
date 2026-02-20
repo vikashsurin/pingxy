@@ -9,5 +9,5 @@ export const load: PageServerLoad = async ({ fetch, cookies, locals }) => {
   locals.user = null;
 
 
-  throw redirect(302, "/auth/login");
+  throw redirect(302, "/login");
 };

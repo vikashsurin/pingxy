@@ -1,12 +1,13 @@
 export const blockUserRequest = async ({
+  customFetch,
   blockerId,
   blockedId,
 }: {
-
+  customFetch: typeof fetch;
   blockerId: number;
   blockedId: number;
 }) => {
-  const response = await fetch(`/api/blocks`, {
+  const response = await customFetch(`/api/blocks`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
