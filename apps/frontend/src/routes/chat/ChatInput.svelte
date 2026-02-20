@@ -1,7 +1,18 @@
 <script lang="ts">
   import { chatStore } from "$lib/store/store.svelte";
+  import {
+    Camera,
+    Image,
+    Mic,
+    Paperclip,
+    Signature,
+    Smile,
+  } from "@lucide/svelte";
 
   let messageText = $state("");
+
+  let showAttachmentsPopup = $state(false);
+  let showEmojiPopup = $state(false);
 
   async function handleSend() {
     chatStore.sendMessage({ messageText });
@@ -26,6 +37,22 @@
       >
     </div>
   {:else}
+    <button
+      onclick={() => (showAttachmentsPopup = !showAttachmentsPopup)}
+      class="relative {showAttachmentsPopup
+        ? 'bg-sky-100 text-sky-600'
+        : ''} p-2 rounded-full"
+    >
+      <Paperclip />
+    </button>
+    <button
+      onclick={() => (showEmojiPopup = !showEmojiPopup)}
+      class="relative {showEmojiPopup
+        ? 'bg-amber-200 text-amber-600'
+        : ''} p-2 rounded-full"
+    >
+      <Smile />
+    </button>
     <input
       type="text"
       placeholder="Message"
@@ -46,7 +73,40 @@
     >
       Send
     </button>
+    {#if showAttachmentsPopup}
+      {@render attachmentsPopup()}
+    {/if}
+    {#if showEmojiPopup}
+      {@render emojiPopup()}
+    {/if}
   {/if}
 </div>
 
+{#snippet attachmentsPopup()}
+  <div class="absolute bottom-full left-0 w-max">
+    <div
+      class="bg-white p-2 rounded shadow-md border border-gray-200 flex flex-col gap-2"
+    >
+      <button class="p-2 hover:bg-gray-200 rounded">
+        <Image />
+      </button>
+      <button class="p-2 hover:bg-gray-200 rounded">
+        <Camera />
+      </button>
+      <button class="p-2 hover:bg-gray-200 rounded">
+        <Mic />
+      </button>
+      <button class="p-2 hover:bg-gray-200 rounded">
+        <Signature />
+      </button>
+    </div>
+  </div>
+{/snippet}
 
+{#snippet emojiPopup()}
+  <div class="absolute bottom-full mb-2 left-0 w-full">
+    <div class="bg-white p-2 rounded shadow-md">
+      <p class="text-sm text-gray-500">Emoji options go here</p>
+    </div>
+  </div>
+{/snippet}

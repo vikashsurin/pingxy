@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
-import type { LayoutServerLoad } from "../$types";
+import type { PageServerLoad } from "./$types";
 
-export const load: LayoutServerLoad = async ({ fetch, cookies, locals }) => {
+export const load: PageServerLoad = async ({ fetch, cookies, locals }) => {
   await fetch("/api/auth/logout", { method: "POST" });
 
   cookies.delete("_Host-session", { path: "/" });
@@ -9,5 +9,5 @@ export const load: LayoutServerLoad = async ({ fetch, cookies, locals }) => {
   locals.user = null;
 
 
-  throw redirect(302, "/");
+  throw redirect(302, "/auth/login");
 };

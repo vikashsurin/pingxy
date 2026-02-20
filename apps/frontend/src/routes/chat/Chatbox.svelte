@@ -15,11 +15,13 @@
   });
 </script>
 
-<div class=" relative flex flex-col overflow-hidden">
+<div
+  id="chatbox"
+  class="col-span-8 border-5 border-green-500 min-h-0 relative flex flex-col overflow-hidden"
+>
   <ChatboxHeader />
-  <div class="bg-amber-400 h-full">
-    <InfiniteScrollChat />
-  </div>
+
+  <InfiniteScrollChat />
 
   {#if chatStore.errorMessage}
     <div

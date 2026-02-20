@@ -22,13 +22,10 @@
   $inspect({ blockedUserIds: chatStore.blockedUserIds });
 </script>
 
-<div class="grid grid-cols-12 h-screen overflow-hidden gap-2">
-  <div class="col-span-2 h-screen overflow-hidden">
-    <Sidebar />
-  </div>
-  <div class="col-span-8 h-125 border-5 border-green-500">
-    <Chatbox />
-  </div>
+<div class="grid grid-cols-12 flex-1 border-5 min-h-0">
+  <Sidebar />
+
+  <Chatbox />
 
   <AdSidebar />
 </div>
