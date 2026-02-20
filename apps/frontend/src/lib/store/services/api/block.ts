@@ -2,7 +2,6 @@ export const blockUserRequest = async ({
   blockerId,
   blockedId,
 }: {
-
   blockerId: number;
   blockedId: number;
 }) => {

@@ -26,16 +26,7 @@
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
   {#if chatStore.blockedUserIds.has(chatStore.activeConversation?.user.id!)}
-    <div
-      class="bg-gray-700 w-full p-3 rounded text-gray-300 text-sm flex justify-between"
-    >
-      <p>User blocked, you cannot send messages!</p>
-      <a
-        href="/chat/settings/blocked"
-        class="text-sm underline text-amber-600 hover:text-amber-400"
-        >unblock here</a
-      >
-    </div>
+    {@render blockedUserNotice()}
   {:else}
     <button
       onclick={() => (showAttachmentsPopup = !showAttachmentsPopup)}
@@ -53,6 +44,7 @@
     >
       <Smile />
     </button>
+
     <input
       type="text"
       placeholder="Message"
@@ -73,6 +65,7 @@
     >
       Send
     </button>
+
     {#if showAttachmentsPopup}
       {@render attachmentsPopup()}
     {/if}
@@ -81,6 +74,19 @@
     {/if}
   {/if}
 </div>
+
+{#snippet blockedUserNotice()}
+  <div
+    class="bg-gray-700 w-full p-3 rounded text-gray-300 text-sm flex justify-between"
+  >
+    <p>User blocked, you cannot send messages!</p>
+    <a
+      href="/chat/settings/blocked"
+      class="text-sm underline text-amber-600 hover:text-amber-400"
+      >unblock here</a
+    >
+  </div>
+{/snippet}
 
 {#snippet attachmentsPopup()}
   <div class="absolute bottom-full left-0 w-max">

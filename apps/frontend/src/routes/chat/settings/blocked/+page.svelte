@@ -1,8 +1,8 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { unblockUser } from "$lib/store/managers/entities/block.svelte.js";
   import { Loader } from "@lucide/svelte";
   import { blockedUserInfoSchema } from "@pingxy/shared";
+  import { type SubmitFunction } from "@sveltejs/kit";
   import z from "zod";
 
   let { data, form } = $props();
@@ -10,7 +10,7 @@
   let isUnblocking = $state(false);
   let statusMessage = $state("");
 
-  function handleUnblock() {
+  const handleUnblock: SubmitFunction = async () => {
     isUnblocking = true;
     statusMessage = "";
 
@@ -22,7 +22,7 @@
         await update();
       }
     };
-  }
+  };
 </script>
 
 <div class="max-w-2xl mx-auto p-6">

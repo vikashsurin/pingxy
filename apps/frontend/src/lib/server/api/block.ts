@@ -24,8 +24,14 @@ export const blockUserRequest = async ({
   return data;
 };
 
-export const unblockUserRequest = async ({ blockId }: { blockId: number }) => {
-  const response = await fetch(`/api/blocks/${blockId}`, {
+export const unblockUserRequest = async ({
+  customFetch,
+  blockId,
+}: {
+  customFetch: typeof fetch;
+  blockId: number;
+}) => {
+  const response = await customFetch(`/api/blocks/${blockId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

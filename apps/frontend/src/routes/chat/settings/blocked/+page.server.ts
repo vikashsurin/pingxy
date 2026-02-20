@@ -1,5 +1,6 @@
 import { redirect, type Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
+import { unblockAction } from "./actions/block";
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
   if (!locals.user) throw redirect(302, "/");
@@ -22,21 +23,5 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 };
 
 export const actions: Actions = {
-  unblock: async ({ request, fetch }) => {
-    const formData = await request.formData();
-    const blockId = formData.get("blockId");
-
-    const response = await fetch(`/api/blocks/${blockId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to unblock user");
-    }
-    const data = await response.json();
-    console.log({ data });
-  },
+  unblock: unblockAction,
 };
