@@ -93,7 +93,7 @@ migrate-generate:
 studio:
 	@echo "$(GREEN)🎨 Opening Drizzle Studio...$(RESET)"
 	# docker compose -f docker-compose.dev.yml exec backend bun run db:studio
-	bunx drizzle-kit studio
+	 cd apps/backend && bunx drizzle-kit studio
 
 # Shell access to backend container (dev)
 shell-backend:

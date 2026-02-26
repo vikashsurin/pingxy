@@ -1,4 +1,4 @@
-import type { SERVER_EVENTS } from "@pingxy/shared";
+import type { SERVER_EVENTS, User } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
@@ -42,25 +42,31 @@ export const loadInitialMessages = async ({
   }
 };
 
-export const sendMessage = async ({ messageText }: { messageText: string }) => {
-  if (!chatStore.activeConversation || !chatStore.currentUser) {
-    chatStore.errorMessage = "No active conversation or user";
-    return;
+export const sendMessage = async ({ messageText, identifier, partner }: {
+  messageText: string, identifier: string, partner: User
+}) => {
+
+  if (!identifier && !chatStore.currentUser) {
+    chatStore.errorMessage = "No identifier provided";
+    return
   }
-  const conversationId = chatStore.activeConversation.conversationId;
+  const isExistingConv = identifier.startsWith("c_");
+  const idValue = Number(identifier.replace(/^[cu]_/, ""));
+
+  // const conversationId = chatStore.activeConversation.conversationId;
 
   const envelope = createClientReq(DOMAIN_EVENTS.MESSAGES.CREATE, {
     message: {
-      conversationId: conversationId ?? null,
+      conversationId: isExistingConv ? idValue : null,
       clientMessageId: crypto.randomUUID(),
       content: messageText,
-      senderId: chatStore.currentUser.id,
+      senderId: chatStore.currentUser?.id!,
     },
-    conversationId: conversationId ?? null,
-    sender: chatStore.currentUser,
+    conversationId: isExistingConv ? idValue : null,
+    sender: chatStore.currentUser!,
     recipient: {
-      id: chatStore.activeConversation.user.id,
-      username: chatStore.activeConversation.user.username,
+      id: partner.id,
+      username: partner.username,
     },
   });
 
@@ -81,8 +87,8 @@ export const handleIncomingMessage = async (
   addMessageToState(data);
 };
 
-export const updateMessage = async () => {};
-export const deleteMessage = async () => {};
+export const updateMessage = async () => { };
+export const deleteMessage = async () => { };
 
 // Private
 const addMessageToState = async (

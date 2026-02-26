@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { ParticipantRepository } from './participant.repository'
+import { ParticipantRepository } from './participant.repository';
+import { ParticipantService } from "./participant.service";
 describe("Participants Table Schema", () => {
   beforeAll(async () => {
     // await db.delete(participants);
@@ -28,5 +29,19 @@ describe("Participants Table Schema", () => {
       userId: 2,
     });
     expect(participant).toBeTruthy();
+  });
+
+  test("should get many participants by many conversation ids", async () => {
+    const participants = await ParticipantRepository.selectManyParticipantsByManyConversationIds({
+      conversationIds: [3, 4, 5],
+    });
+    console.log({ participants })
+    expect(participants).toBeTruthy();
+  });
+
+  test.only("should select all participants", async () => {
+    const participants = await ParticipantRepository.selectParticipantsByConversationId(4);
+    console.log({ participants })
+    expect(participants).toBeTruthy();
   });
 });

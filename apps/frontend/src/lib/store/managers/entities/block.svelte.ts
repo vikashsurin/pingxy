@@ -64,7 +64,6 @@ export const initBlocks = async () => {
   await fetchBlockedUserIds();
 };
 
-
 export const removeBlockedFromState = (blockedId: number) => {
   chatStore.blockedUserIds.delete(blockedId);
 };

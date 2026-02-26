@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import * as queries from "./conversation.repository";
 import { ConversationRepository } from "./conversation.repository";
+import { ConversationService } from "./conversation.service";
 describe("Conversations Table Schema", () => {
   beforeAll(async () => {
     // Clear table before tests if needed
@@ -26,7 +27,19 @@ describe("Conversations Table Schema", () => {
 
   test("should select a conversation id by user ids", async () => {
     const result = await ConversationRepository.selectByUsersPrecise(2, 14)
-    console.log({ result })
     expect(result).toBeObject();
   });
+
+  test("should return all conversations of a user", async () => {
+    const result = await ConversationService.getAlByUser({ userId: 2 });
+    console.log("result: ", JSON.stringify(result, null, 2))
+    expect(result).toBeTruthy();
+  })
+
+  test.only("should return a conversation ", async () => {
+    const result = await ConversationRepository.selectById(4)
+    console.log({ result })
+    expect(result).toBeDefined()
+  })
+
 });

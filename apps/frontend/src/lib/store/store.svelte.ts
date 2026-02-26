@@ -6,8 +6,51 @@ import type z from "zod";
 import * as messageManager from "./managers/entities/message.svelte";
 import { handleIncomingReceipts } from "./managers/entities/receipt.svelte";
 import { fetchConversation } from "./services/api";
+import type { UIConversation } from "$lib/types/chat";
 
 type UserWithStatus = User & { isOnline: boolean };
+
+export type Conversation = {
+  id: number;
+  type: "direct" | "group";
+  unreadCount: number;
+  name: string;
+  participants: User[];
+};
+
+type HydratedParticipant = {
+  participantId: number;
+  conversationId: number;
+  userId: number;
+  role: "member" | "admin" | "moderator";
+  joinedAt: string;
+  leftAt: null;
+  isActive: true;
+  username: string;
+  userType: "user" | "guest";
+  data: {
+    gender: string;
+    age: number;
+    country: string;
+    roles: string[];
+  };
+};
+
+export type ChatTarget = {
+  isUser: boolean;
+  type: "direct" | "group";
+  displayName: string;
+  partner?: {
+    id: number;
+    username: string;
+    gender: string;
+    age: number;
+    country: string;
+  };
+  unreadCount?: number;
+  participants?: HydratedParticipant[];
+  conversationId?: number;
+};
 
 export type PrivateConversation = {
   unreadCount: number;
@@ -29,6 +72,8 @@ class ChatStore {
   isConnected = $state<boolean>(false);
   currentUser = $state<User | null | undefined>(undefined);
   errorMessage = $state<string>("");
+
+
   async setErrorMessage(msg: string) {
     // 1. Reset the logic
     if (this.timer) clearTimeout(this.timer);
@@ -50,6 +95,11 @@ class ChatStore {
       }, 5000);
     }, 10);
   }
+
+  chatTarget = $state<ChatTarget | null>(null);
+
+  activeConversationId = $state<number | null>(null);
+
   blockedUserIds = new SvelteSet<number>();
   onlineUsers = $state<User[]>([]);
   visibleOnlineUsers = $derived.by<User[]>(() => {
@@ -59,8 +109,10 @@ class ChatStore {
 
   target = $state<Target | null>(null);
 
-  activeConversation = $state<PrivateConversation>();
+  _activeConversation = $state<Conversation>();
+  _conversations = $state<Record<number, UIConversation>>({});
 
+  activeConversation = $state<PrivateConversation>();
   conversations = $state<Record<number, PrivateConversation>>({});
 
   displayConversations = $derived.by(
@@ -115,8 +167,8 @@ class ChatStore {
     );
   });
 
-  async sendMessage({ messageText }: { messageText: string }) {
-    await messageManager.sendMessage({ messageText });
+  async sendMessage({ messageText, identifier, partner }: { messageText: string, identifier: string, partner: User }) {
+    await messageManager.sendMessage({ messageText, identifier, partner });
   }
 
   async initChat(user: User) {
@@ -306,7 +358,7 @@ class ChatStore {
     this.messages = {};
     this.notifications.clear();
     this.activeConversation = undefined;
-    this.error = "";
+    // this.error = "";
   }
 }
 

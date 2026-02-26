@@ -12,6 +12,7 @@ export default defineConfig({
       root: resolve(__dirname, "../../"),
       projects: [resolve(__dirname, "../backend/tsconfig.json")],
     }),
+
   ],
 
   server: {

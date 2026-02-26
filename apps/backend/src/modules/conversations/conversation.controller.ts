@@ -6,13 +6,32 @@ import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 
 export const ConversationController = {
-  getAll: async (c: Context) => {
-    const user = c.get("user");
-    const conversations = await ConversationService.getByUser({
-      userId: user.id,
-    });
-    return c.json({ conversations: conversations });
-  },
+  getAll:
+    factory.createHandlers(
+      validate("query", z.object({ userId: z.coerce.number() })),
+      async (c) => {
+        const { userId } = c.req.valid("query");
+        const result = await ConversationService.getAlByUser({
+          userId,
+        });
+        return c.json(result);
+      },
+    ),
+
+
+  getPartner: factory.createHandlers(
+    validate("param", z.object({ conversationId: z.coerce.number() })),
+    async (c) => {
+
+      const user = c.get('user')
+
+      const { conversationId } = c.req.valid("param");
+      const result = await ConversationService.getPartnerForConversation({ userId: user.id, conversationId })
+
+      return c.json(result);
+    },
+  ),
+
 
   getAllMessagesAndReceipts: async (c: Context) => {
     const conversationId = Number(c.req.param("conversationId"));
@@ -32,7 +51,7 @@ export const ConversationController = {
     });
 
     return c.json({
-      chat: result,
+      items: result,
       hasMore: result.length === limit,
     });
   },

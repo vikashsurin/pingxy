@@ -1,4 +1,9 @@
-import { blockUserRequest, unblockUserRequest } from "../api/block";
+import { get } from "node:http";
+import {
+  blockUserRequest,
+  fetchBlockedUserIdsRequest,
+  unblockUserRequest,
+} from "../api/block";
 
 export const BlockService = {
   block: async ({
@@ -21,5 +26,15 @@ export const BlockService = {
     blockId: number;
   }) => {
     return await unblockUserRequest({ customFetch, blockId });
+  },
+
+  getBlockedUserIds: async ({
+    customFetch,
+    blockerId,
+  }: {
+    customFetch: typeof fetch;
+    blockerId: number;
+  }) => {
+    return await fetchBlockedUserIdsRequest({ customFetch, blockerId });
   },
 };

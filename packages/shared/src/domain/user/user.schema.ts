@@ -8,9 +8,15 @@ import {
   MIN_PASSWORD_LENGTH,
 } from "../../constants/user";
 import { users } from "./user.table";
+import { getTableColumns } from "drizzle-orm";
+
+
+const allColumns = getTableColumns(users)
+const { hashedPassword, ...publicColumns } = allColumns
+export const publicUserColumns = publicColumns
 
 export const insertUserSchema = createInsertSchema(users);
-// export const selectUserSchema = createSelectSchema(users);
+
 
 export const UserMetaDataSchema = z.object({
   gender: z.string(),

@@ -27,8 +27,10 @@
     "vite-tsconfig-paths": "^6.1.1"
   },
   "dependencies": {
-    "@pingxy/shared": "workspace:*",
     "@lucide/svelte": "^0.556.0",
+    "@pingxy/shared": "workspace:*",
+    "@tanstack/virtual-core": "^3.13.19",
+    "add": "^2.0.6",
     "countries-list": "^3.2.2",
     "hono": "^4.11.10",
     "jwt-decode": "^4.0.0",

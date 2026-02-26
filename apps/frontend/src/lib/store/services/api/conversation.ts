@@ -1,6 +1,6 @@
 // fetch only conversations in which a user is a participant
-export const fetchConversations = async () => {
-  const response = await fetch(`/api/conversations`, {
+export const fetchConversations = async ({ userId }: { userId: number }) => {
+  const response = await fetch(`/api/conversations/${userId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

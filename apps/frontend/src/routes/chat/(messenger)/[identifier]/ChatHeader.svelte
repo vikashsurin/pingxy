@@ -1,20 +1,24 @@
 <script lang="ts">
+  import { enhance } from "$app/forms";
   import { chatStore } from "$lib/store/store.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
   import { Ban, EllipsisVertical, Eye } from "@lucide/svelte";
-  import GenderIcon from "../../routes/chat/GenderIcon.svelte";
-  import { blockUser } from "$lib/store/managers/entities/block.svelte";
-  import { enhance } from "$app/forms";
+  import GenderIcon from "../GenderIcon.svelte";
+
+  let { partner } = $props();
+
+  console.log("from chatheader: ", () => partner);
 
   const currentUser = $derived(chatStore.currentUser);
   let isBlocking = $state(false);
 
-  const partner = $derived(chatStore.target?.user);
   let toggleMenu = $state(false);
+
+  $inspect({ partner });
 </script>
 
 <div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
-  {#if chatStore.target}
+  {#if partner}
     <div class="flex w-full items-center gap-2">
       <span> Chatting with : </span>
 

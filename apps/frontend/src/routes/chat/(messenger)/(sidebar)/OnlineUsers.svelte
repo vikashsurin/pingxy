@@ -1,7 +1,9 @@
 <script lang="ts">
   import { chatStore } from "$lib/store/store.svelte.js";
   import type { User } from "@pingxy/shared/domain/user/user.types";
-  import GenderIcon from "./GenderIcon.svelte";
+  import GenderIcon from "../GenderIcon.svelte";
+
+  console.log("online users");
 
   let { searchQuery, gender, showUsers = $bindable() } = $props();
   let sortedUsers = $derived.by(() => {
@@ -16,10 +18,23 @@
       .sort((a, b) => a.data.country.localeCompare(b.data.country));
   });
 
-  function handleOpenConversation(user: User) {
+  function handleClick(user: User) {
     showUsers = false;
-    chatStore.target = { isUser: true, user: user };
-    chatStore.initChat(user);
+    // chatStore.target = { isUser: true, user: user };
+    // chatStore.initChat(user);
+
+    chatStore.chatTarget = {
+      isUser: true,
+      type: "direct",
+      displayName: user.username,
+      partner: {
+        id: user.id,
+        username: user.username,
+        gender: user.data.gender,
+        age: user.data.age,
+        country: user.data.country,
+      },
+    };
   }
 </script>
 
@@ -38,10 +53,11 @@
 
 {#snippet userItemRow(user: User)}
   <li>
-    <button
+    <a
+      href="/chat/u_{user.id}"
       class="px-2 py-1 hover:bg-gray-300 relative flex w-full gap-1 border-gray-200 justify-between"
       id={user.id.toString()}
-      onclick={() => handleOpenConversation(user)}
+      onclick={() => handleClick(user)}
     >
       <div class="flex items-center gap-2">
         <GenderIcon gender={user.data.gender} />
@@ -62,6 +78,6 @@
           </span>
         </span>
       {/if}
-    </button>
+    </a>
   </li>
 {/snippet}

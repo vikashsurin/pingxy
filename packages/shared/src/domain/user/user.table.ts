@@ -26,3 +26,6 @@ export const users = table(
   },
   (table) => [t.uniqueIndex("users_usernameIdx").on(table.username)],
 );
+
+
+

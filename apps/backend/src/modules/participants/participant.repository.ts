@@ -1,5 +1,5 @@
-import { conversations, ParticipantInsertType, participants } from "@pingxy/shared";
-import { aliasedTable, and, eq, ne, sql } from "drizzle-orm";
+import { conversations, dbSelectMessageSchema, ParticipantInsertType, participants, users } from "@pingxy/shared";
+import { aliasedTable, and, eq, getTableColumns, inArray, ne, sql } from "drizzle-orm";
 import db, { type DB_TX } from "src/common/db/client";
 
 export const ParticipantRepository = {
@@ -46,6 +46,20 @@ export const ParticipantRepository = {
       .limit(1);
   },
 
+
+  selectByUserId: async ({
+    userId,
+    tx = db
+  }: {
+    userId: number,
+    tx?: DB_TX
+  }) => {
+    return await tx
+      .select()
+      .from(participants)
+      .where(eq(participants.userId, userId));
+  },
+
   selectParticipantById: async (participantId: number) => {
     return await db
       .select()
@@ -59,6 +73,32 @@ export const ParticipantRepository = {
       .select()
       .from(participants)
       .where(eq(participants.conversationId, conversationId));
+  },
+
+
+  selectManyParticipantsByManyConversationIds: async ({ conversationIds, tx = db }: { conversationIds: number[], tx?: DB_TX }) => {
+    return await tx
+      .select({
+        participantId: participants.participantId,
+        conversationId: participants.conversationId,
+        userId: participants.userId,
+        role: participants.role,
+        joinedAt: participants.joinedAt,
+        leftAt: participants.leftAt,
+        isActive: participants.isActive,
+        username: users.username,
+        userType: users.userType,
+        data: users.data,
+
+      })
+      .from(participants)
+      .innerJoin(users, eq(participants.userId, users.id))
+      .where(
+        and(
+          inArray(participants.conversationId, conversationIds),
+          eq(participants.isDeleted, false)
+        )
+      )
   },
 
   updateParticipantRole: async (

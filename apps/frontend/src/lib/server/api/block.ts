@@ -48,11 +48,13 @@ export const unblockUserRequest = async ({
 };
 
 export const fetchBlockedUserIdsRequest = async ({
+  customFetch,
   blockerId,
 }: {
+  customFetch: typeof fetch;
   blockerId: number;
 }) => {
-  const response = await fetch(`/api/blocks/blocker/${blockerId}`, {
+  const response = await customFetch(`/api/blocks/blocker/${blockerId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -64,22 +66,26 @@ export const fetchBlockedUserIdsRequest = async ({
     throw new Error("Failed to fetch blocked users");
   }
 
-  const data = await response.json();
-  return data;
+  return await response.json();
 };
 
 export const fetchBlockedUsersRequest = async ({
+  customFetch,
   blockerId,
 }: {
+  customFetch: typeof fetch;
   blockerId: number;
 }) => {
-  const response = await fetch(`/api/blocks/blocker/${blockerId}/with-info`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await customFetch(
+    `/api/blocks/blocker/${blockerId}/with-info`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
     },
-    credentials: "include",
-  });
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch blocked users");

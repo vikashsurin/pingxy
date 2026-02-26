@@ -33,6 +33,9 @@ export const initConversations = async () => {
   conversations.forEach((element: any) => {
     chatStore.conversations[element.conversationId] = element;
   });
+  conversations.forEach((element: any) => {
+    chatStore._conversations[element.conversationId] = element;
+  });
 };
 
 export const resetUnreadCount = (conversationId: number) => {

@@ -1,8 +1,9 @@
 import { conversations, participants, users } from "@pingxy/shared/domain";
 import { type InsertConversationType } from "@pingxy/shared/types";
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, inArray, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "src/common/db/client";
+import { publicUserColumns } from "@pingxy/shared/domain/user/user.schema";
 
 import { type DB_TX } from "src/common/db/client";
 
@@ -17,6 +18,35 @@ export const ConversationRepository = {
       .from(conversations)
       .where(eq(conversations.conversationId, id))
       .limit(1);
+  },
+
+  selectManyById: async ({ ids, tx = db }: { ids: number[]; tx?: DB_TX }) => {
+    return await tx
+      .select()
+      .from(conversations)
+      .where(inArray(conversations.conversationId, ids))
+      .limit(10);
+  },
+
+  isUserInConversation: async ({
+    conversationId,
+    userId,
+    tx = db,
+  }: {
+    userId: number;
+    conversationId: number;
+    tx?: DB_TX;
+  }) => {
+    const result = await tx
+      .select()
+      .from(participants)
+      .where(
+        and(
+          eq(participants.conversationId, conversationId),
+          eq(participants.userId, userId),
+        ),
+      );
+    return result.length > 0;
   },
 
   // Select conversation by 2 distinct Users
@@ -53,6 +83,31 @@ export const ConversationRepository = {
     return result[0] || null;
   },
 
+  selectPartnerByConversationId: async ({
+    tx = db,
+    userId,
+    conversationId,
+  }: {
+    tx?: DB_TX;
+    userId: number;
+    conversationId: number;
+  }) => {
+    const result = await tx
+      .select({
+        ...publicUserColumns,
+      })
+      .from(participants)
+      .innerJoin(users, eq(participants.userId, users.id))
+      .where(
+        and(
+          eq(participants.conversationId, conversationId),
+          ne(participants.userId, userId),
+        ),
+      )
+      .limit(1);
+    return result[0] || null;
+  },
+
   selectByUserId: async (userId: number) => {
     const p1 = alias(participants, "p1");
     const p2 = alias(participants, "p2");
@@ -62,13 +117,6 @@ export const ConversationRepository = {
       .select({
         unreadCount: p1.unreadCount,
         conversationId: conversations.conversationId,
-        user: {
-          id: users.id,
-          username: users.username,
-          userType: users.userType,
-          data: users.data,
-          lastSeenAt: users.lastSeenAt,
-        },
       })
       .from(conversations)
       .innerJoin(p1, eq(p1.conversationId, conversations.conversationId))

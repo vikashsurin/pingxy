@@ -6,8 +6,12 @@ export const conversationRouter = factory.createApp();
 
 conversationRouter.use(authMiddleware);
 
-// GET all the conversations from a user
-conversationRouter.get("/", ConversationController.getAll);
+// GET all detailed conversations for a user
+// GET /conversations?userId=123  : replace with this TODO
+conversationRouter.get("/", ...ConversationController.getAll);
+
+// GET a conversation detail for a user
+conversationRouter.get('/:conversationId/partner', ...ConversationController.getPartner);
 
 // GET all the messages and receipts from a conversation
 conversationRouter.get(

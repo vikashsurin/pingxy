@@ -1,4 +1,4 @@
-import db from "src/common/db/client";
+import db, { DB_TX } from "src/common/db/client";
 import { ParticipantRepository } from "./participant.repository";
 
 export const ParticipantService = {
@@ -109,6 +109,8 @@ export const ParticipantService = {
       throw new Error("Error removing participant");
     }
   },
+
+
 
   incrementUnreadCount: async ({
     conversationId,

@@ -3,9 +3,12 @@
   import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
   import { chatStore, type PrivateConversation } from "$lib/store/store.svelte";
   import { onMount } from "svelte";
-  import GenderIcon from "./GenderIcon.svelte";
+  import GenderIcon from "../GenderIcon.svelte";
+  import { type UIConversation } from "$lib/types/chat";
 
   let { showUsers = $bindable() } = $props();
+
+  $inspect({ _conversations: chatStore._conversations });
 
   onMount(async () => {
     if (!chatStore.activeConversation?.conversationId) return;
@@ -14,32 +17,42 @@
       conversationId: chatStore.activeConversation?.conversationId,
     });
   });
-  const handleClick = async (conversation: PrivateConversation) => {
+  const handleClick = async (conversation: UIConversation) => {
     if (!conversation.conversationId) return;
 
-    chatStore.clearNotification(conversation.conversationId!);
-    chatStore.activeConversation = conversation;
-    chatStore.target = {
-      user: conversation.user,
+    chatStore.chatTarget = {
       isUser: false,
-      conversationId: conversation.conversationId!,
-      unreadCount: 0,
+      type: "direct",
+      displayName: conversation.displayName,
+      partner: conversation.partner,
+      unreadCount: conversation.unreadCount,
+      participants: conversation.participants,
+      conversationId: conversation.conversationId,
     };
 
-    await receiptManager.emitMarkAllRead({
-      conversationId: conversation.conversationId,
-      currentuserId: chatStore.currentUser?.id!,
-      senderId: conversation.user.id,
-    });
+    // chatStore.clearNotification(conversation.conversationId!);
+    // chatStore.activeConversation = conversation;
+    // chatStore.target = {
+    //   user: conversation.user,
+    //   isUser: false,
+    //   conversationId: conversation.conversationId!,
+    //   unreadCount: 0,
+    // };
 
-    // Load messages for current conversation
-    // await chatStore.loadMessages();
-    await chatStore.loadInitialMessages({
-      conversationId: conversation.conversationId,
-    });
+    // await receiptManager.emitMarkAllRead({
+    //   conversationId: conversation.conversationId,
+    //   currentuserId: chatStore.currentUser?.id!,
+    //   senderId: conversation.user.id,
+    // });
 
-    const userId = chatStore.currentUser?.id;
-    await subscribeToConversation({ conversation, userId });
+    // // Load messages for current conversation
+    // // await chatStore.loadMessages();
+    // await chatStore.loadInitialMessages({
+    //   conversationId: conversation.conversationId,
+    // });
+
+    // const userId = chatStore.currentUser?.id;
+    // await subscribeToConversation({ conversation, userId });
   };
 </script>
 
@@ -48,7 +61,7 @@
     {#if Object.keys(chatStore.conversations).length < 0}
       {@render userItemRowSkeleton()}
     {:else}
-      {#each Object.values(chatStore.conversations) as conversation}
+      {#each Object.values(chatStore._conversations) as conversation}
         {@render userItemRow(conversation)}
       {/each}
     {/if}
@@ -66,42 +79,41 @@
   </li>
 {/snippet}
 
-{#snippet userItemRow(conversation: PrivateConversation)}
+{#snippet userItemRow(conversation: UIConversation)}
   <li>
     <div class="flex items-center gap-1 w-full relative group">
-      <button
+      <a
+        href={`/chat/c_${conversation.conversationId}`}
         class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200 {conversation.conversationId ===
         chatStore.activeConversation?.conversationId
           ? 'bg-gray-400'
           : ''}"
-        id={conversation.user.id.toString()}
+        id={conversation.partner.id.toString()}
         onmouseenter={async () => {
           // TODO optimize it
           // await chatStore.preloadMessages({
           //     conversationId: conversation.conversationId,
           // });
         }}
-        onclick={async () => {
-          handleClick(conversation);
-        }}
+        onclick={() => handleClick(conversation)}
       >
         <div class="flex items-center gap-2 w-full overflow-hidden">
-          <GenderIcon gender={conversation.user.data.gender} />
+          <GenderIcon gender={conversation.partner.gender} />
           <span class="truncate">
-            {#if conversation.user.id === chatStore.currentUser?.id}
+            {#if conversation.partner.id === chatStore.currentUser?.id}
               You
             {:else}
-              {conversation.user.username}
+              {conversation.partner.username}
             {/if}
           </span>
 
-          {#if conversation.user.data.country && conversation.user.data.country !== "0"}
+          {#if conversation.partner.country && conversation.partner.country !== "0"}
             <span
               class="font-bold ml-auto text-xs shrink-0 flex items-center gap-1"
             >
-              {conversation.user.data.country}
+              {conversation.partner.country}
               <span
-                class={`fi fi-${conversation.user.data.country.toLocaleLowerCase()}`}
+                class={`fi fi-${conversation.partner.country.toLocaleLowerCase()}`}
               >
               </span>
             </span>
@@ -118,7 +130,7 @@
         </div>
 
         {@render unreaStatus(conversation.conversationId!)}
-      </button>
+      </a>
     </div>
   </li>
 {/snippet}
