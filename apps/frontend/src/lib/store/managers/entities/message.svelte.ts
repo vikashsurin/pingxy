@@ -1,14 +1,12 @@
 import { messageStore } from "$lib/store/messageStore.svelte";
-import { messages, type SERVER_EVENTS, type User } from "@pingxy/shared";
+import { type SERVER_EVENTS, type User } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
 import { createMessage, fetchMessages } from "../../services/api";
 import { chatStore } from "../../store.svelte";
 import { virtualStore } from "../../virtualStore.svelte";
-import { setUnreadCount } from "./conversation.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
-import { DatabaseZap } from "@lucide/svelte";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -107,7 +105,7 @@ export const handleIncomingMessage = async (
       console.log("emitting mark read");
       emitMarkRead({ message, userId: currentUserId! });
     } else {
-      console.log('emitting mark delivered');
+      console.log("emitting mark delivered");
       emitMarkDelivered({ message, userId: currentUserId! });
     }
   }

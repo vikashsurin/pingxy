@@ -1,5 +1,14 @@
-<script lang="ts">
-  import Test from "./Test.svelte";
+<script>
+  import { toast } from "$lib/components/toast/toast.svelte";
 </script>
 
-<Test />
+<button
+  on:click={() =>
+    toast("Profile updated!", { type: "success", duration: 3000 })}
+>
+  Save
+</button>
+
+<button on:click={() => toast("Failed to connect", { type: "error" })}>
+  Trigger error
+</button>

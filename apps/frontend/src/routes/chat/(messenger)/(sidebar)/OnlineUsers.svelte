@@ -3,7 +3,7 @@
     import type { User } from "@pingxy/shared/domain/user/user.types";
     import GenderIcon from "../GenderIcon.svelte";
 
-    let { searchQuery, gender, showUsers = $bindable() } = $props();
+    let { searchQuery, gender } = $props();
     let sortedUsers = $derived.by(() => {
         const searchLower = searchQuery.trim().toLowerCase();
         return chatStore.visibleOnlineUsers
@@ -21,7 +21,6 @@
     });
 
     function handleClick(user: User) {
-        showUsers = false;
         // chatStore.target = { isUser: true, user: user };
         // chatStore.initChat(user);
 

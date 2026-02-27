@@ -1,14 +1,11 @@
 <script lang="ts">
-  import { subscribeToConversation } from "$lib/store/managers/entities/conversation.svelte";
-  import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
-  import { chatStore, type PrivateConversation } from "$lib/store/store.svelte";
+  import { chatStore } from "$lib/store/store.svelte";
+  import { type UIConversation } from "$lib/types/chat";
   import { onMount } from "svelte";
   import GenderIcon from "../GenderIcon.svelte";
-  import { type UIConversation } from "$lib/types/chat";
+  import { page } from "$app/state";
 
-  let { showUsers = $bindable() } = $props();
-
-  $inspect({ _conversations: chatStore._conversations });
+  let urlArray = $derived(page.url.pathname.split("/"));
 
   onMount(async () => {
     if (!chatStore.activeConversation?.conversationId) return;
@@ -84,8 +81,8 @@
     <div class="flex items-center gap-1 w-full relative group">
       <a
         href={`/chat/c_${conversation.conversationId}`}
-        class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200 {conversation.conversationId ===
-        chatStore.activeConversation?.conversationId
+        class="px-2 py-1 w-full hover:bg-gray-300 relative flex gap-1 border-gray-200 {`c_${conversation.conversationId}` ===
+        urlArray.at(-1)
           ? 'bg-gray-400'
           : ''}"
         id={conversation.partner.id.toString()}

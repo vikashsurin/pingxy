@@ -1,12 +1,12 @@
 <script lang="ts">
+    import { validateSocket } from "$lib/store/helpers.js";
+    import { emitMarkAllRead } from "$lib/store/managers/entities/receipt.svelte.js";
     import { messageStore } from "$lib/store/messageStore.svelte.js";
+    import { formatLocalTime } from "$lib/utils/time.js";
     import { Check, CheckCheck } from "@lucide/svelte";
     import { type MessageReceipt } from "@pingxy/shared";
     import ChatHeader from "./ChatHeader.svelte";
     import ChatInput from "./ChatInput.svelte";
-    import { onMount } from "svelte";
-    import { emitMarkAllRead } from "$lib/store/managers/entities/receipt.svelte.js";
-    import { validateSocket } from "$lib/store/helpers.js";
 
     let { data } = $props();
 
@@ -83,23 +83,41 @@
                 <div class="message flex">
                     {#if entry.message.senderId === data.user.id}
                         <div
-                            class="bg-blue-100 flex flex-col justify-end border max-w-1/2 ml-auto px2py1"
+                            class="bg-blue-100 flex flex-col justify-end border max-w-1/2 ml-auto px-2 py-1"
                         >
                             <span id={entry.message.messageId.toString()}
                                 >{entry.message.content}</span
                             >
-                            <span class="flex justify-end">
+                            <span
+                                id="meta-data"
+                                class="flex justify-between items-end gap-2"
+                            >
+                                <span class="text-xs opacity-60"
+                                    >{formatLocalTime(
+                                        entry.message.createdAt,
+                                    )}</span
+                                >
                                 {@render receipt(entry.receipt)}
                             </span>
                         </div>
                     {:else}
                         <div
-                            class="bg-gray-300 flex justify-start border max-w-1/2 px-2 py-1"
+                            class="bg-gray-300 flex flex-col justify-start border max-w-1/2 px-2 py-1"
                         >
                             <span
                                 id={entry.message.messageId.toString()}
                                 class="sender">{entry.message.content}</span
                             >
+                            <span
+                                id="meta-data"
+                                class="flex justify-start items-start gap-2"
+                            >
+                                <span class="text-xs opacity-60">
+                                    {formatLocalTime(
+                                        entry.message.createdAt,
+                                    )}</span
+                                >
+                            </span>
                         </div>
                     {/if}
                 </div>
@@ -118,6 +136,35 @@
     {:else if receipt.status === "delivered"}
         <CheckCheck size={14} />
     {:else if receipt.status === "read"}
-        <CheckCheck size={14} class="text-green-500" />
+        <CheckCheck size={14} class="text-blue-500" />
     {/if}
-{/snippet}
+{/snippet};
+
+<style>
+    /* @import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap");
+
+  #chatbox {
+    font-family: "Roboto Slab", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+  } */
+
+    @import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Slab:wght@100..900&display=swap");
+
+    #chatbox {
+        font-family: "Roboto Slab", serif;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap");
+
+    #meta-data {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+    }
+</style>

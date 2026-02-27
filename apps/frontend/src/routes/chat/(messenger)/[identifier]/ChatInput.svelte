@@ -1,7 +1,7 @@
 <script lang="ts">
     import { chatStore } from "$lib/store/store.svelte";
     import { sendMessage } from "$lib/store/managers/entities/message.svelte";
-
+    import { clickOutside } from "$lib/utils/clickOutside";
     import {
         Camera,
         Image,
@@ -10,6 +10,7 @@
         Signature,
         Smile,
     } from "@lucide/svelte";
+    import { toast } from "$lib/components/toast/toast.svelte";
 
     let { identifier, partner } = $props();
 
@@ -23,10 +24,12 @@
             chatStore.errorMessage = "No identifier provided";
             return;
         }
-
+        if (!messageText) {
+            toast("Message cannot be empty", { type: "error", duration: 3000 });
+            return;
+        }
         sendMessage({ messageText, identifier, partner });
 
-        // chatStore.sendMessage({ messageText, identifier, partner });
         messageText = "";
     }
 
@@ -40,6 +43,7 @@
         {@render blockedUserNotice()}
     {:else}
         <button
+            use:clickOutside={() => (showAttachmentsPopup = false)}
             onclick={() => (showAttachmentsPopup = !showAttachmentsPopup)}
             class="relative {showAttachmentsPopup
                 ? 'bg-sky-100 text-sky-600'
@@ -48,6 +52,7 @@
             <Paperclip />
         </button>
         <button
+            use:clickOutside={() => (showEmojiPopup = false)}
             onclick={() => (showEmojiPopup = !showEmojiPopup)}
             class="relative {showEmojiPopup
                 ? 'bg-amber-200 text-amber-600'

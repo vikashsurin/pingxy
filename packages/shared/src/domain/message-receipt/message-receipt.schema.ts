@@ -21,7 +21,7 @@ export const dbInsertMessageReceiptSchema = createInsertSchema(messageReceipts);
 
 export const wsReceiptPayload = z.object({
   messageId: z.number(),
-  userId: z.number(),
+  readerId: z.number(),
   status: z.enum(["delivered", "read"]),
 });
 
@@ -37,7 +37,7 @@ export const clientInsertMessageReceiptSchema = createInsertSchema(
 ).pick({
   conversationId: true,
   messageId: true,
-  userId: true,
+  readerId: true,
 });
 
 export const clientUpdateMessageReceiptSchema = createUpdateSchema(
@@ -45,7 +45,7 @@ export const clientUpdateMessageReceiptSchema = createUpdateSchema(
 ).pick({
   conversationId: true,
   messageId: true,
-  userId: true,
+  readerId: true,
 });
 
 export const insertMessageReceiptSchema = createInsertSchema(
@@ -53,7 +53,7 @@ export const insertMessageReceiptSchema = createInsertSchema(
 ).pick({
   conversationId: true,
   messageId: true,
-  userId: true,
+  readerId: true,
 });
 
 const reqEnums = z.enum([
@@ -79,7 +79,7 @@ export const receiptReqSchema = z.object({
   payload: z.object({
     conversationId: z.number(),
     messageId: z.number().optional(),
-    userId: z.number(),
+    readerId: z.number(),
     sender: z.object({
       id: z.number(),
     }),
@@ -91,9 +91,9 @@ export const receiptEventSchema = z.object({
   id: z.uuid(),
   type: eventEnums,
   payload: z.object({
-    userId: z.number(),
+    readerId: z.number(),
     receipts: z.array(selectMessageReceiptSchema).optional(),
-    recipient: z.object({
+    sender: z.object({
       id: z.number(),
     }),
   }),

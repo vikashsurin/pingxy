@@ -33,7 +33,7 @@ export interface ReceiptEventMap {
     {
       conversationId: number;
       messageId: number;
-      userId: number;
+      readerId: number;
       recipient: {
         id: number;
         name: string;
@@ -45,7 +45,7 @@ export interface ReceiptEventMap {
     {
       conversationId: number;
       messageId: number;
-      userId: number;
+      readerId: number;
       recipient: {
         id: number;
         name: string;
@@ -57,7 +57,7 @@ export interface ReceiptEventMap {
     {
       conversationId: number;
       messageId: number;
-      userId: number;
+      readerId: number;
       recipient: {
         id: number;
       };
@@ -68,7 +68,7 @@ export interface ReceiptEventMap {
     {
       conversationId: number;
       messageId: number;
-      userId: number;
+      readerId: number;
     }
   >;
   [DOMAIN_EVENTS.RECEIPTS.ALL_READ]: SocketEventEnvelope<
@@ -76,7 +76,7 @@ export interface ReceiptEventMap {
     {
       conversationId: number;
       messageId: number;
-      userId: number;
+      readerId: number;
       recipient: {
         id: number;
       };

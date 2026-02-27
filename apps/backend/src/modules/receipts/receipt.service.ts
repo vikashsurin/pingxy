@@ -10,18 +10,18 @@ export const ReceiptService = {
   createMessageReceipt: async ({
     conversationId,
     messageId,
-    userId,
+    readerId,
     status,
   }: {
     conversationId: number;
     messageId: number;
-    userId: number;
+    readerId: number;
     status: "sent" | "delivered" | "read";
   }) => {
     const messageReceipt = await ReceiptRepository.insertMessageReceipt({
       conversationId,
       messageId,
-      userId,
+      readerId,
       status,
     });
     return messageReceipt;
@@ -31,29 +31,29 @@ export const ReceiptService = {
     data: ClientReqMap[typeof DOMAIN_EVENTS.RECEIPTS.ALL_READ],
   ) => {
     const conversationId = data.payload.conversationId;
-    const userId = data.payload.userId;
-    const readerId = data.payload.sender.id;
+    const readerId = data.payload.readerId;
+    const senderId = data.payload.sender.id;
 
-    if (conversationId && userId) {
+    if (conversationId && readerId) {
       const messageReceipts =
         await ReceiptRepository.updateAllMessageReceiptsToRead({
           conversationId,
-          userId,
+          readerId,
         });
 
       const latestMessage = await MessageService.findLatest(conversationId);
 
       await ParticipantService.resetUnreadCount({
-        userId,
+        readerId,
         conversationId,
         messageId: latestMessage.messageId,
       });
 
       const event = createServerEvent(SERVER_EVENTS.RECEIPTS.ALL_READ, {
         receipts: messageReceipts,
-        userId: userId,
-        recipient: {
-          id: readerId,
+        readerId: readerId,
+        sender: {
+          id: senderId,
         },
       });
       eventBus.emit(SERVER_EVENTS.RECEIPTS.ALL_READ, event);
@@ -69,20 +69,20 @@ export const ReceiptService = {
     const messageId = data.payload.messageId;
     if (!messageId) return null;
 
-    const userId = data.payload.userId;
-    const ackUserId = data.payload.sender.id;
+    const readerId = data.payload.readerId;
+    const senderId = data.payload.sender.id;
 
     const messageReceipts =
       await ReceiptRepository.updateMessageReceiptToDelivered({
         messageId,
-        userId,
+        readerId,
       });
 
     const event = createServerEvent(SERVER_EVENTS.RECEIPTS.DELIVERED, {
       receipts: messageReceipts,
-      userId: userId,
-      recipient: {
-        id: ackUserId,
+      readerId: readerId,
+      sender: {
+        id: senderId,
       },
     });
 
@@ -96,25 +96,25 @@ export const ReceiptService = {
     const messageId = data.payload.messageId;
     const conversationId = data.payload.conversationId;
     if (!messageId) return null;
-    const userId = data.payload.userId;
+    const readerId = data.payload.readerId;
     const senderId = data.payload.sender.id;
 
     const messageReceipts = await ReceiptRepository.updateMessageReceiptToRead({
       messageId,
-      userId,
+      readerId,
     });
 
     const event = createServerEvent(SERVER_EVENTS.RECEIPTS.READ, {
       receipts: messageReceipts,
-      userId: userId,
-      recipient: {
+      readerId: readerId,
+      sender: {
         id: senderId,
       },
     });
 
     // Reset unread count for the sender
     await ParticipantService.resetUnreadCount({
-      userId,
+      readerId,
       conversationId,
       messageId,
     });
@@ -123,7 +123,7 @@ export const ReceiptService = {
     return messageReceipts;
   },
 
-  getUnreadCount: async (userId: number) => {
-    return await ReceiptRepository.selectUnreadCountForUser(userId);
+  getUnreadCount: async (readerId: number) => {
+    return await ReceiptRepository.selectUnreadCountForUser(readerId);
   },
 };

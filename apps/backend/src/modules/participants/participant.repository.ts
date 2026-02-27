@@ -205,11 +205,11 @@ export const ParticipantRepository = {
   },
 
   resetUnreadCount: async ({
-    userId,
+    readerId,
     conversationId,
     messageId,
   }: {
-    userId: number;
+    readerId: number;
     conversationId: number;
     messageId: number;
   }) => {
@@ -223,7 +223,7 @@ export const ParticipantRepository = {
       })
       .where(
         and(
-          eq(participants.userId, userId),
+          eq(participants.userId, readerId),
           eq(participants.conversationId, conversationId),
         ),
       );

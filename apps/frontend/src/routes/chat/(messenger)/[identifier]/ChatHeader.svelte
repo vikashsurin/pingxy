@@ -13,7 +13,7 @@
     let toggleMenu = $state(false);
 </script>
 
-<div class="flex relative bg-gray-200 py-1 px-2 shrink-0 text-sm">
+<div class="flex relative bg-white py-1 px-2 shrink-0 text-sm">
     {#if partner}
         <div class="flex w-full items-center gap-2">
             <span> Chatting with : </span>
@@ -32,7 +32,7 @@
 
             <EllipsisVertical
                 size={24}
-                class="hover:bg-gray-300 active:bg-gray-400 {toggleMenu
+                class="hover:bg-gray-200 active:bg-gray-400 {toggleMenu
                     ? 'bg-gray-300'
                     : ''} p-1 rounded-full ml-auto"
                 onclick={() => (toggleMenu = !toggleMenu)}
@@ -43,7 +43,7 @@
         <div
             style="z-index: 999;"
             use:clickOutside={() => (toggleMenu = false)}
-            class="absolute top-full right-0 bg-gray-100 py-1 border mt-1 border-gray-300 min-w-30"
+            class="absolute top-full right-0 bg-white py-1 border mt-1 border-gray-300 min-w-30"
         >
             {@render blockMenuItem()}
             {@render viewMenuItem()}
@@ -76,9 +76,9 @@
     >
         <input type="hidden" name="userId" value={partner?.id} />
         <button
-            class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300"
+            class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-200"
         >
-            <Ban size={14} />
+            <!-- <Ban size={14} /> -->
             {#if isBlocking}
                 <span>Blocking...</span>
             {:else if chatStore.blockedUserIds.has(partner?.id!)}
@@ -92,9 +92,9 @@
 
 {#snippet viewMenuItem()}
     <button
-        class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-300"
+        class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-200"
     >
-        <Eye size={14} />
+        <!-- <Eye size={14} /> -->
         <span>View</span>
     </button>
 {/snippet}

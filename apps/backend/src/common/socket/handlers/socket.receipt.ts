@@ -4,7 +4,7 @@ import { SocketHandler } from "./index";
 
 export const receiptHandler: SocketHandler = {
   [DOMAIN_EVENTS.RECEIPTS.DELIVER]: async (socket, data) => {
-    if (data.payload.conversationId && data.payload.userId) {
+    if (data.payload.conversationId && data.payload.readerId) {
       console.log("message delivery request:: ", data);
       await ReceiptService.processDeliveryReceipt(data);
     }
@@ -12,12 +12,12 @@ export const receiptHandler: SocketHandler = {
   [DOMAIN_EVENTS.RECEIPTS.READ]: async (socket, data) => {
     console.log("marking read receipts:: ", data);
 
-    if (data.payload.conversationId && data.payload.userId) {
+    if (data.payload.conversationId && data.payload.readerId) {
       await ReceiptService.processReadReceipt(data);
     }
   },
   [DOMAIN_EVENTS.RECEIPTS.ALL_READ]: async (socket, data) => {
-    if (data.payload.conversationId && data.payload.userId) {
+    if (data.payload.conversationId && data.payload.readerId) {
       await ReceiptService.processMarkAllRead(data);
     }
   },

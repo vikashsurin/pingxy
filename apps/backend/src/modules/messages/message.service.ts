@@ -51,7 +51,7 @@ export const MessageService = {
     const [messageReceipt] = await ReceiptService.createMessageReceipt({
       conversationId: conversation.conversationId,
       messageId: insertedMessage.messageId,
-      userId: recipient.id,
+      readerId: recipient.id,
       status: "sent",
     });
 

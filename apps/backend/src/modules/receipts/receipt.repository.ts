@@ -7,12 +7,12 @@ export const ReceiptRepository = {
   insertMessageReceipt: async ({
     conversationId,
     messageId,
-    userId,
+    readerId,
     status,
   }: {
     conversationId: number;
     messageId: number;
-    userId: number;
+    readerId: number;
     status: "sent" | "delivered" | "read";
   }) => {
     return await db
@@ -20,7 +20,7 @@ export const ReceiptRepository = {
       .values({
         conversationId,
         messageId,
-        userId,
+        readerId,
         status,
       })
       .returning();
@@ -53,7 +53,7 @@ export const ReceiptRepository = {
       .select({
         receiptId: messageReceipts.receiptId,
         messageId: messageReceipts.messageId,
-        userId: messageReceipts.userId,
+        readerId: messageReceipts.readerId,
         status: messageReceipts.status,
         deliveredAt: messageReceipts.deliveredAt,
         readAt: messageReceipts.readAt,
@@ -64,11 +64,11 @@ export const ReceiptRepository = {
       .where(eq(messageReceipts.messageId, messageId));
   },
 
-  selectUnreadMessagesForUser: async (userId: number) => {
+  selectUnreadMessagesForUser: async (readerId: number) => {
     return await db
       .select({
         messageId: messageReceipts.messageId,
-        userId: messageReceipts.userId,
+        readerId: messageReceipts.readerId,
         status: messageReceipts.status,
         deliveredAt: messageReceipts.deliveredAt,
         readAt: messageReceipts.readAt,
@@ -78,7 +78,7 @@ export const ReceiptRepository = {
       .from(messageReceipts)
       .where(
         and(
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           ne(messageReceipts.status, "read"),
         ),
       );
@@ -90,14 +90,11 @@ export const ReceiptRepository = {
 
   updateAllMessageReceiptsToRead: async ({
     conversationId,
-    userId,
+    readerId,
   }: {
     conversationId: number;
-    userId: number;
+    readerId: number;
   }) => {
-
-    console.log('from db:: ', conversationId, userId)
-
     const now = new Date();
     return await db
       .update(messageReceipts)
@@ -110,7 +107,7 @@ export const ReceiptRepository = {
       .where(
         and(
           eq(messageReceipts.conversationId, conversationId),
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           ne(messageReceipts.status, "read"),
         ),
       )
@@ -118,11 +115,11 @@ export const ReceiptRepository = {
   },
 
   updateBulkMessageReceiptsToRead: async ({
-    userId,
+    readerId,
     messageIds,
     readAt,
   }: {
-    userId: number;
+    readerId: number;
     messageIds: number[];
     readAt: Date;
   }) => {
@@ -139,7 +136,7 @@ export const ReceiptRepository = {
       })
       .where(
         and(
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           inArray(messageReceipts.messageId, messageIds),
           eq(messageReceipts.status, "delivered"),
         ),
@@ -147,11 +144,11 @@ export const ReceiptRepository = {
   },
 
   updateBulkMessageReceiptsToDelivered: async ({
-    userId,
+    readerId,
     messageIds,
     deliveredAt,
   }: {
-    userId: number;
+    readerId: number;
     messageIds: number[];
     deliveredAt: Date;
   }) => {
@@ -166,7 +163,7 @@ export const ReceiptRepository = {
       })
       .where(
         and(
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           inArray(messageReceipts.messageId, messageIds),
           eq(messageReceipts.status, "sent"),
         ),
@@ -175,10 +172,10 @@ export const ReceiptRepository = {
 
   updateMessageReceiptToDelivered: async ({
     messageId,
-    userId,
+    readerId,
   }: {
     messageId: number;
-    userId: number;
+    readerId: number;
   }) => {
     return await db
       .update(messageReceipts)
@@ -190,7 +187,7 @@ export const ReceiptRepository = {
       .where(
         and(
           eq(messageReceipts.messageId, messageId),
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           eq(messageReceipts.status, "sent"),
         ),
       )
@@ -199,10 +196,10 @@ export const ReceiptRepository = {
 
   updateMessageReceiptToRead: async ({
     messageId,
-    userId,
+    readerId,
   }: {
     messageId: number;
-    userId: number;
+    readerId: number;
   }) => {
     const now = new Date(Date.now());
     return await db
@@ -216,7 +213,7 @@ export const ReceiptRepository = {
       .where(
         and(
           eq(messageReceipts.messageId, messageId),
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           inArray(messageReceipts.status, ["sent", "delivered"]),
         ),
       )
@@ -225,10 +222,10 @@ export const ReceiptRepository = {
 
   updateMessageReceiptToSent: async ({
     messageId,
-    userId,
+    readerId,
   }: {
     messageId: number;
-    userId: number;
+    readerId: number;
   }) => {
     return await db
       .update(messageReceipts)
@@ -239,13 +236,13 @@ export const ReceiptRepository = {
       .where(
         and(
           eq(messageReceipts.messageId, messageId),
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           eq(messageReceipts.status, "read"),
         ),
       );
   },
 
-  selectUnreadCountForUser: async (userId: number) => {
+  selectUnreadCountForUser: async (readerId: number) => {
     return await db
       .select({
         count: count(),
@@ -254,7 +251,7 @@ export const ReceiptRepository = {
       .from(messageReceipts)
       .where(
         and(
-          eq(messageReceipts.userId, userId),
+          eq(messageReceipts.readerId, readerId),
           ne(messageReceipts.status, "read"),
         ),
       )

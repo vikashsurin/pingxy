@@ -130,17 +130,17 @@ export const ParticipantService = {
     }
   },
   resetUnreadCount: async ({
-    userId,
+    readerId,
     conversationId,
     messageId,
   }: {
-    userId: number;
+    readerId: number;
     conversationId: number;
     messageId: number;
   }) => {
     try {
       return await ParticipantRepository.resetUnreadCount({
-        userId,
+        readerId,
         conversationId,
         messageId
       });

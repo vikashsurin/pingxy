@@ -170,7 +170,7 @@ export const MessageRepository = {
         messageReceipts,
         and(
           eq(messages.messageId, messageReceipts.messageId),
-          ne(messageReceipts.userId, userId),
+          ne(messageReceipts.readerId, userId),
         ),
       );
 

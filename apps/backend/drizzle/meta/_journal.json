@@ -15,6 +15,13 @@
       "when": 1770293492852,
       "tag": "0001_conscious_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772196152225,
+      "tag": "0002_hesitant_electro",
+      "breakpoints": true
     }
   ]
 }
