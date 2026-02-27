@@ -7,6 +7,7 @@ import { chatStore } from "../../store.svelte";
 import { virtualStore } from "../../virtualStore.svelte";
 import { setUnreadCount } from "./conversation.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
+import { messageStore } from "$lib/store/messageStore.svelte";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -72,11 +73,25 @@ export const sendMessage = async ({ messageText, identifier, partner }: {
 
   try {
     const result = await createMessage(envelope);
-    addMessageToState(result);
+    if (result) {
+
+      console.log({ result })
+      addMessageToState(result);
+      messageStore.addMessage({
+        convId: result.payload.conversationId,
+        message: {
+          message: result.payload.message,
+          receipt: result.payload.receipt
+        }
+      })
+    }
+
+    console.log($state.snapshot(messageStore.conversations))
 
     return null;
   } catch (error) {
     chatStore.setErrorMessage("Failed to send message");
+    console.error(error)
     console.warn("Failed to send message!");
   }
 };
@@ -84,7 +99,13 @@ export const sendMessage = async ({ messageText, identifier, partner }: {
 export const handleIncomingMessage = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
-  addMessageToState(data);
+  messageStore.addMessage({
+    convId: data.payload.conversationId,
+    message: {
+      message: data.payload.message,
+      receipt: data.payload.receipt
+    }
+  })
 };
 
 export const updateMessage = async () => { };

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { chatStore } from "$lib/store/store.svelte";
+    import { sendMessage } from "$lib/store/managers/entities/message.svelte";
 
     import {
         Camera,
@@ -18,14 +19,14 @@
     let showEmojiPopup = $state(false);
 
     async function handleSend() {
-        console.log($state.snapshot(identifier));
-        console.log($state.snapshot(partner));
-
         if (!identifier) {
             chatStore.errorMessage = "No identifier provided";
             return;
         }
-        chatStore.sendMessage({ messageText, identifier, partner });
+
+        sendMessage({ messageText, identifier, partner });
+
+        // chatStore.sendMessage({ messageText, identifier, partner });
         messageText = "";
     }
 
