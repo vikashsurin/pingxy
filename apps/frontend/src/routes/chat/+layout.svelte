@@ -12,7 +12,7 @@
 <div class="h-dvh flex flex-col">
     <div class="banner">AD Display</div>
 
-    {#if data.success && data.user}
+    {#if data.user}
         <Navbar username={data.user.username} />
     {/if}
 

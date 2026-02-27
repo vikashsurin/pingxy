@@ -95,7 +95,10 @@ export const ReceiptRepository = {
     conversationId: number;
     userId: number;
   }) => {
-    const now = new Date(Date.now());
+
+    console.log('from db:: ', conversationId, userId)
+
+    const now = new Date();
     return await db
       .update(messageReceipts)
       .set({
@@ -109,7 +112,6 @@ export const ReceiptRepository = {
           eq(messageReceipts.conversationId, conversationId),
           eq(messageReceipts.userId, userId),
           ne(messageReceipts.status, "read"),
-          isNull(messageReceipts.readAt),
         ),
       )
       .returning();

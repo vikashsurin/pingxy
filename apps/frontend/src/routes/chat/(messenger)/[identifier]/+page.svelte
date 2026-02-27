@@ -1,26 +1,24 @@
 <script lang="ts">
     import { messageStore } from "$lib/store/messageStore.svelte.js";
-    import { chatStore } from "$lib/store/store.svelte.js";
-    import { onMount } from "svelte";
+    import { Check, CheckCheck } from "@lucide/svelte";
+    import { type MessageReceipt } from "@pingxy/shared";
     import ChatHeader from "./ChatHeader.svelte";
     import ChatInput from "./ChatInput.svelte";
+    import { onMount } from "svelte";
+    import { emitMarkAllRead } from "$lib/store/managers/entities/receipt.svelte.js";
+    import { validateSocket } from "$lib/store/helpers.js";
+
     let { data } = $props();
 
     $effect(() => {
         if (data.messages.items) {
-            messageStore.syncMessages({
-                convId: data.idValue,
-                items: data.messages.items,
-            });
+            messageStore.setMessages(data.messages.items);
         }
     });
-    console.count("Component Execution Count"); // Tracks how often the script logic runs
-    $inspect({ conversations: messageStore.conversations });
-    $inspect({ messageIndex: messageStore.messageIndex });
 
-    const renderList = $derived.by(() => {
-        chatStore.messages[data.idValue];
-    });
+    const messageIds = $derived(
+        Array.from(messageStore.threads.get(data.idValue) || []),
+    );
 
     const interSectionObserver = (node: HTMLElement, callback: () => void) => {
         const observer = new IntersectionObserver((entries) => {
@@ -41,6 +39,35 @@
         console.log("loading older");
     }
 
+    let messageListRef: HTMLElement | undefined;
+
+    $effect(() => {
+        if (!data.identifier.startsWith("c_")) return;
+
+        const conversationId = data.idValue;
+        // TODO fix this: sender reader
+        const currentuserId = data.user.id;
+        const senderId = data.partner.id;
+
+        messageStore.activeChatId = conversationId;
+
+        const socket = validateSocket();
+        if (!socket) return;
+
+        emitMarkAllRead({ conversationId, currentuserId, senderId }).catch(
+            (err) => console.error("Failed to mark as read:", err),
+        );
+    });
+
+    $effect(() => {
+        if (!messageListRef) return;
+        if (!messageIds) return;
+        messageListRef?.scrollTo({
+            top: messageListRef.scrollHeight,
+            behavior: "smooth",
+        });
+    });
+
     function loadNewer() {
         console.log("loading newer");
     }
@@ -48,18 +75,49 @@
 
 <div id="chatbox" class="flex flex-col h-full">
     <ChatHeader partner={data.partner} />
-    <div class="flex-1 overflow-y-auto min-h-0">
+    <div bind:this={messageListRef} class="flex-1 overflow-y-auto min-h-0">
         <div class="bg-amber-400" use:interSectionObserver={loadOlder}>top</div>
-        {#if messageStore.conversations[data.idValue]}
-            {#each messageStore.conversations[data.idValue] as item}
-                <div>
-                    <p>{item.message.content}</p>
+        {#each messageIds as id (id)}
+            {@const entry = messageStore.messages.get(id)}
+            {#if entry}
+                <div class="message flex">
+                    {#if entry.message.senderId === data.user.id}
+                        <div
+                            class="bg-blue-100 flex flex-col justify-end border max-w-1/2 ml-auto px2py1"
+                        >
+                            <span id={entry.message.messageId.toString()}
+                                >{entry.message.content}</span
+                            >
+                            <span class="flex justify-end">
+                                {@render receipt(entry.receipt)}
+                            </span>
+                        </div>
+                    {:else}
+                        <div
+                            class="bg-gray-300 flex justify-start border max-w-1/2 px-2 py-1"
+                        >
+                            <span
+                                id={entry.message.messageId.toString()}
+                                class="sender">{entry.message.content}</span
+                            >
+                        </div>
+                    {/if}
                 </div>
-            {/each}
-        {/if}
+            {/if}
+        {/each}
         <div class="bg-amber-400" use:interSectionObserver={loadNewer}>
             bottom
         </div>
     </div>
     <ChatInput partner={data.partner} identifier={data.identifier} />
 </div>
+
+{#snippet receipt(receipt: MessageReceipt)}
+    {#if receipt.status === "sent"}
+        <Check size={14} />
+    {:else if receipt.status === "delivered"}
+        <CheckCheck size={14} />
+    {:else if receipt.status === "read"}
+        <CheckCheck size={14} class="text-green-500" />
+    {/if}
+{/snippet}

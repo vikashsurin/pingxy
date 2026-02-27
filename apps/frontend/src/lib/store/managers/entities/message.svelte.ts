@@ -1,4 +1,5 @@
-import type { SERVER_EVENTS, User } from "@pingxy/shared";
+import { messageStore } from "$lib/store/messageStore.svelte";
+import { messages, type SERVER_EVENTS, type User } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
@@ -7,7 +8,7 @@ import { chatStore } from "../../store.svelte";
 import { virtualStore } from "../../virtualStore.svelte";
 import { setUnreadCount } from "./conversation.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
-import { messageStore } from "$lib/store/messageStore.svelte";
+import { DatabaseZap } from "@lucide/svelte";
 
 export const loadInitialMessages = async ({
   conversationId,
@@ -43,13 +44,18 @@ export const loadInitialMessages = async ({
   }
 };
 
-export const sendMessage = async ({ messageText, identifier, partner }: {
-  messageText: string, identifier: string, partner: User
+export const sendMessage = async ({
+  messageText,
+  identifier,
+  partner,
+}: {
+  messageText: string;
+  identifier: string;
+  partner: User;
 }) => {
-
   if (!identifier && !chatStore.currentUser) {
     chatStore.errorMessage = "No identifier provided";
-    return
+    return;
   }
   const isExistingConv = identifier.startsWith("c_");
   const idValue = Number(identifier.replace(/^[cu]_/, ""));
@@ -74,24 +80,14 @@ export const sendMessage = async ({ messageText, identifier, partner }: {
   try {
     const result = await createMessage(envelope);
     if (result) {
-
-      console.log({ result })
-      addMessageToState(result);
-      messageStore.addMessage({
-        convId: result.payload.conversationId,
-        message: {
-          message: result.payload.message,
-          receipt: result.payload.receipt
-        }
-      })
+      console.log({ result });
+      messageStore.upsertMessage(result.payload);
     }
-
-    console.log($state.snapshot(messageStore.conversations))
 
     return null;
   } catch (error) {
     chatStore.setErrorMessage("Failed to send message");
-    console.error(error)
+    console.error(error);
     console.warn("Failed to send message!");
   }
 };
@@ -99,57 +95,69 @@ export const sendMessage = async ({ messageText, identifier, partner }: {
 export const handleIncomingMessage = async (
   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
 ) => {
-  messageStore.addMessage({
-    convId: data.payload.conversationId,
-    message: {
-      message: data.payload.message,
-      receipt: data.payload.receipt
-    }
-  })
-};
-
-export const updateMessage = async () => { };
-export const deleteMessage = async () => { };
-
-// Private
-const addMessageToState = async (
-  data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
-) => {
   const { message, conversationId, sender, receipt } = data.payload;
-  const currentUser = chatStore.currentUser;
-  const otherUser = chatStore.activeConversation?.user;
+  const currentUserId = chatStore.currentUser?.id;
 
-  if (!chatStore.messages[conversationId]) {
-    chatStore.messages[conversationId] = {};
-  }
+  messageStore.upsertMessage(data.payload);
 
-  if (!chatStore.conversations[conversationId]) {
-    const partner = message.senderId === currentUser?.id ? otherUser : sender;
-
-    chatStore.conversations[conversationId] = {
-      unreadCount: 0,
-      conversationId: conversationId,
-      user: partner!,
-    };
-  }
-
-  chatStore.messages[conversationId][message.messageId] = {
-    message,
-    receipt,
-  };
-
-  const isFromMe = message.senderId === currentUser?.id;
-  const isViewing =
-    chatStore.activeConversation?.conversationId === conversationId;
-
+  const isViewing = messageStore.activeChatId === conversationId;
+  const isFromMe = data.payload.message.senderId === currentUserId;
   if (!isFromMe) {
     if (isViewing) {
-      emitMarkRead({ message, userId: currentUser?.id! });
+      console.log("emitting mark read");
+      emitMarkRead({ message, userId: currentUserId! });
     } else {
-      emitMarkDelivered({ message, userId: currentUser?.id! });
-      setUnreadCount(conversationId);
+      console.log('emitting mark delivered');
+      emitMarkDelivered({ message, userId: currentUserId! });
     }
   }
-
-  chatStore.drainPendingReceipts(conversationId);
 };
+
+// const addMessageToState = (data) => {
+// };
+
+export const updateMessage = async () => {};
+export const deleteMessage = async () => {};
+
+// Private
+// const addMessageToState = async (
+//   data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
+// ) => {
+//   const { message, conversationId, sender, receipt } = data.payload;
+//   const currentUser = chatStore.currentUser;
+//   const otherUser = chatStore.activeConversation?.user;
+
+//   if (!chatStore.messages[conversationId]) {
+//     chatStore.messages[conversationId] = {};
+//   }
+
+//   if (!chatStore.conversations[conversationId]) {
+//     const partner = message.senderId === currentUser?.id ? otherUser : sender;
+
+//     chatStore.conversations[conversationId] = {
+//       unreadCount: 0,
+//       conversationId: conversationId,
+//       user: partner!,
+//     };
+//   }
+
+//   chatStore.messages[conversationId][message.messageId] = {
+//     message,
+//     receipt,
+//   };
+
+//   const isFromMe = message.senderId === currentUser?.id;
+//   const isViewing =
+//     chatStore.activeConversation?.conversationId === conversationId;
+
+//   if (!isFromMe) {
+//     if (isViewing) {
+//       emitMarkRead({ message, userId: currentUser?.id! });
+//     } else {
+//       emitMarkDelivered({ message, userId: currentUser?.id! });
+//       setUnreadCount(conversationId);
+//     }
+//   }
+
+//   chatStore.drainPendingReceipts(conversationId);
+// };

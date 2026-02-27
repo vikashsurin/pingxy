@@ -1,66 +1,58 @@
-import { MessageStore } from "./_messageStore.svelte";
+// ChatState.ts
+import type { MessageStore } from "./messageStore.svelte";
 
 export class ChatState {
-  chatId: number;
+  chatId = $state(0);
   root: MessageStore;
 
-  // 1. Ephemeral UI State (Volatile)
   isTyping = $state(false);
   private typingTimeout: any;
-
-  // 2. Pointer to the latest data
   lastMessageId = $state<number | null>(null);
 
-  constructor(chatId: number, root: any) {
+  constructor(chatId: number, root: MessageStore) {
     this.chatId = chatId;
     this.root = root;
   }
 
-  // 3. Derived Logic: The Latest Message Preview
-  // Only re-calculates if lastMessageId changes or that specific message is updated
+  // Optimized: Direct Map lookup is reactive in Svelte 5
   lastMessage = $derived(() => {
     if (!this.lastMessageId) return null;
     return this.root.messages.get(this.lastMessageId);
   });
 
-  // 4. Derived Logic: The Unread Badge
-  // Automatically updates when any message status in this thread changes to 'read'
   unreadCount = $derived(() => {
+    // Svelte tracks this Map access.
+    // It will re-run when messageStore.threads.set(this.chatId, ...) is called.
     const threadIds = this.root.threads.get(this.chatId);
     if (!threadIds) return 0;
 
     let count = 0;
     for (const id of threadIds) {
       const entry = this.root.messages.get(id);
-      // Logic: If message exists, isn't from me, and isn't read
-      if (entry && !entry.isMe && entry.status !== 'read') {
+      // Fine-grained: tracks entry.status because it's a $state property in ChatEntry
+      if (entry && !entry.isMe && entry.status !== "read") {
         count++;
       }
     }
     return count;
   });
 
-  // 5. Action: Manage Typing Indicators
-  // Use a timer to automatically clear the "typing..." state
   handleTyping() {
     this.isTyping = true;
     clearTimeout(this.typingTimeout);
-    this.typingTimeout = setTimeout(() => {
-      this.isTyping = false;
-    }, 3000); // 3 seconds expiry
+    this.typingTimeout = setTimeout(() => (this.isTyping = false), 3000);
   }
 
-  // 6. Action: Mark Conversation as Read
-  // This updates the 'receipt' inside the MessageStore objects
   markAsRead() {
     const threadIds = this.root.threads.get(this.chatId);
     if (!threadIds) return;
 
-    threadIds.forEach((id: number) => {
+    // We don't need to re-set the thread Map here because
+    // we are mutating the ChatEntry's internal $state, not the list of IDs.
+    threadIds.forEach((id) => {
       const entry = this.root.messages.get(id);
-      if (entry && !entry.isMe && entry.status !== 'read') {
-        // Mutation here triggers the derived unreadCount above!
-        entry.receipt.status = 'read';
+      if (entry && !entry.isMe && entry.status !== "read") {
+        entry.receipt.status = "read";
       }
     });
   }

@@ -17,7 +17,6 @@ export const receiptHandler: SocketHandler = {
   },
   [SERVER_EVENTS.RECEIPTS.ALL_DELIVERED]: (data) => {
     const receipts = data.payload.receipts;
-
     if (!receipts) return;
     receiptManager.handleIncomingReceipts(receipts);
   },

@@ -8,6 +8,7 @@ import type {
 import { createClientReq } from "..";
 import { chatStore, type ChatEntry } from "../../store.svelte";
 import { resetUnreadCount } from "./conversation.svelte";
+import { messageStore } from "$lib/store/messageStore.svelte";
 
 /**
  * Priority used to ensure we don't overwrite a 'read' status
@@ -101,35 +102,44 @@ export const emitMarkAllRead = async ({
 //     }
 //   }
 // };
+// export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
+//   for (const receipt of receipts) {
+//     const conversationMessages = chatStore.messages[receipt.conversationId];
+
+//     // If we have the messages, update them immediately
+//     if (conversationMessages && conversationMessages[receipt.messageId]) {
+//       applyReceiptUpdateToStore(
+//         conversationMessages[receipt.messageId],
+//         receipt,
+//       );
+//     }
+//     // If we don't have them yet, store the receipt in a buffer
+//     else {
+//       if (!chatStore.pendingReceipts[receipt.conversationId]) {
+//         chatStore.pendingReceipts[receipt.conversationId] = [];
+//       }
+//       chatStore.pendingReceipts[receipt.conversationId].push(receipt);
+//     }
+//   }
+// };
+
+// function applyReceiptUpdateToStore(entry: ChatEntry, receipt: MessageReceipt) {
+//   const currentStatus = entry.receipt.status;
+//   const newStatus = receipt.status;
+
+//   // Update only if the new status is a higher priority
+//   if (STATUS_PRIORITY[newStatus] > STATUS_PRIORITY[currentStatus]) {
+//     entry.receipt = receipt;
+//   } else if (newStatus === "read") {
+//     entry.receipt = receipt;
+//   }
+// }
+
 export const handleIncomingReceipts = (receipts: MessageReceipt[]) => {
   for (const receipt of receipts) {
-    const conversationMessages = chatStore.messages[receipt.conversationId];
-
-    // If we have the messages, update them immediately
-    if (conversationMessages && conversationMessages[receipt.messageId]) {
-      applyReceiptUpdateToStore(
-        conversationMessages[receipt.messageId],
-        receipt,
-      );
-    }
-    // If we don't have them yet, store the receipt in a buffer
-    else {
-      if (!chatStore.pendingReceipts[receipt.conversationId]) {
-        chatStore.pendingReceipts[receipt.conversationId] = [];
-      }
-      chatStore.pendingReceipts[receipt.conversationId].push(receipt);
-    }
+    messageStore.updateReceipt({
+      msgId: receipt.messageId,
+      newReceipt: receipt,
+    });
   }
 };
-
-function applyReceiptUpdateToStore(entry: ChatEntry, receipt: MessageReceipt) {
-  const currentStatus = entry.receipt.status;
-  const newStatus = receipt.status;
-
-  // Update only if the new status is a higher priority
-  if (STATUS_PRIORITY[newStatus] > STATUS_PRIORITY[currentStatus]) {
-    entry.receipt = receipt;
-  } else if (newStatus === "read") {
-    entry.receipt = receipt;
-  }
-}
