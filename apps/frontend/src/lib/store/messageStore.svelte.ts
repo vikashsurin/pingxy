@@ -93,9 +93,46 @@ export class MessageStore {
         throw new Error("Failed to fetch messages");
       }
 
-      // data.items.forEach((item: any) => {
-      //   this.upsertMessage(item);
-      // });
+      data.items.forEach((item: any) => {
+        this.upsertMessage(item);
+      });
+
+      console.log("older messages: ", data);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch messages");
+      throw error;
+    }
+  }
+  async fetchNewerMessages({
+    conversationId,
+    userId,
+    newestId,
+    limit,
+  }: {
+    conversationId: number;
+    userId: number;
+    newestId: number;
+    limit: number;
+  }) {
+    try {
+      const response = await fetch(
+        `/api/conversations/${conversationId}/messages/${userId}?after=${newestId}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Failed to fetch messages");
+      }
+
+      data.items.forEach((item: any) => {
+        this.upsertMessage(item);
+      });
 
       console.log("older messages: ", data);
       return data;
