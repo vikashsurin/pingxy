@@ -22,7 +22,7 @@ class VirtualStore {
 
   // UX state
   jumpToLatest = $state(false);
-  shouldScrollToBottom = $state(false)
+  shouldScrollToBottom = $state(false);
 
   //Messages
   visibleList = $derived(
@@ -34,16 +34,17 @@ class VirtualStore {
       })),
   );
 
-
   isAtBottom = $derived.by(() => {
     if (this.absoluteLatestMessageId && this.visibleList.length > 0) {
-      if (this.absoluteLatestMessageId === this.visibleList.at(-1)?.entry.message.messageId) {
-        return true
-
+      if (
+        this.absoluteLatestMessageId ===
+        this.visibleList.at(-1)?.entry.message.messageId
+      ) {
+        return true;
       }
     }
     return false;
-  })
+  });
 
   // Caching
   private heightCache = new Map<number, number>();
@@ -160,7 +161,7 @@ class VirtualStore {
     }
 
     this.isLoadingOlder = true;
-    this.shouldScrollToBottom = false
+    this.shouldScrollToBottom = false;
     // Capture anchor
     const anchorIndex = params.visibleRangeStart;
     const anchorMsg = chatStore.activeMessages[anchorIndex];
@@ -175,7 +176,7 @@ class VirtualStore {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -189,7 +190,7 @@ class VirtualStore {
       if (data.chat.length > 0) {
         chatStore.loadOlderMessages(
           params.conversationId,
-          Array.from(data.chat)
+          Array.from(data.chat),
         );
 
         await tick();
@@ -197,7 +198,7 @@ class VirtualStore {
         // Restore scroll position
         if (anchorMsg && params.scrollElement) {
           const newAnchorIndex = chatStore.activeMessages.findIndex(
-            (m) => m.message.messageId === anchorMsg.message.messageId
+            (m) => m.message.messageId === anchorMsg.message.messageId,
           );
 
           if (newAnchorIndex !== -1) {
@@ -245,7 +246,7 @@ class VirtualStore {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -258,14 +259,14 @@ class VirtualStore {
       if (data.chat.length > 0) {
         chatStore.loadNewerMessages(
           params.conversationId,
-          Array.from(data.chat)
+          Array.from(data.chat),
         );
 
         await tick();
 
         if (anchorMsg && params.scrollElement) {
           const newAnchorIndex = chatStore.activeMessages.findIndex(
-            (m) => m.message.messageId === anchorMsg.message.messageId
+            (m) => m.message.messageId === anchorMsg.message.messageId,
           );
 
           if (newAnchorIndex !== -1) {

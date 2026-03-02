@@ -12,6 +12,7 @@ export class MessageStore {
 
   // Inside MessageStore.svelte.ts
   upsertMessage(payload: any) {
+    console.log("upsert message called!")
     const { messageId, conversationId } = payload.message;
 
     // 1. Update the message Map
@@ -65,6 +66,52 @@ export class MessageStore {
       entry.receipt = newReceipt;
     }
   }
+
+  async fetchOlderMessages({
+    conversationId,
+    userId,
+    oldestId,
+    limit,
+  }: {
+    conversationId: number;
+    userId: number;
+    oldestId: number;
+    limit: number;
+  }) {
+    try {
+      const response = await fetch(
+        `/api/conversations/${conversationId}/messages/${userId}?before=${oldestId}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Failed to fetch messages");
+      }
+
+      // data.items.forEach((item: any) => {
+      //   this.upsertMessage(item);
+      // });
+
+      console.log("older messages: ", data);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch messages");
+      throw error;
+    }
+  }
 }
 
+// const response = await fetch(
+//   `/api/conversations/${params.conversationId}/messages/${params.userId}?after=${newestId}&limit=${params.limit}`,
+//   {
+//     method: "GET",
+//     headers: { "Content-Type": "application/json" },
+//     credentials: "include",
+//   },
+// );
 export const messageStore = new MessageStore();
