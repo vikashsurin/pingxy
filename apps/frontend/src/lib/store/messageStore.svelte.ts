@@ -12,7 +12,7 @@ export class MessageStore {
 
   // Inside MessageStore.svelte.ts
   upsertMessage(payload: any) {
-    console.log("upsert message called!")
+    console.log("upsert message called!");
     const { messageId, conversationId } = payload.message;
 
     // 1. Update the message Map

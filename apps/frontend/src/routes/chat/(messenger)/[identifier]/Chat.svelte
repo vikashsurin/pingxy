@@ -3,7 +3,7 @@
     import { formatLocalTime } from "$lib/utils/time";
     import { Check, CheckCheck } from "@lucide/svelte";
     import { type MessageReceipt } from "@pingxy/shared";
-    import { tick } from "svelte";
+    import { tick, untrack } from "svelte";
     import { SvelteMap } from "svelte/reactivity";
 
     let { idValue, user } = $props();
@@ -196,6 +196,39 @@
         await tick();
         isLoadingNewer = false;
     }
+
+    // ── Scroll Handling ────────────────────────────────────────────────────────
+    let previousLength = 0;
+
+    $effect(() => {
+        // 1. Dependency: This runs whenever the total message count changes
+        const currentLength = messageIds.length;
+
+        untrack(() => {
+            // 2. Logic: Check if exactly one message was added to the end
+            const isSingleNewMessage = currentLength === previousLength + 1;
+
+            if (isSingleNewMessage && messageListRef) {
+                // 3. Threshold check: Only auto-scroll if user is already near the bottom
+                const threshold = 150;
+                const isNearBottom =
+                    scrollTop + containerHeight >=
+                    totalVirtualHeight - threshold;
+
+                if (isNearBottom) {
+                    // Wait for the next tick so the totalVirtualHeight and
+                    // virtualOffsets have finished re-calculating
+                    tick().then(() => {
+                        messageListRef!.scrollTo({
+                            top: totalVirtualHeight,
+                            behavior: "smooth",
+                        });
+                    });
+                }
+            }
+            previousLength = currentLength;
+        });
+    });
 </script>
 
 <div

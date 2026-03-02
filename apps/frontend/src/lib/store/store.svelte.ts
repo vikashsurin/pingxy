@@ -73,7 +73,6 @@ class ChatStore {
   currentUser = $state<User | null | undefined>(undefined);
   errorMessage = $state<string>("");
 
-
   async setErrorMessage(msg: string) {
     // 1. Reset the logic
     if (this.timer) clearTimeout(this.timer);
@@ -167,7 +166,15 @@ class ChatStore {
     );
   });
 
-  async sendMessage({ messageText, identifier, partner }: { messageText: string, identifier: string, partner: User }) {
+  async sendMessage({
+    messageText,
+    identifier,
+    partner,
+  }: {
+    messageText: string;
+    identifier: string;
+    partner: User;
+  }) {
     await messageManager.sendMessage({ messageText, identifier, partner });
   }
 
