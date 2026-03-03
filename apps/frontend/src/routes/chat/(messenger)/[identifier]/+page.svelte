@@ -12,13 +12,15 @@
         if (data.messages.items) {
             messageStore.setMessages(data.messages.items);
         }
+        const chat = messageStore.chats.get(data.idValue);
+        if (chat) chat.unreadCount = 0;
     });
 
     $effect(() => {
         if (!data.identifier.startsWith("c_")) return;
 
         const conversationId = data.idValue;
-        // TODO fix this: sender reader
+
         const currentuserId = data.user.id;
         const senderId = data.partner.id;
 

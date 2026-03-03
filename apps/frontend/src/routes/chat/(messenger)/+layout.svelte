@@ -1,19 +1,14 @@
 <script lang="ts">
     import { initSocket } from "$lib/socket/socket.svelte";
-    import { chatStore } from "$lib/store/store.svelte.js";
+    import { messageStore } from "$lib/store/messageStore.svelte.js";
     import { onMount } from "svelte";
     import Sidebar from "./(sidebar)/Sidebar.svelte";
     let { children, data } = $props();
 
     $effect.pre(() => {
-        data.conversations.forEach((conv) => {
-            chatStore._conversations[conv.conversationId] = conv;
-        });
+        messageStore.initThreads(data.conversations);
     });
 
-    // $inspect({
-    //   _conversations: chatStore._conversations,
-    // });
     onMount(async () => {
         initSocket();
     });

@@ -21,7 +21,6 @@
     const oldestMessageId = $derived(messageIds[0]);
     const newestMessageId = $derived(messageIds[messageIds.length - 1]);
 
-    $inspect({ oldestMessageId, newestMessageId });
     // ── DOM refs & scroll state ───────────────────────────────────────────────
 
     let messageListRef = $state<HTMLElement | undefined>();

@@ -1,4 +1,5 @@
 import type { Message } from "@pingxy/shared";
+import { chatStore } from "./store.svelte";
 
 export class ChatEntry {
   readonly messageId: number = $state.raw(0);
@@ -21,7 +22,6 @@ export class ChatEntry {
   }
 
   get isMe() {
-    // Assuming your senderId logic; replace '2' with your actual 'myId' variable
-    return this.message.senderId === 2;
+    return this.message.senderId === chatStore.currentUser?.id;
   }
 }

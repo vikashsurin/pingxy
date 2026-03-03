@@ -3,44 +3,43 @@ import { type SERVER_EVENTS, type User } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
-import { createMessage, fetchMessages } from "../../services/api";
+import { createMessage } from "../../services/api";
 import { chatStore } from "../../store.svelte";
-import { virtualStore } from "../../virtualStore.svelte";
 import { emitMarkDelivered, emitMarkRead } from "./receipt.svelte";
 
-export const loadInitialMessages = async ({
-  conversationId,
-  currentUserId,
-  limit,
-}: {
-  conversationId: number;
-  currentUserId: number;
-  limit: number;
-}) => {
-  if (!currentUserId || !conversationId) {
-    throw new Error("Invalid conversation or user ID");
-  }
+// export const loadInitialMessages = async ({
+//   conversationId,
+//   currentUserId,
+//   limit,
+// }: {
+//   conversationId: number;
+//   currentUserId: number;
+//   limit: number;
+// }) => {
+//   if (!currentUserId || !conversationId) {
+//     throw new Error("Invalid conversation or user ID");
+//   }
 
-  try {
-    const data = await fetchMessages({
-      conversationId,
-      currentUserId,
-      limit,
-    });
+//   try {
+//     const data = await fetchMessages({
+//       conversationId,
+//       currentUserId,
+//       limit,
+//     });
 
-    virtualStore.absoluteLatestMessageId = data.chat.at(-1).message.messageId;
-    chatStore.messages[conversationId] = {};
-    for (const entry of data.chat) {
-      chatStore.messages[conversationId][entry.message.messageId] = entry;
-    }
-    return data;
-  } catch (error) {
-    chatStore.errorMessage =
-      error instanceof Error ? error.message : "Failed to load messages";
-    console.error("Load initial messages error:", error);
-    throw error;
-  }
-};
+//     virtualStore.absoluteLatestMessageId = data.chat.at(-1).message.messageId;
+//     chatStore.messages[conversationId] = {};
+//     for (const entry of data.chat) {
+//       chatStore.messages[conversationId][entry.message.messageId] = entry;
+//     }
+//     return data;
+//   } catch (error) {
+//     chatStore.errorMessage =
+//       error instanceof Error ? error.message : "Failed to load messages";
+//     console.error("Load initial messages error:", error);
+//     throw error;
+//   }
+// };
 
 export const sendMessage = async ({
   messageText,
@@ -102,11 +101,12 @@ export const handleIncomingMessage = async (
   const isFromMe = data.payload.message.senderId === currentUserId;
   if (!isFromMe) {
     if (isViewing) {
-      console.log("emitting mark read");
       emitMarkRead({ message, userId: currentUserId! });
     } else {
-      console.log("emitting mark delivered");
       emitMarkDelivered({ message, userId: currentUserId! });
+
+      const chat = messageStore.chats.get(conversationId);
+      if (chat) chat.unreadCount += 1;
     }
   }
 };
@@ -114,8 +114,8 @@ export const handleIncomingMessage = async (
 // const addMessageToState = (data) => {
 // };
 
-export const updateMessage = async () => {};
-export const deleteMessage = async () => {};
+export const updateMessage = async () => { };
+export const deleteMessage = async () => { };
 
 // Private
 // const addMessageToState = async (

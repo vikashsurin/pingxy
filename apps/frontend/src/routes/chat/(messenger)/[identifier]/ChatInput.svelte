@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { chatStore } from "$lib/store/store.svelte";
+    import { toast } from "$lib/components/toast/toast.svelte";
     import { sendMessage } from "$lib/store/managers/entities/message.svelte";
+    import { chatStore } from "$lib/store/store.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
     import {
         Camera,
@@ -10,7 +11,6 @@
         Signature,
         Smile,
     } from "@lucide/svelte";
-    import { toast } from "$lib/components/toast/toast.svelte";
 
     let { identifier, partner } = $props();
 

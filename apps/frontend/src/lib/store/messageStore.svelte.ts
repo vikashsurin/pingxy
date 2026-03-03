@@ -1,7 +1,29 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import { ChatEntry } from "./ChatEntry.svelte";
 import { ChatState } from "./ChatState.svelte";
+import { th } from "zod/v4/locales";
+import type { UIConversation } from "$lib/types/chat";
 
+type Conversation = {
+  conversationId: number,
+  unreadCount: number,
+  type: 'direct' | 'group',
+  displayName: string,
+  lastMessageId: number,
+  updatedAt: Date,
+  partner: {
+    id: number,
+    username: string,
+    gender: string,
+    age: number,
+    country: string
+  }
+  participants: any[]
+
+}
+
+
+// implement messagesMetadata.
 export class MessageStore {
   // Use SvelteMap for collection management
   messages = new SvelteMap<number, ChatEntry>();
@@ -10,33 +32,71 @@ export class MessageStore {
 
   activeChatId = $state<number | null>(null);
 
+
+  initThreads(conversations: UIConversation[]) {
+    conversations.forEach((conversation) => {
+      const { conversationId } = conversation;
+
+      // 1. Ensure the thread exists for this conversation
+      if (!this.threads.has(conversationId)) {
+        this.threads.set(conversationId, new SvelteSet());
+      }
+
+      // 2. Create or update ChatState
+      let chat = this.chats.get(conversationId)
+      if (!chat) {
+        chat = new ChatState(conversationId, this)
+        this.chats.set(conversationId, chat)
+      }
+
+
+      // 3. Map the metadata
+      chat.displayName = conversation.displayName;
+      chat.type = conversation.type;
+      chat.partner = conversation.partner;
+      chat.participants = conversation.participants;
+      chat.unreadCount = conversation.unreadCount;
+    });
+
+  }
+
+
   // Inside MessageStore.svelte.ts
   upsertMessage(payload: any) {
-    console.log("upsert message called!");
     const { messageId, conversationId } = payload.message;
 
-    // 1. Update the message Map
-    this.messages.set(messageId, new ChatEntry(payload));
-    // this.threads.set(conversationId, new SvelteSet(messageId))
+    const existing = this.messages.get(messageId);
 
-    // 2. Update the threads Map
+    // 1. Update the message Map
+    // Use a check to avoid re-creating the object if it already exists (optional optimization)
+
+    if (existing) {
+      // existing.receipt = payload.receipt;
+    } else {
+      this.messages.set(messageId, new ChatEntry(payload));
+    }
+
+    // 2. Update the threads Map (The Set of IDs for this conversation)
     let threadIds = this.threads.get(conversationId);
     if (!threadIds) {
       threadIds = new SvelteSet();
       this.threads.set(conversationId, threadIds);
     }
-
     threadIds.add(messageId);
 
     // 3. Update ChatState pointers
-    const chat = this.chats.get(conversationId);
-    if (chat) {
-      chat.lastMessageId = messageId;
-    } else {
-      const newState = new ChatState(conversationId, this);
-      newState.lastMessageId = messageId;
-      this.chats.set(conversationId, newState);
+    let chat = this.chats.get(conversationId);
+    if (!chat) {
+      // This handles messages from chats not yet in the sidebar
+      chat = new ChatState(conversationId, this);
+      this.chats.set(conversationId, chat);
     }
+
+    // Update the pointer for the "Last Message" preview in sidebar
+    chat.lastMessageId = messageId;
+
+    // Update timestamp for sidebar sorting (Add a 'lastActivity' field to ChatState)
+    // chat.lastActivity = payload.message.createdAt;
   }
 
   setMessages(items: any[]) {
@@ -97,7 +157,6 @@ export class MessageStore {
         this.upsertMessage(item);
       });
 
-      console.log("older messages: ", data);
       return data;
     } catch (error) {
       console.error("Failed to fetch messages");
@@ -134,7 +193,6 @@ export class MessageStore {
         this.upsertMessage(item);
       });
 
-      console.log("older messages: ", data);
       return data;
     } catch (error) {
       console.error("Failed to fetch messages");

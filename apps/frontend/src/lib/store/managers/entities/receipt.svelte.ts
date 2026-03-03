@@ -1,4 +1,5 @@
 import { validateSocket } from "$lib/store/helpers";
+import { messageStore } from "$lib/store/messageStore.svelte";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type {
   Message,
@@ -6,19 +7,8 @@ import type {
   ReceiptRequestType,
 } from "@pingxy/shared/types/index";
 import { createClientReq } from "..";
-import { chatStore, type ChatEntry } from "../../store.svelte";
-import { resetUnreadCount } from "./conversation.svelte";
-import { messageStore } from "$lib/store/messageStore.svelte";
+import { chatStore } from "../../store.svelte";
 
-/**
- * Priority used to ensure we don't overwrite a 'read' status
- * with a late-arriving 'delivered' packet.
- */
-const STATUS_PRIORITY: Record<MessageReceipt["status"], number> = {
-  sent: 1,
-  delivered: 2,
-  read: 3,
-};
 
 type ReceiptParams = {
   message: Message;
@@ -83,7 +73,7 @@ export const emitMarkAllRead = async ({
 
   socket.send(JSON.stringify(payload));
 
-  resetUnreadCount(conversationId);
+  // resetUnreadCount(conversationId);
 };
 
 
