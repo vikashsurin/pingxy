@@ -54,7 +54,6 @@ app.onError((err, ctx) => {
 });
 
 app.get("/api/", (c) => {
-  console.log("path", c.req.path);
   return c.json({ app: "chat" });
 });
 

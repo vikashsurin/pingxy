@@ -17,4 +17,3 @@ export type ServerEventType = ServerEvent["type"];
 export type ServerEventMap = {
   [E in ServerEvent as E["type"]]: E;
 };
-

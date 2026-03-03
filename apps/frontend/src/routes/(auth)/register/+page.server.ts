@@ -24,7 +24,6 @@ export const actions: Actions = {
     const age = formData.get("age");
     const country = formData.get("country") as string;
 
-    console.log({ formData });
 
     if (!username || !password || username.length < 3) {
       return fail(400, { username, invalid: "Invalid input" });

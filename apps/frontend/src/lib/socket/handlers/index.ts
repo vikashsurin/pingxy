@@ -4,6 +4,7 @@ import { errorHandler } from "./socket.error";
 import { messageHandler } from "./socket.message";
 import { receiptHandler } from "./socket.receipt";
 import { userHandler } from "./socket.user";
+import { uxHandler } from "./socket.ux";
 
 export type SocketHandler = {
   [K in keyof ServerEventMap]?: (
@@ -17,4 +18,5 @@ export const handlers: SocketHandler = {
   ...receiptHandler,
   ...userHandler,
   ...blockHandler,
+  ...uxHandler,
 };

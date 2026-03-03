@@ -16,7 +16,6 @@ export const userListener: BusListener = {
   [SERVER_EVENTS.USERS.LOGOUT]: async (data) => {
     userSockets.delete(data.payload.user.id);
 
-    console.log({ userSockets });
     publish(":server", JSON.stringify(data));
   },
 };

@@ -22,7 +22,7 @@ export class ChatState {
   lastMessageId = $state<number | null>(null);
   updatedAt = $state<Date | null>(null);
   partner = $state<null | Partner>(null);
-  unreadCount = $state(0)
+  unreadCount = $state(0);
 
   participants = $state<any[]>();
 
@@ -36,7 +36,6 @@ export class ChatState {
     if (!this.lastMessageId) return null;
     return this.root.messages.get(this.lastMessageId);
   });
-
 
   handleTyping() {
     this.isTyping = true;

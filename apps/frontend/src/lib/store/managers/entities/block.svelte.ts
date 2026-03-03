@@ -42,7 +42,6 @@ export const fetchBlockedUserIds = async () => {
     });
   }
 
-  console.log({ blocks });
   return;
 };
 
@@ -56,7 +55,6 @@ export const fetchBlockedUsers = async () => {
     //   blockedUsers.map((user: User) => user.id),
     // );
   }
-  console.log({ blockedUsers });
   return;
 };
 

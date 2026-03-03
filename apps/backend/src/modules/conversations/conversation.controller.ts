@@ -40,7 +40,6 @@ export const ConversationController = {
     const after = Number(c.req.query("after"));
     const limit = Number(c.req.query("limit")) || 20;
 
-    console.log({ conversationId, userId, before, after, limit });
 
     const result = await MessageService.getMessagesAndReceiptsByConversation({
       conversationId,

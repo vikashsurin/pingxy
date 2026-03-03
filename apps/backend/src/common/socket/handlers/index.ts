@@ -4,6 +4,7 @@ import { conversationHandler } from "./socket.conversation";
 import { messageHandler } from "./socket.message";
 import { receiptHandler } from "./socket.receipt";
 import { userHandler } from "./socket.user";
+import { uxHandler } from "./socket.ux";
 
 export type ClientReqMap = {
   [R in ClientReq as R["type"]]: R;
@@ -21,4 +22,5 @@ export const handlers: SocketHandler = {
   ...userHandler,
   ...receiptHandler,
   ...conversationHandler,
+  ...uxHandler,
 };

@@ -29,7 +29,6 @@ export const AuthController = {
         const info = getConnInfo(c);
         const ipAddress = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
-        console.log({ body });
         const { user, token } = await AuthService.register({
           body,
           info,
@@ -63,7 +62,6 @@ export const AuthController = {
       }),
     ),
     async (c) => {
-      console.log("login called");
       try {
         const info = getConnInfo(c);
         const ipAddress = info.remote.address!;
@@ -71,7 +69,6 @@ export const AuthController = {
 
         const { username, password } = c.req.valid("json");
 
-        console.log({ username, password });
 
         const { user, token } = await AuthService.login({
           username,

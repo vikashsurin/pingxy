@@ -23,6 +23,11 @@ export const DOMAIN_EVENTS = {
   CONVERSATIONS: {
     OPEN: "req:conversation.open",
   },
+  TYPING: {
+    START: "req:typing.start",
+    STOP: "req:typing.stop",
+  },
+
 } as const;
 
 export const SERVER_EVENTS = {
@@ -56,6 +61,11 @@ export const SERVER_EVENTS = {
   CONVERSATIONS: {
     OPEN: "event:conversation.open",
   },
+  TYPING: {
+    STARTED: "event:typing.started",
+    STOPPED: "event:typing.stopped",
+  },
+
 } as const;
 
 type ExtractEvents<T> = T extends object

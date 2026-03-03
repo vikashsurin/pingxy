@@ -2,6 +2,7 @@ import { blockListener } from "./event.block";
 import { messageListener } from "./event.message";
 import { receiptListener } from "./event.receipt";
 import { userListener } from "./event.user";
+import { uxListener } from "./event.ux";
 import { registerBusListeners } from "./register";
 
 export function setupSocketListeners() {
@@ -10,5 +11,6 @@ export function setupSocketListeners() {
     receiptListener,
     userListener,
     blockListener,
+    uxListener
   );
 }

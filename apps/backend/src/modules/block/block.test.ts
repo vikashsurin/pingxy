@@ -10,7 +10,6 @@ describe("BlocksRepository", () => {
       blockerId: 2,
       blockedId: 5,
     });
-    console.log({ blockedUser });
     expect(blockedUser).toBeDefined();
   });
 

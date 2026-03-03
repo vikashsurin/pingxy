@@ -1,7 +1,10 @@
 import { messageStore } from "$lib/store/messageStore.svelte";
 import { type SERVER_EVENTS, type User } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
-import type { ServerEventMap } from "@pingxy/shared/socket/types";
+import type {
+  ServerEventMap,
+  ServerEventType,
+} from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
 import { createMessage } from "../../services/api";
 import { chatStore } from "../../store.svelte";
@@ -77,7 +80,6 @@ export const sendMessage = async ({
   try {
     const result = await createMessage(envelope);
     if (result) {
-      console.log({ result });
       messageStore.upsertMessage(result.payload);
     }
 
@@ -114,8 +116,8 @@ export const handleIncomingMessage = async (
 // const addMessageToState = (data) => {
 // };
 
-export const updateMessage = async () => { };
-export const deleteMessage = async () => { };
+export const updateMessage = async () => {};
+export const deleteMessage = async () => {};
 
 // Private
 // const addMessageToState = async (
