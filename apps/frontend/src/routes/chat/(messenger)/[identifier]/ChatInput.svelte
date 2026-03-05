@@ -13,11 +13,13 @@
     Signature,
     Smile,
   } from "@lucide/svelte";
+  import EmojiList from "./(attachments)/EmojiSelector.svelte";
+  import { tick } from "svelte";
 
   let { identifier, idValue, partner } = $props();
 
-  let messageText = $state("");
-
+  let inputValue = $state("");
+  let messageInputRef = $state<HTMLTextAreaElement>();
   let showAttachmentsPopup = $state(false);
   let showEmojiPopup = $state(false);
 
@@ -26,13 +28,13 @@
       chatStore.errorMessage = "No identifier provided";
       return;
     }
-    if (!messageText) {
+    if (!inputValue) {
       toast("Message cannot be empty", { type: "error", duration: 3000 });
       return;
     }
-    sendMessage({ messageText, identifier, partner });
+    sendMessage({ messageText: inputValue, identifier, partner });
 
-    messageText = "";
+    inputValue = "";
   }
 
   let typingThrottle: any;
@@ -46,6 +48,23 @@
       typingThrottle = null;
     }, 2000);
   }
+
+  async function handleSelectEmoji(emoji: string) {
+    if (!messageInputRef) return;
+
+    const start = messageInputRef.selectionStart ?? 0;
+    const end = messageInputRef.selectionEnd ?? 0;
+
+    inputValue = inputValue.slice(0, start) + emoji + inputValue.slice(end);
+
+    await tick(); // waits for Svelte to flush DOM updates
+
+    messageInputRef.focus();
+    const newPos = start + emoji.length;
+    messageInputRef.setSelectionRange(newPos, newPos);
+  }
+
+  function handleAddAttachment() {}
 </script>
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
@@ -63,36 +82,37 @@
     <button
       use:clickOutside={() => (showAttachmentsPopup = false)}
       onclick={() => (showAttachmentsPopup = !showAttachmentsPopup)}
-      class="relative {showAttachmentsPopup
+      class="relative hover:bg-gray-200 {showAttachmentsPopup
         ? 'bg-sky-100 text-sky-600'
         : ''} p-2 rounded-full"
     >
       <Paperclip />
     </button>
     <button
-      use:clickOutside={() => (showEmojiPopup = false)}
       onclick={() => (showEmojiPopup = !showEmojiPopup)}
-      class="relative {showEmojiPopup
-        ? 'bg-amber-200 text-amber-600'
+      class="relative hover:bg-gray-200 {showEmojiPopup
+        ? 'bg-amber-200 text-amber-600 '
         : ''} p-2 rounded-full"
     >
       <Smile />
     </button>
+
     <form action="" class="flex flex-1 gap-2">
-      <input
-        type="text"
-        placeholder="Message"
-        bind:value={messageText}
+      <textarea
+        bind:this={messageInputRef}
+        bind:value={inputValue}
         class="flex flex-1 outline p-2 focus:outline-1 focus:outline-blue-500 rounded-md border border-gray-300"
         oninput={handleInput}
         onkeypress={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            messageText = messageText.trim();
+            inputValue = inputValue.trim();
             handleSend();
           }
         }}
-      />
+        placeholder="Message"
+      ></textarea>
+
       <button
         class="bg-blue-500 hover:bg-blue-600 transition-colors text-white px-4 py-2 rounded-md font-medium"
         onclick={handleSend}
@@ -124,7 +144,7 @@
 {/snippet}
 
 {#snippet attachmentsPopup()}
-  <div class="absolute bottom-full left-0 w-max">
+  <div class="absolute bottom-full left-0 w-max m-2">
     <div
       class="bg-white p-2 rounded shadow-md border border-gray-200 flex flex-col gap-2"
     >
@@ -145,9 +165,9 @@
 {/snippet}
 
 {#snippet emojiPopup()}
-  <div class="absolute bottom-full mb-2 left-0 w-full">
-    <div class="bg-white p-2 rounded shadow-md">
-      <p class="text-sm text-gray-500">Emoji options go here</p>
+  <div class="absolute bottom-full m-2 left-0 w-max">
+    <div>
+      <EmojiList onSelect={handleSelectEmoji} bind:showEmojiPopup />
     </div>
   </div>
 {/snippet}

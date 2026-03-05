@@ -1,5 +1,9 @@
 import type { UIConversation } from "$lib/types/chat";
-import type { messageCreatedSchema } from "@pingxy/shared";
+import type {
+  messageCreatedSchema,
+  selectMessageSchema,
+  selectReceiptSchema,
+} from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 import { ChatEntry } from "./ChatEntry.svelte";
@@ -50,10 +54,13 @@ export class MessageStore {
   }
 
   // Inside MessageStore.svelte.ts
-  upsertMessage(data: z.infer<typeof messageCreatedSchema>) {
-    if (!data.payload) return;
+  upsertMessage(payload: {
+    message: z.infer<typeof selectMessageSchema>;
+    receipt: z.infer<typeof selectReceiptSchema>;
+  }) {
+    if (!payload) return;
 
-    const { messageId, conversationId } = data.payload.message;
+    const { messageId, conversationId } = payload.message;
 
     const existing = this.messages.get(messageId);
 
@@ -63,7 +70,7 @@ export class MessageStore {
     if (existing) {
       // existing.receipt = payload.receipt;
     } else {
-      this.messages.set(messageId, new ChatEntry(data.payload));
+      this.messages.set(messageId, new ChatEntry(payload));
     }
 
     // 2. Update the threads Map (The Set of IDs for this conversation)
@@ -81,11 +88,11 @@ export class MessageStore {
       this.chats.set(conversationId, chat);
 
       const currentUser = chatStore.currentUser;
-      if (data.payload.sender.id === currentUser?.id) {
-        chat.displayName = data.payload.recipient.username;
-      } else {
-        chat.displayName = data.payload.sender.username;
-      }
+      // if (payload.sender.id === currentUser?.id) {
+      //   chat.displayName = payload.recipient.username;
+      // } else {
+      //   chat.displayName = payload.sender.username;
+      // }
     }
 
     // Update the pointer for the "Last Message" preview in sidebar
@@ -96,6 +103,7 @@ export class MessageStore {
   }
 
   setMessages(items: any[]) {
+    console.log("setmessages: ", items);
     items.forEach((item: any) => {
       this.upsertMessage(item);
     });

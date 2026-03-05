@@ -79,8 +79,9 @@ export const sendMessage = async ({
 
   try {
     const result = await createMessage(envelope);
+
     if (result) {
-      messageStore.upsertMessage(result);
+      messageStore.upsertMessage(result.payload);
     }
 
     return null;
@@ -97,7 +98,7 @@ export const handleIncomingMessage = async (
   const { message, conversationId, sender, receipt } = data.payload;
   const currentUserId = chatStore.currentUser?.id;
 
-  messageStore.upsertMessage(data);
+  messageStore.upsertMessage(data.payload);
 
   const isViewing = messageStore.activeChatId === conversationId;
   const isFromMe = data.payload.message.senderId === currentUserId;
