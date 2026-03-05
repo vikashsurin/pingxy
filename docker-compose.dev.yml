@@ -74,6 +74,8 @@ services:
     depends_on:
       migration:
         condition: service_completed_successfully
+      # moderation:
+      #   condition: service_healthy
     command: ["bun", "--hot", "run", "src/index.ts"]
 
   frontend:
@@ -111,6 +113,23 @@ services:
       - frontend
       - backend
 
+  # moderation:
+  #   build: ./moderation
+  #   # environment:
+  #   # - USE_ONNX=true  # lighter memory on your 4GB server # for production
+  #   ports:
+  #     - '8000:8000'
+  #   restart: unless-stopped
+  #   networks:
+  #     - pingxy-network-dev
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+  #     interval: 15s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
+
+    
 networks:
   pingxy-network-dev:
     driver: bridge
