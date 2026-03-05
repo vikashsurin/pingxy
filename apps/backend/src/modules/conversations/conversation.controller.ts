@@ -55,6 +55,19 @@ export const ConversationController = {
     });
   },
 
+  findConversationByUserId: factory.createHandlers(validate(
+    'query',
+    z.object({ userId: z.coerce.number() }),
+  ),
+    async (c) => {
+
+      const { id } = c.get('user');
+      const { userId } = c.req.valid("query");
+      const result = await ConversationService.findByUsers({ currentUserId: id, userId: userId })
+      return c.json(result);
+    },
+  ),
+
   getConversationByUserIds: factory.createHandlers(
     validate(
       "param",

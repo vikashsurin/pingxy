@@ -20,7 +20,7 @@ export const messageReactions = table(
   (table) => [
     t
       .foreignKey({
-        name: "message_fk",
+        name: "message_reactions_message_fk",
         columns: [table.messageId],
         foreignColumns: [messages.messageId],
       })
@@ -28,7 +28,7 @@ export const messageReactions = table(
 
     t
       .foreignKey({
-        name: "user_fk",
+        name: "message_reactions_user_fk",
         columns: [table.userId],
         foreignColumns: [users.id],
       })

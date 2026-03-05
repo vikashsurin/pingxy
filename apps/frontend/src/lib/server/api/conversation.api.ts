@@ -40,3 +40,25 @@ export const fetchPartner = async ({
 
   return await response.json();
 };
+
+export const findByUser = async ({
+  customFetch,
+  userId,
+}: {
+  customFetch: typeof fetch;
+  userId: number;
+}) => {
+  const response = await customFetch(
+    `/api/conversations/find?userId=${userId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) throw new Error(`External API Error: ${response.status}`);
+  return await response.json();
+};

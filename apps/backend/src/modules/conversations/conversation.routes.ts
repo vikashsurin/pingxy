@@ -24,3 +24,7 @@ conversationRouter.get(
   "/:currentUserId/:userId",
   ...ConversationController.getConversationByUserIds,
 );
+
+// GET a conversation by user id
+// url /conversations/find?userId=
+conversationRouter.get('/find', ...ConversationController.findConversationByUserId)

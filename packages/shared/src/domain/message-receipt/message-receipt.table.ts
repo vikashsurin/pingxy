@@ -30,7 +30,7 @@ export const messageReceipts = table(
   (table) => [
     t
       .foreignKey({
-        name: "message_fk",
+        name: "message_receipts_message_fk",
         columns: [table.messageId],
         foreignColumns: [messages.messageId],
       })
@@ -38,14 +38,14 @@ export const messageReceipts = table(
 
     t
       .foreignKey({
-        name: "user_fk",
+        name: "message_receipts_user_fk",
         columns: [table.readerId],
         foreignColumns: [users.id],
       })
       .onDelete("cascade"),
 
     t.foreignKey({
-      name: "conversation_fk",
+      name: "message_receipts_conversation_fk",
       columns: [table.conversationId],
       foreignColumns: [conversations.conversationId],
     }),

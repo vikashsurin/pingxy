@@ -1,4 +1,3 @@
-// ChatState.ts
 import type { MessageStore } from "./messageStore.svelte";
 
 type Partner = {

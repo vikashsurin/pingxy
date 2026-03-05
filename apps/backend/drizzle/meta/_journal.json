@@ -22,6 +22,13 @@
       "when": 1772196152225,
       "tag": "0002_hesitant_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772697081179,
+      "tag": "0003_confused_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }

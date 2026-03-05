@@ -1,11 +1,7 @@
 import db, { DB_TX } from "@common/db/client";
 import { ParticipantRepository } from "@modules/participants/participant.repository";
-import { conversations } from "@pingxy/shared/domain/conversation/conversation.table";
-import { participants } from "@pingxy/shared/domain/participant/participant.table";
 
-import { inArray } from "drizzle-orm";
 import { ConversationRepository } from "./conversation.repository";
-import { UserService } from "@modules/users";
 
 export const ConversationService = {
 

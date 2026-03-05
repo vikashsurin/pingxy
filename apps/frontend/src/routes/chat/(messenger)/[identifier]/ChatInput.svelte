@@ -78,12 +78,12 @@
     >
       <Smile />
     </button>
-    <form action="">
+    <form action="" class="flex flex-1 gap-2">
       <input
         type="text"
         placeholder="Message"
         bind:value={messageText}
-        class="flex-1 outline p-2 focus:outline-1 focus:outline-blue-500 rounded-md border border-gray-300"
+        class="flex flex-1 outline p-2 focus:outline-1 focus:outline-blue-500 rounded-md border border-gray-300"
         oninput={handleInput}
         onkeypress={(e) => {
           if (e.key === "Enter") {

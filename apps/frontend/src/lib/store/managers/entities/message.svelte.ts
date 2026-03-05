@@ -80,7 +80,7 @@ export const sendMessage = async ({
   try {
     const result = await createMessage(envelope);
     if (result) {
-      messageStore.upsertMessage(result.payload);
+      messageStore.upsertMessage(result);
     }
 
     return null;
@@ -97,7 +97,7 @@ export const handleIncomingMessage = async (
   const { message, conversationId, sender, receipt } = data.payload;
   const currentUserId = chatStore.currentUser?.id;
 
-  messageStore.upsertMessage(data.payload);
+  messageStore.upsertMessage(data);
 
   const isViewing = messageStore.activeChatId === conversationId;
   const isFromMe = data.payload.message.senderId === currentUserId;

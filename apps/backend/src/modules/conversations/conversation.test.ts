@@ -25,8 +25,10 @@ describe("Conversations Table Schema", () => {
   //   // expect(result).toHaveLength(1);
   // });
 
-  test("should select a conversation id by user ids", async () => {
-    const result = await ConversationRepository.selectByUsersPrecise(2, 14)
+  test.only("should select a conversation id by user ids", async () => {
+    const result = await ConversationRepository.selectByUsersPrecise(3
+      , 2)
+    console.log({result})
     expect(result).toBeObject();
   });
 
@@ -36,7 +38,7 @@ describe("Conversations Table Schema", () => {
     expect(result).toBeTruthy();
   })
 
-  test.only("should return a conversation ", async () => {
+  test("should return a conversation ", async () => {
     const result = await ConversationRepository.selectById(4)
     console.log({ result })
     expect(result).toBeDefined()

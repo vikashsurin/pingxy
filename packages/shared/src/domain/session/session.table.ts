@@ -21,7 +21,7 @@ export const sessions = table(
   (table) => [
     t
       .foreignKey({
-        name: "user_fk",
+        name: "sessions_user_fk",
         columns: [table.userId],
         foreignColumns: [users.id],
       })

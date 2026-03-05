@@ -1,27 +1,10 @@
+import type { UIConversation } from "$lib/types/chat";
+import type { messageCreatedSchema } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import type z from "zod";
 import { ChatEntry } from "./ChatEntry.svelte";
 import { ChatState } from "./ChatState.svelte";
-import { th } from "zod/v4/locales";
-import type { UIConversation } from "$lib/types/chat";
-
-type Conversation = {
-  conversationId: number,
-  unreadCount: number,
-  type: 'direct' | 'group',
-  displayName: string,
-  lastMessageId: number,
-  updatedAt: Date,
-  partner: {
-    id: number,
-    username: string,
-    gender: string,
-    age: number,
-    country: string
-  }
-  participants: any[]
-
-}
-
+import { chatStore } from "./store.svelte";
 
 // implement messagesMetadata.
 export class MessageStore {
@@ -29,9 +12,17 @@ export class MessageStore {
   messages = new SvelteMap<number, ChatEntry>();
   threads = new SvelteMap<number, SvelteSet<number>>();
   chats = new SvelteMap<number, ChatState>();
+  chatPartners = $derived.by(() => {
+    const lookup = new SvelteMap();
+    for (const chat of this.chats.values()) {
+      if (chat.type == "direct" && chat.partner?.id) {
+        lookup.set(chat.partner.id, chat.chatId);
+      }
+    }
+    return lookup;
+  });
 
   activeChatId = $state<number | null>(null);
-
 
   initThreads(conversations: UIConversation[]) {
     conversations.forEach((conversation) => {
@@ -43,12 +34,11 @@ export class MessageStore {
       }
 
       // 2. Create or update ChatState
-      let chat = this.chats.get(conversationId)
+      let chat = this.chats.get(conversationId);
       if (!chat) {
-        chat = new ChatState(conversationId, this)
-        this.chats.set(conversationId, chat)
+        chat = new ChatState(conversationId, this);
+        this.chats.set(conversationId, chat);
       }
-
 
       // 3. Map the metadata
       chat.displayName = conversation.displayName;
@@ -57,13 +47,13 @@ export class MessageStore {
       chat.participants = conversation.participants;
       chat.unreadCount = conversation.unreadCount;
     });
-
   }
 
-
   // Inside MessageStore.svelte.ts
-  upsertMessage(payload: any) {
-    const { messageId, conversationId } = payload.message;
+  upsertMessage(data: z.infer<typeof messageCreatedSchema>) {
+    if (!data.payload) return;
+
+    const { messageId, conversationId } = data.payload.message;
 
     const existing = this.messages.get(messageId);
 
@@ -73,7 +63,7 @@ export class MessageStore {
     if (existing) {
       // existing.receipt = payload.receipt;
     } else {
-      this.messages.set(messageId, new ChatEntry(payload));
+      this.messages.set(messageId, new ChatEntry(data.payload));
     }
 
     // 2. Update the threads Map (The Set of IDs for this conversation)
@@ -87,9 +77,15 @@ export class MessageStore {
     // 3. Update ChatState pointers
     let chat = this.chats.get(conversationId);
     if (!chat) {
-      // This handles messages from chats not yet in the sidebar
       chat = new ChatState(conversationId, this);
       this.chats.set(conversationId, chat);
+
+      const currentUser = chatStore.currentUser;
+      if (data.payload.sender.id === currentUser?.id) {
+        chat.displayName = data.payload.recipient.username;
+      } else {
+        chat.displayName = data.payload.sender.username;
+      }
     }
 
     // Update the pointer for the "Last Message" preview in sidebar

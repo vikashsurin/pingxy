@@ -18,7 +18,7 @@ export const refreshTokens = table(
   (table) => [
     t
       .foreignKey({
-        name: "user_fk",
+        name: "refresh_tokens_user_fk",
         columns: [table.userId],
         foreignColumns: [users.id],
       })
@@ -26,7 +26,7 @@ export const refreshTokens = table(
 
     t
       .foreignKey({
-        name: "session_fk",
+        name: "refresh_tokens_session_fk",
         columns: [table.sessionId],
         foreignColumns: [sessions.sessionId],
       })

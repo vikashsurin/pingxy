@@ -8,7 +8,16 @@
 
   let { data } = $props();
 
+  let newChat = $derived.by(() => {
+    if (data.identifierType === "user") {
+      return true;
+    }
+    return false;
+  });
+
   $effect(() => {
+    if (newChat || !data.idValue) return;
+
     if (data.messages.items) {
       messageStore.setMessages(data.messages.items);
     }
@@ -17,7 +26,7 @@
   });
 
   $effect(() => {
-    if (!data.identifier.startsWith("c_")) return;
+    if (newChat || !data.idValue) return;
 
     const conversationId = data.idValue;
 
@@ -37,8 +46,13 @@
 
 <div id="chatbox" class="flex flex-col h-full">
   <ChatHeader partner={data.partner} />
-
-  <Chat idValue={data.idValue} user={data.user} />
+  {#if newChat}
+    <div class="flex-1 flex min-h-0 items-center justify-center">
+      <p class="px-3 py-2 bg-gray-300 rounded">start a conversation</p>
+    </div>
+  {:else}
+    <Chat idValue={data.idValue} user={data.user} />
+  {/if}
 
   <ChatInput
     partner={data.partner}

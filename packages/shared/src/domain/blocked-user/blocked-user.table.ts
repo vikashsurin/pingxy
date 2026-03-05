@@ -13,7 +13,7 @@ export const blockedUsers = table(
   (table) => [
     t
       .foreignKey({
-        name: "blocker_fk",
+        name: "blocked_users_blocker_fk",
         columns: [table.blockerId],
         foreignColumns: [users.id],
       })
@@ -21,7 +21,7 @@ export const blockedUsers = table(
 
     t
       .foreignKey({
-        name: "blocked_fk",
+        name: "blocked_users_blocked_fk",
         columns: [table.blockedId],
         foreignColumns: [users.id],
       })

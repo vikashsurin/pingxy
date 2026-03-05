@@ -6,8 +6,6 @@ export const handleGenericEvent = (rawData: unknown) => {
   try {
     const result = ServerEventSchema.safeParse(rawData);
 
-    console.log({ result });
-
     if (!result.success) {
       console.error(
         "[Socket] Received invalid server event:",
