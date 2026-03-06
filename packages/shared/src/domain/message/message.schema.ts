@@ -6,8 +6,8 @@ import {
 import { z } from "zod";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
-import { messages } from "./message.table";
 import { selectUserSchema } from "../user/user.schema";
+import { messages } from "./message.table";
 
 // export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages, {
@@ -35,6 +35,27 @@ export const InsertMessageSchema = createInsertSchema(messages)
   .extend({
     conversationId: z.number().nullable(),
   });
+
+const fileSchema = z
+  .instanceof(File)
+  .optional()
+  .refine((file) => !file || file.size <= 10 * 1024 * 1024, {
+    error: "File size must be less than 10MB",
+  })
+  .refine(
+    (file) =>
+      !file ||
+      [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+      ].includes(file.type),
+    {
+      error: "Invalid file type",
+    },
+  );
 
 export const messageCreateSchema = z.object({
   id: z.uuid(),

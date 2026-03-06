@@ -6,32 +6,31 @@ import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 
 export const ConversationController = {
-  getAll:
-    factory.createHandlers(
-      validate("query", z.object({ userId: z.coerce.number() })),
-      async (c) => {
-        const { userId } = c.req.valid("query");
-        const result = await ConversationService.getAlByUser({
-          userId,
-        });
-        return c.json(result);
-      },
-    ),
-
-
-  getPartner: factory.createHandlers(
-    validate("param", z.object({ conversationId: z.coerce.number() })),
+  getAll: factory.createHandlers(
+    validate("query", z.object({ userId: z.coerce.number() })),
     async (c) => {
-
-      const user = c.get('user')
-
-      const { conversationId } = c.req.valid("param");
-      const result = await ConversationService.getPartnerForConversation({ userId: user.id, conversationId })
-
+      const { userId } = c.req.valid("query");
+      const result = await ConversationService.getAlByUser({
+        userId,
+      });
       return c.json(result);
     },
   ),
 
+  getPartner: factory.createHandlers(
+    validate("param", z.object({ conversationId: z.coerce.number() })),
+    async (c) => {
+      const user = c.get("user");
+
+      const { conversationId } = c.req.valid("param");
+      const result = await ConversationService.getPartnerForConversation({
+        userId: user.id,
+        conversationId,
+      });
+
+      return c.json(result);
+    },
+  ),
 
   getAllMessagesAndReceipts: async (c: Context) => {
     const conversationId = Number(c.req.param("conversationId"));
@@ -39,7 +38,6 @@ export const ConversationController = {
     const before = Number(c.req.query("before"));
     const after = Number(c.req.query("after"));
     const limit = Number(c.req.query("limit")) || 20;
-
 
     const result = await MessageService.getMessagesAndReceiptsByConversation({
       conversationId,
@@ -55,15 +53,15 @@ export const ConversationController = {
     });
   },
 
-  findConversationByUserId: factory.createHandlers(validate(
-    'query',
-    z.object({ userId: z.coerce.number() }),
-  ),
+  findConversationByUserId: factory.createHandlers(
+    validate("query", z.object({ userId: z.coerce.number() })),
     async (c) => {
-
-      const { id } = c.get('user');
+      const { id } = c.get("user");
       const { userId } = c.req.valid("query");
-      const result = await ConversationService.findByUsers({ currentUserId: id, userId: userId })
+      const result = await ConversationService.findByUsers({
+        currentUserId: id,
+        userId: userId,
+      });
       return c.json(result);
     },
   ),

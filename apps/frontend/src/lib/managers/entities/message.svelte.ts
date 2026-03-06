@@ -6,7 +6,6 @@ import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
-import { handle } from "hono/cloudflare-pages";
 
 // export const loadInitialMessages = async ({
 //   conversationId,
@@ -164,6 +163,16 @@ const createMessageManager = () => ({
     }
   },
 
+  sendMedia: async ({
+    identifier,
+    partner,
+  }: {
+    identifier: string;
+    partner: User;
+  }) => {
+    const isExistingConv = identifier.startsWith("c_");
+    const idValue = Number(identifier.replace(/^[cu]_/, ""));
+  },
   updateMessage: async () => {},
 
   deleteMessage: async () => {},

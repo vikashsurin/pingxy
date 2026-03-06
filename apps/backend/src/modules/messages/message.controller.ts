@@ -12,7 +12,7 @@ export const MessageController = {
 
       const message = await MessageService.sendMessage(body);
 
-      return c.json({ data: message, }, 201);
+      return c.json({ data: message }, 201);
     },
   ),
 };

@@ -2,12 +2,15 @@
   "name": "@pingxy/backend",
   "scripts": {
     "dev": "bun run --hot --watch src/index.ts",
+    "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "start": "bun run src/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1003.0",
+    "@aws-sdk/lib-storage": "^3.1003.0",
     "@hono/standard-validator": "^0.2.2",
     "@hono/zod-validator": "^0.7.6",
     "@pingxy/shared": "workspace:*",

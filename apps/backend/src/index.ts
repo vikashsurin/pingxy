@@ -1,3 +1,4 @@
+import { initStorage } from "@common/utils/s3.js";
 import { serve } from "bun";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
@@ -10,8 +11,10 @@ import { socketHandler } from "./common/socket/socket.handler.js";
 import { WebSocketData } from "./common/socket/types.js";
 import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
+
 const app = factory.createApp();
 
+await initStorage();
 app.use(
   "*",
   cors({
@@ -31,26 +34,35 @@ app.onError((err, ctx) => {
 
   // 1. Handled HTTP Exceptions (400, 401, 403, 404, etc.)
   if (err instanceof HTTPException) {
-    return ctx.json({
-      success: false,
-      message: err.message, // This will be "User is blocked"
-    }, err.status);
+    return ctx.json(
+      {
+        success: false,
+        message: err.message, // This will be "User is blocked"
+      },
+      err.status,
+    );
   }
 
   // 2. Zod Validation Errors
   if (err.name === "ZodError") {
-    return ctx.json({
-      success: false,
-      error: "Validation Error",
-      details: err.message,
-    }, 400);
+    return ctx.json(
+      {
+        success: false,
+        error: "Validation Error",
+        details: err.message,
+      },
+      400,
+    );
   }
 
   // 3. Unhandled System Crashes (The "Oops" moments)
-  return ctx.json({
-    success: false,
-    message: "An unexpected error occurred", // Masked for security
-  }, 500);
+  return ctx.json(
+    {
+      success: false,
+      message: "An unexpected error occurred", // Masked for security
+    },
+    500,
+  );
 });
 
 app.get("/api/", (c) => {

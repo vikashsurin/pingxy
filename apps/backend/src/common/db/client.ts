@@ -14,6 +14,7 @@ import {
   refreshTokens,
   sessions,
   users,
+  attachments
 } from "@pingxy/shared/domain";
 
 export const schema = {
@@ -26,6 +27,7 @@ export const schema = {
   participants,
   refreshTokens,
   sessions,
+  attachments,
 };
 
 // 0. Check if DATABASE_URL is set
