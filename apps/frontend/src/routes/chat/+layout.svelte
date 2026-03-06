@@ -1,6 +1,6 @@
 <script lang="ts">
     import Navbar from "./Navbar.svelte";
-    import { chatStore } from "$lib/store/store.svelte";
+    import { chatStore } from "$lib/stores/store.svelte.js";
 
     let { children, data } = $props();
 

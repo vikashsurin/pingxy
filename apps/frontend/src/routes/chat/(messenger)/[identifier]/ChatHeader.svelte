@@ -1,6 +1,6 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
-    import { chatStore } from "$lib/store/store.svelte";
+    import { chatStore } from "$lib/stores/store.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
     import { Ban, EllipsisVertical, Eye } from "@lucide/svelte";
     import GenderIcon from "../GenderIcon.svelte";

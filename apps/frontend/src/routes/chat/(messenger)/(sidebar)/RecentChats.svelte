@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { messageStore } from "$lib/store/messageStore.svelte";
-  import { chatStore } from "$lib/store/store.svelte";
+  import { messageStore } from "$lib/stores/messageStore.svelte";
+  import { chatStore } from "$lib/stores/store.svelte";
   import { type UIConversation } from "$lib/types/chat";
   import { ur } from "zod/locales";
   import GenderIcon from "../GenderIcon.svelte";

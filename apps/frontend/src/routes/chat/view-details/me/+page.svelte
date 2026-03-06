@@ -2,7 +2,7 @@
     import { enhance } from "$app/forms";
     import type { SubmitFunction } from "./$types";
     import countries from "$lib/countires.json";
-    import { chatStore } from "$lib/store/store.svelte.js";
+    import { chatStore } from "$lib/stores/store.svelte.js";
     import { Check, Loader } from "@lucide/svelte";
 
     let { form } = $props();

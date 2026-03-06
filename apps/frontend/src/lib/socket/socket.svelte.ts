@@ -1,4 +1,4 @@
-import { chatStore } from "$lib/store/store.svelte";
+import { chatStore } from "$lib/stores/store.svelte";
 import { handleGenericEvent } from "./socket.dispatcher";
 import { getWebSocketUrl } from "./socket.helpers";
 

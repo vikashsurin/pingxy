@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { messageStore } from "$lib/store/messageStore.svelte";
+  import { messageStore } from "$lib/stores/messageStore.svelte";
   import { formatLocalTime } from "$lib/utils/time";
   import { Check, CheckCheck } from "@lucide/svelte";
   import { type MessageReceipt } from "@pingxy/shared";

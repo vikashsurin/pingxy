@@ -1,6 +1,6 @@
 <script lang="ts">
     import { initSocket } from "$lib/socket/socket.svelte";
-    import { messageStore } from "$lib/store/messageStore.svelte.js";
+    import { messageStore } from "$lib/stores/messageStore.svelte.js";
     import { onMount } from "svelte";
     import Sidebar from "./(sidebar)/Sidebar.svelte";
     let { children, data } = $props();

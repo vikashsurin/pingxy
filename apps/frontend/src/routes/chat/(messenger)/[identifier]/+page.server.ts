@@ -1,23 +1,25 @@
-import { fetchMessages } from "$lib/server/api/message.api.js";
-import { ConversationService } from "$lib/server/services/conversation.service.js";
-import { UserService } from "$lib/server/services/user.service.js";
+import { createConversationApi } from "$lib/api/conversation.api.js";
+import { createMessageApi } from "$lib/api/message.api.js";
+import { createUserApi } from "$lib/api/user.api.js";
 import { redirect } from "@sveltejs/kit";
 
 export const load = async ({ params, fetch, locals }) => {
   const { identifier } = params;
   const idValue = Number(identifier.replace(/^[cug]_/, ""));
 
+  const messageApi = createMessageApi(fetch);
+  const conversationApi = createConversationApi(fetch);
+  const userApi = createUserApi(fetch);
+
   // 1. check if identifier starts with u_
   if (identifier.startsWith("u_")) {
-    const existingConv = await ConversationService.findConversation({
-      customFetch: fetch,
+    const existingConv = await conversationApi.findByUser({
       userId: idValue,
     });
     if (existingConv) {
       throw redirect(302, `/chat/c_${existingConv.conversationId}`);
     }
-    const partner = await UserService.getUser({
-      customFetch: fetch,
+    const partner = await userApi.fetchUserDetails({
       id: idValue,
     });
 
@@ -32,17 +34,22 @@ export const load = async ({ params, fetch, locals }) => {
   // 2. check if identifier starts with c_
   if (identifier.startsWith("c_")) {
     const [partner, messages] = await Promise.all([
-      ConversationService.getPartner({
-        customFetch: fetch,
+      conversationApi.fetchPartner({
         conversationId: idValue,
       }),
 
-      fetchMessages({
-        customFetch: fetch,
+      messageApi.fetchMessages({
         conversationId: idValue,
         currentUserId: locals.user.id,
         limit: 20,
       }),
+
+      // fetchMessages({
+      //   customFetch: fetch,
+      //   conversationId: idValue,
+      //   currentUserId: locals.user.id,
+      //   limit: 20,
+      // }),
     ]);
     return {
       identifier,

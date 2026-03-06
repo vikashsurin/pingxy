@@ -10,9 +10,9 @@ export const MessageController = {
     async (c) => {
       const body = c.req.valid("json");
 
-      const result = await MessageService.sendMessage(body);
+      const message = await MessageService.sendMessage(body);
 
-      return c.json({ result });
+      return c.json({ data: message, }, 201);
     },
   ),
 };

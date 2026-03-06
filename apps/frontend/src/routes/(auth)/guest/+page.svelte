@@ -5,7 +5,7 @@
     import RadioGroup from "$lib/components/ui/form/RadioGroup.svelte";
     import Select from "$lib/components/ui/form/Select.svelte";
     import countries from "$lib/countires.json";
-    import { chatStore } from "$lib/store/store.svelte.js";
+    import { chatStore } from "$lib/stores/store.svelte.js";
     import { debounce } from "$lib/utils/debounce";
     import { CircleAlert, CircleCheck, User as UserIcon } from "@lucide/svelte";
     import { type User } from "@pingxy/shared";

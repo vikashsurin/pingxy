@@ -1,8 +1,10 @@
-import { BlockService } from "$lib/server/services/block.service";
+import { createBlockApi } from "$lib/api/block";
 import type { Action } from "@sveltejs/kit";
 import { fail } from "@sveltejs/kit";
 
 export const blockAction: Action = async ({ locals, request, fetch }) => {
+  const blockApi = createBlockApi(fetch);
+
   if (!locals.user) {
     return fail(401, { message: "Unauthorized" });
   }
@@ -14,8 +16,7 @@ export const blockAction: Action = async ({ locals, request, fetch }) => {
   }
 
   try {
-    const blocked = await BlockService.block({
-      customFetch: fetch,
+    const blocked = await blockApi.blockUser({
       blockerId: Number(locals.user.id),
       blockedId: blockedId,
     });

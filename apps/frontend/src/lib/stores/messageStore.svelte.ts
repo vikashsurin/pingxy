@@ -1,11 +1,5 @@
 import type { UIConversation } from "$lib/types/chat";
-import type {
-  messageCreatedSchema,
-  selectMessageSchema,
-  selectReceiptSchema,
-} from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import type z from "zod";
 import { ChatEntry } from "./ChatEntry.svelte";
 import { ChatState } from "./ChatState.svelte";
 import { chatStore } from "./store.svelte";
@@ -53,11 +47,7 @@ export class MessageStore {
     });
   }
 
-  // Inside MessageStore.svelte.ts
-  upsertMessage(payload: {
-    message: z.infer<typeof selectMessageSchema>;
-    receipt: z.infer<typeof selectReceiptSchema>;
-  }) {
+  upsertMessage(payload: any) {
     if (!payload) return;
 
     const { messageId, conversationId } = payload.message;
@@ -65,10 +55,8 @@ export class MessageStore {
     const existing = this.messages.get(messageId);
 
     // 1. Update the message Map
-    // Use a check to avoid re-creating the object if it already exists (optional optimization)
-
     if (existing) {
-      // existing.receipt = payload.receipt;
+      existing.receipt = payload.receipt;
     } else {
       this.messages.set(messageId, new ChatEntry(payload));
     }
@@ -103,7 +91,6 @@ export class MessageStore {
   }
 
   setMessages(items: any[]) {
-    console.log("setmessages: ", items);
     items.forEach((item: any) => {
       this.upsertMessage(item);
     });

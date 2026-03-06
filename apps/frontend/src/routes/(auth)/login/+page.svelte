@@ -2,7 +2,7 @@
   import { enhance } from "$app/forms";
   import Primary from "$lib/components/ui/button/Primary.svelte";
   import Input from "$lib/components/ui/form/Input.svelte";
-  import { chatStore } from "$lib/store/store.svelte.js";
+  import { chatStore } from "$lib/stores/store.svelte.js";
   import { debounce } from "$lib/utils/debounce";
   import { Eye, EyeOff, User as UserIcon } from "@lucide/svelte";
   import { type User } from "@pingxy/shared";

@@ -8,6 +8,3 @@ export function formatLocalTime(isoUtc: Date): string {
     })
     .toLowerCase(); // → "6:36 pm"
 }
-
-// Usage:
-// console.log(formatLocalTime("2026-02-27T13:06:47.982Z")); // "6:36 pm"

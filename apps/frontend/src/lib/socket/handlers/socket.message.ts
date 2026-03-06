@@ -1,4 +1,4 @@
-import * as messageManager from "$lib/store/managers/entities/message.svelte";
+import { messageManager } from "$lib/managers/entities/message.svelte";
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { SocketHandler } from "./index";
 

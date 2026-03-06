@@ -23,6 +23,7 @@ if USE_ONNX:
         "image-classification",
         model="Falconsai/nsfw_image_detection",
         accelerator="onnxruntime",
+        # image_processor_kwargs={"use_fast": True}
     )
 else:
     from transformers import pipeline
@@ -30,6 +31,8 @@ else:
         "image-classification",
         model="Falconsai/nsfw_image_detection",
         device="cpu",
+        image_processor_kwargs={"use_fast": True}
+        
     )
 
 print("Model ready!")

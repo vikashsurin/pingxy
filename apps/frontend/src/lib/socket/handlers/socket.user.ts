@@ -1,5 +1,5 @@
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
-import * as userManager from "../../store/managers/entities/user.svelte";
+import { userManager } from "../../managers/entities/user.svelte";
 import type { SocketHandler } from "./index";
 
 export const userHandler: SocketHandler = {

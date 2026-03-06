@@ -1,24 +1,19 @@
 <script lang="ts">
   import { toast } from "$lib/components/toast/toast.svelte";
-  import { sendMessage } from "$lib/store/managers/entities/message.svelte";
-  import { emitTyping } from "$lib/store/managers/entities/ux.svelte";
-  import { messageStore } from "$lib/store/messageStore.svelte";
-  import { chatStore } from "$lib/store/store.svelte";
-  import { clickOutside } from "$lib/utils/clickOutside";
-  import {
-    Camera,
-    Image,
-    Mic,
-    Paperclip,
-    Signature,
-    Smile,
-  } from "@lucide/svelte";
-  import EmojiList from "./(attachments)/EmojiSelector.svelte";
+  import { messageManager } from "$lib/managers/entities/message.svelte";
+  import { uxManager } from "$lib/managers/entities/ux.svelte";
+  import { messageStore } from "$lib/stores/messageStore.svelte";
+  import { chatStore } from "$lib/stores/store.svelte";
+  import { formatFileSize } from "$lib/utils/file";
+  import { Paperclip, Smile, X } from "@lucide/svelte";
   import { tick } from "svelte";
+  import Attachments from "./(attachments)/Attachments.svelte";
+  import EmojiList from "./(attachments)/EmojiSelector.svelte";
 
   let { identifier, idValue, partner } = $props();
 
-  let inputValue = $state("");
+  let textInput = $state("");
+  let attachmentInput = $state<File | undefined>(undefined);
   let messageInputRef = $state<HTMLTextAreaElement>();
   let showAttachmentsPopup = $state(false);
   let showEmojiPopup = $state(false);
@@ -28,13 +23,13 @@
       chatStore.errorMessage = "No identifier provided";
       return;
     }
-    if (!inputValue) {
+    if (!textInput) {
       toast("Message cannot be empty", { type: "error", duration: 3000 });
       return;
     }
-    sendMessage({ messageText: inputValue, identifier, partner });
+    messageManager.sendMessage({ messageText: textInput, identifier, partner });
 
-    inputValue = "";
+    textInput = "";
   }
 
   let typingThrottle: any;
@@ -42,7 +37,7 @@
   function handleInput() {
     if (typingThrottle) return;
 
-    emitTyping({ conversationId: idValue, userId: partner.id });
+    uxManager.emitTyping({ conversationId: idValue, userId: partner.id });
 
     typingThrottle = setTimeout(() => {
       typingThrottle = null;
@@ -55,7 +50,7 @@
     const start = messageInputRef.selectionStart ?? 0;
     const end = messageInputRef.selectionEnd ?? 0;
 
-    inputValue = inputValue.slice(0, start) + emoji + inputValue.slice(end);
+    textInput = textInput.slice(0, start) + emoji + textInput.slice(end);
 
     await tick(); // waits for Svelte to flush DOM updates
 
@@ -64,7 +59,10 @@
     messageInputRef.setSelectionRange(newPos, newPos);
   }
 
-  function handleAddAttachment() {}
+  function handleAttachment(file: FileList[0]) {
+    console.log("handleAttachment", file);
+    attachmentInput = file;
+  }
 </script>
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
@@ -75,12 +73,12 @@
     >
   {/if}
 
+  <!-- use:clickOutside={() => (showAttachmentsPopup = false)} -->
   <!-- handle this TODO -->
   {#if false}
     {@render blockedUserNotice()}
   {:else}
     <button
-      use:clickOutside={() => (showAttachmentsPopup = false)}
       onclick={() => (showAttachmentsPopup = !showAttachmentsPopup)}
       class="relative hover:bg-gray-200 {showAttachmentsPopup
         ? 'bg-sky-100 text-sky-600'
@@ -97,16 +95,35 @@
       <Smile />
     </button>
 
-    <form action="" class="flex flex-1 gap-2">
+    <form action="" class="flex relative flex-1 gap-2">
+      {#if attachmentInput}
+        <div
+          class="absolute flex gap-2 items-center justify-center bottom-full px-2 py-1 bg-gray-200 rounded m-1 border border-gray-300"
+        >
+          <span class="text-sm text-gray-500">{attachmentInput.name} |</span>
+          <span class="text-sm text-gray-500"
+            >size: {formatFileSize({
+              bytes: attachmentInput.size,
+              precision: 1,
+            })}
+          </span>
+          <X
+            size={18}
+            class="hover:bg-gray-300 rounded p-0.5"
+            onclick={() => (attachmentInput = undefined)}
+          />
+        </div>
+      {/if}
+
       <textarea
         bind:this={messageInputRef}
-        bind:value={inputValue}
+        bind:value={textInput}
         class="flex flex-1 outline p-2 focus:outline-1 focus:outline-blue-500 rounded-md border border-gray-300"
         oninput={handleInput}
         onkeypress={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            inputValue = inputValue.trim();
+            textInput = textInput.trim();
             handleSend();
           }
         }}
@@ -145,22 +162,7 @@
 
 {#snippet attachmentsPopup()}
   <div class="absolute bottom-full left-0 w-max m-2">
-    <div
-      class="bg-white p-2 rounded shadow-md border border-gray-200 flex flex-col gap-2"
-    >
-      <button class="p-2 hover:bg-gray-200 rounded">
-        <Image />
-      </button>
-      <button class="p-2 hover:bg-gray-200 rounded">
-        <Camera />
-      </button>
-      <button class="p-2 hover:bg-gray-200 rounded">
-        <Mic />
-      </button>
-      <button class="p-2 hover:bg-gray-200 rounded">
-        <Signature />
-      </button>
-    </div>
+    <Attachments onAttachment={handleAttachment} />
   </div>
 {/snippet}
 

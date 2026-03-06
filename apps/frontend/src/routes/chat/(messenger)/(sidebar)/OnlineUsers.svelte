@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { chatStore } from "$lib/store/store.svelte.js";
+  import { chatStore } from "$lib/stores/store.svelte.js";
   import type { User } from "@pingxy/shared/domain/user/user.types";
   import GenderIcon from "../GenderIcon.svelte";
 

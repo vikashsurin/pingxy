@@ -1,4 +1,4 @@
-import * as receiptManager from "$lib/store/managers/entities/receipt.svelte";
+import { receiptManager } from "$lib/managers/entities/receipt.svelte";
 import { SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { SocketHandler } from "./index";
 

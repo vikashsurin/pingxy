@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Pre-download model at build time so cold starts are instant
-RUN python -c "from transformers import pipeline; pipeline('image-classification', model='Falconsai/nsfw_image_detection'), device='cpu', image_processor_kwargs={"use_fast": True}"
+RUN python -c "from transformers import pipeline; pipeline('image-classification', model='Falconsai/nsfw_image_detection')"
 
 COPY nsfw_server.py .
 

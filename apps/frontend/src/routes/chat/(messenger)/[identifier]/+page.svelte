@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { validateSocket } from "$lib/store/helpers.js";
-  import { emitMarkAllRead } from "$lib/store/managers/entities/receipt.svelte.js";
-  import { messageStore } from "$lib/store/messageStore.svelte.js";
+  import { validateSocket } from "$lib/utils/validateSocket.js";
+  import { receiptManager } from "$lib/managers/entities/receipt.svelte.js";
+  import { messageStore } from "$lib/stores/messageStore.svelte.js";
   import Chat from "./Chat.svelte";
   import ChatHeader from "./ChatHeader.svelte";
   import ChatInput from "./ChatInput.svelte";
 
   let { data } = $props();
 
-  $inspect({ data });
+  $inspect({ messages: messageStore.messages.size });
 
   let newChat = $derived.by(() => {
     if (data.identifierType === "user") {
@@ -40,9 +40,9 @@
     const socket = validateSocket();
     if (!socket) return;
 
-    emitMarkAllRead({ conversationId, currentuserId, senderId }).catch((err) =>
-      console.error("Failed to mark as read:", err),
-    );
+    receiptManager
+      .emitMarkAllRead({ conversationId, currentuserId, senderId })
+      .catch((err) => console.error("Failed to mark as read:", err));
   });
 </script>
 

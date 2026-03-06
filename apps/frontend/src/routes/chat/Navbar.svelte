@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { handleLogout } from "$lib/store/managers/entities/user.svelte";
+  import { userManager } from "$lib/managers/entities/user.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
   import { CircleChevronDown } from "@lucide/svelte";
   let { username } = $props();
@@ -40,7 +40,7 @@
             title="Logout"
             href="/logout"
             data-sveltekit-preload-data={false}
-            onclick={handleLogout}
+            onclick={userManager.handlogleLogout}
             class="py-1 px-3 text-red-500 text-sm hover:bg-gray-100 active:text-red-600"
             >Logout</a
           >
