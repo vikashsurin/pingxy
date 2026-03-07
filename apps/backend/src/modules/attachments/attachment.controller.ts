@@ -14,7 +14,6 @@ export const AttachmentController = {
       userId: user.id,
     });
 
-    console.log({ file, key, url });
 
     return c.json(
       {

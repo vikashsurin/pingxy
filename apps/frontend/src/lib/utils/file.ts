@@ -1,6 +1,6 @@
 export function formatFileSize({
   bytes,
-  precision,
+  precision = 2,
 }: {
   bytes: number;
   precision?: number;

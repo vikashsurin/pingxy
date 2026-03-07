@@ -23,6 +23,7 @@ export const dbMessageInsertSchema = createInsertSchema(messages).pick({
   clientMessageId: true,
   content: true,
   senderId: true,
+  attachments: true,
 });
 export const dbSelectMessageSchema = createSelectSchema(messages);
 
@@ -31,6 +32,7 @@ export const InsertMessageSchema = createInsertSchema(messages)
     clientMessageId: true,
     content: true,
     senderId: true,
+    attachments: true,
   })
   .extend({
     conversationId: z.number().nullable(),

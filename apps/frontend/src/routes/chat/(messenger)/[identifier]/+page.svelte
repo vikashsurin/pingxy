@@ -8,8 +8,6 @@
 
   let { data } = $props();
 
-  $inspect({ messages: messageStore.messages.size });
-
   let newChat = $derived.by(() => {
     if (data.identifierType === "user") {
       return true;

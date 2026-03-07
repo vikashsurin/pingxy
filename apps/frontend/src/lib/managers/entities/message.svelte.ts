@@ -117,10 +117,12 @@ import { receiptManager } from "./receipt.svelte";
 const createMessageManager = () => ({
   sendMessage: async ({
     messageText,
+    attachments,
     identifier,
     partner,
   }: {
     messageText: string;
+    attachments: any[] | null;
     identifier: string;
     partner: User;
   }) => {
@@ -138,6 +140,7 @@ const createMessageManager = () => ({
         conversationId: isExistingConv ? idValue : null,
         clientMessageId: crypto.randomUUID(),
         content: messageText,
+        attachments: attachments,
         senderId: chatStore.currentUser?.id!,
       },
       conversationId: isExistingConv ? idValue : null,
@@ -147,6 +150,8 @@ const createMessageManager = () => ({
         username: partner.username,
       },
     });
+
+    console.log("envelope", envelope);
 
     try {
       const message = await messageApi.createMessage(envelope);

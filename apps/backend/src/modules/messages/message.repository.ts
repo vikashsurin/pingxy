@@ -12,6 +12,7 @@ export const MessageRepository = {
         clientMessageId: message.clientMessageId,
         senderId: message.senderId,
         content: message.content,
+        attachments: message.attachments,
       })
       .returning();
   },

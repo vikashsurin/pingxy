@@ -46,6 +46,7 @@ export const MessageService = {
       clientMessageId: message.clientMessageId,
       senderId: message.senderId,
       content: message.content,
+      attachments: message.attachments,
     });
 
     const [messageReceipt] = await ReceiptService.createMessageReceipt({

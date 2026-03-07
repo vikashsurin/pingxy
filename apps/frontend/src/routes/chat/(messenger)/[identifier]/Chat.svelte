@@ -1,5 +1,6 @@
 <script lang="ts">
   import { messageStore } from "$lib/stores/messageStore.svelte";
+  import { type ChatEntry } from "$lib/stores/store.svelte";
   import { formatLocalTime } from "$lib/utils/time";
   import { Check, CheckCheck } from "@lucide/svelte";
   import { type MessageReceipt } from "@pingxy/shared";
@@ -267,6 +268,7 @@
           class="message flex absolute w-full"
           style="top: {virtualOffsets.get(id) ?? 0}px"
         >
+          <!-- 2. me -->
           {#if entry.message.senderId === user.id}
             <div
               class="bg-blue-100 flex flex-col justify-end border max-w-1/2 ml-auto px-2 py-1"
@@ -274,6 +276,9 @@
               <span class="font-xl font-bold">
                 {entry.message.messageId}
               </span>
+
+              {@render files(entry)}
+
               <span id={entry.message.messageId.toString()}>
                 {entry.message.content}
               </span>
@@ -285,9 +290,12 @@
               </span>
             </div>
           {:else}
+            <!-- 2. Partner -->
             <div
               class="bg-gray-300 flex flex-col justify-start border max-w-1/2 px-2 py-1"
             >
+              {@render files(entry)}
+
               <span id={entry.message.messageId.toString()} class="sender">
                 {entry.message.content}
               </span>
@@ -317,5 +325,14 @@
     <CheckCheck size={14} />
   {:else if receipt.status === "read"}
     <CheckCheck size={14} class="text-blue-500" />
+  {/if}
+{/snippet}
+
+{#snippet files(entry: ChatEntry)}
+  {#if entry.message.attachments && entry.message.attachments.length > 0}
+    {@const attachments = entry.message.attachments}
+    {#each attachments as attachment}
+      <img src={attachment.url} alt="" class="h-auto w-auto" />
+    {/each}
   {/if}
 {/snippet}
