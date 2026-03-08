@@ -1,5 +1,3 @@
-// src/lib/stores/FileListStore.svelte.ts
-
 import { formatFileSize } from "$lib/utils/file";
 
 class FileEntry {
@@ -7,6 +5,7 @@ class FileEntry {
   file: File;
   previewUrl: string;
   size: string;
+  type: string;
 
   // Reactive states
   progress = $state(0);
@@ -20,6 +19,7 @@ class FileEntry {
     this.file = file;
     this.previewUrl = URL.createObjectURL(file);
     this.size = formatFileSize({ bytes: file.size, precision: 2 });
+    this.type = file.type
   }
 
   // Clean up resources
@@ -30,7 +30,72 @@ class FileEntry {
 }
 
 export class FileStore {
+  dummyData = [
+    {
+      id: 1,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 2,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 3,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 4,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 5,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 6,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 7,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 8,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 9,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 10,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 11,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+    {
+      id: 12,
+      previewUrl: "https://picsum.photos/536/354",
+      size: "",
+    },
+  ];
+
+
   files = $state<FileEntry[]>([]);
+  preview = $state('')
 
   addFile(newFile: File) {
     if (!newFile) return;
@@ -100,3 +165,5 @@ export class FileStore {
     this.files = [];
   }
 }
+
+export const fileStore = new FileStore();
