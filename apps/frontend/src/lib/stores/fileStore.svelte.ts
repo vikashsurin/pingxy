@@ -135,6 +135,7 @@ export class FileStore {
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         const data = JSON.parse(xhr.responseText);
+        console.log("{{data}} :: ", data)
         entry.serverData = data.attachment;
         entry.status = "done";
       } else {

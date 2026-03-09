@@ -1,4 +1,4 @@
-import { uploadToStorage } from "@common/utils/s3";
+import { uploadToStorage } from "@common/utils/s3/service";
 import { AttachmentRepository } from "./attachment.repository";
 
 export const AttachmentService = {
@@ -9,12 +9,17 @@ export const AttachmentService = {
     }
 
     // 2. Upload the file
-    const { url, key } = await uploadToStorage(file);
+    const { attachmentId, key, url, thumbKey, thumbnailUrl } = await uploadToStorage(file);
 
-    // 3. save to record to db
+
+    // 3. save the record to db
     const [record] = await AttachmentRepository.insert({
-      key,
-      url,
+      attachmentId: attachmentId,
+      messageId: Math.random(),
+      key: key,
+      url: url,
+      thumbKey: thumbKey,
+      thumbnailUrl: thumbnailUrl,
       fileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
@@ -25,7 +30,7 @@ export const AttachmentService = {
       throw new Error("Failed to save attachment to db");
     }
 
-    return { key, url };
+    return { attachmentId, key, url, thumbKey, thumbnailUrl };
   },
 };
 

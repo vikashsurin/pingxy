@@ -22,7 +22,6 @@ export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
   },
 
   createMessage: async (envelope: ClientReqMap["req:message.create"]) => {
-    console.log("envelope::", envelope);
 
     const res = await customFetch(`/api/messages`, {
       method: "POST",

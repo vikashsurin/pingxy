@@ -1,4 +1,4 @@
-import { initStorage } from "@common/utils/s3.js";
+import { initStorage } from "@common/utils/s3/index.js";
 import { serve } from "bun";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";

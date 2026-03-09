@@ -1,15 +1,7 @@
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { HeadBucketCommand, CreateBucketCommand, PutBucketPolicyCommand, S3Client } from "@aws-sdk/client-s3";
 
-import { S3Client } from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
 
-import {
-  CreateBucketCommand,
-  HeadBucketCommand,
-  PutBucketPolicyCommand,
-} from "@aws-sdk/client-s3";
-
-const s3Client = new S3Client({
+export const s3Client = new S3Client({
   endpoint: "http://storage:9000", // Your MinIO/Garage URL
   region: "us-east-1",
   forcePathStyle: true, // Required for self-hosted S3
@@ -19,37 +11,6 @@ const s3Client = new S3Client({
   },
 });
 
-export const uploadToStorage = async (file: File) => {
-  const fileKey = `uploads/${Bun.randomUUIDv7()}-${file.name}`;
-
-  const parallelUploads3 = new Upload({
-    client: s3Client,
-    params: {
-      Bucket: "pingxy",
-      Key: fileKey,
-      Body: file.stream(), // Streams data directly to storage
-      ContentType: file.type,
-    },
-  });
-
-  await parallelUploads3.done();
-
-  return {
-    // Construct the public URL
-    url: `${process.env.STORAGE_PUBLIC_ENDPOINT}/pingxy/${fileKey}`,
-    key: fileKey,
-  };
-};
-
-// Add this to your s3 utility file
-export const deleteFromStorage = async (key: string) => {
-  await s3Client.send(
-    new DeleteObjectCommand({
-      Bucket: "pingxy",
-      Key: key,
-    }),
-  );
-};
 
 export const initStorage = async () => {
   const bucketName = "pingxy";

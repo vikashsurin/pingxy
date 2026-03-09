@@ -151,7 +151,6 @@ const createMessageManager = () => ({
       },
     });
 
-    console.log("envelope", envelope);
 
     try {
       const message = await messageApi.createMessage(envelope);
@@ -178,9 +177,9 @@ const createMessageManager = () => ({
     const isExistingConv = identifier.startsWith("c_");
     const idValue = Number(identifier.replace(/^[cu]_/, ""));
   },
-  updateMessage: async () => {},
+  updateMessage: async () => { },
 
-  deleteMessage: async () => {},
+  deleteMessage: async () => { },
 
   handleIncomingMessage: async (
     data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],

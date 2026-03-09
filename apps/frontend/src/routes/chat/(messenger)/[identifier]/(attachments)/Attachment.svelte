@@ -3,15 +3,6 @@
     import { X } from "@lucide/svelte";
 
     let { file, callback } = $props();
-
-    // let fileType = $derived.by(() => {
-    //     let type = file.file.type;
-    //     if (type) {
-    //         return type.split("/")[0];
-    //     }
-    // });
-
-    $inspect("xx", file.type);
 </script>
 
 <div

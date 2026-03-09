@@ -9,7 +9,7 @@ export const AttachmentController = {
 
     if (!file) return c.json({ error: "No file provided" }, 400);
 
-    const { url, key } = await AttachmentService.fileUpload({
+    const { attachmentId, key, url, thumbKey, thumbnailUrl } = await AttachmentService.fileUpload({
       file,
       userId: user.id,
     });
@@ -18,8 +18,11 @@ export const AttachmentController = {
     return c.json(
       {
         attachment: {
-          id: key,
-          url: url,
+          attachmentId,
+          key,
+          url,
+          thumbKey,
+          thumbnailUrl,
           name: file.name,
           mimeType: file.type,
           size: file.size,
