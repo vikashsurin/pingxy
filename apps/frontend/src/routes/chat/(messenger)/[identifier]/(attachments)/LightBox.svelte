@@ -1,7 +1,6 @@
 <script>
     import { fileStore } from "$lib/stores/fileStore.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
-    let { src } = $props();
 </script>
 
 <div
@@ -11,11 +10,8 @@
     <div
         class="bg-white rounded-sm shadow-lg w-full max-w-xl
               max-h-[90vh] overflow-auto outline-4 outline-teal-600"
+        use:clickOutside={() => (fileStore.viewSelected = "")}
     >
-        <img
-            {src}
-            alt={src}
-            use:clickOutside={() => (fileStore.preview = "")}
-        />
+        <img src={fileStore.viewSelected} alt={fileStore.viewSelected} />
     </div>
 </div>

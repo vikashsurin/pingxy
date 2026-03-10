@@ -1,6 +1,4 @@
 import { uploadToStorage } from "@common/utils/s3/service";
-import { attachmentInsertSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
-import z from "zod";
 import { AttachmentRepository } from "./attachment.repository";
 
 export const AttachmentService = {
@@ -16,17 +14,21 @@ export const AttachmentService = {
 
     return { attachmentId, key, url, thumbKey, thumbnailUrl };
   },
+
+
   createAttachment: async ({
     attachments,
     userId,
     messageId,
     conversationId,
   }: {
-    attachments: z.infer<typeof attachmentInsertSchema>[];
+    attachments: any[];
     userId: number;
     messageId: number;
     conversationId: number;
   }) => {
+
+    if (!attachments || attachments.length === 0) return [];
 
     for (const a of attachments) {
       a.messageId = messageId;

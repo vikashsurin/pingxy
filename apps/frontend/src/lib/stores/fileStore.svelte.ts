@@ -88,6 +88,7 @@ class FileEntry {
 
 class FileStore {
   files = $state<FileEntry[]>([]);
+  viewSelected = $state<string>("")
 
   add(newFiles: FileList | File[]) {
     for (const file of Array.from(newFiles)) {

@@ -1,43 +1,52 @@
-import { SvelteMap } from "svelte/reactivity";
+import type { attachmentSelectSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
+import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import type z from "zod";
 
 class AttachmentStore {
-  attachments = new SvelteMap<number, any[]>([]);
+  attachments = new SvelteMap<string, z.infer<typeof attachmentSelectSchema>>();
+  messageAttachementMap = new SvelteMap<number, SvelteSet<string>>();
 
-  // TODO: fix for accuracy
-  upsertAttachment(attachment: any) {
-    // 1. Attachement is optional
-    // it may or may not be present
+  // OPTIMIZATION: Use a derived state to cache the array conversions
+  // This ensures that 'getFilesForMessage' returns the SAME array reference
+  // unless the underlying Set for that specific message actually changes.
+  #fileCache = $derived.by(() => {
+    const cache = new Map();
+    for (const [msgId, idSet] of this.messageAttachementMap) {
+      cache.set(
+        msgId,
+        Array.from(idSet)
+          .map((id) => this.attachments.get(id))
+          .filter(Boolean),
+      );
+    }
+    return cache;
+  });
 
-    if (!attachment) return;
-    let existing = this.attachments.get(attachment.messageId);
-    if (existing) {
-      existing.push(attachment);
-    } else {
-      this.attachments.set(attachment.messageId, [attachment]);
+  upsertAttachment(attachment: z.infer<typeof attachmentSelectSchema>) {
+    // 1. Identity check (Optimized: Skip set if data is identical)
+    // If you are sure the data might change (e.g. upload progress), keep the set.
+    this.attachments.set(attachment.attachmentId, attachment);
+
+    // 2. Update the relationship
+    if (!this.messageAttachementMap.has(attachment.messageId)) {
+      this.messageAttachementMap.set(attachment.messageId, new SvelteSet());
+    }
+
+    this.messageAttachementMap
+      .get(attachment.messageId)!
+      .add(attachment.attachmentId);
+  }
+
+  setAttachments(items: z.infer<typeof attachmentSelectSchema>[]) {
+    // Batch processing
+    for (const item of items) {
+      this.upsertAttachment(item);
     }
   }
 
-  setAttachments(items: any[]) {
-    for (const item of items) {
-      const mId = item?.messageId;
-      const aId = item?.attachmentId;
-      if (!mId || !aId) continue;
-
-      let group = this.attachments.get(mId);
-
-      if (!group) {
-        // Create a fresh array for this message
-        this.attachments.set(mId, [item]);
-      } else {
-        // Use a Map/Set lookup if your "group" is large,
-        // but for small arrays (1-10 items), .some is actually okay.
-        // To be truly elite, check if it exists before pushing:
-        const exists = group.some((a) => a.attachmentId === aId);
-        if (!exists) {
-          group.push(item);
-        }
-      }
-    }
+  getFilesForMessage(msgId: number) {
+    // Returns the cached array from the derived map
+    return this.#fileCache.get(msgId) ?? [];
   }
 }
 

@@ -65,7 +65,7 @@ export const messageCreateSchema = z.object({
   payload: z.object({
     message: InsertMessageSchema,
     attachments: z.array(attachmentInsertSchema),
-    conversationId: z.number().nullable(),
+    conversationId: z.number().nullish(),
     sender: selectUserSchema,
     recipient: z.object({
       id: z.number(),

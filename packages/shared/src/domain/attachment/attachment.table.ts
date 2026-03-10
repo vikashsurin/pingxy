@@ -10,18 +10,20 @@ export const attachments = table(
     attachmentId: t.text().primaryKey(),
     conversationId: t
       .integer()
+      .notNull()
       .references(() => conversations.conversationId, { onDelete: "cascade" }),
     messageId: t
       .integer()
+      .notNull()
       .references(() => messages.messageId, { onDelete: "cascade" }),
-    url: t.text().notNull(),
     key: t.text().notNull(),
+    url: t.text().notNull(),
     thumbnailUrl: t.text(),
     thumbKey: t.text(),
     fileName: t.text().notNull(),
     fileSize: t.integer().notNull(),
     mimeType: t.text().notNull(),
-    uploadedBy: t.integer().references(() => users.id, { onDelete: "cascade" }),
+    uploadedBy: t.integer().notNull().references(() => users.id, { onDelete: "cascade" }),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow(),
   },
   (table) => [

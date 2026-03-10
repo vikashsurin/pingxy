@@ -1,13 +1,21 @@
 import { messageApi } from "$lib/api/message.api";
 import { messageStore } from "$lib/stores/messageStore.svelte";
-import { type SERVER_EVENTS, type User } from "@pingxy/shared";
+import {
+  messageCreatedSchema,
+  type SERVER_EVENTS,
+  type User,
+} from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
-import type { attachmentSelectSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
+import type {
+  attachmentInsertSchema,
+  attachmentSelectSchema,
+} from "@pingxy/shared/domain/attachment/attachment.schema";
 import { z } from "zod";
+
 // export const loadInitialMessages = async ({
 //   conversationId,
 //   currentUserId,
@@ -123,7 +131,7 @@ const createMessageManager = () => ({
     partner,
   }: {
     messageText: string;
-    attachments: z.infer<typeof attachmentSelectSchema> | null;
+    attachments: z.infer<typeof attachmentInsertSchema>[];
     identifier: string;
     partner: User;
   }) => {
@@ -143,7 +151,7 @@ const createMessageManager = () => ({
         content: messageText,
         senderId: chatStore.currentUser?.id!,
       },
-      attachments: attachments ?? null,
+      attachments: attachments,
       conversationId: isExistingConv ? idValue : null,
       sender: chatStore.currentUser!,
       recipient: {
@@ -154,9 +162,9 @@ const createMessageManager = () => ({
 
     try {
       const message = await messageApi.createMessage(envelope);
-      console.log("got message: ", message);
       if (message) {
-        const { data } = message;
+        const { data }: { data: z.infer<typeof messageCreatedSchema> } =
+          message;
         chatStore.upsertEntity(data.payload);
       }
 

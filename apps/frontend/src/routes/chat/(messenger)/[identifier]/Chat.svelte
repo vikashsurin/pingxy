@@ -177,6 +177,7 @@
 
   // -- Load newer ----------------------
   let isLoadingNewer = $state(false);
+  // TODO: check has more, to fetch more data
   let hasMoreNewer = $state(true);
 
   async function loadNewer() {
@@ -337,31 +338,14 @@
 {/snippet}
 
 {#snippet files(msgId: number)}
-  {@const attachments = attachmentStore.attachments.get(msgId)}
-  {#each attachments as attachment}
-    {#if attachment.mimeType.startsWith("image")}
-      <button
-        onclick={() => (fileStore.preview = attachment.url)}
-        title={attachment.name}
-      >
-        <img
-          src={attachment.thumbnailUrl}
-          alt=""
-          class="rounded-none max-w-xs mb-2"
-        />
-      </button>
-    {:else if attachment.mimeType.startsWith("video")}
-      <button title={attachment.thumbnailUrl}>
-        <video controls muted class="rounded-none max-w-xs mb-2">
-          <source src={attachment.url} type={attachment.mimeType} />
-          <track
-            kind="captions"
-            src="captions.vtt"
-            srclang="en"
-            label="English"
-          />
-        </video>
-      </button>
-    {/if}
+  {@const attachments = attachmentStore.getFilesForMessage(msgId)}
+
+  {#each attachments as file (file?.attachmentId)}
+    <img
+      src={file?.thumbnailUrl}
+      alt={file?.fileName || ""}
+      class="rounded-none max-w-xs mb-2"
+      loading="lazy"
+    />
   {/each}
 {/snippet}

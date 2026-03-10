@@ -3,7 +3,15 @@ import { z } from "zod";
 
 import { attachments } from "./attachment.table";
 
-export const attachmentInsertSchema = createInsertSchema(attachments);
-export const attachmentSelectSchema = createSelectSchema(attachments, {
-  createdAt: z.coerce.date(),
+export const DBattachmentInsertSchema = createInsertSchema(attachments);
+export const attachmentInsertSchema = createInsertSchema(attachments).pick({
+  attachmentId: true,
+  key: true,
+  url: true,
+  thumbnailUrl: true,
+  thumbKey: true,
+  fileName: true,
+  fileSize: true,
+  mimeType: true,
 });
+export const attachmentSelectSchema = createSelectSchema(attachments);

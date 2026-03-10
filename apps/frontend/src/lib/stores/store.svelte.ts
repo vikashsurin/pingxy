@@ -1,5 +1,8 @@
 import type { UIConversation } from "$lib/types/chat";
-import type { blockedUserInfoSchema } from "@pingxy/shared";
+import type {
+  blockedUserInfoSchema,
+  messageCreatedSchema,
+} from "@pingxy/shared";
 import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { tick } from "svelte";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
@@ -103,14 +106,14 @@ class ChatStore {
   // private readonly MESSAGE_LIMIT = 100;
   readonly LIMIT = 20;
 
-  upsertEntity(payload: any) {
+  upsertEntity(payload: z.infer<typeof messageCreatedSchema>["payload"]) {
     console.log({ payload });
-    const { message, receipt, attachment } = payload;
+    const { message, receipt, attachments } = payload;
 
     // messageStore.
     messageStore.upsertMessage(message);
     receiptStore.upsertReceipt(receipt);
-    attachmentStore.upsertAttachment(attachment);
+    attachmentStore.setAttachments(attachments);
   }
 
   reset() {

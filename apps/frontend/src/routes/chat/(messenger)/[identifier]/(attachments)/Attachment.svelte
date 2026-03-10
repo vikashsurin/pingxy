@@ -1,48 +1,64 @@
 <script>
-  import { X } from "@lucide/svelte";
+    import { fileStore } from "$lib/stores/fileStore.svelte";
+    import { X } from "@lucide/svelte";
 
-  let { entry, callback } = $props();
-  let { file } = $derived(entry);
+    let { entry, callback } = $props();
+    let { file } = $derived(entry);
 </script>
 
 <div
-  class="thumb group flex flex-col gap-2 items-center justify-center p-2 bg-white rounded border border-gray-300"
+    class="thumb group flex flex-col gap-2 items-center justify-center p-2 bg-white rounded border border-gray-300"
 >
-  {#if file.type.startsWith("image")}
-    {@render image()}
-  {:else if file.type.startsWith("video")}
-    {@render video()}
-  {:else if file.type.startsWith("pdf")}
-    <!-- {@render pdf()} -->
-  {/if}
-  <div class="flex flex-col gap-2 items-center text-xs">
-    <div class="flex w-full items-center justify-between">
-      <span>{file.progress}%</span>
-      <span>{entry.size}</span>
-      <X size={18} class="hover:bg-gray-300 rounded p-0.5" onclick={callback} />
-    </div>
+    {#if file.type.startsWith("image")}
+        {@render image()}
+    {:else if file.type.startsWith("video")}
+        {@render video()}
+    {:else if file.type.startsWith("pdf")}
+        <!-- {@render pdf()} -->
+    {/if}
+    <div class="flex flex-col gap-2 items-center text-xs">
+        <div class="flex w-full items-center justify-between">
+            <span>{file.progress}%</span>
+            <span>{entry.size}</span>
+            <X
+                size={18}
+                class="hover:bg-gray-300 rounded p-0.5"
+                onclick={callback}
+            />
+        </div>
 
-    <progress class="h-2 rounded bg-white w-30" value={file.progress} max="100"
-    ></progress>
-  </div>
+        <progress
+            class="h-2 rounded bg-white w-30"
+            value={file.progress}
+            max="100"
+        ></progress>
+    </div>
 </div>
 
 {#snippet image()}
-  <!-- onclick={() => (fileStore.preview = file.previewUrl)} -->
-  <button title={file.id} class="hover:outline-3 outline-teal-500">
-    <img src={entry.previewUrl} alt="" style:height="5em" style:width="auto" />
-  </button>
+    <button
+        title={file.id}
+        class="hover:outline-3 outline-teal-500"
+        onclick={() => (fileStore.viewSelected = entry.previewUrl)}
+    >
+        <img
+            src={entry.previewUrl}
+            alt=""
+            style:height="5em"
+            style:width="auto"
+        />
+    </button>
 {/snippet}
 
 {#snippet video()}
-  <button title={file.id} class="hover:outline-3 outline-teal-500">
-    <video
-      src={file.previewUrl}
-      style:height="5em"
-      style:width="auto"
-      muted
-      playsinline
-      controls
-    ></video>
-  </button>
+    <button title={file.id} class="hover:outline-3 outline-teal-500">
+        <video
+            src={file.previewUrl}
+            style:height="5em"
+            style:width="auto"
+            muted
+            playsinline
+            controls
+        ></video>
+    </button>
 {/snippet}

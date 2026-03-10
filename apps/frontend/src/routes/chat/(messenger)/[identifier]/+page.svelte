@@ -1,9 +1,11 @@
 <script lang="ts">
   import { receiptManager } from "$lib/managers/entities/receipt.svelte.js";
   import { attachmentStore } from "$lib/stores/attachmentStore.svelte.js";
+  import { fileStore } from "$lib/stores/fileStore.svelte.js";
   import { messageStore } from "$lib/stores/messageStore.svelte.js";
   import { receiptStore } from "$lib/stores/receiptStore.svelte.js";
   import { validateSocket } from "$lib/utils/validateSocket.js";
+  import LightBox from "./(attachments)/LightBox.svelte";
   import Chat from "./Chat.svelte";
   import ChatHeader from "./ChatHeader.svelte";
   import ChatInput from "./ChatInput.svelte";
@@ -67,9 +69,9 @@
 </div>
 
 <!-- 1. Preview image/file -->
-<!-- {#if fileStore.preview}
-  <Preview src={fileStore.preview} />
-{/if} -->
+{#if fileStore.viewSelected}
+  <LightBox />
+{/if}
 
 <style>
   /* @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto+Slab:wght@100..900&display=swap");
