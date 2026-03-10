@@ -1,22 +1,31 @@
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { MessageRepository } from "./message.repository";
-import db from "src/common/db/client";
-import { NewMessage } from "@pingxy/shared/types"
 
+const insertMessages = async () => {
+  const limit = 10;
+  for (let i = 0; i < limit; i++) {
+    const newMessage = {
+      conversationId: 2,
+      clientMessageId: crypto.randomUUID(),
+      senderId: 1,
+      content: "Testing" + "_" + i + i,
+    };
+    await MessageRepository.insertMessage(newMessage);
+  }
+};
 
 describe("Messages Table Schema", () => {
   beforeAll(async () => {
     // await db.delete(messages);
   });
 
-  const userId = 1;
-
   test("should insert a new message", async () => {
-    const newMessage: NewMessage = {
+    // await insertMessages();
+    const newMessage = {
       conversationId: 1,
-      senderId: userId,
-      clientMessageId: "123",
-      content: "Hello",
+      clientMessageId: crypto.randomUUID(),
+      senderId: 1,
+      content: "Testing",
     };
     const result = await MessageRepository.insertMessage(newMessage);
     expect(result).toHaveLength(1);
@@ -56,16 +65,15 @@ describe("Messages Table Schema", () => {
   //   expect(result).toBeDefined();
   // });
 
-  test("should select limited messages by conversation id", async () => {
-    const result = await MessageRepository.selectMessagesAndReceiptsByConversation({
-      conversationId: 3,
+  test.only("should select messsages with detail", async () => {
+    const result = await MessageRepository.selectMessages({
+      conversationId: 1,
       userId: 1,
-      before: null,
-      after: null,
-      limit: 10,
-      tx: db,
+      before: 20,
+      limit: 20,
     });
-    console.log({ ...result });
+
+    console.log("result:: ", result);
     expect(result).toBeDefined();
   });
 });

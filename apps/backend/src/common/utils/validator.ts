@@ -10,7 +10,7 @@ export const validate = <
   schema: T,
 ) => {
   return zValidator(target, schema, (result, ctx) => {
-    console.log({ result });
+    console.log({ validation: result });
     if (!result.success) {
       return ctx.json(
         {

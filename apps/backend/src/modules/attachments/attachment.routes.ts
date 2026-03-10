@@ -8,6 +8,5 @@ attachmentRouter.use(authMiddleware);
 
 attachmentRouter.post(
   "/upload",
-  authMiddleware,
   ...AttachmentController.upload,
 );

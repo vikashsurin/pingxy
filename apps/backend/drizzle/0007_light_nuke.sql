@@ -1,0 +1,3 @@
+ALTER TABLE "attachments" ADD COLUMN "conversation_id" integer;--> statement-breakpoint
+ALTER TABLE "attachments" ADD CONSTRAINT "attachments_conversation_id_messages_conversation_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."messages"("conversation_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "attachment_conversation_idx" ON "attachments" USING btree ("conversation_id");

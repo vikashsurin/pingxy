@@ -23,10 +23,10 @@ export const messages = table(
   "messages",
   {
     messageId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    clientMessageId: t.text().unique().notNull(), // ✅ Good for deduplication
+    clientMessageId: t.text().unique().notNull(),
     conversationId: t.integer().notNull(),
     senderId: t.integer().notNull(),
-    content: t.text().notNull(),
+    content: t.text(),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     deletedAt: t.timestamp({ withTimezone: true }),
     updatedAt: t
@@ -35,37 +35,21 @@ export const messages = table(
       .notNull()
       .$onUpdate(() => new Date()),
 
-    // MISSING IMPORTANT FIELDS:
-
-    // Message status
     isDeleted: t.boolean().default(false).notNull(), // Soft delete flag
     deletedBy: t.integer(), // Who deleted it (sender or admin)
 
-    // Message type and metadata
     messageType: messageTypeEnum("message_type").default("text").notNull(),
-    // text, image, video, audio, file, system, etc.
 
-    // Edited status
     isEdited: t.boolean().default(false).notNull(),
     editedAt: t.timestamp({ withTimezone: true }),
 
-    // Reply/Thread support
     parentMessageId: t.integer(), // For replies/threads
     threadMessageCount: t.integer().default(0), // Denormalized count
 
-    // Rich content
-    attachments: t.jsonb("attachments").$type<any>(), // Array of file URLs, metadata
-    mentions: t.jsonb("mentions").$type<any>(), // Array of mentioned user IDs
-    metadata: t.jsonb("metadata").$type<any>(), // Flexible field for reactions, polls, etc.
+    mentions: t.jsonb("mentions").$type<any>(),
 
-    // Delivery & read status (optional - can be separate table)
-    deliveryStatus: deliveryStatusEnum("delivery_status").default("sent"),
-    // sent, delivered, read, failed
+    contentVector: t.text("content_vector"),
 
-    // Search optimization
-    contentVector: t.text("content_vector"), // For full-text search (tsvector in Postgres)
-
-    // Moderation
     isFlagged: t.boolean().default(false),
     flaggedAt: t.timestamp({ withTimezone: true }),
     flaggedReason: t.text(),

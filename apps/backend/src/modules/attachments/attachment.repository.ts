@@ -1,10 +1,13 @@
 import db, { DB_TX } from "@common/db/client";
 import { attachments } from "@pingxy/shared/domain";
+import { attachmentInsertSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
 import { UUID } from "crypto";
+import z from "zod";
 
 export const AttachmentRepository = {
   insert: async ({
     attachmentId,
+    conversationId,
     key,
     url,
     thumbnailUrl,
@@ -17,7 +20,8 @@ export const AttachmentRepository = {
     tx = db,
   }: {
     attachmentId: string;
-    messageId: number;
+    messageId?: number;
+    conversationId?: number;
     key: string;
     url: string;
     thumbKey: string | null;
@@ -33,6 +37,7 @@ export const AttachmentRepository = {
       .values({
         attachmentId: attachmentId,
         messageId: messageId,
+        conversationId: conversationId,
         key: key,
         url: url,
         fileName: fileName,
@@ -42,6 +47,19 @@ export const AttachmentRepository = {
         mimeType: mimeType,
         uploadedBy: uploadedBy,
       })
+      .returning();
+  },
+
+  bulkInsert: async ({
+    allAttachments,
+    tx = db,
+  }: {
+    allAttachments: z.infer<typeof attachmentInsertSchema>[];
+    tx?: DB_TX;
+  }) => {
+    return await tx
+      .insert(attachments)
+      .values(allAttachments)
       .returning();
   },
 };

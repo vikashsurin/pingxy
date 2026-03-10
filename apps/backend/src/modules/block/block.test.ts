@@ -3,7 +3,7 @@ import { BlocksRepository } from "./block.repository";
 import { BlockService } from "./block.service";
 
 describe("BlocksRepository", () => {
-  beforeAll(async () => { });
+  beforeAll(async () => {});
 
   it("should block a user", async () => {
     const blockedUser = await BlocksRepository.insert({
@@ -46,7 +46,10 @@ describe("BlocksRepository", () => {
   });
 
   it.only("should check if block exists", async () => {
-    const exists = await BlocksRepository.exists({ blockerId: 5, blockedId: 9 });
+    const exists = await BlocksRepository.exists({
+      blockerId: 5,
+      blockedId: 9,
+    });
     console.log({ exists });
     expect(exists).toBeBoolean();
   });

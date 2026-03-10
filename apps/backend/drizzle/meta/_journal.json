@@ -50,6 +50,34 @@
       "when": 1773046281140,
       "tag": "0006_fat_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773075156130,
+      "tag": "0007_light_nuke",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773075276207,
+      "tag": "0008_whole_king_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773130279356,
+      "tag": "0009_flimsy_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773130402654,
+      "tag": "0010_green_yellow_claw",
+      "breakpoints": true
     }
   ]
 }

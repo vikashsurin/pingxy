@@ -3,15 +3,14 @@ import type { ClientReqMap } from "@pingxy/shared";
 export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
   fetchMessages: async ({
     conversationId,
-    currentUserId,
     limit,
   }: {
     conversationId: number;
-    currentUserId: number;
     limit: number;
   }) => {
+    const before = 20;
     const res = await customFetch(
-      `/api/conversations/${conversationId}/messages/${currentUserId}?limit=${limit}`,
+      `/api/conversations/${conversationId}/messages?limit=${limit}`,
       {
         method: "GET",
         credentials: "include",
@@ -22,7 +21,6 @@ export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
   },
 
   createMessage: async (envelope: ClientReqMap["req:message.create"]) => {
-
     const res = await customFetch(`/api/messages`, {
       method: "POST",
       headers: {

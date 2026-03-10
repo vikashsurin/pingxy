@@ -5,9 +5,11 @@ import {
 } from "drizzle-zod";
 import { z } from "zod";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
+import { attachmentInsertSchema, attachmentSelectSchema } from "../attachment/attachment.schema";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { selectUserSchema } from "../user/user.schema";
 import { messages } from "./message.table";
+
 
 // export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages, {
@@ -23,7 +25,6 @@ export const dbMessageInsertSchema = createInsertSchema(messages).pick({
   clientMessageId: true,
   content: true,
   senderId: true,
-  attachments: true,
 });
 export const dbSelectMessageSchema = createSelectSchema(messages);
 
@@ -32,7 +33,6 @@ export const InsertMessageSchema = createInsertSchema(messages)
     clientMessageId: true,
     content: true,
     senderId: true,
-    attachments: true,
   })
   .extend({
     conversationId: z.number().nullable(),
@@ -64,6 +64,7 @@ export const messageCreateSchema = z.object({
   type: z.literal(DOMAIN_EVENTS.MESSAGES.CREATE),
   payload: z.object({
     message: InsertMessageSchema,
+    attachments: z.array(attachmentInsertSchema),
     conversationId: z.number().nullable(),
     sender: selectUserSchema,
     recipient: z.object({
@@ -77,7 +78,15 @@ export const messageCreatedSchema = z.object({
   id: z.uuid(),
   type: z.literal(SERVER_EVENTS.MESSAGES.CREATED),
   payload: z.object({
-    message: selectMessageSchema,
+    message: selectMessageSchema.pick({
+      messageId: true,
+      conversationId: true,
+      clientMessageId: true,
+      content: true,
+      createdAt: true,
+      senderId: true,
+    }),
+    attachments: z.array(attachmentSelectSchema),
     receipt: selectMessageReceiptSchema,
     conversationId: z.number(),
     sender: selectUserSchema,

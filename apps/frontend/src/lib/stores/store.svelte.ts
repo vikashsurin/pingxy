@@ -4,7 +4,9 @@ import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { tick } from "svelte";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
-
+import { messageStore } from "./messageStore.svelte";
+import { receiptStore } from "./receiptStore.svelte";
+import { attachmentStore } from "./attachmentStore.svelte";
 
 export type Conversation = {
   id: number;
@@ -83,21 +85,15 @@ class ChatStore {
 
   chatTarget = $state<ChatTarget | null>(null);
 
-
   blockedUserIds = new SvelteSet<number>();
   onlineUsers = $state<User[]>([]);
   visibleOnlineUsers = $derived.by<User[]>(() => {
     return this.onlineUsers.filter((u) => !this.blockedUserIds.has(u.id));
   });
 
-
   _conversations = $state<Record<number, UIConversation>>({});
 
-
-
   pendingReceipts = $state<Record<number, MessageReceipt[]>>({});
-
-
 
   unread = new SvelteMap<number, number[]>();
 
@@ -107,8 +103,15 @@ class ChatStore {
   // private readonly MESSAGE_LIMIT = 100;
   readonly LIMIT = 20;
 
+  upsertEntity(payload: any) {
+    console.log({ payload });
+    const { message, receipt, attachment } = payload;
 
-
+    // messageStore.
+    messageStore.upsertMessage(message);
+    receiptStore.upsertReceipt(receipt);
+    attachmentStore.upsertAttachment(attachment);
+  }
 
   reset() {
     this.isConnected = false;

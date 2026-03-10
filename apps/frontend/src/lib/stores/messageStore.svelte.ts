@@ -1,14 +1,16 @@
 import type { UIConversation } from "$lib/types/chat";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
-import { ChatEntry } from "./ChatEntry.svelte";
+import { attachmentStore } from "./attachmentStore.svelte";
 import { ChatState } from "./ChatState.svelte";
-import { chatStore } from "./store.svelte";
+import { receiptStore } from "./receiptStore.svelte";
 
 // implement messagesMetadata.
 export class MessageStore {
   // Use SvelteMap for collection management
-  messages = new SvelteMap<number, ChatEntry>();
+  messages = new SvelteMap<number, any>();
+
   threads = new SvelteMap<number, SvelteSet<number>>();
+
   chats = new SvelteMap<number, ChatState>();
   chatPartners = $derived.by(() => {
     const lookup = new SvelteMap();
@@ -47,53 +49,38 @@ export class MessageStore {
     });
   }
 
-  upsertMessage(payload: any) {
-    if (!payload) return;
-
-    const { messageId, conversationId } = payload.message;
-
-    const existing = this.messages.get(messageId);
-
-    // 1. Update the message Map
+  upsertMessage(message: any) {
+    // 1. Update or insert the message
+    let existing = this.messages.get(message.messageId);
     if (existing) {
-      existing.receipt = payload.receipt;
+      existing = message;
     } else {
-      this.messages.set(messageId, new ChatEntry(payload));
+      this.messages.set(message.messageId, message);
     }
 
-    // 2. Update the threads Map (The Set of IDs for this conversation)
-    let threadIds = this.threads.get(conversationId);
-    if (!threadIds) {
-      threadIds = new SvelteSet();
-      this.threads.set(conversationId, threadIds);
+    // 2. Update the thread index
+    const threads = this.threads.get(message.conversationId);
+    if (threads) {
+      threads.add(message.messageId);
     }
-    threadIds.add(messageId);
-
-    // 3. Update ChatState pointers
-    let chat = this.chats.get(conversationId);
-    if (!chat) {
-      chat = new ChatState(conversationId, this);
-      this.chats.set(conversationId, chat);
-
-      const currentUser = chatStore.currentUser;
-      // if (payload.sender.id === currentUser?.id) {
-      //   chat.displayName = payload.recipient.username;
-      // } else {
-      //   chat.displayName = payload.sender.username;
-      // }
-    }
-
-    // Update the pointer for the "Last Message" preview in sidebar
-    chat.lastMessageId = messageId;
-
-    // Update timestamp for sidebar sorting (Add a 'lastActivity' field to ChatState)
-    // chat.lastActivity = payload.message.createdAt;
   }
 
   setMessages(items: any[]) {
-    items.forEach((item: any) => {
-      this.upsertMessage(item);
-    });
+    for (const item of items) {
+      if (!item?.messageId || !item?.conversationId) continue;
+
+      // 1. Update/Insert the message data
+      this.messages.set(item.messageId, item);
+
+      // 2. Manage the thread index
+      let threadsIds = this.threads.get(item.conversationId);
+      if (!threadsIds) {
+        threadsIds = new SvelteSet<number>();
+        this.threads.set(item.conversationId, threadsIds);
+      }
+
+      threadsIds.add(item.messageId);
+    }
   }
 
   getMessages(chatId: number) {
@@ -114,7 +101,7 @@ export class MessageStore {
     const entry = this.messages.get(msgId);
     if (entry) {
       // Re-assigning the whole object triggers the update
-      entry.receipt = newReceipt;
+      // entry.receipt = newReceipt;
     }
   }
 
@@ -131,7 +118,7 @@ export class MessageStore {
   }) {
     try {
       const response = await fetch(
-        `/api/conversations/${conversationId}/messages/${userId}?before=${oldestId}&limit=${limit}`,
+        `/api/conversations/${conversationId}/messages?before=${oldestId}&limit=${limit}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -144,9 +131,23 @@ export class MessageStore {
         throw new Error("Failed to fetch messages");
       }
 
-      data.items.forEach((item: any) => {
-        this.upsertMessage(item);
-      });
+      console.log({ data });
+
+      if (data.entities) {
+        const { messages, receipts, attachments } = data.entities;
+
+        for (const message of messages) {
+          this.upsertMessage(message);
+        }
+
+        for (const receipt of receipts) {
+          receiptStore.upsertReceipt(receipt);
+        }
+
+        for (const attachment of attachments) {
+          attachmentStore.upsertAttachment(attachment);
+        }
+      }
 
       return data;
     } catch (error) {
@@ -167,7 +168,7 @@ export class MessageStore {
   }) {
     try {
       const response = await fetch(
-        `/api/conversations/${conversationId}/messages/${userId}?after=${newestId}&limit=${limit}`,
+        `/api/conversations/${conversationId}/messages?after=${newestId}&limit=${limit}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -180,9 +181,21 @@ export class MessageStore {
         throw new Error("Failed to fetch messages");
       }
 
-      data.items.forEach((item: any) => {
-        this.upsertMessage(item);
-      });
+      if (data.entities) {
+        const { messages, receipts, attachments } = data.entities;
+
+        for (const message of messages) {
+          this.upsertMessage(message);
+        }
+
+        for (const receipt of receipts) {
+          receiptStore.upsertReceipt(receipt);
+        }
+
+        for (const attachment of attachments) {
+          attachmentStore.upsertAttachment(attachment);
+        }
+      }
 
       return data;
     } catch (error) {

@@ -1,6 +1,10 @@
 import { messageReceipts, messages } from "@pingxy/shared";
-import { DbInsertMessageType, UpdateMessageType } from "@pingxy/shared/domain";
-import { and, asc, desc, eq, gt, lt, ne } from "drizzle-orm";
+import {
+  attachments,
+  DbInsertMessageType,
+  UpdateMessageType,
+} from "@pingxy/shared/domain";
+import { and, asc, desc, eq, gt, gte, lt, lte, ne } from "drizzle-orm";
 import db, { type DB_TX } from "src/common/db/client";
 
 export const MessageRepository = {
@@ -14,7 +18,14 @@ export const MessageRepository = {
         content: message.content,
         attachments: message.attachments,
       })
-      .returning();
+      .returning({
+        messageId: messages.messageId,
+        conversationId: messages.conversationId,
+        clientMessageId: messages.clientMessageId,
+        senderId: messages.senderId,
+        content: messages.content,
+        createdAt: messages.createdAt,
+      });
   },
 
   updateMessage: async (
@@ -145,7 +156,8 @@ export const MessageRepository = {
       .where(eq(messages.senderId, senderId));
   },
 
-  selectMessagesAndReceiptsByConversation: async ({
+  // Select all messages of a conversation
+  selectMessages: async ({
     conversationId,
     userId,
     before,
@@ -155,49 +167,69 @@ export const MessageRepository = {
   }: {
     conversationId: number;
     userId: number;
-    before: number | null;
-    after: number | null;
+    before?: number | null;
+    after?: number | null;
     limit: number;
-    tx: DB_TX;
+    tx?: DB_TX;
   }) => {
-    // Base condition: always filter by conversation
-    const baseCondition = eq(messages.conversationId, conversationId);
-
-    // Build query based on pagination direction
-    let query = tx
-      .select({ message: messages, receipt: messageReceipts })
+    // 1. Create a subquery to get ONLY the message IDs we need.
+    // This is extremely fast with a (conversationId, messageId) index.
+    const messageIdsProvider = tx
+      .select({ id: messages.messageId })
       .from(messages)
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          // Use strict null/undefined checks to avoid '0' falsy bugs
+          before != null ? lte(messages.messageId, before) : undefined,
+          after != null ? gte(messages.messageId, after) : undefined,
+        ),
+      )
+      // If 'after' is provided, we fetch 'asc' to get the next page.
+      // Otherwise 'desc' to get the latest/previous page.
+      .orderBy(
+        after != null ? asc(messages.messageId) : desc(messages.messageId),
+      )
+      .limit(limit)
+      .as("message_ids_provider");
+
+    // 2. Join the actual data only against those specific IDs.
+    const rows = await tx
+      .select({
+        message: {
+          messageId: messages.messageId,
+          conversationId: messages.conversationId,
+          clientMessageId: messages.clientMessageId,
+          senderId: messages.senderId,
+          content: messages.content,
+          createdAt: messages.createdAt,
+        },
+        receipt: messageReceipts,
+        attachment: attachments,
+      })
+      .from(messages)
+      .innerJoin(
+        messageIdsProvider,
+        eq(messages.messageId, messageIdsProvider.id),
+      )
       .leftJoin(
         messageReceipts,
         and(
           eq(messages.messageId, messageReceipts.messageId),
+          eq(messageReceipts.conversationId, conversationId),
           ne(messageReceipts.readerId, userId),
         ),
-      );
+      )
+      .leftJoin(
+        attachments,
+        and(
+          eq(messages.messageId, attachments.messageId),
+          eq(attachments.conversationId, conversationId),
+        ),
+      )
+      .orderBy(asc(messages.messageId));
 
-    if (before) {
-      // Get messages OLDER than 'before'
-      const result = await query
-        .where(and(baseCondition, lt(messages.messageId, before)))
-        .orderBy(desc(messages.messageId))
-        .limit(limit);
-
-      return result.reverse(); // Reverse to chronological order
-    } else if (after) {
-      // Get messages NEWER than 'after'
-      return await query
-        .where(and(baseCondition, gt(messages.messageId, after)))
-        .orderBy(asc(messages.messageId))
-        .limit(limit);
-    } else {
-      // Initial load: get latest messages
-      const result = await query
-        .where(baseCondition)
-        .orderBy(desc(messages.messageId))
-        .limit(limit);
-
-      return result.reverse(); // Reverse to chronological order
-    }
+    return rows;
   },
 
   selectLatestMessageByConversationId: async (

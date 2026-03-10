@@ -4,6 +4,7 @@ import { Context } from "hono";
 import { z } from "zod";
 import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
+import { after } from "node:test";
 
 export const ConversationController = {
   getAll: factory.createHandlers(
@@ -32,26 +33,42 @@ export const ConversationController = {
     },
   ),
 
-  getAllMessagesAndReceipts: async (c: Context) => {
-    const conversationId = Number(c.req.param("conversationId"));
-    const userId = Number(c.req.param("userId"));
-    const before = Number(c.req.query("before"));
-    const after = Number(c.req.query("after"));
-    const limit = Number(c.req.query("limit")) || 20;
+  getAllMessages: factory.createHandlers(
+    validate("param", z.object({ conversationId: z.coerce.number() })),
+    validate(
+      "query",
+      z.object({
+        limit: z.coerce.number().optional().default(10),
+        before: z.coerce.number().optional().nullable(),
+        after: z.coerce.number().optional().nullable(),
+      }),
+    ),
 
-    const result = await MessageService.getMessagesAndReceiptsByConversation({
-      conversationId,
-      userId,
-      before,
-      after,
-      limit,
-    });
+    async (c) => {
+      const user = c.get("user");
+      const userId = user.id;
+      const { limit, before, after } = c.req.valid("query");
+      const { conversationId } = c.req.valid("param");
 
-    return c.json({
-      items: result,
-      hasMore: result.length === limit,
-    });
-  },
+
+      const result = await MessageService.getMessages({
+        conversationId,
+        userId,
+        limit,
+        before,
+        after,
+      });
+
+      return c.json({
+        entities: {
+          messages: result.entities.messages,
+          receipts: result.entities.receipts,
+          attachments: result.entities.attachments,
+        },
+        hasMore: result.entities.messages.length === limit,
+      });
+    },
+  ),
 
   findConversationByUserId: factory.createHandlers(
     validate("query", z.object({ userId: z.coerce.number() })),

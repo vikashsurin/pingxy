@@ -6,16 +6,17 @@ import { MessageRepository } from "./message.repository";
 
 import { eventBus } from "@common/events";
 import { createServerEvent } from "@common/socket/socket.factory";
+import { BlockService } from "@modules/block/block.service";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
-import { BlockService } from "@modules/block/block.service";
+import { AttachmentService } from "@modules/attachments/attachment.service";
 
 export const MessageService = {
   sendMessage: async (
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
   ) => {
-    const { message, recipient, sender } = body.payload;
+    const { message, recipient, sender, attachments } = body.payload;
     // const result = await db.transaction(async (tx) => {
     //  TODO: Wrap it in transaction
 
@@ -46,7 +47,13 @@ export const MessageService = {
       clientMessageId: message.clientMessageId,
       senderId: message.senderId,
       content: message.content,
-      attachments: message.attachments,
+    });
+
+    const insertedAttachments = await AttachmentService.createAttachment({
+      attachments,
+      userId: message.senderId,
+      messageId: insertedMessage.messageId,
+      conversationId: conversation.conversationId,
     });
 
     const [messageReceipt] = await ReceiptService.createMessageReceipt({
@@ -56,6 +63,7 @@ export const MessageService = {
       status: "sent",
     });
 
+
     await ParticipantService.incrementUnreadCount({
       conversationId: conversation.conversationId,
       senderId: message.senderId,
@@ -63,6 +71,7 @@ export const MessageService = {
 
     const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
       message: insertedMessage,
+      attachments: insertedAttachments,
       receipt: messageReceipt,
       conversationId: conversation.conversationId,
       sender: sender,
@@ -107,39 +116,66 @@ export const MessageService = {
     }
   },
 
-  getMessagesAndReceiptsByConversation: async ({
+  getMessages: async ({
     conversationId,
     userId,
-    before,
-    after,
+    before = null,
+    after = null,
     limit,
   }: {
     conversationId: number;
     userId: number;
-    before: number | null;
-    after: number | null;
+    before?: number | null;
+    after?: number | null;
     limit: number;
   }) => {
     try {
+      // 1. Check whether user is a participant of the coversation
       const [participant] = await ParticipantService.isParticipant({
         conversationId,
         userId,
       });
       if (!participant) throw new Error("Not a participant");
 
-      const result =
-        await MessageRepository.selectMessagesAndReceiptsByConversation({
-          conversationId,
-          userId,
-          before,
-          after,
-          limit,
-          tx: db,
-        });
-      // const messages = result.messages;
-      // const receipts = result.receipts;
-      // return { messages, receipts };
-      return result;
+      const rows = await MessageRepository.selectMessages({
+        conversationId,
+        userId,
+        before,
+        after,
+        limit,
+        tx: db,
+      });
+
+      const messages = new Map();
+      const receipts = new Map();
+      const attachments = new Map();
+
+      for (const row of rows) {
+        const { message, receipt, attachment } = row;
+        const msgId = message.messageId;
+
+        if (!messages.has(msgId)) {
+          messages.set(msgId, message);
+        }
+
+        if (receipt?.receiptId && !receipts.has(receipt.receiptId)) {
+          receipts.set(receipt.receiptId, receipt);
+        }
+
+        if (attachment?.attachmentId && !attachments.has(attachment.attachmentId)) {
+          attachments.set(attachment.attachmentId, attachment);
+        }
+
+      }
+
+
+      return {
+        entities: {
+          messages: Array.from(messages.values()),
+          receipts: Array.from(receipts.values()),
+          attachments: Array.from(attachments.values()),
+        }
+      };
     } catch (error) {
       console.error(
         "Error getting messages and receipts by conversation id:",

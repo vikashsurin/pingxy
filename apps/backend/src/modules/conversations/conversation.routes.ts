@@ -11,12 +11,15 @@ conversationRouter.use(authMiddleware);
 conversationRouter.get("/", ...ConversationController.getAll);
 
 // GET a conversation detail for a user
-conversationRouter.get('/:conversationId/partner', ...ConversationController.getPartner);
+conversationRouter.get(
+  "/:conversationId/partner",
+  ...ConversationController.getPartner,
+);
 
 // GET all the messages and receipts from a conversation
 conversationRouter.get(
-  "/:conversationId/messages/:userId",
-  ConversationController.getAllMessagesAndReceipts,
+  "/:conversationId/messages",
+  ...ConversationController.getAllMessages,
 );
 
 // GET a conversation by user id's
@@ -27,4 +30,7 @@ conversationRouter.get(
 
 // GET a conversation by user id
 // url /conversations/find?userId=
-conversationRouter.get('/find', ...ConversationController.findConversationByUserId)
+conversationRouter.get(
+  "/find",
+  ...ConversationController.findConversationByUserId,
+);

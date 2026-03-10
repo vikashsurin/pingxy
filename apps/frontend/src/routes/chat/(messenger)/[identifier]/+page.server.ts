@@ -33,30 +33,22 @@ export const load = async ({ params, fetch, locals }) => {
 
   // 2. check if identifier starts with c_
   if (identifier.startsWith("c_")) {
-    const [partner, messages] = await Promise.all([
+    const [partner, data] = await Promise.all([
       conversationApi.fetchPartner({
         conversationId: idValue,
       }),
 
       messageApi.fetchMessages({
         conversationId: idValue,
-        currentUserId: locals.user.id,
         limit: 20,
       }),
-
-      // fetchMessages({
-      //   customFetch: fetch,
-      //   conversationId: idValue,
-      //   currentUserId: locals.user.id,
-      //   limit: 20,
-      // }),
     ]);
     return {
       identifier,
       identifierType: "conversation",
       idValue,
       partner,
-      messages,
+      entities: data.entities,
     };
   }
 

@@ -13,8 +13,6 @@ export const onSocketMessage = (
 
     const result = ClientReqSchema.safeParse(parsedData);
 
-    console.log({ result });
-
     if (!result.success) {
       console.error("Invalid socket payload:", z.treeifyError(result.error));
       return sendError(socket, "Invalid payload", result.error._zod.def);

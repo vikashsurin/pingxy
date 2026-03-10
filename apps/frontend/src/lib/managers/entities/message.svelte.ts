@@ -6,7 +6,8 @@ import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
-
+import type { attachmentSelectSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
+import { z } from "zod";
 // export const loadInitialMessages = async ({
 //   conversationId,
 //   currentUserId,
@@ -122,7 +123,7 @@ const createMessageManager = () => ({
     partner,
   }: {
     messageText: string;
-    attachments: any[] | null;
+    attachments: z.infer<typeof attachmentSelectSchema> | null;
     identifier: string;
     partner: User;
   }) => {
@@ -140,9 +141,9 @@ const createMessageManager = () => ({
         conversationId: isExistingConv ? idValue : null,
         clientMessageId: crypto.randomUUID(),
         content: messageText,
-        attachments: attachments,
         senderId: chatStore.currentUser?.id!,
       },
+      attachments: attachments ?? null,
       conversationId: isExistingConv ? idValue : null,
       sender: chatStore.currentUser!,
       recipient: {
@@ -151,12 +152,12 @@ const createMessageManager = () => ({
       },
     });
 
-
     try {
       const message = await messageApi.createMessage(envelope);
+      console.log("got message: ", message);
       if (message) {
         const { data } = message;
-        messageStore.upsertMessage(data.payload);
+        chatStore.upsertEntity(data.payload);
       }
 
       return null;
@@ -177,9 +178,9 @@ const createMessageManager = () => ({
     const isExistingConv = identifier.startsWith("c_");
     const idValue = Number(identifier.replace(/^[cu]_/, ""));
   },
-  updateMessage: async () => { },
+  updateMessage: async () => {},
 
-  deleteMessage: async () => { },
+  deleteMessage: async () => {},
 
   handleIncomingMessage: async (
     data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
@@ -187,15 +188,25 @@ const createMessageManager = () => ({
     const { message, conversationId, sender, receipt } = data.payload;
     const currentUserId = chatStore.currentUser?.id;
 
-    messageStore.upsertMessage(data.payload);
+    console.log("incoming message: ", data);
+
+    chatStore.upsertEntity(data.payload);
 
     const isViewing = messageStore.activeChatId === conversationId;
     const isFromMe = data.payload.message.senderId === currentUserId;
     if (!isFromMe) {
       if (isViewing) {
-        receiptManager.emitMarkRead({ message, userId: currentUserId! });
+        receiptManager.emitMarkRead({
+          receipt,
+          senderId: message.senderId,
+          userId: currentUserId!,
+        });
       } else {
-        receiptManager.emitMarkDelivered({ message, userId: currentUserId! });
+        receiptManager.emitMarkDelivered({
+          receipt,
+          senderId: message.senderId,
+          userId: currentUserId!,
+        });
 
         const chat = messageStore.chats.get(conversationId);
         if (chat) chat.unreadCount += 1;

@@ -8,29 +8,31 @@ import type {
 } from "@pingxy/shared/types/index";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
+import { receiptStore } from "$lib/stores/receiptStore.svelte";
 
 type ReceiptParams = {
-  message: Message;
+  receipt: MessageReceipt;
+  senderId: number;
   userId: number;
 };
 
 const createReceiptManager = () => ({
   emitMarkSent: async () => {},
 
-  emitMarkRead: async ({ message, userId }: ReceiptParams) => {
+  emitMarkRead: async ({ receipt, senderId, userId }: ReceiptParams) => {
     const socket = validateSocket();
     if (!socket) return;
 
     const payload = createClientReq(DOMAIN_EVENTS.RECEIPTS.READ, {
-      conversationId: message.conversationId,
-      messageId: message.messageId,
+      conversationId: receipt.conversationId,
+      messageId: receipt.messageId,
       readerId: userId,
-      sender: { id: message.senderId },
+      sender: { id: senderId },
     });
     socket.send(JSON.stringify(payload));
   },
 
-  emitMarkDelivered: async ({ message, userId }: ReceiptParams) => {
+  emitMarkDelivered: async ({ receipt, senderId, userId }: ReceiptParams) => {
     const socket = validateSocket();
     if (!socket) return;
 
@@ -38,10 +40,10 @@ const createReceiptManager = () => ({
       id: crypto.randomUUID(),
       type: DOMAIN_EVENTS.RECEIPTS.DELIVER,
       payload: {
-        conversationId: message.conversationId,
-        messageId: message.messageId,
+        conversationId: receipt.conversationId,
+        messageId: receipt.messageId,
         readerId: userId,
-        sender: { id: message.senderId },
+        sender: { id: senderId },
       },
     };
     socket.send(JSON.stringify(payload));
@@ -73,11 +75,9 @@ const createReceiptManager = () => ({
   },
 
   handleIncomingReceipts: (receipts: MessageReceipt[]) => {
+    console.log("handleIncomingReceipts", receipts);
     for (const receipt of receipts) {
-      messageStore.updateReceipt({
-        msgId: receipt.messageId,
-        newReceipt: receipt,
-      });
+      receiptStore.upsertReceipt(receipt);
     }
   },
 });
