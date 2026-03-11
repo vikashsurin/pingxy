@@ -5,10 +5,7 @@ import { attachments } from "./attachment.table";
 
 export const DBattachmentInsertSchema = createInsertSchema(attachments);
 export const attachmentInsertSchema = createInsertSchema(attachments).pick({
-  attachmentId: true,
   key: true,
-  url: true,
-  thumbnailUrl: true,
   thumbKey: true,
   fileName: true,
   fileSize: true,

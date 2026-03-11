@@ -3,8 +3,8 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 
 class AttachmentStore {
-  attachments = new SvelteMap<string, z.infer<typeof attachmentSelectSchema>>();
-  messageAttachementMap = new SvelteMap<number, SvelteSet<string>>();
+  attachments = new SvelteMap<number, z.infer<typeof attachmentSelectSchema>>();
+  messageAttachementMap = new SvelteMap<number, SvelteSet<number>>();
 
   // OPTIMIZATION: Use a derived state to cache the array conversions
   // This ensures that 'getFilesForMessage' returns the SAME array reference
@@ -25,7 +25,7 @@ class AttachmentStore {
   upsertAttachment(attachment: z.infer<typeof attachmentSelectSchema>) {
     // 1. Identity check (Optimized: Skip set if data is identical)
     // If you are sure the data might change (e.g. upload progress), keep the set.
-    this.attachments.set(attachment.attachmentId, attachment);
+    this.attachments.set(attachment.id, attachment);
 
     // 2. Update the relationship
     if (!this.messageAttachementMap.has(attachment.messageId)) {
@@ -34,7 +34,7 @@ class AttachmentStore {
 
     this.messageAttachementMap
       .get(attachment.messageId)!
-      .add(attachment.attachmentId);
+      .add(attachment.id);
   }
 
   setAttachments(items: z.infer<typeof attachmentSelectSchema>[]) {

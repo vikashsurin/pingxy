@@ -5,7 +5,7 @@ import { users } from "../user/user.table";
 export const blockedUsers = table(
   "blocked_users",
   {
-    blockId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     blockerId: t.integer().notNull(),
     blockedId: t.integer().notNull(),
     blockedAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),

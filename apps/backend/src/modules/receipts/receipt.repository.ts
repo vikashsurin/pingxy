@@ -27,12 +27,12 @@ export const ReceiptRepository = {
   },
 
   updateMessageReceipt: async ({
-    receiptId,
+    id,
     status,
     deliveredAt,
     readAt,
   }: {
-    receiptId: number;
+    id: number;
     status: "sent" | "delivered" | "read";
     deliveredAt: Date;
     readAt: Date;
@@ -44,14 +44,14 @@ export const ReceiptRepository = {
         deliveredAt,
         readAt,
       })
-      .where(eq(messageReceipts.receiptId, receiptId))
+      .where(eq(messageReceipts.id, id))
       .returning();
   },
 
   selectReceiptsForMessage: async (messageId: number) => {
     return await db
       .select({
-        receiptId: messageReceipts.receiptId,
+        id: messageReceipts.id,
         messageId: messageReceipts.messageId,
         readerId: messageReceipts.readerId,
         status: messageReceipts.status,

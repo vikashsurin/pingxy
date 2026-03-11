@@ -1,7 +1,7 @@
-import { deleteCookie, getCookie } from "hono/cookie";
 import { getConnInfo } from "hono/bun";
-import { factory } from "../db/drizzle-factory";
+import { deleteCookie, getCookie } from "hono/cookie";
 import { SessionService } from "../../modules/sessions";
+import { factory } from "../db/drizzle-factory";
 
 export const authMiddleware = factory.createMiddleware(async (c, next) => {
   const sessionToken = getCookie(c, "_Host-session");
@@ -14,6 +14,7 @@ export const authMiddleware = factory.createMiddleware(async (c, next) => {
     const user = await SessionService.getSessionUser(sessionToken);
 
     c.set("user", user);
+
 
     // Update last activity (best effort – don't fail request if this fails)
     SessionService.extendSessionActivity(sessionToken).catch((e) => {

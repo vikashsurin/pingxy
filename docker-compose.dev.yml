@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -38,8 +36,8 @@ services:
     volumes:
       - ./apps/backend:/app/apps/backend
       - ./packages/shared:/app/packages/shared
-      - ./drizzle:/app/drizzle
-      - ./drizzle.config.ts:/app/drizzle.config.ts
+      - ./apps/backend/drizzle:/app/drizzle
+      - ./apps/backend/drizzle.config.ts:/app/drizzle.config.ts
     networks:
       - pingxy-network-dev
     depends_on:

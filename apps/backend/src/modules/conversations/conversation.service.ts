@@ -108,7 +108,7 @@ export const ConversationService = {
 
       return memberships.map((m) => {
         const convMeta = conversations.find(
-          (c) => c.conversationId === m.conversationId,
+          (c) => c.id === m.conversationId,
         );
 
         const participantsInThisChat = participants.filter(
@@ -132,9 +132,10 @@ export const ConversationService = {
               ? {
                 id: partner?.userId,
                 username: partner?.username,
-                gender: partner?.data?.gender,
-                age: partner?.data?.age,
-                country: partner?.data?.country,
+                gender: partner?.gender,
+                age: partner?.age,
+                country: partner?.country,
+                bio: partner?.bio,
               }
               : null,
           participants: participantsInThisChat,

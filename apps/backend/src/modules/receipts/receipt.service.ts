@@ -46,7 +46,7 @@ export const ReceiptService = {
       await ParticipantService.resetUnreadCount({
         readerId,
         conversationId,
-        messageId: latestMessage.messageId,
+        messageId: latestMessage.id,
       });
 
       const event = createServerEvent(SERVER_EVENTS.RECEIPTS.ALL_READ, {

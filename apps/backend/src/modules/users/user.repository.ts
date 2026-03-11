@@ -7,6 +7,17 @@ import { insertUserSchema } from "@pingxy/shared/domain/user";
 
 export const UserRepository = {
   insert: async (newUser: NewUser) => {
+    // console.log("userdata", newUser)
+    const userData = {
+      username: newUser.username,
+      type: newUser.type,
+      hashedPassword: newUser.hashedPassword,
+      gender: newUser.gender,
+      age: newUser.age,
+      country: newUser.country,
+      bio: newUser.bio ?? null,
+      data: newUser.data ?? null,
+    }
     const user = insertUserSchema.parse(newUser);
     return await db.insert(users).values(user).returning();
   },
@@ -17,7 +28,11 @@ export const UserRepository = {
       .select({
         id: users.id,
         username: users.username,
-        userType: users.userType,
+        type: users.type,
+        age: users.age,
+        gender: users.gender,
+        country: users.country,
+        bio: users.bio,
         data: users.data,
         lastSeenAt: users.lastSeenAt,
         createdAt: users.createdAt,
@@ -36,7 +51,10 @@ export const UserRepository = {
       .select({
         id: users.id,
         username: users.username,
-        userType: users.userType,
+        type: users.type,
+        age: users.age,
+        gender: users.gender,
+        country: users.country,
         data: users.data,
         lastSeenAt: users.lastSeenAt,
         createdAt: users.createdAt,
@@ -69,7 +87,10 @@ export const UserRepository = {
       .select({
         id: users.id,
         username: users.username,
-        userType: users.userType,
+        type: users.type,
+        age: users.age,
+        gender: users.gender,
+        country: users.country,
         data: users.data,
         lastSeenAt: users.lastSeenAt,
         createdAt: users.createdAt,
@@ -89,7 +110,10 @@ export const UserRepository = {
       .returning({
         id: users.id,
         username: users.username,
-        userType: users.userType,
+        type: users.type,
+        age: users.age,
+        gender: users.gender,
+        country: users.country,
         data: users.data,
         lastSeenAt: users.lastSeenAt,
         createdAt: users.createdAt,
@@ -101,7 +125,10 @@ export const UserRepository = {
     return await db.delete(users).where(eq(users.id, id)).returning({
       id: users.id,
       username: users.username,
-      userType: users.userType,
+      type: users.type,
+      age: users.age,
+      gender: users.gender,
+      country: users.country,
       data: users.data,
       lastSeenAt: users.lastSeenAt,
       createdAt: users.createdAt,
@@ -109,3 +136,17 @@ export const UserRepository = {
     });
   },
 };
+
+const publicFields = [
+  "id",
+  "username",
+  "type",
+  "age",
+  "gender",
+  "country",
+  "bio",
+  "data",
+  "lastSeenAt",
+  "createdAt",
+  "updatedAt",
+];

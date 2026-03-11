@@ -16,7 +16,7 @@ export const ConversationRepository = {
     return await db
       .select()
       .from(conversations)
-      .where(eq(conversations.conversationId, id))
+      .where(eq(conversations.id, id))
       .limit(1);
   },
 
@@ -24,7 +24,7 @@ export const ConversationRepository = {
     return await tx
       .select()
       .from(conversations)
-      .where(inArray(conversations.conversationId, ids))
+      .where(inArray(conversations.id, ids))
       .limit(10);
   },
 
@@ -69,15 +69,15 @@ export const ConversationRepository = {
       .innerJoin(
         conversationsWithBothUsers,
         eq(
-          conversations.conversationId,
+          conversations.id,
           conversationsWithBothUsers.conversationId,
         ),
       )
       .innerJoin(
         participants,
-        eq(participants.conversationId, conversations.conversationId),
+        eq(participants.conversationId, conversations.id),
       )
-      .groupBy(conversations.conversationId, conversations.createdAt)
+      .groupBy(conversations.id, conversations.createdAt)
       .having(sql`count(${participants.userId}) = 2`);
 
     return result[0] || null;
@@ -116,14 +116,14 @@ export const ConversationRepository = {
     const result = await db
       .select({
         unreadCount: p1.unreadCount,
-        conversationId: conversations.conversationId,
+        conversationId: conversations.id,
       })
       .from(conversations)
-      .innerJoin(p1, eq(p1.conversationId, conversations.conversationId))
+      .innerJoin(p1, eq(p1.conversationId, conversations.id))
       .innerJoin(
         p2,
         and(
-          eq(p2.conversationId, conversations.conversationId),
+          eq(p2.conversationId, conversations.id),
           ne(p2.userId, userId),
         ),
       )
@@ -155,10 +155,10 @@ export const ConversationRepository = {
       // Join first participant (id1)
       .innerJoin(
         participants,
-        eq(conversations.conversationId, participants.conversationId),
+        eq(conversations.id, participants.conversationId),
       )
       // Join second participant (id2) to ensure both are in the result
-      .innerJoin(p2, eq(conversations.conversationId, p2.conversationId))
+      .innerJoin(p2, eq(conversations.id, p2.conversationId))
       .where(
         and(
           eq(conversations.conversationType, "direct"),
@@ -176,7 +176,7 @@ export const ConversationRepository = {
   delete: async (id: number) => {
     return await db
       .delete(conversations)
-      .where(eq(conversations.conversationId, id))
+      .where(eq(conversations.id, id))
       .returning();
   },
 };

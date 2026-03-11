@@ -22,7 +22,7 @@ export const deliveryStatusEnum = pgEnum("delivery_status", [
 export const messages = table(
   "messages",
   {
-    messageId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     clientMessageId: t.text().unique().notNull(),
     conversationId: t.integer().notNull(),
     senderId: t.integer().notNull(),
@@ -59,7 +59,7 @@ export const messages = table(
       .foreignKey({
         name: "messages_conversation_fk",
         columns: [table.conversationId],
-        foreignColumns: [conversations.conversationId] as any,
+        foreignColumns: [conversations.id] as any,
       })
       .onDelete("cascade"),
 
@@ -75,7 +75,7 @@ export const messages = table(
       .foreignKey({
         name: "messages_parent_fk",
         columns: [table.parentMessageId],
-        foreignColumns: [table.messageId],
+        foreignColumns: [table.id],
       })
       .onDelete("set null"),
 

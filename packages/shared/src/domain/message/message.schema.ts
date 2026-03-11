@@ -16,6 +16,13 @@ export const selectMessageSchema = createSelectSchema(messages, {
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   deletedAt: z.coerce.date().nullable(),
+}).pick({
+  id: true,
+  conversationId: true,
+  senderId: true,
+  content: true,
+  clientMessageId: true,
+  createdAt: true
 });
 
 export const updateMessageSchema = createUpdateSchema(messages);
@@ -79,7 +86,7 @@ export const messageCreatedSchema = z.object({
   type: z.literal(SERVER_EVENTS.MESSAGES.CREATED),
   payload: z.object({
     message: selectMessageSchema.pick({
-      messageId: true,
+      id: true,
       conversationId: true,
       clientMessageId: true,
       content: true,

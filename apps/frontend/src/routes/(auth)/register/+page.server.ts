@@ -21,7 +21,7 @@ export const actions: Actions = {
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
     const gender = formData.get("gender") as string;
-    const age = formData.get("age");
+    const age = Number(formData.get("age"));
     const country = formData.get("country") as string;
 
 
@@ -30,23 +30,25 @@ export const actions: Actions = {
     }
 
     // Capitalize for display consistency
-    const displayName = capitalizeFirst(username);
+    // const displayName = capitalizeFirst(username);
 
-    const data = {
-      gender: gender,
-      age: Number(age),
-      country: country,
-      roles: ["user"],
-    };
+    // const data = {
+    //   gender: gender,
+    //   age: Number(age),
+    //   country: country,
+    //   roles: ["user"],
+    // };
 
     const response = await fetch(`/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        username: displayName,
+        username: capitalizeFirst(username),
         password,
         confirmPassword,
-        data,
+        gender,
+        age,
+        country,
       }),
     });
 

@@ -26,7 +26,7 @@ export const BlocksRepository = {
   deleteById: async ({ blockId, tx = db }: { blockId: number; tx?: DB_TX }) => {
     const [result] = await tx
       .delete(blockedUsers)
-      .where(eq(blockedUsers.blockId, blockId))
+      .where(eq(blockedUsers.id, blockId))
       .returning();
 
     if (!result) {
@@ -57,7 +57,7 @@ export const BlocksRepository = {
     const [result] = await tx
       .select()
       .from(blockedUsers)
-      .where(eq(blockedUsers.blockId, blockId));
+      .where(eq(blockedUsers.id, blockId));
 
     if (!result) {
       throw new Error("Failed to select blocked user");

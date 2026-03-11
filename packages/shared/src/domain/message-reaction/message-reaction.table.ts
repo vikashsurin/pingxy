@@ -6,7 +6,7 @@ import { users } from "../user/user.table";
 export const messageReactions = table(
   "message_reactions",
   {
-    reactionId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     messageId: t.integer().notNull(),
     userId: t.integer().notNull(),
     emoji: t.varchar("emoji", { length: 10 }).notNull(),
@@ -22,7 +22,7 @@ export const messageReactions = table(
       .foreignKey({
         name: "message_reactions_message_fk",
         columns: [table.messageId],
-        foreignColumns: [messages.messageId],
+        foreignColumns: [messages.id],
       })
       .onDelete("cascade"),
 

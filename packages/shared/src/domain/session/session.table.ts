@@ -6,7 +6,7 @@ import { users } from "../user/user.table";
 export const sessions = table(
   "sessions",
   {
-    sessionId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     hashedToken: t.text().notNull().unique(),
     userId: t.integer().notNull(),
     ipAddress: t.text().notNull(),

@@ -1,7 +1,7 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
 
-export const roleTypeEnum = pgEnum("role", [
+export const userTypeEnum = pgEnum("userType", [
   "admin",
   "moderator",
   "user",
@@ -14,14 +14,15 @@ export const users = table(
   "users",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    role: roleTypeEnum().default("guest"),
+    type: userTypeEnum().default("guest"),
     email: t.text().unique(),
     username: t.text().notNull().unique(),
     hashedPassword: t.text(),
     gender: genderEnum().notNull().default("other"),
     age: t.integer().notNull().default(18),
     country: t.text().notNull().default("AF"),
-    data: t.jsonb().notNull(),
+    bio: t.text(),
+    data: t.jsonb(),
     lastSeenAt: t.timestamp({ withTimezone: true }),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     updatedAt: t

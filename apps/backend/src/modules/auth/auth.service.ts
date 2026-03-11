@@ -26,14 +26,20 @@ export const AuthService = {
   }) => {
     const hashedPassword = await Bun.password.hash(body.password);
 
-    const newUser: NewUser = {
+    const newUser = {
       username: body.username,
-      userType: "user" as const,
+      role: "user" as const,
       hashedPassword: hashedPassword,
+      age: body.age,
+      gender: body.gender,
+      country: body.country,
+      bio: body.bio,
       data: body.data,
     };
 
+
     const [user] = await UserService.createUser(newUser);
+    console.log("user created:: ", user)
 
     const token = crypto.randomUUID();
     await SessionService.createSession(token, user.id, ipAddress, userAgent);
@@ -58,6 +64,8 @@ export const AuthService = {
   }) => {
     const { hashedPassword, ...user } =
       await UserService.getAuthUserByUsername(username);
+
+    console.log({ sfsfsdf: user })
 
     if (!user) {
       throw new HTTPException(401, { message: "Invalid credentials" });
@@ -100,7 +108,11 @@ export const AuthService = {
   }) => {
     const newUser: NewUser = {
       username: body.username,
-      userType: "guest" as const,
+      type: "guest" as const,
+      age: body.age,
+      gender: body.gender,
+      country: body.country,
+      bio: body.bio,
       data: body.data,
     };
     const [user] = await UserService.createUser(newUser);
@@ -122,7 +134,7 @@ export const AuthService = {
     }
 
     // Remove user from db, if the user is a guest
-    if (user.userType === "guest") {
+    if (user.type === "guest") {
       const removed = UserService.removeUser(user.id);
       if (!removed) {
         throw new Error("Error removing Guest user");

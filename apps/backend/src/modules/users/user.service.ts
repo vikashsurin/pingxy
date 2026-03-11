@@ -5,12 +5,15 @@ import { UserRepository } from "./user.repository";
 export const UserService = {
   createUser: async (newUser: NewUser) => {
     try {
+      console.log("11111")
       const [existingUser] = await UserRepository.selectByUsername(
         newUser.username,
       );
+      console.log("222")
       if (existingUser) {
         throw new Error("User already exists");
       }
+      console.log("333")
       return UserRepository.insert(newUser);
     } catch (error) {
       console.error("error creating user:", error);

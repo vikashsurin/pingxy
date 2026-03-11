@@ -19,11 +19,6 @@ export const insertUserSchema = createInsertSchema(users);
 
 
 export const UserMetaDataSchema = z.object({
-  gender: z.string(),
-  age: z.number().min(18, "Age must be a positive number"),
-  country: z.string(),
-  roles: z.array(z.string()).optional(),
-  bio: z.string().optional(),
 });
 
 const BaseUserSchema = z.object({
@@ -31,7 +26,11 @@ const BaseUserSchema = z.object({
     .string()
     .min(MIN_NAME_LENGTH, "Username must be at least 3 characters")
     .max(MAX_NAME_LENGTH, "Username must be at most 16 characters"),
-  data: UserMetaDataSchema,
+  gender: z.enum(["male", "female", "other"]),
+  age: z.number().min(18, "Age must be a positive number"),
+  country: z.string(),
+  bio: z.string().optional(),
+  data: z.any().optional(),
 });
 
 export const RegisterUserRequestSchema = BaseUserSchema.extend({
@@ -52,7 +51,6 @@ export const selectUserSchema = createSelectSchema(users)
     hashedPassword: true,
   })
   .extend({
-    data: UserMetaDataSchema,
     lastSeenAt: z.coerce.date().nullable(),
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),

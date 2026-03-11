@@ -37,13 +37,13 @@ export const MessageService = {
     });
 
     const participants = await ParticipantService.create({
-      conversationId: conversation.conversationId,
+      conversationId: conversation.id,
       user1Id: message.senderId,
       user2Id: recipient.id,
     });
 
     const [insertedMessage] = await MessageRepository.insertMessage({
-      conversationId: conversation.conversationId!,
+      conversationId: conversation.id!,
       clientMessageId: message.clientMessageId,
       senderId: message.senderId,
       content: message.content,
@@ -52,20 +52,19 @@ export const MessageService = {
     const insertedAttachments = await AttachmentService.createAttachment({
       attachments,
       userId: message.senderId,
-      messageId: insertedMessage.messageId,
-      conversationId: conversation.conversationId,
+      messageId: insertedMessage.id,
     });
 
     const [messageReceipt] = await ReceiptService.createMessageReceipt({
-      conversationId: conversation.conversationId,
-      messageId: insertedMessage.messageId,
+      conversationId: conversation.id,
+      messageId: insertedMessage.id,
       readerId: recipient.id,
       status: "sent",
     });
 
 
     await ParticipantService.incrementUnreadCount({
-      conversationId: conversation.conversationId,
+      conversationId: conversation.id,
       senderId: message.senderId,
     });
 
@@ -73,7 +72,7 @@ export const MessageService = {
       message: insertedMessage,
       attachments: insertedAttachments,
       receipt: messageReceipt,
-      conversationId: conversation.conversationId,
+      conversationId: conversation.id,
       sender: sender,
       recipient: recipient,
     });
@@ -152,18 +151,18 @@ export const MessageService = {
 
       for (const row of rows) {
         const { message, receipt, attachment } = row;
-        const msgId = message.messageId;
+        const msgId = message.id;
 
         if (!messages.has(msgId)) {
           messages.set(msgId, message);
         }
 
-        if (receipt?.receiptId && !receipts.has(receipt.receiptId)) {
-          receipts.set(receipt.receiptId, receipt);
+        if (receipt?.id && !receipts.has(receipt.id)) {
+          receipts.set(receipt.id, receipt);
         }
 
-        if (attachment?.attachmentId && !attachments.has(attachment.attachmentId)) {
-          attachments.set(attachment.attachmentId, attachment);
+        if (attachment?.id && !attachments.has(attachment.id)) {
+          attachments.set(attachment.id, attachment);
         }
 
       }

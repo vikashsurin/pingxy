@@ -20,7 +20,7 @@ export const AttachmentRepository = {
     tx = db,
   }: {
     attachmentId: string;
-    messageId?: number;
+    messageId: number;
     conversationId?: number;
     key: string;
     url: string;
@@ -35,14 +35,10 @@ export const AttachmentRepository = {
     return await tx
       .insert(attachments)
       .values({
-        attachmentId: attachmentId,
         messageId: messageId,
-        conversationId: conversationId,
         key: key,
-        url: url,
         fileName: fileName,
         thumbKey: thumbKey,
-        thumbnailUrl: thumbnailUrl,
         fileSize: fileSize,
         mimeType: mimeType,
         uploadedBy: uploadedBy,

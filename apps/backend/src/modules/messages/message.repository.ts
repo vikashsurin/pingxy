@@ -4,7 +4,7 @@ import {
   DbInsertMessageType,
   UpdateMessageType,
 } from "@pingxy/shared/domain";
-import { and, asc, desc, eq, gt, gte, lt, lte, ne } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, ne } from "drizzle-orm";
 import db, { type DB_TX } from "src/common/db/client";
 
 export const MessageRepository = {
@@ -16,10 +16,9 @@ export const MessageRepository = {
         clientMessageId: message.clientMessageId,
         senderId: message.senderId,
         content: message.content,
-        attachments: message.attachments,
       })
       .returning({
-        messageId: messages.messageId,
+        id: messages.id,
         conversationId: messages.conversationId,
         clientMessageId: messages.clientMessageId,
         senderId: messages.senderId,
@@ -29,7 +28,7 @@ export const MessageRepository = {
   },
 
   updateMessage: async (
-    messageId: number,
+    id: number,
     message: Partial<UpdateMessageType>,
     tx: DB_TX = db,
   ) => {
@@ -39,21 +38,21 @@ export const MessageRepository = {
         content: message.content,
         updatedAt: message.updatedAt,
       })
-      .where(eq(messages.messageId, messageId))
+      .where(eq(messages.id, id))
       .returning();
   },
 
-  deleteMessage: async (messageId: number) => {
+  deleteMessage: async (id: number) => {
     return db
       .delete(messages)
-      .where(eq(messages.messageId, messageId))
+      .where(eq(messages.id, id))
       .returning();
   },
 
-  selectMessageById: async (messageId: number, tx: DB_TX = db) => {
+  selectMessageById: async (id: number, tx: DB_TX = db) => {
     return tx
       .select({
-        messageId: messages.messageId,
+        id: messages.id,
         conversationId: messages.conversationId,
         senderId: messages.senderId,
         content: messages.content,
@@ -62,7 +61,7 @@ export const MessageRepository = {
         deletedAt: messages.deletedAt,
       })
       .from(messages)
-      .where(eq(messages.messageId, messageId));
+      .where(eq(messages.id, id));
   },
 
   // Select all messages of a conversation
@@ -72,7 +71,7 @@ export const MessageRepository = {
   ) => {
     return tx
       .select({
-        messageId: messages.messageId,
+        id: messages.id,
         conversationId: messages.conversationId,
         senderId: messages.senderId,
         content: messages.content,
@@ -107,7 +106,7 @@ export const MessageRepository = {
   //     .leftJoin(
   //       messageReceipts,
   //       and(
-  //         eq(messages.messageId, messageReceipts.messageId),
+  //         eq(messages.id, messageReceipts.id),
   //         ne(messageReceipts.userId, userId)
   //       )
   //     )
@@ -133,7 +132,7 @@ export const MessageRepository = {
       .where(eq(messages.conversationId, conversationId))
       .leftJoin(
         messageReceipts,
-        eq(messages.messageId, messageReceipts.messageId),
+        eq(messages.id, messageReceipts.messageId),
         // No userId filter - get ALL receipts
       )
       .orderBy(desc(messages.createdAt));
@@ -144,7 +143,7 @@ export const MessageRepository = {
   selectMessagesBySenderId: async (senderId: number, tx: DB_TX = db) => {
     return tx
       .select({
-        messageId: messages.messageId,
+        id: messages.id,
         conversationId: messages.conversationId,
         senderId: messages.senderId,
         content: messages.content,
@@ -173,22 +172,22 @@ export const MessageRepository = {
     tx?: DB_TX;
   }) => {
     // 1. Create a subquery to get ONLY the message IDs we need.
-    // This is extremely fast with a (conversationId, messageId) index.
-    const messageIdsProvider = tx
-      .select({ id: messages.messageId })
+    // This is extremely fast with a (conversationId, id) index.
+    const idsProvider = tx
+      .select({ id: messages.id })
       .from(messages)
       .where(
         and(
           eq(messages.conversationId, conversationId),
           // Use strict null/undefined checks to avoid '0' falsy bugs
-          before != null ? lte(messages.messageId, before) : undefined,
-          after != null ? gte(messages.messageId, after) : undefined,
+          before != null ? lte(messages.id, before) : undefined,
+          after != null ? gte(messages.id, after) : undefined,
         ),
       )
       // If 'after' is provided, we fetch 'asc' to get the next page.
       // Otherwise 'desc' to get the latest/previous page.
       .orderBy(
-        after != null ? asc(messages.messageId) : desc(messages.messageId),
+        after != null ? asc(messages.id) : desc(messages.id),
       )
       .limit(limit)
       .as("message_ids_provider");
@@ -197,7 +196,7 @@ export const MessageRepository = {
     const rows = await tx
       .select({
         message: {
-          messageId: messages.messageId,
+          id: messages.id,
           conversationId: messages.conversationId,
           clientMessageId: messages.clientMessageId,
           senderId: messages.senderId,
@@ -209,13 +208,13 @@ export const MessageRepository = {
       })
       .from(messages)
       .innerJoin(
-        messageIdsProvider,
-        eq(messages.messageId, messageIdsProvider.id),
+        idsProvider,
+        eq(messages.id, idsProvider.id),
       )
       .leftJoin(
         messageReceipts,
         and(
-          eq(messages.messageId, messageReceipts.messageId),
+          eq(messages.id, messageReceipts.messageId),
           eq(messageReceipts.conversationId, conversationId),
           ne(messageReceipts.readerId, userId),
         ),
@@ -223,11 +222,11 @@ export const MessageRepository = {
       .leftJoin(
         attachments,
         and(
-          eq(messages.messageId, attachments.messageId),
-          eq(attachments.conversationId, conversationId),
+          eq(messages.id, attachments.id),
+          // eq(attachments.conversationId, conversationId),
         ),
       )
-      .orderBy(asc(messages.messageId));
+      .orderBy(asc(messages.id));
 
     return rows;
   },
@@ -240,7 +239,7 @@ export const MessageRepository = {
       .select({ message: messages })
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
-      .orderBy(desc(messages.messageId))
+      .orderBy(desc(messages.id))
       .limit(1);
   },
 };

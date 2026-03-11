@@ -13,7 +13,7 @@ export const messageReceiptStatusEnum = pgEnum("status", [
 export const messageReceipts = table(
   "message_receipts",
   {
-    receiptId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     conversationId: t.integer().notNull(),
     messageId: t.integer().notNull(),
     readerId: t.integer().notNull(),
@@ -32,7 +32,7 @@ export const messageReceipts = table(
       .foreignKey({
         name: "message_receipts_message_fk",
         columns: [table.messageId],
-        foreignColumns: [messages.messageId],
+        foreignColumns: [messages.id],
       })
       .onDelete("cascade"),
 
@@ -47,7 +47,7 @@ export const messageReceipts = table(
     t.foreignKey({
       name: "message_receipts_conversation_fk",
       columns: [table.conversationId],
-      foreignColumns: [conversations.conversationId],
+      foreignColumns: [conversations.id],
     }),
 
     t

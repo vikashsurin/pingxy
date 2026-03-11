@@ -2,7 +2,7 @@ import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
 import { users } from "../user/user.table";
 
-export const conversationTypesEnum = t.pgEnum("conversation_type", [
+export const conversationTypesEnum = t.pgEnum("conversationType", [
   "direct",
   "group",
 ]);
@@ -10,8 +10,8 @@ export const conversationTypesEnum = t.pgEnum("conversation_type", [
 export const conversations = table(
   "conversations",
   {
-    conversationId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    conversationType: conversationTypesEnum().default("direct"),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    type: conversationTypesEnum().default("direct"),
     name: t.varchar("name", { length: 100 }),
     lastMessageId: t.integer(),
     lastMessageAt: t.timestamp({ withTimezone: true }),

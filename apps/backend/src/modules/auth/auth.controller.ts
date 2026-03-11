@@ -49,7 +49,7 @@ export const AuthController = {
           user: user,
           token: token,
         });
-      } catch (error) {}
+      } catch (error) { }
     },
   ),
 

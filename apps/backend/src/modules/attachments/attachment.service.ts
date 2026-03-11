@@ -20,12 +20,10 @@ export const AttachmentService = {
     attachments,
     userId,
     messageId,
-    conversationId,
   }: {
     attachments: any[];
     userId: number;
     messageId: number;
-    conversationId: number;
   }) => {
 
     if (!attachments || attachments.length === 0) return [];
@@ -33,7 +31,6 @@ export const AttachmentService = {
     for (const a of attachments) {
       a.messageId = messageId;
       a.uploadedBy = userId;
-      a.conversationId = conversationId;
     }
     const result = await AttachmentRepository.bulkInsert({ allAttachments: attachments });
 

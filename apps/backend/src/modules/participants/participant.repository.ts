@@ -64,7 +64,7 @@ export const ParticipantRepository = {
     return await db
       .select()
       .from(participants)
-      .where(eq(participants.participantId, participantId))
+      .where(eq(participants.id, participantId))
       .limit(1);
   },
 
@@ -79,7 +79,7 @@ export const ParticipantRepository = {
   selectManyParticipantsByManyConversationIds: async ({ conversationIds, tx = db }: { conversationIds: number[], tx?: DB_TX }) => {
     return await tx
       .select({
-        participantId: participants.participantId,
+        participantId: participants.id,
         conversationId: participants.conversationId,
         userId: participants.userId,
         role: participants.role,
@@ -87,9 +87,11 @@ export const ParticipantRepository = {
         leftAt: participants.leftAt,
         isActive: participants.isActive,
         username: users.username,
-        userType: users.userType,
         data: users.data,
-
+        gender: users.gender,
+        age: users.age,
+        country: users.country,
+        bio: users.bio,
       })
       .from(participants)
       .innerJoin(users, eq(participants.userId, users.id))
@@ -174,7 +176,7 @@ export const ParticipantRepository = {
       .innerJoin(p2, eq(p1.conversationId, p2.conversationId))
       .innerJoin(
         conversations,
-        eq(p1.conversationId, conversations.conversationId),
+        eq(p1.conversationId, conversations.id),
       )
       .where(
         and(

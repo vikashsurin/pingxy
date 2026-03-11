@@ -7,7 +7,7 @@ import { users } from "../user/user.table";
 export const refreshTokens = table(
   "refresh_tokens",
   {
-    tokenId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     refreshToken: t.text().notNull(),
     userId: t.integer().notNull(),
     sessionId: t.integer().notNull(),
@@ -28,7 +28,7 @@ export const refreshTokens = table(
       .foreignKey({
         name: "refresh_tokens_session_fk",
         columns: [table.sessionId],
-        foreignColumns: [sessions.sessionId],
+        foreignColumns: [sessions.id],
       })
       .onDelete("cascade"),
 

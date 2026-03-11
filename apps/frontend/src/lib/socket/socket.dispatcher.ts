@@ -6,6 +6,9 @@ export const handleGenericEvent = (rawData: unknown) => {
   try {
     const result = ServerEventSchema.safeParse(rawData);
 
+    // #Uncomment for Debugging
+    // console.log({ zodValidation: result });
+
     if (!result.success) {
       console.error(
         "[Socket] Received invalid server event:",

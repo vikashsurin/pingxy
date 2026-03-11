@@ -4,7 +4,7 @@ import { messages } from "../message/message.table";
 import { users } from "../user/user.table";
 import { conversations } from "../conversation/conversation.table";
 
-export const participantRoleEnum = pgEnum("role", [
+export const roleEnum = pgEnum("role", [
   "admin",
   "moderator",
   "member",
@@ -13,10 +13,10 @@ export const participantRoleEnum = pgEnum("role", [
 export const participants = table(
   "participants",
   {
-    participantId: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     conversationId: t.integer().notNull(),
     userId: t.integer().notNull(),
-    role: participantRoleEnum("role").default("member").notNull(), // owner, admin, member
+    role: roleEnum("role").default("member").notNull(), // owner, admin, member
     joinedAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     leftAt: t.timestamp({ withTimezone: true }), // When user left the conversation
 
@@ -42,7 +42,7 @@ export const participants = table(
       .foreignKey({
         name: "participants_conversation_fk",
         columns: [table.conversationId],
-        foreignColumns: [conversations.conversationId],
+        foreignColumns: [conversations.id],
       })
       .onDelete("cascade"),
 
@@ -58,7 +58,7 @@ export const participants = table(
       .foreignKey({
         name: "participants_last_read_message_fk",
         columns: [table.lastReadMessageId],
-        foreignColumns: [messages.messageId],
+        foreignColumns: [messages.id],
       })
       .onDelete("set null"),
 

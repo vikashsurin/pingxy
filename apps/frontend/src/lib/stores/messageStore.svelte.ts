@@ -1,5 +1,7 @@
 import type { UIConversation } from "$lib/types/chat";
+import type { selectMessageSchema } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import type z from "zod";
 import { attachmentStore } from "./attachmentStore.svelte";
 import { ChatState } from "./ChatState.svelte";
 import { receiptStore } from "./receiptStore.svelte";
@@ -46,19 +48,19 @@ export class MessageStore {
     });
   }
 
-  upsertMessage(message: any) {
+  upsertMessage(message: z.infer<typeof selectMessageSchema>) {
     // 1. Update or insert the message
-    let existing = this.messages.get(message.messageId);
+    let existing = this.messages.get(message.id);
     if (existing) {
       existing = message;
     } else {
-      this.messages.set(message.messageId, message);
+      this.messages.set(message.id, message);
     }
 
     // 2. Update the thread index
     const threads = this.threads.get(message.conversationId);
     if (threads) {
-      threads.add(message.messageId);
+      threads.add(message.id);
     }
   }
 

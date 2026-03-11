@@ -18,12 +18,14 @@ describe("Users Table Schema", async () => {
     expect(result).toBeArray();
   });
 
-  test("should insert a user", async () => {
+  test.only("should insert a user", async () => {
     const newUser: NewUser = {
-      userType: "user" as const,
-      username: userName,
+      username: 'Ritika',
+      type: "user" as const,
       hashedPassword: "password",
-      data: { role: "admin" },
+      gender: "female" as const,
+      age: 18,
+      country: "AF",
     };
     const result = await UserRepository.insert(newUser);
     expect(result).toHaveLength(1);
@@ -75,7 +77,7 @@ describe("Users Table Schema", async () => {
     console.log({ user });
   });
 
-  test.only("should return many users", async () => {
+  test("should return many users", async () => {
     const users = await UserRepository.selectManyByIds({ ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] });
     console.log({ users });
   });

@@ -1,10 +1,10 @@
+import { sessionInsertSchema, sessions, users } from "@pingxy/shared";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
-import { sessions, users } from "@pingxy/shared";
-import { InsertSessionType } from "@pingxy/shared/domain";
+import z from "zod";
 
 export const SessionRepository = {
-  insertSession: async (session: InsertSessionType) => {
+  insertSession: async (session: z.infer<typeof sessionInsertSchema>) => {
     return await db.insert(sessions).values(session).returning();
   },
 
@@ -20,7 +20,7 @@ export const SessionRepository = {
     return await db
       .select({
         session: {
-          sessionId: sessions.sessionId,
+          id: sessions.id,
           userId: sessions.userId,
           lastActivity: sessions.lastActivity,
           isActive: sessions.isActive,
@@ -29,7 +29,12 @@ export const SessionRepository = {
         user: {
           id: users.id,
           username: users.username,
-          userType: users.userType,
+          email: users.email,
+          gender: users.gender,
+          age: users.age,
+          country: users.country,
+          bio: users.bio,
+          type: users.type,
           data: users.data,
           lastSeenAt: users.lastSeenAt,
           createdAt: users.createdAt,
@@ -55,7 +60,7 @@ export const SessionRepository = {
       .delete(sessions)
       .where(eq(sessions.hashedToken, hashedToken))
       .returning({
-        sessionId: sessions.sessionId,
+        id: sessions.id,
       });
   },
 };
