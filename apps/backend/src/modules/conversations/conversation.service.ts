@@ -130,12 +130,12 @@ export const ConversationService = {
           partner:
             convMeta?.conversationType === "direct"
               ? {
-                  id: partner?.userId,
-                  username: partner?.username,
-                  gender: partner?.data?.gender,
-                  age: partner?.data?.age,
-                  country: partner?.data?.country,
-                }
+                id: partner?.userId,
+                username: partner?.username,
+                gender: partner?.data?.gender,
+                age: partner?.data?.age,
+                country: partner?.data?.country,
+              }
               : null,
           participants: participantsInThisChat,
         };
@@ -156,7 +156,7 @@ export const ConversationService = {
   },
 
 
-  fetchMessages:async()=>{
-    
+  fetchMessages: async () => {
+
   }
 };

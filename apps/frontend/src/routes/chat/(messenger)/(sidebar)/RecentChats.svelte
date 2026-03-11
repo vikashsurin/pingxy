@@ -3,7 +3,6 @@
   import { messageStore } from "$lib/stores/messageStore.svelte";
   import { chatStore } from "$lib/stores/store.svelte";
   import { type UIConversation } from "$lib/types/chat";
-  import { ur } from "zod/locales";
   import GenderIcon from "../GenderIcon.svelte";
 
   let urlArray = $derived(page.url.pathname.split("/"));

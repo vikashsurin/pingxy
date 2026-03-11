@@ -36,6 +36,5 @@ export const conversations = table(
 
     t.index("conversations_created_byIdx").on(table.createdBy),
     t.index("conversations_last_message_atIdx").on(table.lastMessageAt),
-    t.index("conversations_last_messageIdIdx").on(table.lastMessageId),
   ],
 );

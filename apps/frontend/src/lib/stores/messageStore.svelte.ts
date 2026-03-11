@@ -4,11 +4,8 @@ import { attachmentStore } from "./attachmentStore.svelte";
 import { ChatState } from "./ChatState.svelte";
 import { receiptStore } from "./receiptStore.svelte";
 
-// implement messagesMetadata.
 export class MessageStore {
-  // Use SvelteMap for collection management
   messages = new SvelteMap<number, any>();
-
   threads = new SvelteMap<number, SvelteSet<number>>();
 
   chats = new SvelteMap<number, ChatState>();
