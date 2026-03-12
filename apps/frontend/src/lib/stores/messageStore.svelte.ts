@@ -1,5 +1,5 @@
 import type { UIConversation } from "$lib/types/chat";
-import type { selectMessageSchema } from "@pingxy/shared";
+import type { Message, selectMessageSchema } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 import { attachmentStore } from "./attachmentStore.svelte";
@@ -64,21 +64,23 @@ export class MessageStore {
     }
   }
 
-  setMessages(items: any[]) {
-    for (const item of items) {
-      if (!item?.messageId || !item?.conversationId) continue;
+  setMessages(items: Message[]) {
+
+    console.log('setting the messages')
+    for (const message of items) {
+      if (!message?.id || !message?.conversationId) continue;
 
       // 1. Update/Insert the message data
-      this.messages.set(item.messageId, item);
+      this.messages.set(message.id, message);
 
       // 2. Manage the thread index
-      let threadsIds = this.threads.get(item.conversationId);
+      let threadsIds = this.threads.get(message.conversationId);
       if (!threadsIds) {
         threadsIds = new SvelteSet<number>();
-        this.threads.set(item.conversationId, threadsIds);
+        this.threads.set(message.conversationId, threadsIds);
       }
 
-      threadsIds.add(item.messageId);
+      threadsIds.add(message.id);
     }
   }
 

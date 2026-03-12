@@ -2,10 +2,11 @@
     import { enhance } from "$app/forms";
     import { chatStore } from "$lib/stores/store.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
-    import { Ban, EllipsisVertical, Eye } from "@lucide/svelte";
+    import { EllipsisVertical } from "@lucide/svelte";
+    import type { User } from "@pingxy/shared";
     import GenderIcon from "../GenderIcon.svelte";
 
-    let { partner } = $props();
+    let { partner }: { partner: User } = $props();
 
     const currentUser = $derived(chatStore.currentUser);
     let isBlocking = $state(false);
@@ -18,15 +19,14 @@
         <div class="flex w-full items-center gap-2">
             <span> Chatting with : </span>
 
-            <GenderIcon gender={partner?.data.gender} />
+            <GenderIcon gender={partner?.gender} />
             <span class=" font-bold">
                 {partner?.username}
                 {partner?.id === currentUser?.id ? " (You)" : ""}
             </span>
 
-            {#if partner?.data.country && partner?.data.country !== "0"}
-                <span
-                    class={`fi fi-${partner?.data.country.toLocaleLowerCase()}`}
+            {#if partner?.country && partner?.country !== "0"}
+                <span class={`fi fi-${partner?.country.toLocaleLowerCase()}`}
                 ></span>
             {/if}
 

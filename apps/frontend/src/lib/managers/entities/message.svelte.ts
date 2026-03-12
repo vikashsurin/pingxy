@@ -12,7 +12,7 @@ import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
 import type {
   attachmentInsertSchema,
-  attachmentSelectSchema,
+  attachmentResponseSchema,
 } from "@pingxy/shared/domain/attachment/attachment.schema";
 import { z } from "zod";
 
@@ -186,9 +186,9 @@ const createMessageManager = () => ({
     const isExistingConv = identifier.startsWith("c_");
     const idValue = Number(identifier.replace(/^[cu]_/, ""));
   },
-  updateMessage: async () => {},
+  updateMessage: async () => { },
 
-  deleteMessage: async () => {},
+  deleteMessage: async () => { },
 
   handleIncomingMessage: async (
     data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],

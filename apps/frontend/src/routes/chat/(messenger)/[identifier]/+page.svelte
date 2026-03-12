@@ -12,6 +12,11 @@
 
   let { data } = $props();
 
+  let showLightbox = $derived(fileStore.viewSelected);
+
+  $inspect({ messages: messageStore.messages });
+  $inspect({ attachments: attachmentStore.attachments });
+
   let newChat = $derived.by(() => {
     if (data.identifierType === "user") {
       return true;
@@ -22,6 +27,7 @@
   $effect(() => {
     if (newChat || !data.idValue) return;
 
+    console.log("reached here!");
     if (data.entities) {
       messageStore.setMessages(data.entities.messages);
       receiptStore.setReceipts(data.entities.receipts);
@@ -69,7 +75,7 @@
 </div>
 
 <!-- 1. Preview image/file -->
-{#if fileStore.viewSelected}
+{#if showLightbox}
   <LightBox />
 {/if}
 

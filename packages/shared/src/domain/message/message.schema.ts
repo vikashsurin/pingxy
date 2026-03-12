@@ -5,7 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
-import { attachmentInsertSchema, attachmentSelectSchema } from "../attachment/attachment.schema";
+import { attachmentInsertSchema, attachmentResponseSchema } from "../attachment/attachment.schema";
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { selectUserSchema } from "../user/user.schema";
 import { messages } from "./message.table";
@@ -93,7 +93,7 @@ export const messageCreatedSchema = z.object({
       createdAt: true,
       senderId: true,
     }),
-    attachments: z.array(attachmentSelectSchema),
+    attachments: z.array(attachmentResponseSchema),
     receipt: selectMessageReceiptSchema,
     conversationId: z.number(),
     sender: selectUserSchema,

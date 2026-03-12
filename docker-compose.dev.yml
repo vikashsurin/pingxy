@@ -106,7 +106,7 @@ services:
     command: [ "bun", "run", "dev", "--", "--host", "0.0.0.0" ]
 
   caddy:
-    image: caddy:2
+    image: caddy:alpine
     container_name: pingxy-proxy-dev
     restart: always
     ports:

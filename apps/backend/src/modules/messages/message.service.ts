@@ -49,12 +49,19 @@ export const MessageService = {
       content: message.content,
     });
 
-    const insertedAttachments = await AttachmentService.createAttachment({
+    const savedAttachments = await AttachmentService.createAttachment({
       attachments,
       userId: message.senderId,
       messageId: insertedMessage.id,
     });
 
+    const attachmentsWithUrls = [];
+
+    for (const a of savedAttachments) {
+      const url = `http://localhost:9000/pingxy/${a.key}`
+      const thumbUrl = `http://localhost:9000/pingxy/${a.thumbKey}`
+      attachmentsWithUrls.push({ ...a, url, thumbUrl });
+    }
     const [messageReceipt] = await ReceiptService.createMessageReceipt({
       conversationId: conversation.id,
       messageId: insertedMessage.id,
@@ -70,7 +77,7 @@ export const MessageService = {
 
     const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
       message: insertedMessage,
-      attachments: insertedAttachments,
+      attachments: attachmentsWithUrls,
       receipt: messageReceipt,
       conversationId: conversation.id,
       sender: sender,
@@ -162,7 +169,9 @@ export const MessageService = {
         }
 
         if (attachment?.id && !attachments.has(attachment.id)) {
-          attachments.set(attachment.id, attachment);
+          const url = `http://localhost:9000/pingxy/${attachment.key}`
+          const thumbUrl = `http://localhost:9000/pingxy/${attachment.thumbKey}`
+          attachments.set(attachment.id, { ...attachment, url, thumbUrl });
         }
 
       }

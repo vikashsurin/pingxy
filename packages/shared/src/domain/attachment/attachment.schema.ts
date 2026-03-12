@@ -11,4 +11,7 @@ export const attachmentInsertSchema = createInsertSchema(attachments).pick({
   fileSize: true,
   mimeType: true,
 });
-export const attachmentSelectSchema = createSelectSchema(attachments);
+export const attachmentResponseSchema = createSelectSchema(attachments).extend({
+  url: z.string(),
+  thumbUrl: z.string().optional()
+});

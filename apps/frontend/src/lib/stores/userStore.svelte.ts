@@ -1,5 +1,6 @@
 class UserStore {
   blockedUserIds = new Set<string>();
+  // onlineUsers = 
   // blockedUsers
 }
 

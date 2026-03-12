@@ -8,7 +8,7 @@
     import { Paperclip, Smile, X } from "@lucide/svelte";
     import type {
         attachmentInsertSchema,
-        attachmentSelectSchema,
+        attachmentResponseSchema,
     } from "@pingxy/shared/domain/attachment/attachment.schema";
     import { tick } from "svelte";
     import z from "zod";
@@ -25,11 +25,13 @@
     let showAttachmentsPopup = $state(false);
 
     let attachments = $derived<
-        z.infer<z.ZodArray<typeof attachmentSelectSchema>>
+        z.infer<z.ZodArray<typeof attachmentResponseSchema>>
     >(
         fileStore.files
             .filter((f) => f.status === "done" && f.serverData)
-            .map((f) => f.serverData as z.infer<typeof attachmentSelectSchema>),
+            .map(
+                (f) => f.serverData as z.infer<typeof attachmentResponseSchema>,
+            ),
     );
 
     $inspect({ attachments });
