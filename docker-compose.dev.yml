@@ -100,11 +100,13 @@ services:
       - NODE_ENV=development
       - PORT=5173
       - INTERNAL_BACKEND_URL=http://backend:3000
+      - HOST=0.0.0.0 # Ensure Vite binds to all interfaces
     networks:
       - pingxy-network-dev
+    command: [ "bun", "run", "dev", "--", "--host", "0.0.0.0" ]
 
-  nginx:
-    image: nginx:alpine
+  caddy:
+    image: caddy:2
     container_name: pingxy-proxy-dev
     restart: always
     ports:
@@ -112,7 +114,7 @@ services:
     networks:
       - pingxy-network-dev
     volumes:
-      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile
     depends_on:
       - frontend
       - backend

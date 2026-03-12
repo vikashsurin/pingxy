@@ -16,19 +16,17 @@ export default defineConfig({
   ],
 
   server: {
+    host: '0.0.0.0', // Necessary for Docker to map ports
     port: 3001,
-    host: "0.0.0.0",
     strictPort: true,
     hmr: {
-      // This is the "magic" that makes HMR work through the proxy
-      path: "/_svelte_kit_hmr",
+      // This tells Vite to connect HMR to the Caddy proxy, not directly to 5173
       clientPort: 80,
+      path: '/_svelte_kit_hmr'
     },
-    // proxy: {
-    //   "/api": {
-    //     target: "http://localhost:3000",
-    //     changeOrigin: true,
-    //   },
-    // },
-  },
+    watch: {
+      // If you are on Windows/macOS, polling might be needed for volume changes
+      usePolling: true,
+    }
+  }
 });

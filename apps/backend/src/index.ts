@@ -66,7 +66,7 @@ app.onError((err, ctx) => {
 });
 
 app.get("/api/", (c) => {
-  return c.json({ app: "chat" });
+  return c.json({ app: "pingxy" });
 });
 
 app.get("/api/health", (c) => {

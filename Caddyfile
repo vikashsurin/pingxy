@@ -1,31 +1,29 @@
 :80 {
-    # 1. API requests -> backend (Bun/Hono)
-    handle_path /api* {
-        reverse_proxy localhost:3000
+    request_body max_size 20MB
+
+    # 1. Storage
+    handle /storage/* {
+        uri strip_prefix /storage
+        reverse_proxy storage:9000
     }
 
-    # 2. Storage (MinIO)
-    # This replaces your /storage/ logic and maps it to the bucket
-    handle_path /storage/* {
-        reverse_proxy localhost:9000 {
-            # Rewrites the path to include your bucket name 'pingxy'
-            rewrite /pingxy{path}
-        }
+    # 2. API
+    handle /api* {
+        reverse_proxy backend:3000
     }
 
-    # 3. WebSockets & HMR
-    # Caddy detects WebSockets automatically, so no special config needed!
-    # We just need to ensure the /_svelte_kit_hmr goes to the frontend
-    reverse_proxy /_svelte_kit_hmr localhost:5173
+    # 3. WebSockets (App Logic)
+    handle /ws* {
+        reverse_proxy backend:3000
+    }
 
-    # 4. Frontend (SvelteKit)
-    # 'handle' acts as a catch-all for everything else
+    # 4. SvelteKit HMR
+    handle /_svelte_kit_hmr* {
+        reverse_proxy frontend:3001
+    }
+
+    # 5. Frontend - Catch all
     handle {
-        reverse_proxy localhost:5173
-    }
-
-    # Global Options
-    log {
-        output file /var/log/caddy/access.log
+        reverse_proxy frontend:3001
     }
 }
