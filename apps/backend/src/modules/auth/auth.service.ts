@@ -60,6 +60,7 @@ export const AuthService = {
     ipAddress: string;
     userAgent: string;
   }) => {
+
     const { hashedPassword, ...user } =
       await UserService.getAuthUserByUsername(username);
 
