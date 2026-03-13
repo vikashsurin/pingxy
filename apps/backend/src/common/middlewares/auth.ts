@@ -10,6 +10,7 @@ export const authMiddleware = factory.createMiddleware(async (c, next) => {
     return c.json({ message: "Unauthorized - please log in" }, 401);
   }
 
+
   try {
     const user = await SessionService.getSessionUser(sessionToken);
 

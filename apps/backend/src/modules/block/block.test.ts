@@ -16,13 +16,11 @@ describe("BlocksRepository", () => {
   const blockId = 5;
   it("should unblock a user", async () => {
     const blockedUser = await BlocksRepository.deleteById({ blockId });
-    console.log({ blockedUser });
     expect(blockedUser).toBeDefined();
   });
 
   it("should select blocked user", async () => {
     const blockedUser = await BlocksRepository.selectById({ blockId });
-    console.log({ blockedUser });
     expect(blockedUser).toBeDefined();
   });
 
@@ -30,7 +28,6 @@ describe("BlocksRepository", () => {
 
   it("should select all blocked users", async () => {
     const blockedUsers = await BlocksRepository.selectAllBlocked({ blockerId });
-    console.log({ blockedUsers });
     expect(blockedUsers).toBeArray();
   });
 
@@ -41,7 +38,6 @@ describe("BlocksRepository", () => {
       blockerId,
       blockedId,
     });
-    console.log({ blockedUsers });
     expect(blockedUsers).toBeDefined();
   });
 
@@ -50,13 +46,11 @@ describe("BlocksRepository", () => {
       blockerId: 5,
       blockedId: 9,
     });
-    console.log({ exists });
     expect(exists).toBeBoolean();
   });
 
   it("should count blocked users", async () => {
     const count = await BlocksRepository.countBlocked({ blockerId });
-    console.log({ count });
     expect(count).toBeNumber();
   });
 

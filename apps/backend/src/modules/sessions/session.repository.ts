@@ -2,6 +2,7 @@ import { sessionInsertSchema, sessions, users } from "@pingxy/shared";
 import { eq } from "drizzle-orm";
 import db from "src/common/db/client";
 import z from "zod";
+import { safeUserColumns } from "@modules/users/user.repository";
 
 export const SessionRepository = {
   insertSession: async (session: z.infer<typeof sessionInsertSchema>) => {
@@ -27,18 +28,7 @@ export const SessionRepository = {
           ipAddress: sessions.ipAddress,
         },
         user: {
-          id: users.id,
-          username: users.username,
-          email: users.email,
-          gender: users.gender,
-          age: users.age,
-          country: users.country,
-          bio: users.bio,
-          type: users.type,
-          data: users.data,
-          lastSeenAt: users.lastSeenAt,
-          createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
+          ...safeUserColumns,
         },
       })
       .from(sessions)

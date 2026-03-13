@@ -6,6 +6,6 @@ export const conversationHandler: SocketHandler = {
     const conversationId = data.payload.conversationId;
     socket.data.activeConversations.add(conversationId.toString());
     socket.subscribe(conversationId.toString());
-    console.log("subscribed");
+    console.info("subscribed");
   },
 };

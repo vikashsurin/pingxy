@@ -24,20 +24,9 @@ export const actions: Actions = {
     const age = Number(formData.get("age"));
     const country = formData.get("country") as string;
 
-
     if (!username || !password || username.length < 3) {
       return fail(400, { username, invalid: "Invalid input" });
     }
-
-    // Capitalize for display consistency
-    // const displayName = capitalizeFirst(username);
-
-    // const data = {
-    //   gender: gender,
-    //   age: Number(age),
-    //   country: country,
-    //   roles: ["user"],
-    // };
 
     const response = await fetch(`/api/auth/register`, {
       method: "POST",

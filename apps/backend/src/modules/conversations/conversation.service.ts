@@ -40,7 +40,7 @@ export const ConversationService = {
       }
 
       const [conversation] = await ConversationRepository.insert({
-        conversationType: "direct",
+        type: "direct",
         createdAt: new Date(Date.now()),
         updatedAt: new Date(Date.now()),
       });
@@ -120,15 +120,15 @@ export const ConversationService = {
         return {
           conversationId: m.conversationId,
           unreadCount: m.unreadCount,
-          type: convMeta?.conversationType || "direct",
+          type: convMeta?.type || "direct",
           displayName:
-            convMeta?.conversationType === "group"
+            convMeta?.type === "group"
               ? convMeta.name
               : partner?.username,
           lastMessageId: convMeta?.lastMessageId,
           updatedAt: convMeta?.updatedAt,
           partner:
-            convMeta?.conversationType === "direct"
+            convMeta?.type === "direct"
               ? {
                 id: partner?.userId,
                 username: partner?.username,

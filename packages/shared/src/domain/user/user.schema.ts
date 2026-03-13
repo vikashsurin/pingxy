@@ -10,16 +10,13 @@ import {
 import { users } from "./user.table";
 import { getTableColumns } from "drizzle-orm";
 
-
-const allColumns = getTableColumns(users)
-const { hashedPassword, ...publicColumns } = allColumns
-export const publicUserColumns = publicColumns
+const allColumns = getTableColumns(users);
+const { hashedPassword, ...publicColumns } = allColumns;
+export const publicUserColumns = publicColumns;
 
 export const insertUserSchema = createInsertSchema(users);
 
-
-export const UserMetaDataSchema = z.object({
-});
+export const UserMetaDataSchema = z.object({});
 
 const BaseUserSchema = z.object({
   username: z
@@ -30,7 +27,6 @@ const BaseUserSchema = z.object({
   age: z.number().min(18, "Age must be a positive number"),
   country: z.string(),
   bio: z.string().optional(),
-  data: z.any().optional(),
 });
 
 export const RegisterUserRequestSchema = BaseUserSchema.extend({

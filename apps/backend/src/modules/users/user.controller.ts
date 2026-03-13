@@ -32,7 +32,7 @@ export const UserController = {
 
         return c.json({ available: available });
       } catch (error) {
-        console.log(error);
+        console.error(error);
         return c.json({ error: "Something went wrong" }, 500);
       }
     },
@@ -57,7 +57,7 @@ export const UserController = {
 
         return c.json(user);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         return c.json({ error: "Something went wrong" }, 500);
       }
     },

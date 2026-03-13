@@ -12,7 +12,6 @@ export const createAttachmentApi = (customFetch: typeof fetch = fetch) => ({
       throw new Error(error.message || "Failed to upload file");
     }
     const result = await response.json();
-    console.log({ attachmentResult: result });
     return result.attachment;
   },
 

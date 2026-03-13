@@ -87,7 +87,6 @@ export const ParticipantRepository = {
         leftAt: participants.leftAt,
         isActive: participants.isActive,
         username: users.username,
-        data: users.data,
         gender: users.gender,
         age: users.age,
         country: users.country,
@@ -170,7 +169,7 @@ export const ParticipantRepository = {
     return await db
       .select({
         conversationId: p1.conversationId,
-        conversationType: conversations.conversationType,
+        conversationType: conversations.type,
       })
       .from(p1)
       .innerJoin(p2, eq(p1.conversationId, p2.conversationId))
@@ -182,7 +181,7 @@ export const ParticipantRepository = {
         and(
           eq(p1.userId, userId),
           eq(p2.userId, otherUserId),
-          eq(conversations.conversationType, "direct"),
+          eq(conversations.type, "direct"),
         ),
       )
       .limit(1);

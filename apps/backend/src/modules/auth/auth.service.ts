@@ -7,7 +7,6 @@ import {
   NewUser,
   RegisterGuest,
   RegisterUser,
-  UserMetaDataSchema,
 } from "@pingxy/shared/domain/user";
 import { ConnInfo } from "hono/conninfo";
 import { HTTPException } from "hono/http-exception";
@@ -27,19 +26,18 @@ export const AuthService = {
     const hashedPassword = await Bun.password.hash(body.password);
 
     const newUser = {
-      username: body.username,
-      role: "user" as const,
+      type: "user" as const,
       hashedPassword: hashedPassword,
+      username: body.username,
       age: body.age,
       gender: body.gender,
       country: body.country,
       bio: body.bio,
-      data: body.data,
     };
 
 
     const [user] = await UserService.createUser(newUser);
-    console.log("user created:: ", user)
+
 
     const token = crypto.randomUUID();
     await SessionService.createSession(token, user.id, ipAddress, userAgent);
@@ -65,8 +63,6 @@ export const AuthService = {
     const { hashedPassword, ...user } =
       await UserService.getAuthUserByUsername(username);
 
-    console.log({ sfsfsdf: user })
-
     if (!user) {
       throw new HTTPException(401, { message: "Invalid credentials" });
     }
@@ -82,10 +78,10 @@ export const AuthService = {
     await SessionService.createSession(token, user.id, ipAddress, userAgent);
 
     // Emit USER LOGIN EVENT
-    const validatedData = UserMetaDataSchema.parse(user.data)
+    // const validatedData = UserMetaDataSchema.parse(user.data);
 
     const event = createServerEvent(SERVER_EVENTS.USERS.LOGIN, {
-      user: { ...user, data: validatedData },
+      user: { ...user },
     });
     eventBus.emit(SERVER_EVENTS.USERS.LOGIN, event);
 
@@ -113,7 +109,6 @@ export const AuthService = {
       gender: body.gender,
       country: body.country,
       bio: body.bio,
-      data: body.data,
     };
     const [user] = await UserService.createUser(newUser);
 

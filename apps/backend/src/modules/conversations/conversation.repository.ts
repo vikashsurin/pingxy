@@ -161,7 +161,7 @@ export const ConversationRepository = {
       .innerJoin(p2, eq(conversations.id, p2.conversationId))
       .where(
         and(
-          eq(conversations.conversationType, "direct"),
+          eq(conversations.type, "direct"),
           eq(conversations.isDeleted, false),
           eq(participants.userId, id1),
           eq(p2.userId, id2),

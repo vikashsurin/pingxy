@@ -22,6 +22,8 @@ export async function setCookieHeaders({
         : afterEquals.substring(0, firstSemicolon)
     ).trim();
 
+    console.log({ name, value });
+
     cookies.set(name, value, {
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: true,

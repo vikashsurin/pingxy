@@ -1,42 +1,24 @@
 import { users } from "@pingxy/shared";
 import { NewUser } from "@pingxy/shared/domain/user";
-import { eq, inArray } from "drizzle-orm";
+import { eq, getTableColumns, inArray } from "drizzle-orm";
 import db, { DB_TX } from "src/common/db/client";
 
 import { insertUserSchema } from "@pingxy/shared/domain/user";
 
+const { hashedPassword, createdAt, updatedAt, ...safeUserColumns } = getTableColumns(users)
+export { safeUserColumns }
+
 export const UserRepository = {
   insert: async (newUser: NewUser) => {
-    // console.log("userdata", newUser)
-    const userData = {
-      username: newUser.username,
-      type: newUser.type,
-      hashedPassword: newUser.hashedPassword,
-      gender: newUser.gender,
-      age: newUser.age,
-      country: newUser.country,
-      bio: newUser.bio ?? null,
-      data: newUser.data ?? null,
-    }
     const user = insertUserSchema.parse(newUser);
-    return await db.insert(users).values(user).returning();
+    return await db.insert(users).values(user).returning(safeUserColumns);
   },
 
   // PS: Dont return hashedPassword
   selectById: async (id: number) => {
     return await db
       .select({
-        id: users.id,
-        username: users.username,
-        type: users.type,
-        age: users.age,
-        gender: users.gender,
-        country: users.country,
-        bio: users.bio,
-        data: users.data,
-        lastSeenAt: users.lastSeenAt,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
+        ...safeUserColumns,
       })
       .from(users)
       .where(eq(users.id, id));
@@ -49,16 +31,7 @@ export const UserRepository = {
   selectByUsername: async (username: string) => {
     return await db
       .select({
-        id: users.id,
-        username: users.username,
-        type: users.type,
-        age: users.age,
-        gender: users.gender,
-        country: users.country,
-        data: users.data,
-        lastSeenAt: users.lastSeenAt,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
+        ...safeUserColumns
       })
       .from(users)
       .where(eq(users.username, username));
@@ -85,16 +58,7 @@ export const UserRepository = {
   selectAll: async () => {
     return await db
       .select({
-        id: users.id,
-        username: users.username,
-        type: users.type,
-        age: users.age,
-        gender: users.gender,
-        country: users.country,
-        data: users.data,
-        lastSeenAt: users.lastSeenAt,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
+        ...safeUserColumns
       })
       .from(users);
   },
@@ -108,45 +72,13 @@ export const UserRepository = {
       })
       .where(eq(users.id, id))
       .returning({
-        id: users.id,
-        username: users.username,
-        type: users.type,
-        age: users.age,
-        gender: users.gender,
-        country: users.country,
-        data: users.data,
-        lastSeenAt: users.lastSeenAt,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
+        ...safeUserColumns
       });
   },
 
   delete: async (id: number) => {
     return await db.delete(users).where(eq(users.id, id)).returning({
-      id: users.id,
-      username: users.username,
-      type: users.type,
-      age: users.age,
-      gender: users.gender,
-      country: users.country,
-      data: users.data,
-      lastSeenAt: users.lastSeenAt,
-      createdAt: users.createdAt,
-      updatedAt: users.updatedAt,
+      ...safeUserColumns
     });
   },
 };
-
-const publicFields = [
-  "id",
-  "username",
-  "type",
-  "age",
-  "gender",
-  "country",
-  "bio",
-  "data",
-  "lastSeenAt",
-  "createdAt",
-  "updatedAt",
-];

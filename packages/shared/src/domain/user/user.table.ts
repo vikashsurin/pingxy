@@ -22,7 +22,6 @@ export const users = table(
     age: t.integer().notNull().default(18),
     country: t.text().notNull().default("AF"),
     bio: t.text(),
-    data: t.jsonb(),
     lastSeenAt: t.timestamp({ withTimezone: true }),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     updatedAt: t

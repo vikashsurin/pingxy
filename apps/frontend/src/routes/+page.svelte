@@ -14,7 +14,11 @@
       Connect globally, chat instantly.
     </p>
   </div>
-  <!-- <AuthForm {form} /> -->
+  <div class="flex gap-3">
+    <a href="/login">login</a>
+    <a href="/register">register</a>
+    <a href="/guest">guest</a>
+  </div>
   <div class="flex flex-col items-center justify-center">
     <span
       class="flex items-center text-amber-800 justify-center bg-amber-400 shadow-2xl shadow-amber-200 text-sm rounded-md border border-amber-500 gap-2 w-max px-3 py-2"

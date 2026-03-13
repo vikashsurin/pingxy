@@ -10,8 +10,12 @@ export const attachmentInsertSchema = createInsertSchema(attachments).pick({
   fileName: true,
   fileSize: true,
   mimeType: true,
+  messageId: true,
+  uploadedBy: true
 });
-export const attachmentResponseSchema = createSelectSchema(attachments).extend({
+export const attachmentResponseSchema = createSelectSchema(attachments, {
+  createdAt: z.coerce.date(),
+}).extend({
   url: z.string(),
   thumbUrl: z.string().optional()
 });

@@ -32,7 +32,6 @@ export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
       }),
     });
 
-    console.log({ envelope })
 
     if (!res.ok) throw new Error("Failed to send message");
 

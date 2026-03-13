@@ -33,6 +33,8 @@ const authHandle: Handle = async ({ event, resolve }) => {
     // This 'fetch' call will trigger 'handleFetch' automatically!
     const response = await event.fetch("/api/auth/me");
 
+    console.log({ response })
+
     if (response.ok) {
       const { user } = await response.json();
       event.locals.user = user;

@@ -8,7 +8,7 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
   open(ws) {
     const user = ws.data.user;
-    console.log(`${user.username} joined`);
+    console.info(`${user.username} joined`);
 
     // save the userSocket
     userSockets.set(user.id, {
@@ -26,7 +26,7 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
 
   close(ws) {
     emitDisconnected(ws.data.user);
-    console.log("closed connection");
+    console.warn("closed connection");
   },
 };
 

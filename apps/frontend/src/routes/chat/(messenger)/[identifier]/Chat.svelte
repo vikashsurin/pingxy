@@ -279,7 +279,7 @@
           {#if entry.senderId === user.id}
             <div class=" flex flex-col justify-end p-1 max-w-1/2 ml-auto">
               <div class="bg-blue-100 p-3">
-                <!-- <span class="font-bold">{entry.id}</span> -->
+                <span class="font-bold">{entry.id}</span>
                 <div class="flex flex-col">
                   {@render files(entry.id)}
                 </div>

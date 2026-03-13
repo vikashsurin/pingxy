@@ -34,7 +34,6 @@ export const AttachmentService = {
     }
     const result = await AttachmentRepository.bulkInsert({ allAttachments: attachments });
 
-    console.log("result from attachment service", result)
     return result
   },
 };
