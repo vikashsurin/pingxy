@@ -65,8 +65,6 @@ export class MessageStore {
   }
 
   setMessages(items: Message[]) {
-
-    console.log('setting the messages')
     for (const message of items) {
       if (!message?.id || !message?.conversationId) continue;
 
@@ -131,8 +129,6 @@ export class MessageStore {
       if (!response.ok) {
         throw new Error("Failed to fetch messages");
       }
-
-      console.log({ data });
 
       if (data.entities) {
         const { messages, receipts, attachments } = data.entities;

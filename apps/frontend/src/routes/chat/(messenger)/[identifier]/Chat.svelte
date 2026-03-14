@@ -11,8 +11,6 @@
 
   let { idValue, user } = $props();
 
-  $inspect({ message: messageStore.messages });
-
   const ESTIMATED_HEIGHT = 74;
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -260,10 +258,10 @@
         start of conversation
       </div>
     {:else}
-      <div
+      <!-- <div
         class="bg-amber-400 h-0 absolute top-0 w-full"
         use:interSectionObserver={loadOlder}
-      ></div>
+      ></div> -->
     {/if}
 
     <!-- only visible messages are in the DOM, absolutely positioned -->
@@ -325,10 +323,10 @@
     {/each}
 
     <!-- load newer sentinel: sits at the very bottom of the spacer -->
-    <div
+    <!-- <div
       class="bg-amber-400 absolute bottom-0 w-full h-0"
       use:interSectionObserver={loadNewer}
-    ></div>
+    ></div> -->
   </div>
 </div>
 

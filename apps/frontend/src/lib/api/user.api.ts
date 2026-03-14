@@ -8,3 +8,5 @@ export const createUserApi = (customFetch: typeof fetch = fetch) => ({
     return await response.json();
   },
 });
+
+export const userApi = createUserApi();

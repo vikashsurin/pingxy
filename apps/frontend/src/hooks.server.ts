@@ -2,7 +2,7 @@ import { env } from "$env/dynamic/private";
 import { sequence } from "@sveltejs/kit/hooks";
 import type { Handle, HandleFetch } from "@sveltejs/kit";
 
-const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL
+const INTERNAL_BACKEND_URL = env.INTERNAL_BACKEND_URL;
 
 // 1. THE NETWORKING HOOK (URL Swapping & Cookie Syncing)
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
@@ -32,8 +32,6 @@ const authHandle: Handle = async ({ event, resolve }) => {
   if (session && event.url.pathname.startsWith("/chat")) {
     // This 'fetch' call will trigger 'handleFetch' automatically!
     const response = await event.fetch("/api/auth/me");
-
-    console.log({ response })
 
     if (response.ok) {
       const { user } = await response.json();

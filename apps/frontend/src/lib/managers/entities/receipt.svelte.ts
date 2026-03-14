@@ -16,8 +16,9 @@ type ReceiptParams = {
   userId: number;
 };
 
+
 const createReceiptManager = () => ({
-  emitMarkSent: async () => {},
+  emitMarkSent: async () => { },
 
   emitMarkRead: async ({ receipt, senderId, userId }: ReceiptParams) => {
     const socket = validateSocket();
@@ -75,7 +76,6 @@ const createReceiptManager = () => ({
   },
 
   handleIncomingReceipts: (receipts: MessageReceipt[]) => {
-    console.log("handleIncomingReceipts", receipts);
     for (const receipt of receipts) {
       receiptStore.upsertReceipt(receipt);
     }

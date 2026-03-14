@@ -1,9 +1,14 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
+    import { createMessageApi } from "$lib/api/message.api.js";
+    import { createUserApi } from "$lib/api/user.api.js";
     import { receiptManager } from "$lib/managers/entities/receipt.svelte.js";
     import { attachmentStore } from "$lib/stores/attachmentStore.svelte.js";
+    import { conversationStore } from "$lib/stores/conversationStore.svelte.js";
     import { fileStore } from "$lib/stores/fileStore.svelte.js";
     import { messageStore } from "$lib/stores/messageStore.svelte.js";
     import { receiptStore } from "$lib/stores/receiptStore.svelte.js";
+    import { userStore } from "$lib/stores/userStore.svelte.js";
     import { validateSocket } from "$lib/utils/validateSocket.js";
     import LightBox from "./(attachments)/LightBox.svelte";
     import Chat from "./Chat.svelte";
@@ -13,67 +18,95 @@
     let { data } = $props();
 
     let showLightbox = $derived(fileStore.viewSelected);
+    let newConversation = $state(false);
+    let partnerId = $state<number>();
+    let conversationId = $state<number>();
+    // let currentUserId = $derived<number>();
 
-    // $inspect({ messages: messageStore.messages });
+    const chatState = $derived(
+        conversationStore.chatState.get(conversationId!),
+    );
+    $inspect({ isTyping: chatState?.isTyping });
 
-    // $inspect({ receipts: receiptStore.receipts });
-    // $inspect({ attachments: attachmentStore.attachments });
+    $effect(() => {
+        let cancelled = false;
+        const messageApi = createMessageApi();
 
-    let newChat = $derived.by(() => {
+        // 1. If UserType
         if (data.identifierType === "user") {
-            return true;
+            partnerId = data.idValue;
+            const cid = conversationStore.conversationByPartnerId.get(
+                data.idValue,
+            );
+            if (cid) {
+                goto(`/chat/c_${cid}`, { replaceState: true });
+                return;
+            }
+            newConversation = true;
         }
-        return false;
+
+        // 2. If ConversationType
+        if (data.identifierType === "conversation") {
+            newConversation = false;
+            messageStore.activeChatId = data.idValue;
+            conversationId = data.idValue;
+
+            const conv = conversationStore.partnerByConversationId.get(
+                data.idValue,
+            );
+            if (!conv) return;
+            partnerId = conv.participantUserId;
+
+            messageApi
+                .fetchMessages({ conversationId: data.idValue, limit: 20 })
+                .then((res) => {
+                    if (!cancelled) {
+                        messageStore.setMessages(res.entities.messages);
+                        receiptStore.setReceipts(res.entities.receipts);
+                        attachmentStore.setAttachments(
+                            res.entities.attachments,
+                        );
+                    }
+                });
+        }
+
+        return () => {
+            cancelled = true;
+        };
     });
 
     $effect(() => {
-        if (newChat || !data.idValue) return;
-
-        console.log("reached here!");
-        if (data.entities) {
-            messageStore.setMessages(data.entities.messages);
-            receiptStore.setReceipts(data.entities.receipts);
-            attachmentStore.setAttachments(data.entities.attachments);
-        }
-
-        const chat = messageStore.chats.get(data.idValue);
-        if (chat) chat.unreadCount = 0;
-    });
-
-    $effect(() => {
-        if (newChat || !data.idValue) return;
-
+        if (data.identifierType !== "conversation") return;
         const conversationId = data.idValue;
-
         const currentuserId = data.user.id;
-        const senderId = data.partner.id;
-
-        messageStore.activeChatId = conversationId;
-
-        const socket = validateSocket();
-        if (!socket) return;
-
-        receiptManager
-            .emitMarkAllRead({ conversationId, currentuserId, senderId })
-            .catch((err) => console.error("Failed to mark as read:", err));
+        receiptManager.emitMarkAllRead({
+            conversationId,
+            currentuserId,
+            senderId: partnerId!,
+        });
     });
 </script>
 
 <div id="chatbox" class="flex flex-col h-full">
-    <ChatHeader partner={data.partner} />
-    {#if newChat}
-        <div class="flex-1 flex min-h-0 items-center justify-center">
-            <p class="px-3 py-2 bg-gray-300 rounded">start a conversation</p>
-        </div>
-    {:else}
-        <Chat idValue={data.idValue} user={data.user} />
-    {/if}
+    {#if partnerId}
+        <ChatHeader id={partnerId} />
 
-    <ChatInput
-        partner={data.partner}
-        idValue={data.idValue}
-        identifier={data.identifier}
-    />
+        {#if newConversation}
+            <div class="flex-1 flex min-h-0 items-center justify-center">
+                <p class="px-3 py-2 bg-gray-300 rounded">
+                    start a conversation
+                </p>
+            </div>
+        {:else}
+            <Chat idValue={data.idValue} user={data.user} />
+        {/if}
+
+        <ChatInput
+            {partnerId}
+            idValue={data.idValue}
+            identifier={data.identifier}
+        />
+    {/if}
 </div>
 
 <!-- 1. Preview image/file -->

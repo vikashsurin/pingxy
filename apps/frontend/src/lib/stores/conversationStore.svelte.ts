@@ -1,24 +1,48 @@
-// import { SvelteMap } from "svelte/reactivity";
+import { SvelteMap } from "svelte/reactivity";
+import { chatStore } from "./store.svelte";
 
-// class ConversationStore {
-//   conversations = new SvelteMap<number, any>();
+class ChatState {
+  conversationId = $state<number>(0);
+  root: ConversationStore;
+  isTyping = $state(false);
+  private typingTimeout: any;
 
-//   // participantConversationMap
+  constructor(conversationId: number, root: ConversationStore) {
+    this.conversationId = conversationId;
+    this.root = root;
+  }
 
-//   //   1. conversations -> participants -> user details
-// }
-// const convMap = new Map({
-//   1: {
-//     partner: {},
-//     participants: [],
-//   },
-// });
+  handleTyping() {
+    this.isTyping = true;
+    clearTimeout(this.typingTimeout);
+    this.typingTimeout = setTimeout(() => (this.isTyping = false), 3000);
+  }
+}
 
-// const chatState = new Map([
-//     1:{
-//         isTyping:false,
-//         unreadCount:0
-//     }
-// ])
+class ConversationStore {
+  conversationByPartnerId = new SvelteMap<number, number>();
+  partnerByConversationId = new SvelteMap<number, any>();
 
-// export const conversationStore = new ConversationStore();
+  chatState = new SvelteMap<number, ChatState>();
+
+  buildConversationMap(items: any[]) {
+    const currentUserId = chatStore.currentUser?.id;
+
+    for (const row of items) {
+      const { conversationId, participantUserId } = row;
+
+      if (participantUserId === currentUserId) continue;
+
+      this.conversationByPartnerId.set(participantUserId, conversationId);
+      this.partnerByConversationId.set(conversationId, row);
+
+      // state
+      let state = this.chatState.get(conversationId);
+      if (!state) {
+        state = new ChatState(conversationId, this);
+        this.chatState.set(conversationId, state);
+      }
+    }
+  }
+}
+export const conversationStore = new ConversationStore();

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { conversationStore } from "$lib/stores/conversationStore.svelte";
   import { messageStore } from "$lib/stores/messageStore.svelte";
   import { chatStore } from "$lib/stores/store.svelte";
   import { type UIConversation } from "$lib/types/chat";
@@ -7,25 +8,29 @@
 
   let urlArray = $derived(page.url.pathname.split("/"));
 
+  const chats = $derived(Array.from(conversationStore.conversationByPartnerId));
+
+  $inspect({ currentUser: chatStore.currentUser });
+
   const handleClick = async (conversation: UIConversation) => {
     if (!conversation.conversationId) return;
 
-    chatStore.chatTarget = {
-      isUser: false,
-      type: "direct",
-      displayName: conversation.displayName,
-      partner: conversation.partner,
-      unreadCount: conversation.unreadCount,
-      participants: conversation.participants,
-      conversationId: conversation.conversationId,
-    };
+    // chatStore.chatTarget = {
+    //   isUser: false,
+    //   type: "direct",
+    //   displayName: conversation.displayName,
+    //   partner: conversation.partner,
+    //   unreadCount: conversation.unreadCount,
+    //   participants: conversation.participants,
+    //   conversationId: conversation.conversationId,
+    // };
   };
 </script>
 
 <div class="flex-1 flex flex-col overflow-hidden">
   <ul class=" overflow-y-auto w-full">
-    {#each messageStore.threads as [id, value] (id)}
-      {@render thread(id)}
+    {#each chats as [id, value] (id)}
+      {@render thread(value)}
     {/each}
   </ul>
 </div>
@@ -42,7 +47,7 @@
 {/snippet}
 
 {#snippet thread(id: number)}
-  {@const chat = messageStore.chats.get(id)}
+  {@const row = conversationStore.partnerByConversationId.get(id)}
   <li id={id.toString()}>
     <a href="/chat/c_{id}">
       <div
@@ -50,21 +55,20 @@
         style:background-color={`c_${id}` === urlArray.at(-1) ? "orange" : ""}
       >
         <!-- 1. gender icon -->
-        <span><GenderIcon gender={chat?.partner?.gender} /></span>
+        <span><GenderIcon gender={row.gender} /></span>
 
         <!-- 2. name -->
         <span class="ml-1">
-          {chat?.displayName}
+          {row.username}
         </span>
 
         <!-- 3. flag and unreadCount -->
         <div class="ml-auto flex items-center justify-end gap-2">
-          <span>{chat?.partner?.country}</span>
-          <span class={` fi fi-${chat?.partner?.country.toLocaleLowerCase()}`}>
-          </span>
+          <span>{row.country}</span>
+          <span class={` fi fi-${row.country.toLocaleLowerCase()}`}> </span>
           <span
             class="w-4 h-4 p-2 rounded-full bg-red-600 flex items-center font-xs justify-center text-white"
-            >{chat?.unreadCount}</span
+            >{row.unreadCount}</span
           >
         </div>
       </div>

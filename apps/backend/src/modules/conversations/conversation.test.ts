@@ -8,7 +8,7 @@ describe("Conversations Table Schema", () => {
     // await db.delete(conversations);
   });
   const userId = 1;
-  test.only("should insert a new conversation", async () => {
+  test("should insert a new conversation", async () => {
     const newConversation = {
       conversationType: "direct" as const,
       name: "Test Conversation",
@@ -19,6 +19,7 @@ describe("Conversations Table Schema", () => {
     const result = await ConversationRepository.insert(newConversation);
     expect(result).toHaveLength(1);
   });
+
 
   // test("should select a conversation by id", async () => {
   //   // const result = await queries.selectConversationById(7);
@@ -31,8 +32,8 @@ describe("Conversations Table Schema", () => {
     expect(result).toBeObject();
   });
 
-  test("should return all conversations of a user", async () => {
-    const result = await ConversationService.getAlByUser({ userId: 2 });
+  test.only("should return all conversations of a user", async () => {
+    const result = await ConversationService.getConversationDetails({ userId: 24 });
     console.log("result: ", JSON.stringify(result, null, 2));
     expect(result).toBeTruthy();
   });

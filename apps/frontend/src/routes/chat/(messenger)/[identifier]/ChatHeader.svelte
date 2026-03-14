@@ -3,10 +3,17 @@
     import { chatStore } from "$lib/stores/store.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
     import { EllipsisVertical } from "@lucide/svelte";
-    import type { User } from "@pingxy/shared";
+    import { users, type User } from "@pingxy/shared";
     import GenderIcon from "../GenderIcon.svelte";
+    import { userStore } from "$lib/stores/userStore.svelte";
 
-    let { partner }: { partner: User } = $props();
+    let { id }: { id: number } = $props();
+
+    let partner = $derived(userStore.get(id));
+
+    $effect(() => {
+        if (!partner) userStore.fetchIfMissing(id);
+    });
 
     const currentUser = $derived(chatStore.currentUser);
     let isBlocking = $state(false);
@@ -15,7 +22,9 @@
 </script>
 
 <div class="flex relative bg-white py-1 px-2 shrink-0 text-sm">
-    {#if partner}
+    {#if !partner}
+        <div>loading...</div>
+    {:else}
         <div class="flex w-full items-center gap-2">
             <span> Chatting with : </span>
 

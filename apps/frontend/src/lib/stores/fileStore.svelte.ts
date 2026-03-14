@@ -1,6 +1,6 @@
 // fileStore.svelte.ts
 import { formatFileSize } from "$lib/utils/file";
-import type { attachmentSelectSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
+import type { attachmentResponseSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
 import type z from "zod";
 
 class FileEntry {
@@ -11,7 +11,7 @@ class FileEntry {
 
   progress = $state(0);
   status = $state<"uploading" | "done" | "error">("uploading");
-  serverData = $state<z.infer<typeof attachmentSelectSchema> | null>(null);
+  serverData = $state<z.infer<typeof attachmentResponseSchema> | null>(null);
 
   constructor(file: File) {
     this.file = file;

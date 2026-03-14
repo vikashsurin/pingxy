@@ -2,12 +2,14 @@ import { ServerEventSchema } from "@pingxy/shared/socket/schema";
 import { handlers } from "./handlers/index";
 import { z } from "zod";
 
+let counter = 0;
 export const handleGenericEvent = (rawData: unknown) => {
   try {
     const result = ServerEventSchema.safeParse(rawData);
-
     // #Uncomment for Debugging
-    // console.log({ zodValidation: result });
+    // counter++
+    console.log({ zodValidation: result });
+    // console.log(`[Socket] Event ${counter}`);
 
     if (!result.success) {
       console.error(

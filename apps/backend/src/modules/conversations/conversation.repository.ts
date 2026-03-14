@@ -1,9 +1,9 @@
 import { conversations, participants, users } from "@pingxy/shared/domain";
+import { publicUserColumns } from "@pingxy/shared/domain/user/user.schema";
 import { type InsertConversationType } from "@pingxy/shared/types";
-import { and, desc, eq, getTableColumns, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, desc, inArray, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "src/common/db/client";
-import { publicUserColumns } from "@pingxy/shared/domain/user/user.schema";
 
 import { type DB_TX } from "src/common/db/client";
 
@@ -108,31 +108,64 @@ export const ConversationRepository = {
     return result[0] || null;
   },
 
-  selectByUserId: async (userId: number) => {
-    const p1 = alias(participants, "p1");
-    const p2 = alias(participants, "p2");
+  // repository — just the query, scoped to userId
+  getView: async (userId: number, tx: DB_TX = db) => {
+    const userConversations = db
+      .select({ conversationId: participants.conversationId })
+      .from(participants)
+      .where(eq(participants.userId, userId));
 
-    // Get conversations with all participant details
-    const result = await db
+    return await tx
       .select({
-        unreadCount: p1.unreadCount,
         conversationId: conversations.id,
+        lastMessageAt: conversations.lastMessageAt,
+        lastMessageId: conversations.lastMessageId,
+        participantId: participants.id,
+        participantUserId: participants.userId,
+        unreadCount: participants.unreadCount,
+        lastReadAt: participants.lastReadAt,
+        username: users.username,
+        age: users.age,
+        gender: users.gender,
+        country: users.country,
+        lastSeenAt: users.lastSeenAt,
       })
       .from(conversations)
-      .innerJoin(p1, eq(p1.conversationId, conversations.id))
-      .innerJoin(
-        p2,
-        and(
-          eq(p2.conversationId, conversations.id),
-          ne(p2.userId, userId),
-        ),
-      )
-      .innerJoin(users, eq(users.id, p2.userId))
-      .where(eq(p1.userId, userId))
-      .orderBy(desc(conversations.createdAt))
-      .limit(10);
-    return result;
+      .innerJoin(participants, eq(participants.conversationId, conversations.id))
+      .innerJoin(users, eq(users.id, participants.userId))
+      .where(inArray(conversations.id, userConversations))   // 👈 scope to user
+      .orderBy(desc(conversations.lastMessageAt));
   },
+
+
+  // selectParticipantsByConversationId: async (ids: number[], tx: DB_TX = db) => {
+  //   const result =
+  // }
+  // selectByUserId: async (userId: number) => {
+  //   const p1 = alias(participants, "p1");
+  //   const p2 = alias(participants, "p2");
+
+  //   // Get conversations with all participant details
+  //   const result = await db
+  //     .select({
+  //       unreadCount: p1.unreadCount,
+  //       conversationId: conversations.id,
+  //     })
+  //     .from(conversations)
+  //     .innerJoin(p1, eq(p1.conversationId, conversations.id))
+  //     .innerJoin(
+  //       p2,
+  //       and(
+  //         eq(p2.conversationId, conversations.id),
+  //         ne(p2.userId, userId),
+  //       ),
+  //     )
+  //     .innerJoin(users, eq(users.id, p2.userId))
+  //     .where(eq(p1.userId, userId))
+  //     .orderBy(desc(conversations.createdAt))
+  //     .limit(10);
+  //   return result;
+  // },
 
   selectDirectExisting: async (
     userIdA: number,

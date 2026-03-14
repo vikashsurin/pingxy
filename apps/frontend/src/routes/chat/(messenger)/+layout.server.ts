@@ -21,5 +21,10 @@ export const load: LayoutServerLoad = async ({ fetch, cookies, locals }) => {
     }),
   ]);
 
-  return { conversations, blockedUserIds };
+  // Use this data
+  const conversationData = await conversationApi.fetchInitialData();
+
+  // console.log({ conversationData });
+
+  return { conversations, blockedUserIds, conversationData };
 };

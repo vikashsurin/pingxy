@@ -22,6 +22,31 @@ export const ConversationService = {
     }
   },
 
+  getConversationDetails: async ({ userId }: { userId: number }) => {
+    const rows = await ConversationRepository.getView(userId);
+
+
+    // 1. partnerId → conversationId  (for clicking an online user)
+    // const conversationByPartnerId = new Map<number, number>();
+
+    // // 2. conversationId → partnerRow  (for clicking a conversation)
+    // const partnerByConversationId = new Map<number, any>();
+
+
+    // for (const row of rows) {
+    //   const { conversationId, participantUserId } = row;
+
+    //   if (participantUserId === 24) continue; // skip self rows
+
+    //   conversationByPartnerId.set(participantUserId, conversationId);
+    //   partnerByConversationId.set(conversationId, row);
+    // }
+
+
+    // console.log('sdf: ', { conversationByPartnerId, partnerByConversationId })
+    return rows;
+  },
+
   findOrCreateByUsers: async ({
     currentUserId,
     userId,

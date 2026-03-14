@@ -1,3 +1,4 @@
+import { getTableColumns } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/index";
@@ -8,15 +9,12 @@ import {
   MIN_PASSWORD_LENGTH,
 } from "../../constants/user";
 import { users } from "./user.table";
-import { getTableColumns } from "drizzle-orm";
 
 const allColumns = getTableColumns(users);
 const { hashedPassword, ...publicColumns } = allColumns;
 export const publicUserColumns = publicColumns;
 
 export const insertUserSchema = createInsertSchema(users);
-
-export const UserMetaDataSchema = z.object({});
 
 const BaseUserSchema = z.object({
   username: z
@@ -45,14 +43,13 @@ export const GuestUserRequestSchema = BaseUserSchema;
 export const selectUserSchema = createSelectSchema(users)
   .omit({
     hashedPassword: true,
+    createdAt: true,
+    updatedAt: true,
   })
   .extend({
     lastSeenAt: z.coerce.date().nullable(),
-    createdAt: z.coerce.date(),
-    updatedAt: z.coerce.date(),
+    isOnline: z.boolean().optional(),
   });
-
-// export const UserUpdateSchema = createUpdateSchema(users);
 
 export const usersList = z.object({
   id: z.uuid(),

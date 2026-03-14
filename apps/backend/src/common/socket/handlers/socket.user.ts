@@ -16,7 +16,7 @@ export const emitUserList = () => {
   const users: User[] = [];
 
   for (const [id, data] of userSockets.entries()) {
-    users.push({ ...data.user });
+    users.push({ ...data.user, isOnline: true });
   }
 
   const message = createServerEvent(SERVER_EVENTS.USERS.LIST, {
@@ -34,7 +34,7 @@ export const emitUserList = () => {
 
 export const emitConnected = (user: User) => {
   const message = createServerEvent(SERVER_EVENTS.USERS.CONNECTED, {
-    user: user,
+    user: { ...user, isOnline: true },
   });
 
   for (const [id, data] of userSockets.entries()) {
@@ -48,7 +48,7 @@ export const emitConnected = (user: User) => {
 
 export const emitDisconnected = (user: User) => {
   const message = createServerEvent(SERVER_EVENTS.USERS.DISCONNECTED, {
-    user: user,
+    user: { ...user },
   });
 
   for (const [id, data] of userSockets.entries()) {

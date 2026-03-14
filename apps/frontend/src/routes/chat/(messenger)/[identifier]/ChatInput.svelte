@@ -5,18 +5,19 @@
     import { fileStore } from "$lib/stores/fileStore.svelte";
     import { messageStore } from "$lib/stores/messageStore.svelte";
     import { chatStore } from "$lib/stores/store.svelte";
+    import { userStore } from "$lib/stores/userStore.svelte";
     import { Paperclip, Smile, X } from "@lucide/svelte";
-    import type {
-        attachmentInsertSchema,
-        attachmentResponseSchema,
-    } from "@pingxy/shared/domain/attachment/attachment.schema";
+    import type { attachmentResponseSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
     import { tick } from "svelte";
     import z from "zod";
     import Attachment from "./(attachments)/Attachment.svelte";
     import AttachmentMenu from "./(attachments)/AttachmentMenu.svelte";
     import EmojiMenu from "./(attachments)/EmojiMenu.svelte";
+    import { conversationStore } from "$lib/stores/conversationStore.svelte";
 
-    let { identifier, idValue, partner } = $props();
+    let { identifier, idValue, partnerId } = $props();
+
+    let partner = $derived(userStore.get(partnerId));
 
     let textInput = $state("");
     let messageInputRef = $state<HTMLTextAreaElement>();
@@ -34,13 +35,12 @@
             ),
     );
 
-    $inspect({ attachments });
-
     // 2. Emoji related states
     let showEmojiPopup = $state(false);
 
+    // 3. Send message
     async function handleSend() {
-        if (!identifier) {
+        if (!identifier || !partner) {
             chatStore.errorMessage = "No identifier provided";
             return;
         }
@@ -78,13 +78,14 @@
         }
     }
 
+    // 4. Typing indicator
     let typingThrottle: any;
 
     function handleInput() {
         if (typingThrottle) return;
+        if (!partner) return;
 
         uxManager.emitTyping({ conversationId: idValue, userId: partner.id });
-
         typingThrottle = setTimeout(() => {
             typingThrottle = null;
         }, 2000);
@@ -107,13 +108,7 @@
 </script>
 
 <div class="flex relative gap-2 bg-white shrink-0 p-2 border-t border-gray-100">
-    {#if messageStore.chats.get(idValue)?.isTyping}
-        <span
-            class="text-xs bg-gray-100 text-gray-500 absolute py-0.5 px-2 rounded-t-sm bottom-full"
-            >Typing...</span
-        >
-    {/if}
-
+    {@render typingIndicator()}
     <!-- use:clickOutside={() => (showAttachmentsPopup = false)} -->
     <!-- handle this TODO -->
     {#if false}
@@ -218,4 +213,13 @@
             <EmojiMenu onSelect={handleSelectEmoji} bind:showEmojiPopup />
         </div>
     </div>
+{/snippet}
+
+{#snippet typingIndicator()}
+    {#if conversationStore.chatState.get(idValue)?.isTyping}
+        <span
+            class="text-xs bg-blue-50 text-blue-500 absolute py-0.5 px-2 rounded-t-sm bottom-full"
+            >Typing...</span
+        >
+    {/if}
 {/snippet}

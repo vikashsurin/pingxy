@@ -83,6 +83,16 @@ export const ConversationController = {
     },
   ),
 
+  getConversationDetailsForUser: factory.createHandlers(
+    async (c) => {
+      const { id } = c.get("user");
+      const result = await ConversationService.getConversationDetails({
+        userId: id,
+      });
+      return c.json(result);
+    },
+  ),
+
   getConversationByUserIds: factory.createHandlers(
     validate(
       "param",
