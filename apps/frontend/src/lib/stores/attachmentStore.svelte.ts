@@ -1,9 +1,9 @@
-import type { attachmentSelectSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
+import type { attachmentResponseSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 
 class AttachmentStore {
-  attachments = new SvelteMap<number, z.infer<typeof attachmentSelectSchema>>();
+  attachments = new SvelteMap<number, z.infer<typeof attachmentResponseSchema>>();
   messageAttachementMap = new SvelteMap<number, SvelteSet<number>>();
 
   // OPTIMIZATION: Use a derived state to cache the array conversions
@@ -22,7 +22,7 @@ class AttachmentStore {
     return cache;
   });
 
-  upsertAttachment(attachment: z.infer<typeof attachmentSelectSchema>) {
+  upsertAttachment(attachment: z.infer<typeof attachmentResponseSchema>) {
     // 1. Identity check (Optimized: Skip set if data is identical)
     // If you are sure the data might change (e.g. upload progress), keep the set.
     this.attachments.set(attachment.id, attachment);
@@ -37,7 +37,7 @@ class AttachmentStore {
       .add(attachment.id);
   }
 
-  setAttachments(items: z.infer<typeof attachmentSelectSchema>[]) {
+  setAttachments(items: z.infer<typeof attachmentResponseSchema>[]) {
     // Batch processing
     for (const item of items) {
       this.upsertAttachment(item);

@@ -6,7 +6,6 @@
 
   let { searchQuery, gender } = $props();
 
-  // $inspect("#cache users:: ", userStore.getOnlineUsers());
 
   let sortedUsers = $derived.by(() => {
     const searchLower = searchQuery.trim().toLowerCase();
@@ -37,18 +36,18 @@
     // chatStore.target = { isUser: true, user: user };
     // chatStore.initChat(user);
 
-    chatStore.chatTarget = {
-      isUser: true,
-      type: "direct",
-      displayName: user.username,
-      partner: {
-        id: user.id,
-        username: user.username,
-        gender: user.gender,
-        age: user.age,
-        country: user.country,
-      },
-    };
+    // chatStore.chatTarget = {
+    //   isUser: true,
+    //   type: "direct",
+    //   displayName: user.username,
+    //   partner: {
+    //     id: user.id,
+    //     username: user.username,
+    //     gender: user.gender,
+    //     age: user.age,
+    //     country: user.country,
+    //   },
+    // };
   }
 </script>
 

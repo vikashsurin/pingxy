@@ -8,7 +8,7 @@ export const handleGenericEvent = (rawData: unknown) => {
     const result = ServerEventSchema.safeParse(rawData);
     // #Uncomment for Debugging
     // counter++
-    console.log({ zodValidation: result });
+    // console.log({ zodValidation: result });
     // console.log(`[Socket] Event ${counter}`);
 
     if (!result.success) {

@@ -1,62 +1,19 @@
-import type { UIConversation } from "$lib/types/chat";
 import type {
   blockedUserInfoSchema,
   messageCreatedSchema,
 } from "@pingxy/shared";
 import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
 import { tick } from "svelte";
-import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import { SvelteSet } from "svelte/reactivity";
 import type z from "zod";
+import { attachmentStore } from "./attachmentStore.svelte";
 import { messageStore } from "./messageStore.svelte";
 import { receiptStore } from "./receiptStore.svelte";
-import { attachmentStore } from "./attachmentStore.svelte";
 
-export type Conversation = {
-  id: number;
-  type: "direct" | "group";
-  unreadCount: number;
-  name: string;
-  participants: User[];
-};
-
-type HydratedParticipant = {
-  participantId: number;
-  conversationId: number;
-  userId: number;
-  role: "member" | "admin" | "moderator";
-  joinedAt: string;
-  leftAt: null;
-  isActive: true;
-  username: string;
-  userType: "user" | "guest";
-  data: {
-    gender: string;
-    age: number;
-    country: string;
-    roles: string[];
-  };
-};
-
-export type ChatTarget = {
-  isUser: boolean;
-  type: "direct" | "group";
-  displayName: string;
-  partner?: {
-    id: number;
-    username: string;
-    gender: string;
-    age: number;
-    country: string;
-  };
-  unreadCount?: number;
-  participants?: HydratedParticipant[];
-  conversationId?: number;
-};
-
-export type ChatEntry = {
-  message: Message;
-  receipt: MessageReceipt;
-};
+// export type ChatEntry = {
+//   message: Message;
+//   receipt: MessageReceipt;
+// };
 
 class ChatStore {
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -86,19 +43,8 @@ class ChatStore {
     }, 10);
   }
 
-  chatTarget = $state<ChatTarget | null>(null);
 
   blockedUserIds = new SvelteSet<number>();
-  onlineUsers = $state<User[]>([]);
-  visibleOnlineUsers = $derived.by<User[]>(() => {
-    return this.onlineUsers.filter((u) => !this.blockedUserIds.has(u.id));
-  });
-
-  _conversations = $state<Record<number, UIConversation>>({});
-
-  pendingReceipts = $state<Record<number, MessageReceipt[]>>({});
-
-  unread = new SvelteMap<number, number[]>();
 
   blockedUsers = $state<z.infer<typeof blockedUserInfoSchema>[]>([]);
 
@@ -119,8 +65,6 @@ class ChatStore {
   reset() {
     this.isConnected = false;
     this.currentUser = null;
-    this.onlineUsers = [];
-    // this.error = "";
   }
 }
 

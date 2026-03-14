@@ -1,6 +1,6 @@
 import { redirect, type Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
-import { unblockAction } from "./actions/block";
+import { unblockAction } from "$lib/actions/block";
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
   if (!locals.user) throw redirect(302, "/");

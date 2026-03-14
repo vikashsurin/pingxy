@@ -4,7 +4,10 @@ import { chatStore } from "./store.svelte";
 class ChatState {
   conversationId = $state<number>(0);
   root: ConversationStore;
+
+  // conversation states
   isTyping = $state(false);
+  unreadCount = $state(0);
   private typingTimeout: any;
 
   constructor(conversationId: number, root: ConversationStore) {
@@ -25,6 +28,8 @@ class ConversationStore {
 
   chatState = new SvelteMap<number, ChatState>();
 
+  
+  
   buildConversationMap(items: any[]) {
     const currentUserId = chatStore.currentUser?.id;
 
@@ -42,6 +47,8 @@ class ConversationStore {
         state = new ChatState(conversationId, this);
         this.chatState.set(conversationId, state);
       }
+
+      state.unreadCount = row.unreadCount;
     }
   }
 }

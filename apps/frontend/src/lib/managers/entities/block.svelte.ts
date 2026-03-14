@@ -1,6 +1,5 @@
 import { blockApi } from "$lib/api/block";
-import type { blockedUserSelectSchema } from "@pingxy/shared";
-import type z from "zod";
+import { userStore } from "$lib/stores/userStore.svelte";
 import { chatStore } from "../../stores/store.svelte";
 
 const createBlockManager = () => ({
@@ -11,7 +10,8 @@ const createBlockManager = () => ({
 
     const blockedUser = await blockApi.blockUser({ blockerId, blockedId });
     if (blockedUser) {
-      chatStore.blockedUserIds.add(blockedId);
+      userStore.blockedUserIds.add(blockedId);
+      // chatStore.blockedUserIds.add(blockedId);
     }
     return;
   },
@@ -20,7 +20,8 @@ const createBlockManager = () => ({
 
     const unblockedUser = await blockApi.unblockUser({ blockId });
     if (unblockedUser) {
-      chatStore.blockedUserIds.delete(blockId);
+      userStore.unblockUser(blockId);
+      // chatStore.blockedUserIds.delete(blockId);
     }
     return;
   },
@@ -32,9 +33,11 @@ const createBlockManager = () => ({
     const blocks = await blockApi.fetchBlockedUserIds({ blockerId });
 
     if (blocks) {
-      blocks.forEach((block: z.infer<typeof blockedUserSelectSchema>) => {
-        chatStore.blockedUserIds.add(block.blockedId);
-      });
+      userStore.seedFromBlockedUsers(blocks)
+
+      // blocks.forEach((block: z.infer<typeof blockedUserSelectSchema>) => {
+      //   chatStore.blockedUserIds.add(block.blockedId);
+      // });
     }
 
     return;

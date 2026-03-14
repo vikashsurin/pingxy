@@ -29,7 +29,6 @@
             });
     });
 
-    // $inspect({ allEmojis });
 
     // Derived filtered list (Updates automatically when searchTerm or allEmojis changes)
     let filteredEmojis = $derived(

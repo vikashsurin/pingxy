@@ -16,7 +16,6 @@ const createUxManager = () => ({
     conversationId: number;
     userId: number;
   }) => {
-    console.log("emitting typing");
     const socket = validateSocket();
     if (!socket) return;
 

@@ -40,9 +40,6 @@
     }
   }
 
-  // $inspect({ entities });
-  // $inspect({ messageAttachmentMap });
-
   $effect(() => {
     console.log("entities", $state.snapshot(entities));
     console.log("messageAttachmentMap", $state.snapshot(messageAttachmentMap));

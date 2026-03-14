@@ -1,11 +1,10 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
     import { chatStore } from "$lib/stores/store.svelte";
+    import { userStore } from "$lib/stores/userStore.svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
     import { EllipsisVertical } from "@lucide/svelte";
-    import { users, type User } from "@pingxy/shared";
     import GenderIcon from "../GenderIcon.svelte";
-    import { userStore } from "$lib/stores/userStore.svelte";
 
     let { id }: { id: number } = $props();
 
@@ -68,34 +67,35 @@
             isBlocking = true;
 
             return async ({ result, update }) => {
-                if (result.type === "success" && result.data) {
-                    const actionResult = result.data as {
-                        success: boolean;
-                        blocked: { blockedId: number };
-                    };
-
-                    chatStore.blockedUserIds.add(
-                        actionResult.blocked.blockedId,
-                    );
-                }
                 await update();
+                if (result.type === "success" && result.data) {
+                    const data = result.data as any;
+                    if (data.success && data.blocked?.blockedId) {
+                        userStore.blockUser(data.blocked.blockedId);
+                    }
+                }
                 isBlocking = false;
             };
         }}
     >
         <input type="hidden" name="userId" value={partner?.id} />
-        <button
+        <!-- <button
             class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-200"
-        >
-            <!-- <Ban size={14} /> -->
-            {#if isBlocking}
-                <span>Blocking...</span>
-            {:else if chatStore.blockedUserIds.has(partner?.id!)}
+        > -->
+        <!-- <Ban size={14} /> -->
+        {#if isBlocking}
+            {@render menuItem("Blocking...")}
+        {:else if userStore.isBlocked(partner?.id!)}
+            <button
+                disabled
+                class="flex items-center w-full gap-1.5 py-1 px-3 bg-gray-900 text-red-500"
+            >
                 <span>Blocked</span>
-            {:else}
-                <span>Block</span>
-            {/if}
-        </button>
+            </button>
+        {:else}
+            {@render menuItem("Block")}
+        {/if}
+        <!-- </button> -->
     </form>
 {/snippet}
 
@@ -105,5 +105,13 @@
     >
         <!-- <Eye size={14} /> -->
         <span>View</span>
+    </button>
+{/snippet}
+
+{#snippet menuItem(text: string)}
+    <button
+        class="flex items-center w-full gap-1.5 py-1 px-3 hover:bg-gray-200"
+    >
+        <span>{text}</span>
     </button>
 {/snippet}

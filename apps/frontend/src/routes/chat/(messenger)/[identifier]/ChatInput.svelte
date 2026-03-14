@@ -111,7 +111,7 @@
     {@render typingIndicator()}
     <!-- use:clickOutside={() => (showAttachmentsPopup = false)} -->
     <!-- handle this TODO -->
-    {#if false}
+    {#if userStore.isBlocked(partnerId)}
         {@render blockedUserNotice()}
     {:else}
         <button

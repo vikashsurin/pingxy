@@ -1,18 +1,16 @@
-// import { userApi } from "$lib/api/user.api";
 import { createUserApi } from "$lib/api/user.api";
 import type { User } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
 class UserStore {
-  blockedUserIds = new Set<number>();
+  blockedUserIds = new SvelteSet<number>();
+  blockedUsers = new SvelteMap<number, User>();
 
   #cache = new SvelteMap<number, User>();
   #pending = new SvelteSet();
 
-  isBlocked(id: number) {
-    this.blockedUserIds.has(id);
-  }
 
+  // 1. #Users#
   get(id: number) {
     return this.#cache.get(id);
   }
@@ -61,9 +59,35 @@ class UserStore {
     this.#pending.delete(id);
   }
 
-  // onlineUsers =
-  // onlineUsers =
-  // blockedUsers
+
+  // 2. #BLOCK#
+  blockUser(id: number) {
+    this.blockedUserIds.add(id);
+  }
+
+  unblockUser(id: number) {
+    this.blockedUserIds.delete(id);
+  }
+
+  isBlocked(id: number) {
+    return this.blockedUserIds.has(id);
+  }
+
+  getBlockedUserIds() {
+    return Array.from(this.blockedUserIds);
+  }
+  // change blocked user type
+  //  handle load blocked users with data.
+  seedFromBlockedUsers(blockedUserIds: any[]) {
+    for (const block of blockedUserIds) {
+      this.blockedUserIds.add(block.blockedId);
+
+      // const existing = this.blockedUsers.get(block.id);
+      // if (!existing) {
+      //   this.blockedUsers.set(block.id, b);
+      // }
+    }
+  }
 }
 
 export const userStore = new UserStore();

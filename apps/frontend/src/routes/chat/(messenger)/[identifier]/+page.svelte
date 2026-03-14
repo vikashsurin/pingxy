@@ -1,7 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { createMessageApi } from "$lib/api/message.api.js";
-    import { createUserApi } from "$lib/api/user.api.js";
     import { receiptManager } from "$lib/managers/entities/receipt.svelte.js";
     import { attachmentStore } from "$lib/stores/attachmentStore.svelte.js";
     import { conversationStore } from "$lib/stores/conversationStore.svelte.js";
@@ -9,7 +8,6 @@
     import { messageStore } from "$lib/stores/messageStore.svelte.js";
     import { receiptStore } from "$lib/stores/receiptStore.svelte.js";
     import { userStore } from "$lib/stores/userStore.svelte.js";
-    import { validateSocket } from "$lib/utils/validateSocket.js";
     import LightBox from "./(attachments)/LightBox.svelte";
     import Chat from "./Chat.svelte";
     import ChatHeader from "./ChatHeader.svelte";
@@ -26,7 +24,6 @@
     const chatState = $derived(
         conversationStore.chatState.get(conversationId!),
     );
-    $inspect({ isTyping: chatState?.isTyping });
 
     $effect(() => {
         let cancelled = false;
