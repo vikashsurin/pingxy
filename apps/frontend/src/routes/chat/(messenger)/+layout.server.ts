@@ -1,4 +1,4 @@
-import { createBlockApi } from "$lib/api/block";
+import { createBlockApi } from "$lib/api/block.api";
 import { createConversationApi } from "$lib/api/conversation.api";
 import { redirect } from "@sveltejs/kit";
 import type { LayoutServerLoad } from "./$types";
@@ -11,20 +11,13 @@ export const load: LayoutServerLoad = async ({ fetch, cookies, locals }) => {
   const blockApi = createBlockApi(fetch);
   const conversationApi = createConversationApi(fetch);
 
-  const [conversations, blockedUserIds] = await Promise.all([
-    conversationApi.fetchConversations({
-      userId: locals.user.id,
-    }),
+  const [conversationData, blockedUserIds] = await Promise.all([
+    conversationApi.fetchInitialData(),
 
     blockApi.fetchBlockedUserIds({
       blockerId: locals.user.id,
     }),
   ]);
 
-  // Use this data
-  const conversationData = await conversationApi.fetchInitialData();
-
-  // console.log({ conversationData });
-
-  return { conversations, blockedUserIds, conversationData };
+  return { blockedUserIds, conversationData };
 };

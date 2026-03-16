@@ -1,7 +1,7 @@
 import { conversations, participants, users } from "@pingxy/shared/domain";
 import { publicUserColumns } from "@pingxy/shared/domain/user/user.schema";
 import { type InsertConversationType } from "@pingxy/shared/types";
-import { and, eq, desc, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, desc, inArray, ne, sql, aliasedTable } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "src/common/db/client";
 
@@ -12,12 +12,48 @@ export const ConversationRepository = {
     return await tx.insert(conversations).values(conversation).returning();
   },
 
+
+  updateActivity: async ({
+    id,
+    lastMessageId,
+    tx = db }: { id: number; lastMessageId: number; tx?: DB_TX }) => {
+    return await tx
+      .update(conversations)
+      .set({ lastMessageId: lastMessageId, lastMessageAt: sql`now()` })
+      .where(eq(conversations.id, id))
+      .returning({
+        id: conversations.id,
+        type: conversations.type,
+        name: conversations.name,
+        lastMessageId: conversations.lastMessageId,
+        lastMessageAt: conversations.lastMessageAt,
+      });
+  },
+
   selectById: async (id: number) => {
     return await db
       .select()
       .from(conversations)
       .where(eq(conversations.id, id))
       .limit(1);
+  },
+
+  selectAll: async ({ userId, tx = db }: { userId: number, tx?: DB_TX }) => {
+    const c = conversations;
+    const p = participants;
+    const rows = await tx
+      .select({
+        id: c.id,
+        type: c.type,
+        name: c.name,
+        lastMessageId: c.lastMessageId,
+        lastMessageAt: c.lastMessageAt,
+      })
+      .from(c)
+      .innerJoin(p, eq(p.conversationId, c.id))
+      .where(eq(p.userId, userId));
+
+    return rows;
   },
 
   selectManyById: async ({ ids, tx = db }: { ids: number[]; tx?: DB_TX }) => {
@@ -136,7 +172,35 @@ export const ConversationRepository = {
       .where(inArray(conversations.id, userConversations))   // 👈 scope to user
       .orderBy(desc(conversations.lastMessageAt));
   },
+  //
 
+  test: async (userId: number, tx: DB_TX = db) => {
+    return await tx
+      .select({
+        conversationId: conversations.id,
+        lastMessageAt: conversations.lastMessageAt,
+        lastMessageId: conversations.lastMessageId,
+        participantId: participants.id,
+        participantUserId: participants.userId,
+        unreadCount: participants.unreadCount,
+        lastReadAt: participants.lastReadAt,
+        username: users.username,
+        age: users.age,
+        gender: users.gender,
+        country: users.country,
+        lastSeenAt: users.lastSeenAt,
+      })
+      .from(conversations)
+      .innerJoin(
+        participants,
+        and(
+          eq(participants.conversationId, conversations.id),
+          eq(participants.userId, userId)  // scope to user AND get only their row
+        )
+      )
+      .innerJoin(users, eq(users.id, participants.userId))
+      .orderBy(desc(conversations.lastMessageAt));
+  },
 
   // selectParticipantsByConversationId: async (ids: number[], tx: DB_TX = db) => {
   //   const result =

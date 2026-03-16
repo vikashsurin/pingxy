@@ -95,7 +95,13 @@ export const messageCreatedSchema = z.object({
     }),
     attachments: z.array(attachmentResponseSchema),
     receipt: selectMessageReceiptSchema,
-    conversationId: z.number(),
+    conversation: z.object({
+      id: z.number(),
+      name: z.string().nullable(),
+      type: z.enum(["direct", "group"]),
+      lastMessageId: z.number().nullable(),
+      lastMessageAt: z.coerce.date().nullable(),
+    }),
     sender: selectUserSchema,
     recipient: z.object({
       id: z.number(),

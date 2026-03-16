@@ -1,4 +1,4 @@
-import { createBlockApi } from "$lib/api/block";
+import { createBlockApi } from "$lib/api/block.api";
 import type { Action } from "@sveltejs/kit";
 import { fail } from "@sveltejs/kit";
 

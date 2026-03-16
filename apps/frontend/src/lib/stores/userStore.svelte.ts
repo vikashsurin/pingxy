@@ -9,7 +9,6 @@ class UserStore {
   #cache = new SvelteMap<number, User>();
   #pending = new SvelteSet();
 
-
   // 1. #Users#
   get(id: number) {
     return this.#cache.get(id);
@@ -28,7 +27,10 @@ class UserStore {
   }
 
   upsert(user: User) {
-    this.#cache.set(user.id, user);
+    const existing = this.#cache.get(user.id);
+    if (!existing) {
+      this.#cache.set(user.id, { ...user, isOnline: false });
+    }
   }
 
   setOnline(id: number) {
@@ -43,8 +45,16 @@ class UserStore {
 
   // filter blocked users
   seedFromOnlineUsers(users: any[]) {
+    // Optimization
+    // create the #cache_data and the set this.#cache at once, without a loop
     for (const user of users) {
       this.#cache.set(user.id, { ...user, isOnline: true });
+    }
+  }
+
+  seedFromUsers(users: any[]) {
+    for (const user of users) {
+      this.#cache.set(user.id, { ...user, isOnline: false });
     }
   }
 
@@ -58,7 +68,6 @@ class UserStore {
     this.#cache.set(id, { ...user, isOnline: false });
     this.#pending.delete(id);
   }
-
 
   // 2. #BLOCK#
   blockUser(id: number) {

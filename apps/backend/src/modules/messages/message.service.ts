@@ -11,6 +11,7 @@ import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import { HTTPException } from "hono/http-exception";
 import db from "src/common/db/client";
 import { AttachmentService } from "@modules/attachments/attachment.service";
+import { ConversationRepository } from "@modules/conversations/conversation.repository";
 
 export const MessageService = {
   sendMessage: async (
@@ -49,6 +50,14 @@ export const MessageService = {
       content: message.content,
     });
 
+    // update conversation activity
+    const [updatedConversation] = await ConversationRepository.updateActivity({
+      id: conversation.id,
+      lastMessageId: insertedMessage.id,
+    })
+
+
+
     const savedAttachments = await AttachmentService.createAttachment({
       attachments,
       userId: message.senderId,
@@ -79,7 +88,7 @@ export const MessageService = {
       message: insertedMessage,
       attachments: attachmentsWithUrls,
       receipt: messageReceipt,
-      conversationId: conversation.id,
+      conversation: updatedConversation,
       sender: sender,
       recipient: recipient,
     });

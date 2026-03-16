@@ -33,6 +33,16 @@ export const ConversationController = {
     },
   ),
 
+  initialFetch: factory.createHandlers(
+    async (c) => {
+      const user = c.get("user");
+      const userId = user.id;
+      const data = await ConversationService.convAggregation({ userId })
+      if (!data) return c.notFound();
+      return c.json(data);
+    },
+  ),
+
   getAllMessages: factory.createHandlers(
     validate("param", z.object({ conversationId: z.coerce.number() })),
     validate(
@@ -83,15 +93,15 @@ export const ConversationController = {
     },
   ),
 
-  getConversationDetailsForUser: factory.createHandlers(
-    async (c) => {
-      const { id } = c.get("user");
-      const result = await ConversationService.getConversationDetails({
-        userId: id,
-      });
-      return c.json(result);
-    },
-  ),
+  // getConversationDetailsForUser: factory.createHandlers(
+  //   async (c) => {
+  //     const { id } = c.get("user");
+  //     const result = await ConversationService.getConversationDetails({
+  //       userId: id,
+  //     });
+  //     return c.json(result);
+  //   },
+  // ),
 
   getConversationByUserIds: factory.createHandlers(
     validate(

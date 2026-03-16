@@ -1,5 +1,5 @@
-import { conversations, dbSelectMessageSchema, ParticipantInsertType, participants, users } from "@pingxy/shared";
-import { aliasedTable, and, eq, getTableColumns, inArray, ne, sql } from "drizzle-orm";
+import { conversations, ParticipantInsertType, participants, users } from "@pingxy/shared";
+import { aliasedTable, and, eq, inArray, ne, sql } from "drizzle-orm";
 import db, { type DB_TX } from "src/common/db/client";
 
 export const ParticipantRepository = {
@@ -75,6 +75,70 @@ export const ParticipantRepository = {
       .where(eq(participants.conversationId, conversationId));
   },
 
+  test: async ({ userId, tx = db }: { userId: number, tx?: DB_TX }) => {
+    const c = conversations;
+    const u = users;
+    const p = participants;
+    return await tx
+      .select()
+      .from(p)
+      .where(
+        and(
+          eq(p.userId, userId),
+          eq(p.conversationId, c.id),
+        )
+      )
+      .leftJoin(u, eq(p.userId, u.id))
+      .leftJoin(c, eq(p.conversationId, c.id));
+  },
+
+
+
+  // selectManyByConvIds: async ({ conversationIds }: { conversationIds: number[] }) => {
+  //   const p = participants;
+  //   const u = users;
+  //   return await db
+  //     .select({
+  //       id: p.id,
+  //       conversationId: p.conversationId,
+  //       userId: p.userId,
+  //       role: p.role,
+  //       lastReadMessageId: p.lastReadMessageId,
+  //       lastReadAt: p.lastReadAt,
+  //       unreadCount: p.unreadCount,
+  //       // user: {
+  //       //   id: u.id,
+  //       //   type: u.type,
+  //       //   username: u.username,
+  //       //   email: u.email,
+  //       //   age: u.age,
+  //       //   gender: u.gender,
+  //       //   country: u.country,
+  //       //   bio: u.bio,
+  //       //   lastSeenAt: u.lastSeenAt
+  //       // }
+  //     })
+  //     .from(p)
+  //     .where(inArray(participants.conversationId, conversationIds))
+  //     .leftJoin(u, eq(p.userId, u.id))
+  // },
+
+  selectManyByConvIds: async ({ conversationIds }: { conversationIds: number[] }) => {
+    const p = participants;
+    return await db
+      .select({
+        id: p.id,
+        conversationId: p.conversationId,
+        userId: p.userId,
+        role: p.role,
+        lastReadMessageId: p.lastReadMessageId,
+        lastReadAt: p.lastReadAt,
+        unreadCount: p.unreadCount,
+      })
+      .from(p)
+      .where(inArray(participants.conversationId, conversationIds))
+  },
+
 
   selectManyParticipantsByManyConversationIds: async ({ conversationIds, tx = db }: { conversationIds: number[], tx?: DB_TX }) => {
     return await tx
@@ -82,6 +146,7 @@ export const ParticipantRepository = {
         participantId: participants.id,
         conversationId: participants.conversationId,
         userId: participants.userId,
+        unreadCount: participants.unreadCount,
         role: participants.role,
         joinedAt: participants.joinedAt,
         leftAt: participants.leftAt,

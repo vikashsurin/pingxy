@@ -38,21 +38,20 @@ export const UserRepository = {
   },
 
   selectManyByIds: async ({
-    ids,
-
+    uIds,
     tx = db,
   }: {
-    ids: number[];
+    uIds: number[];
 
     tx?: DB_TX;
   }) => {
+    const u = users;
     return await tx
       .select({
-        id: users.id,
-        username: users.username,
+        ...safeUserColumns,
       })
-      .from(users)
-      .where(inArray(users.id, ids));
+      .from(u)
+      .where(inArray(u.id, uIds));
   },
 
   selectAll: async () => {
@@ -75,6 +74,8 @@ export const UserRepository = {
         ...safeUserColumns
       });
   },
+
+
 
   delete: async (id: number) => {
     return await db.delete(users).where(eq(users.id, id)).returning({

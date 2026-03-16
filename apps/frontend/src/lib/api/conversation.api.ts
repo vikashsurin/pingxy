@@ -1,6 +1,6 @@
 export const createConversationApi = (customFetch: typeof fetch = fetch) => ({
   fetchInitialData: async () => {
-    const res = await customFetch(`/api/conversations/temp`, {
+    const res = await customFetch(`/api/conversations`, {
       method: "GET",
       credentials: "include",
     });
@@ -27,7 +27,7 @@ export const createConversationApi = (customFetch: typeof fetch = fetch) => ({
       },
     );
     if (!res.ok) throw new Error("Failed to fetch partner");
-    return await res.json();
+    return await res.json();  
   },
 
   findByUser: async ({ userId }: { userId: number }) => {

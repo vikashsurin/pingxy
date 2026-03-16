@@ -8,7 +8,6 @@ export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
     conversationId: number;
     limit: number;
   }) => {
-    const before = 20;
     const res = await customFetch(
       `/api/conversations/${conversationId}/messages?limit=${limit}`,
       {
@@ -31,7 +30,6 @@ export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
         ...envelope,
       }),
     });
-
 
     if (!res.ok) throw new Error("Failed to send message");
 

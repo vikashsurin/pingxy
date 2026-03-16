@@ -1,4 +1,4 @@
-import { blockApi } from "$lib/api/block";
+import { blockApi } from "$lib/api/block.api";
 import { userStore } from "$lib/stores/userStore.svelte";
 import { chatStore } from "../../stores/store.svelte";
 

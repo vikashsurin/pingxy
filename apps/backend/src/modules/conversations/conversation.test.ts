@@ -32,15 +32,20 @@ describe("Conversations Table Schema", () => {
     expect(result).toBeObject();
   });
 
-  test.only("should return all conversations of a user", async () => {
-    const result = await ConversationService.getConversationDetails({ userId: 24 });
-    console.log("result: ", JSON.stringify(result, null, 2));
-    expect(result).toBeTruthy();
-  });
-
   test("should return a conversation ", async () => {
     const result = await ConversationRepository.selectById(4);
     console.log({ result });
     expect(result).toBeDefined();
   });
+
+  test("should return conversation details for a user", async () => {
+    const result = await ConversationRepository.selectAll({ userId: 24 })
+    console.log(result);
+    expect(result).toBeDefined();
+  })
+  test.only('should return all conversations for a user', async () => {
+    const result = await ConversationService.convAggregation({ userId: 5 })
+    console.log(result);
+    expect(result).toBeDefined();
+  })
 });

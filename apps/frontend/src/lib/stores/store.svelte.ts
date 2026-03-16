@@ -9,6 +9,7 @@ import type z from "zod";
 import { attachmentStore } from "./attachmentStore.svelte";
 import { messageStore } from "./messageStore.svelte";
 import { receiptStore } from "./receiptStore.svelte";
+import { conversationStore } from "./conversationStore.svelte";
 
 // export type ChatEntry = {
 //   message: Message;
@@ -43,6 +44,9 @@ class ChatStore {
     }, 10);
   }
 
+  get user() {
+    return this.currentUser;
+  }
 
   blockedUserIds = new SvelteSet<number>();
 
@@ -60,6 +64,7 @@ class ChatStore {
     messageStore.upsertMessage(message);
     receiptStore.upsertReceipt(receipt);
     attachmentStore.setAttachments(attachments);
+    conversationStore.upsertConversation(payload.conversation);
   }
 
   reset() {

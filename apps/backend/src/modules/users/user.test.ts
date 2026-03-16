@@ -18,7 +18,7 @@ describe("Users Table Schema", async () => {
     expect(result).toBeArray();
   });
 
-  test.only("should insert a user", async () => {
+  test("should insert a user", async () => {
     const newUser: NewUser = {
       username: 'Ritika',
       type: "user" as const,
@@ -78,7 +78,7 @@ describe("Users Table Schema", async () => {
   });
 
   test("should return many users", async () => {
-    const users = await UserRepository.selectManyByIds({ ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] });
+    const users = await UserRepository.selectManyByIds({ uIds: [24,25,26,27] });
     console.log({ users });
   });
 });

@@ -11,7 +11,7 @@ export const conversations = table(
   "conversations",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    type: conversationTypesEnum().default("direct"),
+    type: conversationTypesEnum().default("direct").notNull(),
     name: t.varchar("name", { length: 100 }),
     lastMessageId: t.integer(),
     lastMessageAt: t.timestamp({ withTimezone: true }),

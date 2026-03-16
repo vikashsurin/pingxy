@@ -6,7 +6,6 @@
 
   let { searchQuery, gender } = $props();
 
-
   let sortedUsers = $derived.by(() => {
     const searchLower = searchQuery.trim().toLowerCase();
     return userStore
@@ -35,7 +34,6 @@
   function handleClick(user: User) {
     // chatStore.target = { isUser: true, user: user };
     // chatStore.initChat(user);
-
     // chatStore.chatTarget = {
     //   isUser: true,
     //   type: "direct",

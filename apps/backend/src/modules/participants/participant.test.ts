@@ -10,7 +10,7 @@ describe("Participants Table Schema", () => {
     // await db.delete(participants);
   });
 
-  test.only("should insert a new participant", async () => {
+  test("should insert a new participant", async () => {
     const newParticipant = {
       conversationId: 2,
       userId: 3,
@@ -32,14 +32,6 @@ describe("Participants Table Schema", () => {
     expect(participant).toBeTruthy();
   });
 
-  test("should get many participants by many conversation ids", async () => {
-    const participants =
-      await ParticipantRepository.selectManyParticipantsByManyConversationIds({
-        conversationIds: [3, 4, 5],
-      });
-    console.log({ participants });
-    expect(participants).toBeTruthy();
-  });
 
   test("should select all participants", async () => {
     const participants =
@@ -47,4 +39,12 @@ describe("Participants Table Schema", () => {
     console.log({ participants });
     expect(participants).toBeTruthy();
   });
+
+
+
+  test("select conv participants users", async () => {
+    const result = await ParticipantRepository.test({ userId: 2 })
+    console.log(result);
+    expect(result).toBeTruthy();
+  })
 });

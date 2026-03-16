@@ -2,6 +2,7 @@ import db, { DB_TX } from "@common/db/client";
 import { ParticipantRepository } from "@modules/participants/participant.repository";
 
 import { ConversationRepository } from "./conversation.repository";
+import { UserRepository } from "@modules/users/user.repository";
 
 export const ConversationService = {
   findByUsers: async ({
@@ -22,30 +23,44 @@ export const ConversationService = {
     }
   },
 
-  getConversationDetails: async ({ userId }: { userId: number }) => {
-    const rows = await ConversationRepository.getView(userId);
 
+  convAggregation: async ({ userId }: { userId: number }) => {
+    const conversations = await ConversationRepository.selectAll({ userId })
+    const cIds = conversations.map((c) => c.id);
 
-    // 1. partnerId → conversationId  (for clicking an online user)
-    // const conversationByPartnerId = new Map<number, number>();
+    const participants = await ParticipantRepository.selectManyByConvIds({ conversationIds: cIds });
+    const uIds = participants.map((p) => p.userId);
 
-    // // 2. conversationId → partnerRow  (for clicking a conversation)
-    // const partnerByConversationId = new Map<number, any>();
+    const users = await UserRepository.selectManyByIds({ uIds: uIds });
 
-
-    // for (const row of rows) {
-    //   const { conversationId, participantUserId } = row;
-
-    //   if (participantUserId === 24) continue; // skip self rows
-
-    //   conversationByPartnerId.set(participantUserId, conversationId);
-    //   partnerByConversationId.set(conversationId, row);
-    // }
-
-
-    // console.log('sdf: ', { conversationByPartnerId, partnerByConversationId })
-    return rows;
+    // may also send cids,uids,pids if needed
+    return { conversations, participants, users };
   },
+
+  // getConversationDetails: async ({ userId }: { userId: number }) => {
+  //   const rows = await ConversationRepository.getView(userId);
+
+
+  //   // 1. partnerId → conversationId  (for clicking an online user)
+  //   // const conversationByPartnerId = new Map<number, number>();
+
+  //   // // 2. conversationId → partnerRow  (for clicking a conversation)
+  //   // const partnerByConversationId = new Map<number, any>();
+
+
+  //   // for (const row of rows) {
+  //   //   const { conversationId, participantUserId } = row;
+
+  //   //   if (participantUserId === 24) continue; // skip self rows
+
+  //   //   conversationByPartnerId.set(participantUserId, conversationId);
+  //   //   partnerByConversationId.set(conversationId, row);
+  //   // }
+
+
+  //   // console.log('sdf: ', { conversationByPartnerId, partnerByConversationId })
+  //   return rows;
+  // },
 
   findOrCreateByUsers: async ({
     currentUserId,

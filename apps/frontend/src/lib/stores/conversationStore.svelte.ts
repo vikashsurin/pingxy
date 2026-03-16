@@ -1,4 +1,4 @@
-import { SvelteMap } from "svelte/reactivity";
+import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import { chatStore } from "./store.svelte";
 
 class ChatState {
@@ -23,32 +23,83 @@ class ChatState {
 }
 
 class ConversationStore {
-  conversationByPartnerId = new SvelteMap<number, number>();
-  partnerByConversationId = new SvelteMap<number, any>();
-
   chatState = new SvelteMap<number, ChatState>();
 
-  
-  
-  buildConversationMap(items: any[]) {
-    const currentUserId = chatStore.currentUser?.id;
+  // conversation id array to maintain order of conversations.
+  convIds = $state<any[]>([]);
 
-    for (const row of items) {
-      const { conversationId, participantUserId } = row;
+  participants = $state<any[]>([]);
 
-      if (participantUserId === currentUserId) continue;
+  // conversationId -> conversation
+  cm = new SvelteMap<number, any>();
 
-      this.conversationByPartnerId.set(participantUserId, conversationId);
-      this.partnerByConversationId.set(conversationId, row);
+  // conversationId -> Set<participantId>
+  cp = new SvelteMap<number, SvelteSet<number>>();
 
-      // state
-      let state = this.chatState.get(conversationId);
-      if (!state) {
-        state = new ChatState(conversationId, this);
-        this.chatState.set(conversationId, state);
+  // participantId -> userId
+  pu = new SvelteMap<number, number>();
+
+  // userid -> conversationId
+  uc = new SvelteMap<number, number>();
+
+  getPartnerId(cid: number) {
+    const user = chatStore.user;
+    console.log({ user });
+    const ids = this.cp.get(cid);
+    if (!ids) return;
+    for (const id of ids) {
+      const uid = this.pu.get(id);
+      if (user?.id !== uid) return uid;
+    }
+  }
+
+  recentChats = $derived.by(() => {
+    return this.convIds
+      .map((id) => {
+        return {
+          ...this.cm.get(id),
+          participants: this.cp.get(id) ?? new SvelteSet<number>(),
+          partnerId: this.getPartnerId(id),
+        };
+      })
+      .sort((a, b) => b.lastMessageId - a.lastMessageId);
+  });
+
+  upsertConversation(c: any) {
+    const id = c.id;
+    const wasMissing = !this.cm.has(id);
+
+    this.cm.set(id, c);
+
+    if (wasMissing) {
+      this.convIds.push(id);
+    }
+  }
+
+  seedFromConversations(items: any[]) {
+    for (const item of items) {
+      this.upsertConversation(item);
+    }
+  }
+
+  seedFromParticipants(items: any[]) {
+    for (const item of items) {
+      // # cp
+      let set = this.cp.get(item.conversationId);
+      if (!set) {
+        set = new SvelteSet<number>();
+        this.cp.set(item.conversationId, set);
       }
+      set.add(item.id);
 
-      state.unreadCount = row.unreadCount;
+      // # pu
+      this.pu.set(item.id, item.userId);
+
+      // # uc
+      this.uc.set(item.userId, item.conversationId);
+
+      // userStore #cache upsert into user cache.
+      // userStore.upsert(item.user);
     }
   }
 }

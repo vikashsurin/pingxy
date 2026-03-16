@@ -1,5 +1,5 @@
-import type { Actions } from "@sveltejs/kit";
 import { blockAction } from "$lib/actions/block.js";
+import type { Actions } from "@sveltejs/kit";
 
 export const load = async ({ params, fetch, locals }) => {
   const { identifier } = params;
@@ -12,7 +12,6 @@ export const load = async ({ params, fetch, locals }) => {
   };
 };
 
-
 export const actions: Actions = {
-  block: blockAction
-}
+  block: blockAction,
+};

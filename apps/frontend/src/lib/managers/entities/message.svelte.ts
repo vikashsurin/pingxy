@@ -6,16 +6,12 @@ import {
   type User,
 } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
+import type { attachmentInsertSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
+import { z } from "zod";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
-import type {
-  attachmentInsertSchema,
-  attachmentResponseSchema,
-} from "@pingxy/shared/domain/attachment/attachment.schema";
-import { z } from "zod";
-
 
 const createMessageManager = () => ({
   sendMessage: async ({
@@ -56,6 +52,8 @@ const createMessageManager = () => ({
 
     try {
       const message = await messageApi.createMessage(envelope);
+
+      console.log({ incoming: message });
       if (message) {
         const { data }: { data: z.infer<typeof messageCreatedSchema> } =
           message;
@@ -80,20 +78,19 @@ const createMessageManager = () => ({
     const isExistingConv = identifier.startsWith("c_");
     const idValue = Number(identifier.replace(/^[cu]_/, ""));
   },
-  updateMessage: async () => { },
+  updateMessage: async () => {},
 
-  deleteMessage: async () => { },
+  deleteMessage: async () => {},
 
   handleIncomingMessage: async (
     data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
   ) => {
-    const { message, conversationId, sender, receipt } = data.payload;
+    const { message, conversation, receipt } = data.payload;
     const currentUserId = chatStore.currentUser?.id;
-
 
     chatStore.upsertEntity(data.payload);
 
-    const isViewing = messageStore.activeChatId === conversationId;
+    const isViewing = messageStore.activeChatId === conversation.id;
     const isFromMe = data.payload.message.senderId === currentUserId;
     if (!isFromMe) {
       if (isViewing) {
@@ -109,13 +106,12 @@ const createMessageManager = () => ({
           userId: currentUserId!,
         });
 
-        const chat = messageStore.chats.get(conversationId);
+        const chat = messageStore.chats.get(conversation.id);
         if (chat) chat.unreadCount += 1;
       }
     }
   },
 });
-
 
 // export const updateMessage = async () => {};
 // export const deleteMessage = async () => {};
