@@ -54,7 +54,6 @@ const createMessageManager = () => ({
     try {
       const message = await messageApi.createMessage(envelope);
 
-      console.log({ incoming: message });
       if (message) {
         const { data }: { data: z.infer<typeof messageCreatedSchema> } =
           message;

@@ -95,7 +95,8 @@ export const AuthService = {
       bio: user.bio ?? '',
       lastSeentAt: user.lastSeenAt?.toISOString() ?? '',
     });
-    await redis.expire(`user:${user.id}`, 3600)
+    // TODO set expiry
+    // await redis.expire(`user:${user.id}`, 3600)
 
     const event = createServerEvent(SERVER_EVENTS.USERS.LOGIN, {
       user: { ...user },

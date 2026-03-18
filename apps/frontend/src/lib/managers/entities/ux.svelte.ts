@@ -1,7 +1,6 @@
 import { send } from "$lib/socket/socket.svelte";
 import { conversationStore } from "$lib/stores/conversationStore.svelte";
 import { chatStore } from "$lib/stores/store.svelte";
-import { validateSocket } from "$lib/utils/validateSocket";
 import {
   DOMAIN_EVENTS,
   SERVER_EVENTS,
@@ -17,14 +16,11 @@ const createUxManager = () => ({
     conversationId: number;
     userId: number;
   }) => {
-    const socket = validateSocket();
-    if (!socket) return;
-
     const payload = createClientReq(DOMAIN_EVENTS.TYPING.START, {
       conversationId: conversationId,
       userId: userId,
     });
-    socket.send(JSON.stringify(payload));
+    send(payload);
   },
 
   handleTypingEvent: (

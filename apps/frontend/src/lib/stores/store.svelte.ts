@@ -2,19 +2,14 @@ import type {
   blockedUserInfoSchema,
   messageCreatedSchema,
 } from "@pingxy/shared";
-import type { Message, MessageReceipt, User } from "@pingxy/shared/types/index";
+import type { User } from "@pingxy/shared/types/index";
 import { tick } from "svelte";
 import { SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 import { attachmentStore } from "./attachmentStore.svelte";
+import { conversationStore } from "./conversationStore.svelte";
 import { messageStore } from "./messageStore.svelte";
 import { receiptStore } from "./receiptStore.svelte";
-import { conversationStore } from "./conversationStore.svelte";
-
-// export type ChatEntry = {
-//   message: Message;
-//   receipt: MessageReceipt;
-// };
 
 class ChatStore {
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -48,16 +43,15 @@ class ChatStore {
     return this.currentUser;
   }
 
-  blockedUserIds = new SvelteSet<number>();
+  // blockedUserIds = new SvelteSet<number>();
 
-  blockedUsers = $state<z.infer<typeof blockedUserInfoSchema>[]>([]);
+  // blockedUsers = $state<z.infer<typeof blockedUserInfoSchema>[]>([]);
 
   // Maximum messages to keep in memory per conversation
   // private readonly MESSAGE_LIMIT = 100;
   readonly LIMIT = 20;
 
   upsertEntity(payload: z.infer<typeof messageCreatedSchema>["payload"]) {
-    console.log({ payload });
     const { message, receipt, attachments } = payload;
 
     // messageStore.

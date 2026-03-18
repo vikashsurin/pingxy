@@ -33,7 +33,7 @@ const createBlockManager = () => ({
     const blocks = await blockApi.fetchBlockedUserIds({ blockerId });
 
     if (blocks) {
-      userStore.seedFromBlockedUsers(blocks)
+      userStore.seedFromBlockedUsers(blocks);
 
       // blocks.forEach((block: z.infer<typeof blockedUserSelectSchema>) => {
       //   chatStore.blockedUserIds.add(block.blockedId);
@@ -60,7 +60,7 @@ const createBlockManager = () => ({
   //   await fetchBlockedUserIds();
   // },
   removeBlockedFromState: (blockedId: number) => {
-    chatStore.blockedUserIds.delete(blockedId);
+    // chatStore.blockedUserIds.delete(blockedId);
   },
 });
 

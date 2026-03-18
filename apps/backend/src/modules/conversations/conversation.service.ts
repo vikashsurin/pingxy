@@ -37,9 +37,9 @@ export const ConversationService = {
     const cIds = conversations.map((c) => c.id);
 
     const participants = await ParticipantRepository.selectManyByConvIds({ conversationIds: cIds });
-    const uIds = participants.map((p) => p.userId);
+    const ids = participants.map((p) => p.userId);
 
-    const users = await UserRepository.selectManyByIds({ uIds: uIds });
+    const users = await UserRepository.selectManyByIds({ ids: ids });
 
     // may also send cids,uids,pids if needed
     return { conversations, participants, users };

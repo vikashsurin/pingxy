@@ -38,10 +38,10 @@ export const UserRepository = {
   },
 
   selectManyByIds: async ({
-    uIds,
+    ids,
     tx = db,
   }: {
-    uIds: number[];
+    ids: number[];
 
     tx?: DB_TX;
   }) => {
@@ -51,7 +51,7 @@ export const UserRepository = {
         ...safeUserColumns,
       })
       .from(u)
-      .where(inArray(u.id, uIds));
+      .where(inArray(u.id, ids));
   },
 
   selectAll: async () => {

@@ -1,14 +1,11 @@
-import { messageStore } from "$lib/stores/messageStore.svelte";
-import { validateSocket } from "$lib/utils/validateSocket";
+import { send } from "$lib/socket/socket.svelte";
+import { receiptStore } from "$lib/stores/receiptStore.svelte";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type {
-  Message,
   MessageReceipt,
   ReceiptRequestType,
 } from "@pingxy/shared/types/index";
 import { createClientReq } from "..";
-import { chatStore } from "../../stores/store.svelte";
-import { receiptStore } from "$lib/stores/receiptStore.svelte";
 
 type ReceiptParams = {
   receipt: MessageReceipt;
@@ -16,27 +13,20 @@ type ReceiptParams = {
   userId: number;
 };
 
-
 const createReceiptManager = () => ({
-  emitMarkSent: async () => { },
+  emitMarkSent: async () => {},
 
   emitMarkRead: async ({ receipt, senderId, userId }: ReceiptParams) => {
-    const socket = validateSocket();
-    if (!socket) return;
-
     const payload = createClientReq(DOMAIN_EVENTS.RECEIPTS.READ, {
       conversationId: receipt.conversationId,
       messageId: receipt.messageId,
       readerId: userId,
       sender: { id: senderId },
     });
-    socket.send(JSON.stringify(payload));
+    send(payload);
   },
 
   emitMarkDelivered: async ({ receipt, senderId, userId }: ReceiptParams) => {
-    const socket = validateSocket();
-    if (!socket) return;
-
     const payload: ReceiptRequestType = {
       id: crypto.randomUUID(),
       type: DOMAIN_EVENTS.RECEIPTS.DELIVER,
@@ -47,7 +37,7 @@ const createReceiptManager = () => ({
         sender: { id: senderId },
       },
     };
-    socket.send(JSON.stringify(payload));
+    send(payload);
   },
 
   emitMarkAllRead: async ({
@@ -59,9 +49,6 @@ const createReceiptManager = () => ({
     currentuserId: number;
     senderId: number;
   }) => {
-    const socket = validateSocket();
-    if (!socket || !chatStore.currentUser) return;
-
     const payload: ReceiptRequestType = {
       type: DOMAIN_EVENTS.RECEIPTS.ALL_READ,
       id: crypto.randomUUID(),
@@ -72,7 +59,7 @@ const createReceiptManager = () => ({
       },
     };
 
-    socket.send(JSON.stringify(payload));
+    send(payload);
   },
 
   handleIncomingReceipts: (receipts: MessageReceipt[]) => {

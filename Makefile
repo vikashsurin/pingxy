@@ -22,7 +22,7 @@ RESET  := \033[0m
 .PHONY: up down restart logs ps clean
 
 # Start environment (Usage: make up | make up ENV=prod)
-start:
+dev:
 	@echo "$(GREEN)🚀 Starting $(ENV) environment...$(RESET)"
 	$(DC) up -d --build
 
