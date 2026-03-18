@@ -5,19 +5,19 @@ import { createClientReq } from "../factory";
 
 const createUserManager = () => ({
   setOnlineUsers: (users: User[]) => {
-    chatStore.onlineUsers = users;
+    // chatStore.onlineUsers = users;
     userStore.seedFromOnlineUsers(users);
   },
 
   addOnlineUser: (user: User) => {
-    chatStore.onlineUsers.push(user);
+    // chatStore.onlineUsers.push(user);
     userStore.upsert(user);
   },
 
   removeOnlineUser: (user: User) => {
-    chatStore.onlineUsers = chatStore.onlineUsers.filter(
-      (u) => u.id !== user.id,
-    );
+    // chatStore.onlineUsers = chatStore.onlineUsers.filter(
+    //   (u) => u.id !== user.id,
+    // );
     userStore.setOffline(user.id);
   },
 

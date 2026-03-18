@@ -1,8 +1,9 @@
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { User } from "@pingxy/shared/types";
 import { createServerEvent } from "../socket.factory";
-import { userSockets } from "../state/socketState";
 
+import redis from "@common/redis";
+import { connectionManager } from "../connectionManager";
 import { SocketHandler } from "./index";
 
 export const userHandler: SocketHandler = {
@@ -12,34 +13,52 @@ export const userHandler: SocketHandler = {
   },
 };
 
-export const emitUserList = () => {
-  const users: User[] = [];
+export const emitUserList = async () => {
+  const users = await redis.smembers("online_users");
 
-  for (const [id, data] of userSockets.entries()) {
-    users.push({ ...data.user, isOnline: true });
-  }
+  const results = await Promise.all(
+    users.map(async (u) => {
+      const raw = await redis.hgetall(`user:${u}`);
+      return {
+        ...raw,
+        id: Number(raw.id),
+        age: Number(raw.age),
+        email: raw.email || null,
+        username: raw.username,
+        country: raw.country,
+        bio: raw.bio || null,
+        lastSeenAt: raw.lastSeenAt ? new Date(raw.lastSeenAt) : null,
+        type: raw.type as "admin" | "moderator" | "user" | "guest",
+        gender: raw.gender as "male" | "female" | "other",
+        isOnline: true,
+      };
+    }),
+  );
+
 
   const message = createServerEvent(SERVER_EVENTS.USERS.LIST, {
-    users: users,
+    users: results,
   });
+  const sockets = connectionManager.getSockets();
 
-  for (const [id, data] of userSockets.entries()) {
+  for (const [id, socket] of sockets.entries()) {
     try {
-      data.socket.send(JSON.stringify(message));
+      socket.send(JSON.stringify(message));
     } catch (error) {
       console.error(`Failed to send to user ${id}: `, error);
     }
   }
+
 };
 
 export const emitConnected = (user: User) => {
   const message = createServerEvent(SERVER_EVENTS.USERS.CONNECTED, {
     user: { ...user, isOnline: true },
   });
-
-  for (const [id, data] of userSockets.entries()) {
+  const sockets = connectionManager.getSockets()
+  for (const [id, socket] of sockets.entries()) {
     try {
-      data.socket.send(JSON.stringify(message));
+      socket.send(JSON.stringify(message));
     } catch (error) {
       console.error(`Failed to send to user ${id}: `, error);
     }
@@ -51,9 +70,10 @@ export const emitDisconnected = (user: User) => {
     user: { ...user },
   });
 
-  for (const [id, data] of userSockets.entries()) {
+  const sockets = connectionManager.getSockets()
+  for (const [id, socket] of sockets.entries()) {
     try {
-      data.socket.send(JSON.stringify(message));
+      socket.send(JSON.stringify(message));
     } catch (error) {
       console.error(`Failed to send to user ${id}: `, error);
     }

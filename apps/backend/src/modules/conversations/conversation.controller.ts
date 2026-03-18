@@ -5,16 +5,17 @@ import { z } from "zod";
 import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 import { after } from "node:test";
+import { messageCreateSchema } from "@pingxy/shared/domain";
 
 export const ConversationController = {
-  getAll: factory.createHandlers(
-    validate("query", z.object({ userId: z.coerce.number() })),
+
+  initialFetch: factory.createHandlers(
     async (c) => {
-      const { userId } = c.req.valid("query");
-      const result = await ConversationService.getAlByUser({
-        userId,
-      });
-      return c.json(result);
+      const user = c.get("user");
+      const userId = user.id;
+      const data = await ConversationService.convAggregation({ userId })
+      if (!data) return c.notFound();
+      return c.json(data);
     },
   ),
 
@@ -33,15 +34,6 @@ export const ConversationController = {
     },
   ),
 
-  initialFetch: factory.createHandlers(
-    async (c) => {
-      const user = c.get("user");
-      const userId = user.id;
-      const data = await ConversationService.convAggregation({ userId })
-      if (!data) return c.notFound();
-      return c.json(data);
-    },
-  ),
 
   getAllMessages: factory.createHandlers(
     validate("param", z.object({ conversationId: z.coerce.number() })),
@@ -93,15 +85,17 @@ export const ConversationController = {
     },
   ),
 
-  // getConversationDetailsForUser: factory.createHandlers(
-  //   async (c) => {
-  //     const { id } = c.get("user");
-  //     const result = await ConversationService.getConversationDetails({
-  //       userId: id,
-  //     });
-  //     return c.json(result);
-  //   },
-  // ),
+  createMessage: factory.createHandlers(
+    validate("json", messageCreateSchema),
+    async (c) => {
+      const body = c.req.valid("json");
+
+      const message = await ConversationService.sendMessage(body);
+
+      return c.json({ data: message }, 201);
+    },
+  ),
+
 
   getConversationByUserIds: factory.createHandlers(
     validate(

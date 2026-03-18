@@ -1,4 +1,6 @@
-import { messageStore } from "$lib/stores/messageStore.svelte";
+import { send } from "$lib/socket/socket.svelte";
+import { conversationStore } from "$lib/stores/conversationStore.svelte";
+import { chatStore } from "$lib/stores/store.svelte";
 import { validateSocket } from "$lib/utils/validateSocket";
 import {
   DOMAIN_EVENTS,
@@ -6,7 +8,6 @@ import {
   type ServerEventMap,
 } from "@pingxy/shared";
 import { createClientReq } from "../factory";
-import { conversationStore } from "$lib/stores/conversationStore.svelte";
 
 const createUxManager = () => ({
   emitTyping: ({
@@ -34,6 +35,33 @@ const createUxManager = () => ({
 
     // set typing state
     if (state) state.handleTyping();
+  },
+
+  emitPresenceCheck: (userId: number, conversationId: number) => {
+    const currentUser = chatStore.currentUser;
+
+    if (!currentUser) return;
+
+    const payload = createClientReq(DOMAIN_EVENTS.PRESENCE.ONLINE, {
+      conversationId: conversationId,
+      of: userId,
+      for: currentUser.id,
+    });
+
+    send(payload);
+  },
+
+  handlePresenceEvent: (
+    data: ServerEventMap[typeof SERVER_EVENTS.PRESENCE.ONLINE],
+  ) => {
+    const { of, for: userId, conversationId, online } = data.payload;
+    const state = conversationStore.chatState.get(conversationId);
+
+    if (online && state) {
+      state.setOnline();
+    } else {
+      if (state) state.setOffline();
+    }
   },
 });
 

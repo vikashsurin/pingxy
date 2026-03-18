@@ -1,9 +1,10 @@
 import { SERVER_EVENTS } from "@pingxy/shared/constants";
-import { publish } from "../pubsub";
+import { connectionManager } from "../connectionManager";
+
 import { BusListener } from "./index";
 
 export const blockListener: BusListener = {
   [SERVER_EVENTS.BLOCKS.UNBLOCKED]: async (data) => {
-    publish(":server", JSON.stringify(data));
+    connectionManager.publish(":server", JSON.stringify(data));
   },
 };

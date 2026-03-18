@@ -27,6 +27,10 @@ export const DOMAIN_EVENTS = {
     START: "req:typing.start",
     STOP: "req:typing.stop",
   },
+  PRESENCE: {
+    ONLINE: "req:presence.online",
+    OFFLINE: "req:presence.offline",
+  }
 
 } as const;
 
@@ -64,6 +68,10 @@ export const SERVER_EVENTS = {
   TYPING: {
     STARTED: "event:typing.started",
     STOPPED: "event:typing.stopped",
+  },
+  PRESENCE: {
+    ONLINE: "event:presence.online",
+    OFFLINE: "event:presence.offline",
   },
 
 } as const;

@@ -14,7 +14,7 @@ export const handleGenericEvent = (rawData: unknown) => {
     if (!result.success) {
       console.error(
         "[Socket] Received invalid server event:",
-        z.treeifyError(result.error),
+        z.prettifyError(result.error),
       );
       return;
     }

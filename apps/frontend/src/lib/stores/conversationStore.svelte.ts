@@ -1,29 +1,80 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import { chatStore } from "./store.svelte";
 
-class ChatState {
+export class ChatState {
   conversationId = $state<number>(0);
-  root: ConversationStore;
+  myPid = $state<number | undefined>();
 
-  // conversation states
-  isTyping = $state(false);
-  unreadCount = $state(0);
-  private typingTimeout: any;
+  root: ConversationStore;
 
   constructor(conversationId: number, root: ConversationStore) {
     this.conversationId = conversationId;
+
     this.root = root;
+
+    Object.defineProperty(this, "root", {
+      value: root,
+      enumerable: false,
+      writable: false,
+    });
   }
+
+  // conversation states
+  isTyping = $state(false);
+  unreadCount = new SvelteMap<number, number>();
+
+  // TODO online presence
+  isOnline = $state(false);
+  // unread = $derived(this.myPid ? (this.unreadCount.get(this.myPid) ?? 0) : 0);
+
+  private typingTimeout: ReturnType<typeof setTimeout> | undefined;
 
   handleTyping() {
     this.isTyping = true;
     clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => (this.isTyping = false), 3000);
   }
+
+  setUnreadCount(count: number) {
+    if (this.myPid !== undefined) {
+      this.unreadCount.set(this.myPid, count);
+    }
+  }
+
+  getUnreadCount() {
+    if (this.myPid) {
+      return this.unreadCount.get(this.myPid);
+    }
+  }
+
+  incrementUnreadCount() {
+    if (this.myPid) {
+      const count = this.unreadCount.get(this.myPid) || 0;
+      this.unreadCount.set(this.myPid, count + 1);
+    }
+  }
+
+  resetUnreadCount() {
+    // const pid = this.root.getMyPid(this.conversationId);
+    if (this.myPid) {
+      this.unreadCount.set(this.myPid, 0);
+    }
+  }
+
+  // Presence
+  setOnline() {
+    this.isOnline = true;
+  }
+  setOffline() {}
+  getPresence() {
+    return this.isOnline ? "online" : "offline";
+  }
 }
 
 class ConversationStore {
   chatState = new SvelteMap<number, ChatState>();
+
+  myUserId = $derived(chatStore.user?.id);
 
   // conversation id array to maintain order of conversations.
   convIds = $state<any[]>([]);
@@ -42,9 +93,16 @@ class ConversationStore {
   // userid -> conversationId
   uc = new SvelteMap<number, number>();
 
+  // conversationId -> myPid
+  ci = new SvelteMap<number, number>();
+
+  getMyPid(cid: number) {
+    return this.ci.get(cid);
+  }
+
   getPartnerId(cid: number) {
     const user = chatStore.user;
-    console.log({ user });
+
     const ids = this.cp.get(cid);
     if (!ids) return;
     for (const id of ids) {
@@ -56,13 +114,18 @@ class ConversationStore {
   recentChats = $derived.by(() => {
     return this.convIds
       .map((id) => {
+        const myPid = this.ci.get(id);
+        const state = this.chatState.get(id);
+        const partnerUid = this.getPartnerId(id);
+
         return {
           ...this.cm.get(id),
           participants: this.cp.get(id) ?? new SvelteSet<number>(),
-          partnerId: this.getPartnerId(id),
+          partnerUid: partnerUid,
+          state: state,
         };
       })
-      .sort((a, b) => b.lastMessageId - a.lastMessageId);
+      .toSorted((a, b) => b.lastMessageId - a.lastMessageId);
   });
 
   upsertConversation(c: any) {
@@ -76,30 +139,41 @@ class ConversationStore {
     }
   }
 
+  initializeChatState(item: any) {
+    const state = new ChatState(item.id, this);
+    this.chatState.set(item.id, state);
+  }
+
   seedFromConversations(items: any[]) {
     for (const item of items) {
       this.upsertConversation(item);
+      this.initializeChatState(item);
     }
   }
 
   seedFromParticipants(items: any[]) {
+    // Grab the value once to avoid unnecessary re-reads of the derived property
+    const currentUid = this.myUserId;
+
     for (const item of items) {
-      // # cp
-      let set = this.cp.get(item.conversationId);
-      if (!set) {
-        set = new SvelteSet<number>();
-        this.cp.set(item.conversationId, set);
+      const cid = item.conversationId;
+      const pid = item.id;
+      const uid = item.userId;
+
+      // 1. Basic Mappings
+      let set = this.cp.get(cid) ?? new SvelteSet<number>();
+      set.add(pid);
+      this.cp.set(cid, set);
+      this.pu.set(pid, uid);
+      this.uc.set(uid, cid);
+
+      // 2. Identify "Me" and Update State
+      const state = this.chatState.get(cid);
+      if (state && uid === currentUid) {
+        state.myPid = pid; // Correctly assign identity
+        this.ci.set(cid, pid); // Update root mapping
+        state.setUnreadCount(item.unreadCount); // Set the count for ME
       }
-      set.add(item.id);
-
-      // # pu
-      this.pu.set(item.id, item.userId);
-
-      // # uc
-      this.uc.set(item.userId, item.conversationId);
-
-      // userStore #cache upsert into user cache.
-      // userStore.upsert(item.user);
     }
   }
 }

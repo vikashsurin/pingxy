@@ -20,7 +20,7 @@ export const createMessageApi = (customFetch: typeof fetch = fetch) => ({
   },
 
   createMessage: async (envelope: ClientReqMap["req:message.create"]) => {
-    const res = await customFetch(`/api/messages`, {
+    const res = await customFetch(`/api/conversations/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

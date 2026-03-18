@@ -24,7 +24,7 @@ import {
   usersList,
 } from "../domain/user/user.schema";
 
-import { typingEventSchema, typingRequestSchema } from "../domain/ux/ux.schema";
+import { presenceEventSchema, presenceRequestSchema, typingEventSchema, typingRequestSchema } from "../domain/ux/ux.schema";
 
 export const serverErrorSchema = z.object({
   id: z.uuid(),
@@ -42,7 +42,8 @@ export const ClientReqSchema = z.discriminatedUnion("type", [
   userConnectSchema,
   userDisconnectSchema,
   userLogoutSchema,
-  typingRequestSchema
+  typingRequestSchema,
+  presenceRequestSchema,
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
@@ -56,4 +57,5 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
   userLoggedOutSchema,
   userUnblockedSchema,
   typingEventSchema,
+  presenceEventSchema
 ]);

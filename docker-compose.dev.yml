@@ -1,4 +1,16 @@
 services:
+  redis:
+      image: redis:7-alpine
+      container_name: pingxy-redis
+      networks:
+        - pingxy-network-dev
+      restart: always
+      ports:
+        - "6379:6379"
+      volumes:
+        - redis_data:/data
+      command: ["redis-server", "--appendonly", "yes"]
+
   postgres:
     image: postgres:16-alpine
     shm_size: "512mb"
@@ -71,6 +83,7 @@ services:
       - S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
       - S3_BUCKET=pingxy
       - S3_REGION=us-east-1
+      - REDIS_URL=redis://redis:6379
     networks:
       - pingxy-network-dev
     depends_on:
@@ -78,6 +91,9 @@ services:
         condition: service_completed_successfully
       storage:
         condition: service_healthy
+      redis:
+        condition: service_started
+
       # moderation:
       #   condition: service_healthy
     command: [ "bun", "--hot", "run", "src/index.ts" ]
@@ -162,3 +178,4 @@ networks:
 volumes:
   postgres_data_dev:
   minio_data_dev:
+  redis_data:

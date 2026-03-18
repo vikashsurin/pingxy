@@ -78,7 +78,13 @@ describe("Users Table Schema", async () => {
   });
 
   test("should return many users", async () => {
-    const users = await UserRepository.selectManyByIds({ uIds: [24,25,26,27] });
+    const users = await UserRepository.selectManyByIds({ uIds: [24, 25, 26, 27] });
     console.log({ users });
+  });
+
+  test.only("should update last seen", async () => {
+    const result = await UserService.updateLastSeen(25)
+    expect(result).toHaveLength(1);
+    expect(result[0].lastSeenAt).toBeDefined();
   });
 });

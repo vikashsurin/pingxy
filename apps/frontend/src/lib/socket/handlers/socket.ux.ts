@@ -6,4 +6,8 @@ export const uxHandler: SocketHandler = {
   [SERVER_EVENTS.TYPING.STARTED]: (data) => {
     uxManager.handleTypingEvent(data);
   },
+
+  [SERVER_EVENTS.PRESENCE.ONLINE]: (data) => {
+    uxManager.handlePresenceEvent(data);
+  },
 };

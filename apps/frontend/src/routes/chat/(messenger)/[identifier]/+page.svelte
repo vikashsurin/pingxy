@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import { createMessageApi } from "$lib/api/message.api.js";
   import { receiptManager } from "$lib/managers/entities/receipt.svelte.js";
+  import { uxManager } from "$lib/managers/entities/ux.svelte.js";
   import { attachmentStore } from "$lib/stores/attachmentStore.svelte.js";
   import { conversationStore } from "$lib/stores/conversationStore.svelte.js";
   import { fileStore } from "$lib/stores/fileStore.svelte.js";
@@ -18,12 +19,13 @@
   let newConversation = $state(false);
   let partnerId = $state<number>();
   let conversationId = $state<number>();
-  // let currentUserId = $derived<number>();
-  //
-  //
-  // $inspect({ conversation: conversationStore.partnerByConversationId });
 
-  const chatState = $derived(conversationStore.chatState.get(conversationId!));
+  $effect(() => {
+    // check online status
+    if (partnerId && conversationId) {
+      uxManager.emitPresenceCheck(partnerId, conversationId);
+    }
+  });
 
   $effect(() => {
     let cancelled = false;
@@ -48,8 +50,6 @@
 
       partnerId = conversationStore.getPartnerId(data.idValue);
 
-      console.log("convid:", data.idValue);
-      console.log("partnerId: ", partnerId);
       messageApi
         .fetchMessages({ conversationId: data.idValue, limit: 20 })
         .then((res) => {
@@ -80,7 +80,7 @@
 
 <div id="chatbox" class="flex flex-col h-full">
   {#if partnerId}
-    <ChatHeader id={partnerId} />
+    <ChatHeader id={partnerId} cid={conversationId} />
 
     {#if newConversation}
       <div class="flex-1 flex min-h-0 items-center justify-center">

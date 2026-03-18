@@ -6,11 +6,18 @@ import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { factory } from "./common/db/drizzle-factory.js";
 import { setupSocketListeners } from "./common/socket/listeners/setup.js";
-import { setServer } from "./common/socket/pubsub.js";
+// import { setServer } from "./common/socket/pubsub.js";
 import { socketHandler } from "./common/socket/socket.handler.js";
 import { WebSocketData } from "./common/socket/types.js";
 import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
+import { connectionManager } from "@common/socket/connectionManager.js";
+
+
+/*
+* On startup, clear any stale Redis state (e.g., disconnected users)
+*/
+// await connectionManager.clearStaleState()
 
 const app = factory.createApp();
 
@@ -26,7 +33,7 @@ app.use(
 );
 app.use(prettyJSON());
 
-app.use(logger());
+// app.use(logger());
 
 app.onError((err, ctx) => {
   // Always log the actual error object for the developer
@@ -83,7 +90,10 @@ serve({
 
   async fetch(req, server) {
     // Store server reference
-    setServer(server);
+    // setServer(server);
+
+    connectionManager.setServer(server)
+
 
     const url = new URL(req.url);
     if (url.pathname === "/ws/") {

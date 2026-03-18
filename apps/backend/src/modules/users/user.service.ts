@@ -63,6 +63,19 @@ export const UserService = {
     }
   },
 
+
+  updateLastSeen: async (userId: number) => {
+
+    console.log('from service')
+    try {
+      const lastSeenAt = new Date(Date.now());
+      return await UserRepository.update(userId, { lastSeenAt });
+    } catch (error) {
+      console.error("error updating last seen:", error);
+      throw new Error("error updating last seen");
+    }
+  },
+
   removeUser: async (id: number) => {
     try {
       return await UserRepository.delete(id);

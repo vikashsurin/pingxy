@@ -1,38 +1,33 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import type { ChatState } from "$lib/stores/conversationStore.svelte";
   import { conversationStore } from "$lib/stores/conversationStore.svelte";
   import { userStore } from "$lib/stores/userStore.svelte";
-  import { type UIConversation } from "$lib/types/chat";
+  import { CheckCheck } from "@lucide/svelte";
   import GenderIcon from "../GenderIcon.svelte";
 
-  let urlArray = $derived(page.url.pathname.split("/"));
+  let activeCid = $derived(page.url.pathname.split("/").at(-1));
 
-  //   const chats = $derived(Array.from(conversationStore.conversationByPartnerId));
-
-  const handleClick = async (conversation: UIConversation) => {
-    if (!conversation.conversationId) return;
-
-    // chatStore.chatTarget = {
-    //   isUser: false,
-    //   type: "direct",
-    //   displayName: conversation.displayName,
-    //   partner: conversation.partner,
-    //   unreadCount: conversation.unreadCount,
-    //   participants: conversation.participants,
-    //   conversationId: conversation.conversationId,
-    // };
-  };
+  function handleClick(
+    state: ChatState | undefined,
+    uid: number | undefined,
+    cid: number,
+  ) {
+    if (state) {
+      state.resetUnreadCount();
+    }
+  }
 </script>
 
 <div class="flex-1 flex flex-col overflow-hidden">
   <ul class=" overflow-y-auto w-full">
     {#each conversationStore.recentChats as c (c.id)}
-      {@render thread(c.id, c.partnerId)}
+      {@render thread(c)}
     {/each}
   </ul>
 </div>
 
-{#snippet userItemRowSkeleton()}
+<!-- {#snippet userItemRowSkeleton()}
   <li>
     <div class="p-3 flex flex-col gap-2">
       <div class="bg-gray-300 h-6 w-1/2 rounded-xs animate-pulse"></div>
@@ -41,15 +36,16 @@
       <div class="bg-gray-50 h-6 w-full rounded-xs animate-pulse"></div>
     </div>
   </li>
-{/snippet}
+{/snippet} -->
 
-{#snippet thread(cid: number, uid: number)}
-  {@const user = userStore.get(uid)}
+{#snippet thread(c: any)}
+  {@const user = userStore.get(c.partnerUid)}
+  {@const cid = c.id}
   <li id={cid.toString()}>
-    <a href="/chat/c_{cid}">
+    <a href="/chat/c_{cid}" onclick={() => handleClick(c.state, user?.id, cid)}>
       <div
         class="flex items-center hover:bg-gray-100 px-2 py-1"
-        style:background-color={`c_${cid}` === urlArray.at(-1) ? "orange" : ""}
+        style:background-color={`c_${cid}` === activeCid ? "orange" : ""}
       >
         <!-- 1. gender icon -->
         <span><GenderIcon gender={user?.gender} /></span>
@@ -63,17 +59,25 @@
         <div class="ml-auto flex items-center justify-end gap-2">
           <span>{user?.country}</span>
           <span class={` fi fi-${user?.country.toLocaleLowerCase()}`}> </span>
-
-          <!-- {@render unreadCount(user)} -->
+          {#if c.state}
+            {@render unreadCount(c.state.unread as number)}
+          {/if}
         </div>
       </div>
     </a>
   </li>
 {/snippet}
 
-{#snippet unreadCount(row: any)}
-  <span
-    class="w-4 h-4 p-2 rounded-full bg-red-600 flex items-center font-xs justify-center text-white"
-    >{row.unreadCount}</span
-  >
+{#snippet unreadCount(n: number)}
+  {#if n && n > 0}
+    <span
+      class="w-5 h-5 p-2 rounded-full bg-red-600 flex items-center text-xs justify-center text-white"
+    >
+      {n}</span
+    >
+  {:else}
+    <span>
+      <CheckCheck size={12} />
+    </span>
+  {/if}
 {/snippet}

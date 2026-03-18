@@ -4,33 +4,30 @@
   import { userStore } from "$lib/stores/userStore.svelte.js";
   import { onMount, untrack } from "svelte";
   import Sidebar from "./(sidebar)/Sidebar.svelte";
+
   let { children, data } = $props();
+
+  $inspect({ data });
 
   $effect.pre(() => {
     untrack(() => {
       userStore.seedFromBlockedUsers(data.blockedUserIds);
 
       conversationStore.participants = data.conversationData.participants;
-      conversationStore.seedFromParticipants(
-        data.conversationData.participants,
-      );
+
       conversationStore.seedFromConversations(
         data.conversationData.conversations,
+      );
+
+      conversationStore.seedFromParticipants(
+        data.conversationData.participants,
       );
 
       userStore.seedFromUsers(data.conversationData.users);
     });
   });
 
-  $inspect({ data });
-
-  $inspect({ cp: conversationStore.cp });
-  $inspect({ pu: conversationStore.pu });
-  $inspect({ uc: conversationStore.uc });
-  $inspect({ usersCache: userStore.getUsers() });
-  $inspect({ recentChats: conversationStore.recentChats });
-  $inspect({ cm: conversationStore.cm });
-  $inspect({ convIds: conversationStore.convIds });
+  $inspect({ chatState: conversationStore.chatState });
 
   onMount(async () => {
     initSocket();

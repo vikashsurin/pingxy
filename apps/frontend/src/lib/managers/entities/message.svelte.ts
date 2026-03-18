@@ -12,6 +12,7 @@ import { z } from "zod";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
+import { conversationStore } from "$lib/stores/conversationStore.svelte";
 
 const createMessageManager = () => ({
   sendMessage: async ({
@@ -106,8 +107,13 @@ const createMessageManager = () => ({
           userId: currentUserId!,
         });
 
-        const chat = messageStore.chats.get(conversation.id);
-        if (chat) chat.unreadCount += 1;
+        const state = conversationStore.chatState.get(conversation.id);
+
+        if (state) {
+          state.incrementUnreadCount();
+        }
+        // const chat = messageStore.chats.get(conversation.id);
+        // if (chat) chat.unreadCount += 1;
       }
     }
   },

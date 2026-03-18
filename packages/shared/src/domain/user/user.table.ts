@@ -14,7 +14,7 @@ export const users = table(
   "users",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    type: userTypeEnum().default("guest"),
+    type: userTypeEnum().default("guest").notNull(),
     email: t.text().unique(),
     username: t.text().notNull().unique(),
     hashedPassword: t.text(),

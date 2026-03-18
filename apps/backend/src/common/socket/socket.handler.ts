@@ -1,20 +1,19 @@
+import { UserService } from "@modules/users";
 import type { WebSocketHandler } from "bun";
+import { connectionManager } from "./connectionManager";
 import { onSocketMessage } from "./dispatcher";
 import { emitDisconnected, emitUserList } from "./handlers/socket.user";
-import { userSockets } from "./state/socketState";
 import { WebSocketData } from "./types";
 
 export const socketHandler: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
-  open(ws) {
+  async open(ws) {
     const user = ws.data.user;
     console.info(`${user.username} joined`);
 
-    // save the userSocket
-    userSockets.set(user.id, {
-      socket: ws,
-      user: user,
-    });
+
+
+    await connectionManager.connect(user.id, ws);
     ws.subscribe(`inbox:${user.id}`);
     ws.subscribe(":server");
     emitUserList();
@@ -24,8 +23,14 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
     onSocketMessage(ws, message);
   },
 
-  close(ws) {
+  async close(ws) {
+
+    await connectionManager.disconnect(ws.data.user.id);
+
     emitDisconnected(ws.data.user);
+
+    await UserService.updateLastSeen(ws.data.user.id);
+
     console.warn("closed connection");
   },
 };

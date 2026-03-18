@@ -1,4 +1,6 @@
 import { eventBus } from "@common/events";
+import redis from "@common/redis";
+// import { getSocket } from "@common/socket/pubsub";
 import { createServerEvent } from "@common/socket/socket.factory";
 import { SessionService } from "@modules/sessions";
 import { UserService } from "@modules/users";
@@ -80,6 +82,20 @@ export const AuthService = {
 
     // Emit USER LOGIN EVENT
     // const validatedData = UserMetaDataSchema.parse(user.data);
+    //
+    //  Save to redis
+    await redis.hset(`user:${user.id}`, {
+      id: user.id,
+      type: user.type,
+      username: user.username,
+      age: user.age,
+      gender: user.gender,
+      country: user.country,
+      email: user.email ?? '',
+      bio: user.bio ?? '',
+      lastSeentAt: user.lastSeenAt?.toISOString() ?? '',
+    });
+    await redis.expire(`user:${user.id}`, 3600)
 
     const event = createServerEvent(SERVER_EVENTS.USERS.LOGIN, {
       user: { ...user },
@@ -128,6 +144,9 @@ export const AuthService = {
     if (!success) {
       throw new Error("Failed to Logout user");
     }
+
+
+    // Close the socket
 
     // Remove user from db, if the user is a guest
     if (user.type === "guest") {

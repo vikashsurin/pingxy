@@ -76,7 +76,6 @@ export const UserRepository = {
   },
 
 
-
   delete: async (id: number) => {
     return await db.delete(users).where(eq(users.id, id)).returning({
       ...safeUserColumns

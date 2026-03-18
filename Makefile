@@ -22,12 +22,12 @@ RESET  := \033[0m
 .PHONY: up down restart logs ps clean
 
 # Start environment (Usage: make up | make up ENV=prod)
-up:
+start:
 	@echo "$(GREEN)🚀 Starting $(ENV) environment...$(RESET)"
 	$(DC) up -d --build
 
 # Stop environment
-down:
+stop:
 	@echo "$(YELLOW)🛑 Stopping $(ENV) containers...$(RESET)"
 	$(DC) down
 

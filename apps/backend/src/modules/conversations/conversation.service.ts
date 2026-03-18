@@ -1,8 +1,16 @@
-import db, { DB_TX } from "@common/db/client";
+import { eventBus } from "@common/events";
+import { createServerEvent } from "@common/socket/socket.factory";
+import { AttachmentService } from "@modules/attachments/attachment.service";
+import { BlockService } from "@modules/block/block.service";
+import { MessageRepository } from "@modules/messages/message.repository";
+import { ParticipantService } from "@modules/participants";
 import { ParticipantRepository } from "@modules/participants/participant.repository";
-
-import { ConversationRepository } from "./conversation.repository";
+import { ReceiptService } from "@modules/receipts";
 import { UserRepository } from "@modules/users/user.repository";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants";
+import { ClientReqMap } from "@pingxy/shared/types";
+import { HTTPException } from "hono/http-exception";
+import { ConversationRepository } from "./conversation.repository";
 
 export const ConversationService = {
   findByUsers: async ({
@@ -37,30 +45,7 @@ export const ConversationService = {
     return { conversations, participants, users };
   },
 
-  // getConversationDetails: async ({ userId }: { userId: number }) => {
-  //   const rows = await ConversationRepository.getView(userId);
 
-
-  //   // 1. partnerId → conversationId  (for clicking an online user)
-  //   // const conversationByPartnerId = new Map<number, number>();
-
-  //   // // 2. conversationId → partnerRow  (for clicking a conversation)
-  //   // const partnerByConversationId = new Map<number, any>();
-
-
-  //   // for (const row of rows) {
-  //   //   const { conversationId, participantUserId } = row;
-
-  //   //   if (participantUserId === 24) continue; // skip self rows
-
-  //   //   conversationByPartnerId.set(participantUserId, conversationId);
-  //   //   partnerByConversationId.set(conversationId, row);
-  //   // }
-
-
-  //   // console.log('sdf: ', { conversationByPartnerId, partnerByConversationId })
-  //   return rows;
-  // },
 
   findOrCreateByUsers: async ({
     currentUserId,
@@ -128,64 +113,6 @@ export const ConversationService = {
     }
   },
 
-  getAlByUser: async ({ userId, tx = db }: { userId: number; tx?: DB_TX }) => {
-    try {
-      const memberships = await ParticipantRepository.selectByUserId({
-        userId,
-        tx,
-      });
-      if (!memberships.length) return [];
-      const conversationIds = memberships.map((m) => m.conversationId);
-
-      const participants =
-        await ParticipantRepository.selectManyParticipantsByManyConversationIds(
-          { conversationIds },
-        );
-
-      const conversations = await ConversationRepository.selectManyById({
-        ids: conversationIds,
-      });
-
-      return memberships.map((m) => {
-        const convMeta = conversations.find(
-          (c) => c.id === m.conversationId,
-        );
-
-        const participantsInThisChat = participants.filter(
-          (p) => p.conversationId === m.conversationId,
-        );
-
-        const partner = participantsInThisChat.find((p) => p.userId !== userId);
-
-        return {
-          conversationId: m.conversationId,
-          unreadCount: m.unreadCount,
-          type: convMeta?.type || "direct",
-          displayName:
-            convMeta?.type === "group"
-              ? convMeta.name
-              : partner?.username,
-          lastMessageId: convMeta?.lastMessageId,
-          updatedAt: convMeta?.updatedAt,
-          partner:
-            convMeta?.type === "direct"
-              ? {
-                id: partner?.userId,
-                username: partner?.username,
-                gender: partner?.gender,
-                age: partner?.age,
-                country: partner?.country,
-                bio: partner?.bio,
-              }
-              : null,
-          participants: participantsInThisChat,
-        };
-      });
-    } catch (error) {
-      console.error("Error getting conversations by user id:", error);
-      throw new Error("Error getting conversations by user id");
-    }
-  },
 
   delete: async (conversationId: number) => {
     try {
@@ -197,7 +124,89 @@ export const ConversationService = {
   },
 
 
-  fetchMessages: async () => {
+  sendMessage: async (
+    body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
+  ) => {
+    const { message, recipient, sender, attachments } = body.payload;
+    // const result = await db.transaction(async (tx) => {
+    //  TODO: Wrap it in transaction
 
-  }
+    const hasBlock = await BlockService.hasBlock({
+      blockerId: message.senderId,
+      blockedId: recipient.id,
+    });
+
+    if (hasBlock) {
+      throw new HTTPException(400, {
+        message: "User is blocked",
+      });
+    }
+
+    const conversation = await ConversationService.findOrCreateByUsers({
+      currentUserId: message.senderId,
+      userId: recipient.id,
+    });
+
+    const participants = await ParticipantService.create({
+      conversationId: conversation.id,
+      user1Id: message.senderId,
+      user2Id: recipient.id,
+    });
+
+    const [insertedMessage] = await MessageRepository.insertMessage({
+      conversationId: conversation.id!,
+      clientMessageId: message.clientMessageId,
+      senderId: message.senderId,
+      content: message.content,
+    });
+
+    // update conversation activity
+    const [updatedConversation] = await ConversationRepository.updateActivity({
+      id: conversation.id,
+      lastMessageId: insertedMessage.id,
+    })
+
+
+
+    const savedAttachments = await AttachmentService.createAttachment({
+      attachments,
+      userId: message.senderId,
+      messageId: insertedMessage.id,
+    });
+
+    const attachmentsWithUrls = [];
+
+    for (const a of savedAttachments) {
+      const url = `http://localhost:9000/pingxy/${a.key}`
+      const thumbUrl = `http://localhost:9000/pingxy/${a.thumbKey}`
+      attachmentsWithUrls.push({ ...a, url, thumbUrl });
+    }
+    const [messageReceipt] = await ReceiptService.createMessageReceipt({
+      conversationId: conversation.id,
+      messageId: insertedMessage.id,
+      readerId: recipient.id,
+      status: "sent",
+    });
+
+
+    await ParticipantService.incrementUnreadCount({
+      conversationId: conversation.id,
+      senderId: message.senderId,
+    });
+
+    const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
+      message: insertedMessage,
+      attachments: attachmentsWithUrls,
+      receipt: messageReceipt,
+      conversation: updatedConversation,
+      sender: sender,
+      recipient: recipient,
+    });
+
+    eventBus.emit(SERVER_EVENTS.MESSAGES.CREATED, {
+      ...responseEnvelope,
+    });
+    return responseEnvelope;
+  },
+
 };
