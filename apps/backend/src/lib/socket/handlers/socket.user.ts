@@ -2,7 +2,7 @@ import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { User } from "@pingxy/shared/types";
 import { createServerEvent } from "../socket.factory";
 
-import redis from "@common/redis";
+import redis from "@lib/redis";
 import { connectionManager } from "../connectionManager";
 import { SocketHandler } from "./index";
 

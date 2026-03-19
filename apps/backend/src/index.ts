@@ -1,17 +1,15 @@
-import { initStorage } from "@common/utils/s3/index.js";
+import { factory } from "@lib/db/drizzle-factory.js";
+import { connectionManager } from "@lib/socket/connectionManager.js";
+import { setupSocketListeners } from "@lib/socket/listeners/setup.js";
+import { socketHandler } from "@lib/socket/socket.handler.js";
+import { WebSocketData } from "@lib/socket/types.js";
+import { getAuthUserFromReq } from "@lib/utils/index.js";
+import { initStorage } from "@lib/utils/s3/index.js";
 import { serve } from "bun";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
-import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
-import { factory } from "./common/db/drizzle-factory.js";
-import { setupSocketListeners } from "./common/socket/listeners/setup.js";
-// import { setServer } from "./common/socket/pubsub.js";
-import { socketHandler } from "./common/socket/socket.handler.js";
-import { WebSocketData } from "./common/socket/types.js";
-import { getAuthUserFromReq } from "./common/utils/index.js";
 import { registerRoutes } from "./routes/index";
-import { connectionManager } from "@common/socket/connectionManager.js";
 
 
 /*
@@ -89,8 +87,6 @@ serve({
   websocket: socketHandler,
 
   async fetch(req, server) {
-    // Store server reference
-    // setServer(server);
 
     connectionManager.setServer(server)
 

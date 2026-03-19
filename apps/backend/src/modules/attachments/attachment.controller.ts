@@ -1,4 +1,4 @@
-import { factory } from "@common/db/drizzle-factory";
+import { factory } from "@lib/db/drizzle-factory";
 import { AttachmentService } from "./attachment.service";
 
 export const AttachmentController = {
@@ -9,7 +9,7 @@ export const AttachmentController = {
 
     if (!file) return c.json({ error: "No file provided" }, 400);
 
-    const { attachmentId, key, url, thumbKey, thumbnailUrl } = await AttachmentService.uploadToStorage({
+    const { key, thumbKey, } = await AttachmentService.uploadToStorage({
       file,
       userId: user.id,
     });
@@ -18,11 +18,8 @@ export const AttachmentController = {
     return c.json(
       {
         attachment: {
-          attachmentId,
           key,
-          url,
           thumbKey,
-          thumbnailUrl,
           fileName: file.name,
           mimeType: file.type,
           fileSize: file.size,

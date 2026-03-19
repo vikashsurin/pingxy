@@ -1,5 +1,5 @@
-import { factory } from "src/common/db/drizzle-factory";
-import { authMiddleware } from "src/common/middlewares/auth";
+import { factory } from "@lib/db/drizzle-factory";
+import { authMiddleware } from "@lib/middlewares/auth";
 import { MessageController } from "./message.controller";
 
 export const messageRouter = factory.createApp();

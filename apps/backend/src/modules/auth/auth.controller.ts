@@ -1,5 +1,5 @@
-import { factory } from "@common/db/drizzle-factory";
-import { validate } from "@common/utils/validator";
+import { factory } from "@lib/db/drizzle-factory";
+import { validate } from "@lib/utils/validator";
 import {
   GuestUserRequestSchema,
   RegisterUserRequestSchema,

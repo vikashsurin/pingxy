@@ -1,5 +1,5 @@
-import { eventBus } from "@common/events";
-import { createServerEvent } from "@common/socket/socket.factory";
+import { eventBus } from "@lib/events";
+import { createServerEvent } from "@lib/socket/socket.factory";
 import { ParticipantService } from "@modules/participants";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import type { ClientReqMap } from "@pingxy/shared/socket/types";

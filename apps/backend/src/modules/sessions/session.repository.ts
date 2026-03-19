@@ -1,6 +1,6 @@
 import { sessionInsertSchema, sessions, users } from "@pingxy/shared";
 import { eq } from "drizzle-orm";
-import db from "src/common/db/client";
+import db from "@lib/db/client";
 import z from "zod";
 import { safeUserColumns } from "@modules/users/user.repository";
 

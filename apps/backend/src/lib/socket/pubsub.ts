@@ -1,6 +1,6 @@
 // import { User } from "@pingxy/shared/types";
 // import { WebSocketData } from "./types";
-// import redis from "@common/redis";
+// import redis from "@lib/redis";
 
 // let sockets: Map<string, Bun.ServerWebSocket<WebSocketData>> = new Map();
 // let serverInstance: Bun.Server<WebSocketData>;

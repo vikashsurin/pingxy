@@ -1,7 +1,7 @@
 import { users } from "@pingxy/shared";
 import { NewUser } from "@pingxy/shared/domain/user";
 import { eq, getTableColumns, inArray } from "drizzle-orm";
-import db, { DB_TX } from "src/common/db/client";
+import db, { DB_TX } from "@lib/db/client";
 
 import { insertUserSchema } from "@pingxy/shared/domain/user";
 

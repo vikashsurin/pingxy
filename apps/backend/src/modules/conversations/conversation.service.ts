@@ -1,5 +1,5 @@
-import { eventBus } from "@common/events";
-import { createServerEvent } from "@common/socket/socket.factory";
+import { eventBus } from "@lib/events";
+import { createServerEvent } from "@lib/socket/socket.factory";
 import { AttachmentService } from "@modules/attachments/attachment.service";
 import { BlockService } from "@modules/block/block.service";
 import { MessageRepository } from "@modules/messages/message.repository";

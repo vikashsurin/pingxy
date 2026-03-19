@@ -1,7 +1,7 @@
-import { eventBus } from "@common/events";
-import redis from "@common/redis";
-// import { getSocket } from "@common/socket/pubsub";
-import { createServerEvent } from "@common/socket/socket.factory";
+import { eventBus } from "@lib/events";
+import redis from "@lib/redis";
+// import { getSocket } from "@lib/socket/pubsub";
+import { createServerEvent } from "@lib/socket/socket.factory";
 import { SessionService } from "@modules/sessions";
 import { UserService } from "@modules/users";
 import { SERVER_EVENTS } from "@pingxy/shared/constants";

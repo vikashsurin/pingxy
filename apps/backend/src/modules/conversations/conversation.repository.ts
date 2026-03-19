@@ -3,9 +3,9 @@ import { publicUserColumns } from "@pingxy/shared/domain/user/user.schema";
 import { type InsertConversationType } from "@pingxy/shared/types";
 import { and, eq, desc, inArray, ne, sql, aliasedTable } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import db from "src/common/db/client";
+import db from "@lib/db/client";
 
-import { type DB_TX } from "src/common/db/client";
+import { type DB_TX } from "@lib/db/client";
 
 export const ConversationRepository = {
   insert: async (conversation: InsertConversationType, tx: DB_TX = db) => {

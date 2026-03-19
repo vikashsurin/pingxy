@@ -1,5 +1,5 @@
-import { factory } from "@common/db/drizzle-factory";
-import { validate } from "@common/utils/validator";
+import { factory } from "@lib/db/drizzle-factory";
+import { validate } from "@lib/utils/validator";
 import { messageCreateSchema } from "@pingxy/shared/domain";
 import { z } from "zod";
 import { MessageService } from "../messages/message.service";
@@ -59,7 +59,6 @@ export const ConversationController = {
         after,
       });
 
-      console.log("ss", result.entities.attachments)
       return c.json({
         entities: {
           messages: result.entities.messages,

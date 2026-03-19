@@ -1,4 +1,4 @@
-import db, { DB_TX } from "@common/db/client";
+import db, { DB_TX } from "@lib/db/client";
 import { attachments } from "@pingxy/shared/domain";
 import { attachmentInsertSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
 import { UUID } from "crypto";

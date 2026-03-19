@@ -1,4 +1,4 @@
-import redis from "@common/redis";
+import redis from "@lib/redis";
 import { ServerWebSocket } from "bun";
 import { WebSocketData } from "./types";
 

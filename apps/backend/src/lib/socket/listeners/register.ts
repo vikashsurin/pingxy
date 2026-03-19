@@ -1,4 +1,4 @@
-import { eventBus } from "@common/events";
+import { eventBus } from "@lib/events";
 import { BusListener } from "./index";
 
 export function registerBusListeners(...handlerGroups: BusListener[]) {

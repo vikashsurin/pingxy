@@ -5,9 +5,9 @@ import {
   blockedUserInfoSchema,
   blockedUserSelectSchema,
 } from "@pingxy/shared/domain/blocked-user/blocked-user.schema";
-import { createServerEvent } from "@common/socket/socket.factory";
+import { createServerEvent } from "@lib/socket/socket.factory";
 import { SERVER_EVENTS } from "@pingxy/shared/constants";
-import { eventBus } from "@common/events";
+import { eventBus } from "@lib/events";
 export const BlockService = {
   block: async ({
     blockerId,

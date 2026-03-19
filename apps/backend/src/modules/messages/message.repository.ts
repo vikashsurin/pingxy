@@ -5,7 +5,7 @@ import {
   UpdateMessageType,
 } from "@pingxy/shared/domain";
 import { and, asc, desc, eq, gte, lte, ne } from "drizzle-orm";
-import db, { type DB_TX } from "src/common/db/client";
+import db, { type DB_TX } from "@lib/db/client";
 
 export const MessageRepository = {
   insertMessage: async (message: DbInsertMessageType, tx: DB_TX = db) => {

@@ -1,4 +1,4 @@
-// import { eventBus } from "@common/events";
+// import { eventBus } from "@lib/events";
 // import { SERVER_EVENTS, ServerEventMap } from "@pingxy/shared/socket";
 // import { publish } from "./pubsub";
 

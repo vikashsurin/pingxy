@@ -1,6 +1,6 @@
 import { conversations, ParticipantInsertType, participants, users } from "@pingxy/shared";
 import { aliasedTable, and, eq, inArray, ne, sql } from "drizzle-orm";
-import db, { type DB_TX } from "src/common/db/client";
+import db, { type DB_TX } from "@lib/db/client";
 
 export const ParticipantRepository = {
   insertParticipant: async (

@@ -1,7 +1,7 @@
 import { messageReceipts } from "@pingxy/shared";
 import type { InsertReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
 import { and, count, eq, inArray, isNull, ne, sql } from "drizzle-orm";
-import db from "src/common/db/client";
+import db from "@lib/db/client";
 
 export const ReceiptRepository = {
   insertMessageReceipt: async ({

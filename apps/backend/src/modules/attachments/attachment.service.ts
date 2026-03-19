@@ -1,4 +1,4 @@
-import { uploadToStorage } from "@common/utils/s3/service";
+import { uploadToStorage } from "@lib/utils/s3/service";
 import { AttachmentRepository } from "./attachment.repository";
 
 export const AttachmentService = {

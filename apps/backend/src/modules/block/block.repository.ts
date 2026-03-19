@@ -1,6 +1,6 @@
 import { blockedUsers } from "@pingxy/shared";
 import { and, eq, or } from "drizzle-orm";
-import db, { DB_TX } from "src/common/db/client";
+import db, { DB_TX } from "@lib/db/client";
 
 export const BlocksRepository = {
   insert: async ({

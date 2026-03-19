@@ -1,4 +1,4 @@
-import db, { DB_TX } from "src/common/db/client";
+import db, { DB_TX } from "@lib/db/client";
 import { ParticipantRepository } from "./participant.repository";
 
 export const ParticipantService = {

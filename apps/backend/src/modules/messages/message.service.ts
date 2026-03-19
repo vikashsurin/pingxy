@@ -4,12 +4,12 @@ import { ParticipantService } from "../participants";
 import { ReceiptService } from "../receipts";
 import { MessageRepository } from "./message.repository";
 
-import { eventBus } from "@common/events";
-import { createServerEvent } from "@common/socket/socket.factory";
+import { eventBus } from "@lib/events";
+import { createServerEvent } from "@lib/socket/socket.factory";
 import { BlockService } from "@modules/block/block.service";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
 import { HTTPException } from "hono/http-exception";
-import db from "src/common/db/client";
+import db from "@lib/db/client";
 import { AttachmentService } from "@modules/attachments/attachment.service";
 import { ConversationRepository } from "@modules/conversations/conversation.repository";
 

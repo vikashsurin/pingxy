@@ -1,7 +1,7 @@
-import { eventBus } from "@common/events"
-import { createServerEvent } from "@common/socket/socket.factory"
+import { eventBus } from "@lib/events"
+import { createServerEvent } from "@lib/socket/socket.factory"
 import { SERVER_EVENTS } from "@pingxy/shared/constants"
-import redis from "@common/redis"
+import redis from "@lib/redis"
 
 
 export const UXService = {

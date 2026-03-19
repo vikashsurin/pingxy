@@ -7,7 +7,7 @@ import {
 } from "./user.schema";
 
 import type { SERVER_EVENTS } from "../../constants/socket-events";
-import type { SocketEventEnvelope } from "socket/base";
+import type { SocketEventEnvelope } from "../../socket/base";
 
 export type RegisterUser = z.infer<typeof RegisterUserRequestSchema>;
 export type RegisterGuest = z.infer<typeof GuestUserRequestSchema>;

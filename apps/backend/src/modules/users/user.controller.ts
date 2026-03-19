@@ -1,8 +1,8 @@
 import { capitalizeFirst } from "@pingxy/shared/utils";
-import { validate } from "@common/utils/validator";
+import { validate } from "@lib/utils/validator";
 import { z } from "zod";
 import { UserService } from "./user.service";
-import { factory } from "src/common/db/drizzle-factory";
+import { factory } from "@lib/db/drizzle-factory";
 
 export const UserController = {
   checkUser: factory.createHandlers(
