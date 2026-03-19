@@ -7,6 +7,7 @@ export const uploadToStorage = async (file: File) => {
   const uuid = Bun.randomUUIDv7();
   const fileExtension = file.name.split('.').pop();
   const fileKey = `uploads/${uuid}-${file.name}`;
+
   // Force thumbnail extension to webp for consistency
   const thumbKey = `thumbnails/${uuid}-thumb.webp`;
 
@@ -14,7 +15,7 @@ export const uploadToStorage = async (file: File) => {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  let thumbUrl = null;
+
 
   // 1. GENERATE THUMBNAIL
   if (file.type.startsWith("image/")) {
@@ -24,7 +25,7 @@ export const uploadToStorage = async (file: File) => {
       .toBuffer();
 
     await uploadToS3(thumbKey, thumbBuffer, "image/webp");
-    thumbUrl = `${process.env.STORAGE_PUBLIC_ENDPOINT}/pingxy/${thumbKey}`;
+
   }
   else if (file.type.startsWith("video/")) {
     // Basic FFmpeg thumbnail extraction via Bun.spawn
@@ -43,7 +44,7 @@ export const uploadToStorage = async (file: File) => {
       .toBuffer();
 
     await uploadToS3(thumbKey, thumbBuffer, "image/webp");
-    thumbUrl = `${process.env.STORAGE_PUBLIC_ENDPOINT}/pingxy/${thumbKey}`;
+
 
     // Cleanup temp files
     // import { unlink } from "node:fs/promises";
@@ -55,11 +56,11 @@ export const uploadToStorage = async (file: File) => {
   await uploadToS3(fileKey, buffer, file.type);
 
   return {
-    attachmentId: uuid,
     key: fileKey,
-    url: `${process.env.STORAGE_PUBLIC_ENDPOINT}/pingxy/${fileKey}`,
-    thumbnailUrl: thumbUrl ? thumbUrl : null,
-    thumbKey: thumbUrl ? thumbKey : null
+    thumbKey: thumbKey ?? null, // if the file type is video there is not thumbkey/ thumbnail
+    fileName: file.name,
+    fileSize: file.size,
+    mimeType: file.type
   };
 };
 

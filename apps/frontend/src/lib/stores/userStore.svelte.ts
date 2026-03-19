@@ -26,6 +26,10 @@ class UserStore {
     return Array.from(this.#cache.values()).filter((u) => !u.isOnline);
   }
 
+  getPresence(id: number) {
+    return this.#cache.get(id)?.isOnline;
+  }
+
   upsert(user: User) {
     const existing = this.#cache.get(user.id);
     if (!existing) {

@@ -1,13 +1,16 @@
 <script lang="ts">
-  import { initSocket } from "$lib/socket/socket.svelte";
   import { conversationStore } from "$lib/stores/conversationStore.svelte.js";
   import { userStore } from "$lib/stores/userStore.svelte.js";
-  import { onMount, untrack } from "svelte";
+  import { untrack } from "svelte";
   import Sidebar from "./(sidebar)/Sidebar.svelte";
+  import { messageStore } from "$lib/stores/messageStore.svelte.js";
+  import { attachmentStore } from "$lib/stores/attachmentStore.svelte.js";
 
   let { children, data } = $props();
 
-  $inspect({ data });
+  // $inspect({ data });
+  $inspect({ attachments: attachmentStore.attachments });
+  // $inspect("users::", userStore.getUsers());
 
   $effect.pre(() => {
     untrack(() => {
@@ -29,8 +32,8 @@
 
   $inspect({ chatState: conversationStore.chatState });
 
-  onMount(async () => {
-    initSocket();
+  $effect(() => {
+    // initSocket();
   });
 </script>
 

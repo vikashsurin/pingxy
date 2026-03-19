@@ -9,10 +9,10 @@ export const AttachmentService = {
     }
 
     // 2. Upload the file
-    const { attachmentId, key, url, thumbKey, thumbnailUrl } =
+    const { key, thumbKey, } =
       await uploadToStorage(file);
 
-    return { attachmentId, key, url, thumbKey, thumbnailUrl };
+    return { key, thumbKey, };
   },
 
 

@@ -15,6 +15,9 @@
 
   let { data } = $props();
 
+  $inspect({ data });
+  $inspect({ attachements: attachmentStore.attachments });
+
   let showLightbox = $derived(fileStore.viewSelected);
   let newConversation = $state(false);
   let partnerId = $state<number>();
@@ -54,6 +57,7 @@
         .fetchMessages({ conversationId: data.idValue, limit: 20 })
         .then((res) => {
           if (!cancelled) {
+            console.log({ res });
             messageStore.setMessages(res.entities.messages);
             receiptStore.setReceipts(res.entities.receipts);
             attachmentStore.setAttachments(res.entities.attachments);

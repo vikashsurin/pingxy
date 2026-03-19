@@ -77,11 +77,8 @@ services:
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
       - MINIO_ROOT_USER=pingxy_admin
       - MINIO_ROOT_PASSWORD=super_secret_password_123
-      - STORAGE_ENDPOINT=http://storage:9000
-      - STORAGE_PUBLIC_ENDPOINT=http://localhost:9000
-      - S3_ACCESS_KEY=${MINIO_ROOT_USER}
-      - S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
-      - S3_BUCKET=pingxy
+      - MINIO_ENDPOINT=http://localhost/storage
+      - MINIO_BUCKET=pingxy
       - S3_REGION=us-east-1
       - REDIS_URL=redis://redis:6379
     networks:

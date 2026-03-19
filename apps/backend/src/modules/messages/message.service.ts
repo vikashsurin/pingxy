@@ -179,8 +179,10 @@ export const MessageService = {
         }
 
         if (attachment?.id && !attachments.has(attachment.id)) {
-          const url = `http://localhost:9000/pingxy/${attachment.key}`
-          const thumbUrl = `http://localhost:9000/pingxy/${attachment.thumbKey}`
+          const endpoint = process.env.MINIO_ENDPOINT
+          const bucket = process.env.MINIO_BUCKET
+          const url = `${endpoint}/${bucket}/${attachment.key}`
+          const thumbUrl = `${endpoint}/${bucket}/${attachment.thumbKey}`
           attachments.set(attachment.id, { ...attachment, url, thumbUrl });
         }
 

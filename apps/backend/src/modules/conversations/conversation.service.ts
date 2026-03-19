@@ -177,8 +177,11 @@ export const ConversationService = {
     const attachmentsWithUrls = [];
 
     for (const a of savedAttachments) {
-      const url = `http://localhost:9000/pingxy/${a.key}`
-      const thumbUrl = `http://localhost:9000/pingxy/${a.thumbKey}`
+      const endpoint = process.env.MINIO_ENDPOINT
+      const bucket = process.env.MINIO_BUCKET
+      const url = `${endpoint}/${bucket}/${a.key}`
+      const thumbUrl = a.thumbKey ? `${endpoint}/${bucket}/${a.thumbKey}` : undefined;
+
       attachmentsWithUrls.push({ ...a, url, thumbUrl });
     }
     const [messageReceipt] = await ReceiptService.createMessageReceipt({

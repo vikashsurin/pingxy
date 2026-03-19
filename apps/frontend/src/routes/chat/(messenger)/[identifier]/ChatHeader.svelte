@@ -29,7 +29,7 @@
     {@const state = conversationStore.chatState.get(cid!)}
 
     <div>
-      {#if state?.getPresence() === "online"}
+      {#if userStore.getPresence(id)}
         <Dot class="text-green-500 scale-150" />
       {:else}
         <Dot class="text-red-500 scale-150" />

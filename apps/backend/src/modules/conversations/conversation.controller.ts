@@ -1,11 +1,9 @@
 import { factory } from "@common/db/drizzle-factory";
 import { validate } from "@common/utils/validator";
-import { Context } from "hono";
+import { messageCreateSchema } from "@pingxy/shared/domain";
 import { z } from "zod";
 import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
-import { after } from "node:test";
-import { messageCreateSchema } from "@pingxy/shared/domain";
 
 export const ConversationController = {
 
@@ -61,6 +59,7 @@ export const ConversationController = {
         after,
       });
 
+      console.log("ss", result.entities.attachments)
       return c.json({
         entities: {
           messages: result.entities.messages,

@@ -13,6 +13,15 @@ export const attachmentInsertSchema = createInsertSchema(attachments).pick({
   messageId: true,
   uploadedBy: true
 });
+
+export const attachmentReqSchema = attachmentInsertSchema.pick({
+  key: true,
+  thumbKey: true,
+  fileName: true,
+  fileSize: true,
+  mimeType: true,
+});
+
 export const attachmentResponseSchema = createSelectSchema(attachments, {
   createdAt: z.coerce.date(),
 }).extend({

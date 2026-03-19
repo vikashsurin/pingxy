@@ -222,7 +222,7 @@ export const MessageRepository = {
       .leftJoin(
         attachments,
         and(
-          eq(messages.id, attachments.id),
+          eq(messages.id, attachments.messageId),
           // eq(attachments.conversationId, conversationId),
         ),
       )

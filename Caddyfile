@@ -7,6 +7,12 @@
         reverse_proxy storage:9000
     }
 
+    # 1.1 Minio - adming
+    handle /minio-admin/* {
+        uri strip_prefix /minio-admin
+        reverse_proxy storage:9001
+    }
+
     # 2. API
     handle /api* {
         reverse_proxy backend:3000

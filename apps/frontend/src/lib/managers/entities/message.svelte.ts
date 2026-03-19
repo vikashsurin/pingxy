@@ -1,4 +1,5 @@
 import { messageApi } from "$lib/api/message.api";
+import { conversationStore } from "$lib/stores/conversationStore.svelte";
 import { messageStore } from "$lib/stores/messageStore.svelte";
 import {
   messageCreatedSchema,
@@ -6,13 +7,12 @@ import {
   type User,
 } from "@pingxy/shared";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
-import type { attachmentInsertSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
+import type { attachmentReqSchema } from "@pingxy/shared/domain/attachment/attachment.schema";
 import type { ServerEventMap } from "@pingxy/shared/socket/types";
 import { z } from "zod";
 import { createClientReq } from "..";
 import { chatStore } from "../../stores/store.svelte";
 import { receiptManager } from "./receipt.svelte";
-import { conversationStore } from "$lib/stores/conversationStore.svelte";
 
 const createMessageManager = () => ({
   sendMessage: async ({
@@ -22,7 +22,7 @@ const createMessageManager = () => ({
     partner,
   }: {
     messageText: string;
-    attachments: z.infer<typeof attachmentInsertSchema>[];
+    attachments: z.infer<typeof attachmentReqSchema>[];
     identifier: string;
     partner: User;
   }) => {
@@ -42,7 +42,7 @@ const createMessageManager = () => ({
         content: messageText,
         senderId: chatStore.currentUser?.id!,
       },
-      attachments: attachments,
+      attachments: $state.snapshot(attachments),
       conversationId: isExistingConv ? idValue : null,
       sender: chatStore.currentUser!,
       recipient: {
@@ -50,6 +50,8 @@ const createMessageManager = () => ({
         username: partner.username,
       },
     });
+
+    console.log("envelope::", envelope);
 
     try {
       const message = await messageApi.createMessage(envelope);
@@ -68,19 +70,19 @@ const createMessageManager = () => ({
     }
   },
 
-  sendMedia: async ({
-    identifier,
-    partner,
-  }: {
-    identifier: string;
-    partner: User;
-  }) => {
-    const isExistingConv = identifier.startsWith("c_");
-    const idValue = Number(identifier.replace(/^[cu]_/, ""));
-  },
-  updateMessage: async () => {},
+  // sendMedia: async ({
+  //   identifier,
+  //   partner,
+  // }: {
+  //   identifier: string;
+  //   partner: User;
+  // }) => {
+  //   const isExistingConv = identifier.startsWith("c_");
+  //   const idValue = Number(identifier.replace(/^[cu]_/, ""));
+  // },
+  updateMessage: async () => { },
 
-  deleteMessage: async () => {},
+  deleteMessage: async () => { },
 
   handleIncomingMessage: async (
     data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],

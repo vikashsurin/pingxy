@@ -1,4 +1,3 @@
-import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ fetch, cookies, locals }) => {
@@ -8,6 +7,5 @@ export const load: PageServerLoad = async ({ fetch, cookies, locals }) => {
 
   locals.user = null;
 
-
-  throw redirect(302, "/login");
+  return { success: true };
 };
