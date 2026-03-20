@@ -1,4 +1,4 @@
-import { messageReceipts, messages } from "@pingxy/shared";
+import {  messages } from "@pingxy/shared";
 import {
   attachments,
   DbInsertMessageType,
@@ -126,15 +126,9 @@ export const MessageRepository = {
     const result = await tx
       .select({
         message: messages,
-        receipt: messageReceipts,
       })
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
-      .leftJoin(
-        messageReceipts,
-        eq(messages.id, messageReceipts.messageId),
-        // No userId filter - get ALL receipts
-      )
       .orderBy(desc(messages.createdAt));
     return result;
   },
@@ -203,21 +197,12 @@ export const MessageRepository = {
           content: messages.content,
           createdAt: messages.createdAt,
         },
-        receipt: messageReceipts,
         attachment: attachments,
       })
       .from(messages)
       .innerJoin(
         idsProvider,
         eq(messages.id, idsProvider.id),
-      )
-      .leftJoin(
-        messageReceipts,
-        and(
-          eq(messages.id, messageReceipts.messageId),
-          eq(messageReceipts.conversationId, conversationId),
-          ne(messageReceipts.readerId, userId),
-        ),
       )
       .leftJoin(
         attachments,

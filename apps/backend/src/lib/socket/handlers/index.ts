@@ -2,7 +2,6 @@ import { ClientReq } from "@pingxy/shared/types";
 import { type WebSocketData } from "../types";
 import { conversationHandler } from "./socket.conversation";
 import { messageHandler } from "./socket.message";
-import { receiptHandler } from "./socket.receipt";
 import { userHandler } from "./socket.user";
 import { uxHandler } from "./socket.ux";
 
@@ -20,7 +19,6 @@ export type SocketHandler = {
 export const handlers: SocketHandler = {
   ...messageHandler,
   ...userHandler,
-  ...receiptHandler,
   ...conversationHandler,
   ...uxHandler,
 };

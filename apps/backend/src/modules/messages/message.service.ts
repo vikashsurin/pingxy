@@ -1,7 +1,6 @@
 import type { ClientReqMap } from "@pingxy/shared/socket/types";
 import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
-import { ReceiptService } from "../receipts";
 import { MessageRepository } from "./message.repository";
 
 import { eventBus } from "@lib/events";
@@ -163,20 +162,16 @@ export const MessageService = {
       });
 
       const messages = new Map();
-      const receipts = new Map();
       const attachments = new Map();
 
       for (const row of rows) {
-        const { message, receipt, attachment } = row;
+        const { message,  attachment } = row;
         const msgId = message.id;
 
         if (!messages.has(msgId)) {
           messages.set(msgId, message);
         }
 
-        if (receipt?.id && !receipts.has(receipt.id)) {
-          receipts.set(receipt.id, receipt);
-        }
 
         if (attachment?.id && !attachments.has(attachment.id)) {
           const endpoint = process.env.MINIO_ENDPOINT
@@ -192,7 +187,6 @@ export const MessageService = {
       return {
         entities: {
           messages: Array.from(messages.values()),
-          receipts: Array.from(receipts.values()),
           attachments: Array.from(attachments.values()),
         }
       };

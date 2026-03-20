@@ -5,10 +5,11 @@ import { participants } from "./participant.table";
 
 export const participantInsertSchema = createInsertSchema(participants);
 export const participantSelectSchema = createSelectSchema(participants, {
-  lastReadAt: z.coerce.date().optional(),
-  lastDeliveredAt: z.coerce.date().optional(),
+  lastReadAt: z.coerce.date().nullable(),
+  lastDeliveredAt: z.coerce.date().nullable(),
 }).pick({
   id: true,
+  role: true,
   userId: true,
   conversationId: true,
   lastDeliveredAt: true,

@@ -2,7 +2,6 @@ export * from "./user";
 export * from "./conversation";
 export * from "./message";
 export * from "./message-reaction";
-export * from "./message-receipt";
 export * from "./blocked-user";
 export * from "./session";
 export * from "./participant";

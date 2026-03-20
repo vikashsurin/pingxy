@@ -6,7 +6,6 @@ import {
 import { z } from "zod";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 import { attachmentReqSchema, attachmentResponseSchema } from "../attachment/attachment.schema";
-import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { selectUserSchema } from "../user/user.schema";
 import { messages } from "./message.table";
 import { participantSelectSchema } from "../participant/participant.schema";
@@ -92,7 +91,6 @@ export const messageCreatedSchema = z.object({
       senderId: true,
     }),
     attachments: z.array(attachmentResponseSchema),
-    receipt: selectMessageReceiptSchema,
     conversation: z.object({
       id: z.number(),
       name: z.string().nullable(),

@@ -2,7 +2,6 @@ export * from "../domain/blocked-user/blocked-user.types";
 export * from "../domain/conversation/conversation.types";
 export * from "../domain/message/message.types";
 export * from "../domain/message-reaction/message-reaction.types";
-export * from "../domain/message-receipt/message-receipt.types";
 export * from "../domain/participant/participant.types";
 export * from "../domain/refresh-token/refresh-token.types";
 export * from "../domain/session/session.types";

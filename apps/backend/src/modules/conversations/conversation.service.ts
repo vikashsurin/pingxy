@@ -5,7 +5,6 @@ import { BlockService } from "@modules/block/block.service";
 import { MessageRepository } from "@modules/messages/message.repository";
 import { ParticipantService } from "@modules/participants";
 import { ParticipantRepository } from "@modules/participants/participant.repository";
-import { ReceiptService } from "@modules/receipts";
 import { UserRepository } from "@modules/users/user.repository";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants";
 import { ClientReqMap, User } from "@pingxy/shared/types";
@@ -192,13 +191,6 @@ export const ConversationService = {
       attachmentsWithUrls.push({ ...a, url, thumbUrl });
     }
 
-    // to be removed
-    const [messageReceipt] = await ReceiptService.createMessageReceipt({
-      conversationId: conversation.id,
-      messageId: insertedMessage.id,
-      readerId: recipient.id,
-      status: "sent",
-    });
 
 
     await ParticipantService.incrementUnreadCount({
@@ -209,7 +201,6 @@ export const ConversationService = {
     const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
       message: insertedMessage,
       attachments: attachmentsWithUrls,
-      receipt: messageReceipt,
       conversation: updatedConversation,
       sender: updatedParticipant,
       recipient: recipient,

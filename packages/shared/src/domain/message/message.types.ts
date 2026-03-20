@@ -8,7 +8,6 @@ import {
   dbMessageInsertSchema,
 } from "./message.schema";
 import type { SocketEventEnvelope } from "../../socket/base";
-import type { MessageReceipt } from "../message-receipt/message-receipt.types";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
 
 export type InsertMessageType = z.infer<typeof InsertMessageSchema>;
@@ -73,7 +72,6 @@ export interface MessageEventMap {
     typeof SERVER_EVENTS.MESSAGES.CREATED,
     {
       message: Message;
-      receipt: MessageReceipt;
       conversationId: number;
       recipient: {
         id: number;
@@ -86,7 +84,6 @@ export interface MessageEventMap {
     typeof SERVER_EVENTS.MESSAGES.SENT,
     {
       message: Message;
-      receipt: MessageReceipt;
       conversationId: number;
       recipient: {
         id: number;

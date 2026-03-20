@@ -62,7 +62,6 @@ export const ConversationController = {
       return c.json({
         entities: {
           messages: result.entities.messages,
-          receipts: result.entities.receipts,
           attachments: result.entities.attachments,
         },
         hasMore: result.entities.messages.length === limit,
