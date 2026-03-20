@@ -12,6 +12,8 @@ export const DOMAIN_EVENTS = {
     FAIL: "req:receipt.fail",
     ALL_DELIVER: "req:receipts.all.deliver",
     ALL_READ: "req:receipts.all.read",
+    UPDATE: "req:receipt.update",
+    UPDATE_ALL: "req:receipts.update.all",
   },
   USERS: {
     LIST: "req:users.list",

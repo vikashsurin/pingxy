@@ -19,7 +19,6 @@ export const UXService = {
   presence: async (ofId: number, forId: number, conversationId: number) => {
 
     const isOnline = await redis.sismember(`online_users`, `${ofId}`)
-    console.log("service layer", isOnline)
 
 
 

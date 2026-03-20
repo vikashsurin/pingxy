@@ -9,7 +9,7 @@
   let { children, data } = $props();
 
   // $inspect({ data });
-  $inspect({ attachments: attachmentStore.attachments });
+  // $inspect({ attachments: attachmentStore.attachments });
   // $inspect("users::", userStore.getUsers());
 
   $effect.pre(() => {
@@ -30,7 +30,7 @@
     });
   });
 
-  $inspect({ chatState: conversationStore.chatState });
+  // $inspect({ chatState: conversationStore.chatState });
 
   $effect(() => {
     // initSocket();

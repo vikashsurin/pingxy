@@ -16,7 +16,7 @@
   let { data } = $props();
 
   $inspect({ data });
-  $inspect({ attachements: attachmentStore.attachments });
+  // $inspect({ attachements: attachmentStore.attachments });
 
   let showLightbox = $derived(fileStore.viewSelected);
   let newConversation = $state(false);
@@ -57,7 +57,6 @@
         .fetchMessages({ conversationId: data.idValue, limit: 20 })
         .then((res) => {
           if (!cancelled) {
-            console.log({ res });
             messageStore.setMessages(res.entities.messages);
             receiptStore.setReceipts(res.entities.receipts);
             attachmentStore.setAttachments(res.entities.attachments);
@@ -73,10 +72,8 @@
   $effect(() => {
     if (data.identifierType !== "conversation") return;
     const conversationId = data.idValue;
-    const currentuserId = data.user.id;
-    receiptManager.emitMarkAllRead({
+    receiptManager.updateAllReceiptsToRead({
       conversationId,
-      currentuserId,
       senderId: partnerId!,
     });
   });

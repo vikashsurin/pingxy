@@ -33,25 +33,19 @@ const createMessageManager = () => ({
     const isExistingConv = identifier.startsWith("c_");
     const idValue = Number(identifier.replace(/^[cu]_/, ""));
 
-    // const conversationId = chatStore.activeConversation.conversationId;
-
     const envelope = createClientReq(DOMAIN_EVENTS.MESSAGES.CREATE, {
       message: {
         conversationId: isExistingConv ? idValue : null,
         clientMessageId: crypto.randomUUID(),
         content: messageText,
-        senderId: chatStore.currentUser?.id!,
       },
       attachments: $state.snapshot(attachments),
       conversationId: isExistingConv ? idValue : null,
-      sender: chatStore.currentUser!,
       recipient: {
         id: partner.id,
         username: partner.username,
       },
     });
-
-    console.log("envelope::", envelope);
 
     try {
       const message = await messageApi.createMessage(envelope);
@@ -93,19 +87,21 @@ const createMessageManager = () => ({
     chatStore.upsertEntity(data.payload);
 
     const isViewing = messageStore.activeChatId === conversation.id;
+
+
     const isFromMe = data.payload.message.senderId === currentUserId;
     if (!isFromMe) {
       if (isViewing) {
-        receiptManager.emitMarkRead({
+        receiptManager.updateReceipt({
           receipt,
+          status: "read",
           senderId: message.senderId,
-          userId: currentUserId!,
         });
       } else {
-        receiptManager.emitMarkDelivered({
+        receiptManager.updateReceipt({
           receipt,
+          status: "delivered",
           senderId: message.senderId,
-          userId: currentUserId!,
         });
 
         const state = conversationStore.chatState.get(conversation.id);

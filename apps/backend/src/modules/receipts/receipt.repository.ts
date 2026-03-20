@@ -1,9 +1,35 @@
+import db, { DB_TX } from "@lib/db/client";
 import { messageReceipts } from "@pingxy/shared";
 import type { InsertReceiptType } from "@pingxy/shared/domain/message-receipt/message-receipt.types";
-import { and, count, eq, inArray, isNull, ne, sql } from "drizzle-orm";
-import db from "@lib/db/client";
+import { and, count, eq, inArray, ne, sql } from "drizzle-orm";
 
 export const ReceiptRepository = {
+  update: async ({
+    messageId,
+    status,
+    deliveredAt,
+    readAt,
+    tx = db,
+  }: {
+    messageId: number;
+    status: "sent" | "delivered" | "read";
+    deliveredAt?: Date;
+    readAt?: Date;
+    tx?: DB_TX
+  }) => {
+    return tx
+      .update(messageReceipts)
+      .set({
+        status: status,
+        deliveredAt: deliveredAt,
+        readAt: readAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(messageReceipts.messageId, messageId))
+      .returning();
+  },
+
+
   insertMessageReceipt: async ({
     conversationId,
     messageId,
@@ -171,10 +197,10 @@ export const ReceiptRepository = {
   },
 
   updateMessageReceiptToDelivered: async ({
-    messageId,
+    id,
     readerId,
   }: {
-    messageId: number;
+    id: number;
     readerId: number;
   }) => {
     return await db
@@ -186,7 +212,7 @@ export const ReceiptRepository = {
       })
       .where(
         and(
-          eq(messageReceipts.messageId, messageId),
+          eq(messageReceipts.id, id),
           eq(messageReceipts.readerId, readerId),
           eq(messageReceipts.status, "sent"),
         ),
@@ -195,10 +221,10 @@ export const ReceiptRepository = {
   },
 
   updateMessageReceiptToRead: async ({
-    messageId,
+    id,
     readerId,
   }: {
-    messageId: number;
+    id: number;
     readerId: number;
   }) => {
     const now = new Date(Date.now());
@@ -212,7 +238,7 @@ export const ReceiptRepository = {
       })
       .where(
         and(
-          eq(messageReceipts.messageId, messageId),
+          eq(messageReceipts.id, id),
           eq(messageReceipts.readerId, readerId),
           inArray(messageReceipts.status, ["sent", "delivered"]),
         ),

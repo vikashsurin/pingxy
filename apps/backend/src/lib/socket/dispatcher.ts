@@ -11,6 +11,7 @@ export const onSocketMessage = (
   try {
     const parsedData = JSON.parse(rawData.toString());
 
+    console.log("parsedData", parsedData)
     const result = ClientReqSchema.safeParse(parsedData);
 
     if (!result.success) {

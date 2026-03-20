@@ -87,8 +87,9 @@ export const ConversationController = {
     validate("json", messageCreateSchema),
     async (c) => {
       const body = c.req.valid("json");
+      const user = c.get("user");
 
-      const message = await ConversationService.sendMessage(body);
+      const message = await ConversationService.sendMessage(body, user);
 
       return c.json({ data: message }, 201);
     },

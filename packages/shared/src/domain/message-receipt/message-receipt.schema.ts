@@ -57,6 +57,7 @@ export const insertMessageReceiptSchema = createInsertSchema(
 });
 
 const reqEnums = z.enum([
+  DOMAIN_EVENTS.RECEIPTS.UPDATE,
   DOMAIN_EVENTS.RECEIPTS.SENT,
   DOMAIN_EVENTS.RECEIPTS.DELIVER,
   DOMAIN_EVENTS.RECEIPTS.READ,
@@ -79,14 +80,44 @@ export const receiptReqSchema = z.object({
   payload: z.object({
     conversationId: z.number(),
     messageId: z.number().optional(),
-    readerId: z.number(),
+    // readerId: z.number(),
     sender: z.object({
       id: z.number(),
     }),
   }),
 });
 
-export type LL = z.infer<typeof receiptReqSchema>;
+
+// TODO: use author instead of sender.
+export const updateReceiptReqSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.RECEIPTS.UPDATE),
+  payload: z.object({
+    id: z.number(),
+    messageId: z.number().optional(),
+    conversationId: z.number(),
+    status: z.enum(['sent', 'delivered', 'read']),
+    sender: z.object({
+      id: z.number(),
+    }),
+  }),
+});
+
+
+export const updateAllReceiptReqSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.RECEIPTS.UPDATE_ALL),
+  payload: z.object({
+    conversationId: z.number(),
+    status: z.enum(['sent', 'delivered', 'read']),
+    sender: z.object({
+      id: z.number(),
+    }),
+  }),
+});
+
+
+// export type LL = z.infer<typeof receiptReqSchema>;
 export const receiptEventSchema = z.object({
   id: z.uuid(),
   type: eventEnums,
@@ -99,4 +130,4 @@ export const receiptEventSchema = z.object({
   }),
 });
 
-type K = z.infer<typeof selectMessageReceiptSchema>;
+// type K = z.infer<typeof selectMessageReceiptSchema>;

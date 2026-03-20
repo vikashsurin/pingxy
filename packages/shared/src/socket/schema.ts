@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import {
   receiptEventSchema,
-  receiptReqSchema,
+  updateAllReceiptReqSchema,
+  updateReceiptReqSchema,
 } from "../domain/message-receipt/message-receipt.schema";
 
 import {
@@ -37,7 +38,8 @@ export const serverErrorSchema = z.object({
 
 export const ClientReqSchema = z.discriminatedUnion("type", [
   messageCreateSchema,
-  receiptReqSchema,
+  updateReceiptReqSchema,
+  updateAllReceiptReqSchema,
   openConversationSchema,
   userConnectSchema,
   userDisconnectSchema,

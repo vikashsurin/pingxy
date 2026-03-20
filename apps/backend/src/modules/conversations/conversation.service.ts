@@ -8,7 +8,7 @@ import { ParticipantRepository } from "@modules/participants/participant.reposit
 import { ReceiptService } from "@modules/receipts";
 import { UserRepository } from "@modules/users/user.repository";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants";
-import { ClientReqMap } from "@pingxy/shared/types";
+import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
 import { ConversationRepository } from "./conversation.repository";
 
@@ -126,13 +126,14 @@ export const ConversationService = {
 
   sendMessage: async (
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
+    user: User
   ) => {
-    const { message, recipient, sender, attachments } = body.payload;
+    const { message, recipient, attachments } = body.payload;
     // const result = await db.transaction(async (tx) => {
     //  TODO: Wrap it in transaction
 
     const hasBlock = await BlockService.hasBlock({
-      blockerId: message.senderId,
+      blockerId: user.id,
       blockedId: recipient.id,
     });
 
@@ -143,20 +144,20 @@ export const ConversationService = {
     }
 
     const conversation = await ConversationService.findOrCreateByUsers({
-      currentUserId: message.senderId,
+      currentUserId: user.id,
       userId: recipient.id,
     });
 
     const participants = await ParticipantService.create({
       conversationId: conversation.id,
-      user1Id: message.senderId,
+      user1Id: user.id,
       user2Id: recipient.id,
     });
 
     const [insertedMessage] = await MessageRepository.insertMessage({
       conversationId: conversation.id!,
       clientMessageId: message.clientMessageId,
-      senderId: message.senderId,
+      senderId: user.id,
       content: message.content,
     });
 
@@ -170,7 +171,7 @@ export const ConversationService = {
 
     const savedAttachments = await AttachmentService.createAttachment({
       attachments,
-      userId: message.senderId,
+      userId: user.id,
       messageId: insertedMessage.id,
     });
 
@@ -194,7 +195,7 @@ export const ConversationService = {
 
     await ParticipantService.incrementUnreadCount({
       conversationId: conversation.id,
-      senderId: message.senderId,
+      senderId: user.id,
     });
 
     const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
@@ -202,7 +203,7 @@ export const ConversationService = {
       attachments: attachmentsWithUrls,
       receipt: messageReceipt,
       conversation: updatedConversation,
-      sender: sender,
+      sender: user,
       recipient: recipient,
     });
 

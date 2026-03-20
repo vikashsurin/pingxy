@@ -8,7 +8,6 @@ export const uxHandler: SocketHandler = {
     UXService.typingStart(data.payload.conversationId, data.payload.userId);
   },
   [DOMAIN_EVENTS.PRESENCE.ONLINE]: async (socket, data) => {
-    console.log("event triggered")
     UXService.presence(data.payload.of, data.payload.for, data.payload.conversationId);
   },
 };

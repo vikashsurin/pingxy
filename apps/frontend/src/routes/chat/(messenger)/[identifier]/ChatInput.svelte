@@ -8,8 +8,7 @@
     import { userStore } from "$lib/stores/userStore.svelte";
     import { Paperclip, Smile, X } from "@lucide/svelte";
     import type {
-        attachmentReqSchema,
-        attachmentResponseSchema,
+        attachmentReqSchema
     } from "@pingxy/shared/domain/attachment/attachment.schema";
     import { tick } from "svelte";
     import z from "zod";
