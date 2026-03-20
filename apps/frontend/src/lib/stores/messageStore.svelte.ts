@@ -4,7 +4,7 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 import { attachmentStore } from "./attachmentStore.svelte";
 import { ChatState } from "./ChatState.svelte";
-import { receiptStore } from "./receiptStore.svelte";
+
 
 export class MessageStore {
 
@@ -145,9 +145,7 @@ export class MessageStore {
           this.upsertMessage(message);
         }
 
-        for (const receipt of receipts) {
-          receiptStore.upsertReceipt(receipt);
-        }
+
 
         for (const attachment of attachments) {
           attachmentStore.upsertAttachment(attachment);
@@ -193,9 +191,7 @@ export class MessageStore {
           this.upsertMessage(message);
         }
 
-        for (const receipt of receipts) {
-          receiptStore.upsertReceipt(receipt);
-        }
+
 
         for (const attachment of attachments) {
           attachmentStore.upsertAttachment(attachment);

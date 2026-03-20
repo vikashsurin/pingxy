@@ -9,7 +9,6 @@ import type z from "zod";
 import { attachmentStore } from "./attachmentStore.svelte";
 import { conversationStore } from "./conversationStore.svelte";
 import { messageStore } from "./messageStore.svelte";
-import { receiptStore } from "./receiptStore.svelte";
 import { userStore } from "./userStore.svelte";
 
 class ChatStore {
@@ -57,7 +56,6 @@ class ChatStore {
 
     // messageStore.
     messageStore.upsertMessage(message);
-    receiptStore.upsertReceipt(receipt);
     conversationStore.pp.set(sender.id, sender);
     attachmentStore.setAttachments(attachments);
     conversationStore.upsertConversation(payload.conversation);

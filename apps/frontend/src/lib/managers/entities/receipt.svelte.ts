@@ -1,5 +1,4 @@
 import { receiptApi } from "$lib/api/receipt.api";
-import { receiptStore } from "$lib/stores/receiptStore.svelte";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
 import type {
   MessageReceipt
@@ -40,12 +39,7 @@ const createReceiptManager = () => ({
   },
 
 
-  // redundant
-  handleIncomingReceipts: (receipts: MessageReceipt[]) => {
-    for (const receipt of receipts) {
-      receiptStore.upsertReceipt(receipt);
-    }
-  },
+
 });
 
 export const receiptManager = createReceiptManager();

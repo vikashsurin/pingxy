@@ -7,7 +7,6 @@
   import { conversationStore } from "$lib/stores/conversationStore.svelte.js";
   import { fileStore } from "$lib/stores/fileStore.svelte.js";
   import { messageStore } from "$lib/stores/messageStore.svelte.js";
-  import { receiptStore } from "$lib/stores/receiptStore.svelte.js";
   import LightBox from "./(attachments)/LightBox.svelte";
   import Chat from "./Chat.svelte";
   import ChatHeader from "./ChatHeader.svelte";
@@ -58,7 +57,6 @@
         .then((res) => {
           if (!cancelled) {
             messageStore.setMessages(res.entities.messages);
-            receiptStore.setReceipts(res.entities.receipts);
             attachmentStore.setAttachments(res.entities.attachments);
           }
         });

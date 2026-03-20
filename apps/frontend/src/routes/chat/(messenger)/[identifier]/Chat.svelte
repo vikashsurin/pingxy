@@ -3,7 +3,6 @@
   import { conversationStore } from "$lib/stores/conversationStore.svelte";
   import { fileStore } from "$lib/stores/fileStore.svelte";
   import { messageStore } from "$lib/stores/messageStore.svelte";
-  import { receiptStore } from "$lib/stores/receiptStore.svelte";
   import { formatLocalTime } from "$lib/utils/time";
   import { Check, CheckCheck } from "@lucide/svelte";
   import { type Message } from "@pingxy/shared";
