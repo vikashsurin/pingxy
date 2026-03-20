@@ -1,16 +1,20 @@
 <script lang="ts">
   import { conversationStore } from "$lib/stores/conversationStore.svelte.js";
+  import { messageStore } from "$lib/stores/messageStore.svelte.js";
   import { userStore } from "$lib/stores/userStore.svelte.js";
   import { untrack } from "svelte";
   import Sidebar from "./(sidebar)/Sidebar.svelte";
-  import { messageStore } from "$lib/stores/messageStore.svelte.js";
-  import { attachmentStore } from "$lib/stores/attachmentStore.svelte.js";
 
   let { children, data } = $props();
 
   // $inspect({ data });
   // $inspect({ attachments: attachmentStore.attachments });
   // $inspect("users::", userStore.getUsers());
+  $inspect("pp", conversationStore.pp);
+
+  // $inspect("pid", conversationStore.getPartnerPid(3));
+  //
+  // $inspect("lmi", messageStore.getLastMessageId(1));
 
   $effect.pre(() => {
     untrack(() => {

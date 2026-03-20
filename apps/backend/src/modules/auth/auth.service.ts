@@ -42,8 +42,19 @@ export const AuthService = {
 
 
     const token = crypto.randomUUID();
-    await SessionService.createSession(token, user.id, ipAddress, userAgent);
 
+    await SessionService.createSession(token, user.id, ipAddress, userAgent);
+    await redis.hset(`user:${user.id}`, {
+      id: user.id,
+      type: user.type,
+      username: user.username,
+      age: user.age,
+      gender: user.gender,
+      country: user.country,
+      email: user.email ?? '',
+      bio: user.bio ?? '',
+      lastSeentAt: user.lastSeenAt?.toISOString() ?? '',
+    });
     return {
       user: user,
       token: token,

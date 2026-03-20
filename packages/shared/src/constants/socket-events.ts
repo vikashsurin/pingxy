@@ -22,6 +22,9 @@ export const DOMAIN_EVENTS = {
     LOGOUT: "req:user.logout",
     LOGIN: "req:user.login",
   },
+  PARTICIPANTS: {
+    UPDATE: "req:participant.update",
+  },
   CONVERSATIONS: {
     OPEN: "req:conversation.open",
   },
@@ -60,6 +63,9 @@ export const SERVER_EVENTS = {
     DISCONNECTED: "event:user.disconnected",
     LOGIN: "event:user.login",
     LOGOUT: "event:user.logout",
+  },
+  PARTICIPANTS: {
+    UPDATED: "event:participant.updated",
   },
   BLOCKS: {
     UNBLOCKED: "event:blocks.unblocked",

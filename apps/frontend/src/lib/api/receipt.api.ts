@@ -1,10 +1,10 @@
 import type { ClientReqMap } from "@pingxy/shared";
 
 export const createReceiptApi = (customFetch: typeof fetch = fetch) => {
-  async function updateReceipt(envelope: ClientReqMap["req:receipt.update"]) {
-    const receiptId: number = envelope.payload.id;
+  async function updateReceipt(envelope: ClientReqMap["req:participant.update"]) {
+    // const receiptId: number = envelope.payload.id;
 
-    const res = await customFetch(`/api/receipts/${receiptId}`, {
+    const res = await customFetch(`/api/participants`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

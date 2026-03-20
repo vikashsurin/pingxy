@@ -1,5 +1,6 @@
 <script lang="ts">
   import { attachmentStore } from "$lib/stores/attachmentStore.svelte";
+  import { conversationStore } from "$lib/stores/conversationStore.svelte";
   import { fileStore } from "$lib/stores/fileStore.svelte";
   import { messageStore } from "$lib/stores/messageStore.svelte";
   import { receiptStore } from "$lib/stores/receiptStore.svelte";
@@ -293,7 +294,7 @@
                     {formatLocalTime(entry.createdAt)}
                   </span>
                   <span>
-                    {@render receipt(entry.id!)}
+                    {@render receipt(entry.id!, entry.conversationId)}
                   </span>
                 </div>
               </div>
@@ -330,15 +331,16 @@
   </div>
 </div>
 
-{#snippet receipt(msgId: number)}
-  {@const receipt = receiptStore.receipts.get(msgId)}
-  {#if receipt}
-    {#if receipt.status === "sent"}
-      <Check size={14} />
-    {:else if receipt.status === "delivered"}
-      <CheckCheck size={14} />
-    {:else if receipt.status === "read"}
+{#snippet receipt(msgId: number, cid: number)}
+  {@const pid = conversationStore.getPartnerPid(cid)}
+  {@const pp = conversationStore.pp.get(pid ?? -1)}
+  {#if pp}
+    {#if pp.lastReadMessageId >= msgId}
       <CheckCheck size={14} class="text-blue-500" />
+    {:else if pp.lastDeliveredMessageId >= msgId}
+      <CheckCheck size={14} />
+    {:else}
+      <Check size={14} />
     {/if}
   {/if}
 {/snippet}

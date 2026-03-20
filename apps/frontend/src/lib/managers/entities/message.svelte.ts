@@ -81,7 +81,7 @@ const createMessageManager = () => ({
   handleIncomingMessage: async (
     data: ServerEventMap[typeof SERVER_EVENTS.MESSAGES.CREATED],
   ) => {
-    const { message, conversation, receipt } = data.payload;
+    const { message, conversation, receipt, sender } = data.payload;
     const currentUserId = chatStore.currentUser?.id;
 
     chatStore.upsertEntity(data.payload);
@@ -93,16 +93,29 @@ const createMessageManager = () => ({
     if (!isFromMe) {
       if (isViewing) {
         receiptManager.updateReceipt({
-          receipt,
-          status: "read",
+          convId: conversation.id,
+          lastReadMessageId: message.id,
           senderId: message.senderId,
-        });
+        })
+
+        // receiptManager.updateReceipt({
+        //   receipt,
+        //   status: "read",
+        //   senderId: message.senderId,
+        //   message
+        // });
       } else {
         receiptManager.updateReceipt({
-          receipt,
-          status: "delivered",
-          senderId: message.senderId,
-        });
+          convId: conversation.id,
+          lastDeliveredMessageId: message.id,
+          senderId: message.senderId
+        })
+        // receiptManager.updateReceipt({
+        //   receipt,
+        //   status: "delivered",
+        //   senderId: message.senderId,
+        //   message
+        // });
 
         const state = conversationStore.chatState.get(conversation.id);
 

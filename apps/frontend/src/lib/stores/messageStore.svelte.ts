@@ -7,6 +7,9 @@ import { ChatState } from "./ChatState.svelte";
 import { receiptStore } from "./receiptStore.svelte";
 
 export class MessageStore {
+
+
+  // messageId -> message
   messages = new SvelteMap<number, any>();
   threads = new SvelteMap<number, SvelteSet<number>>();
 
@@ -80,6 +83,11 @@ export class MessageStore {
 
       threadsIds.add(message.id);
     }
+  }
+
+  getLastMessageId(cid: number) {
+    const msg = Array.from(this.threads.get(cid) || []);
+    return msg.at(-1)
   }
 
   getMessages(chatId: number) {

@@ -9,7 +9,7 @@ import { attachmentReqSchema, attachmentResponseSchema } from "../attachment/att
 import { selectMessageReceiptSchema } from "../message-receipt/message-receipt.schema";
 import { selectUserSchema } from "../user/user.schema";
 import { messages } from "./message.table";
-
+import { participantSelectSchema } from "../participant/participant.schema";
 
 // export const insertMessageSchema = createInsertSchema(messages);
 export const selectMessageSchema = createSelectSchema(messages, {
@@ -100,7 +100,7 @@ export const messageCreatedSchema = z.object({
       lastMessageId: z.number().nullable(),
       lastMessageAt: z.coerce.date().nullable(),
     }),
-    sender: selectUserSchema,
+    sender: participantSelectSchema,
     recipient: z.object({
       id: z.number(),
       username: z.string(),

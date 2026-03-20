@@ -65,7 +65,7 @@ export class ChatState {
   setOnline() {
     this.isOnline = true;
   }
-  setOffline() {}
+  setOffline() { }
   getPresence() {
     return this.isOnline ? "online" : "offline";
   }
@@ -80,6 +80,9 @@ class ConversationStore {
   convIds = $state<any[]>([]);
 
   participants = $state<any[]>([]);
+
+  // participantId -> participant
+  pp = new SvelteMap<number, any>();
 
   // conversationId -> conversation
   cm = new SvelteMap<number, any>();
@@ -96,6 +99,10 @@ class ConversationStore {
   // conversationId -> myPid
   ci = new SvelteMap<number, number>();
 
+  //  conversationId -> pid
+  cpid = new SvelteMap<number, number>();
+
+
   getMyPid(cid: number) {
     return this.ci.get(cid);
   }
@@ -109,6 +116,15 @@ class ConversationStore {
       const uid = this.pu.get(id);
       if (user?.id !== uid) return uid;
     }
+  }
+
+  getPartnerPid(cid: number) {
+    const ids = this.cp.get(cid);
+    if (!ids) return;
+    for (const id of ids) {
+      const uid = this.pu.get(id);
+      if (this.myUserId !== uid) return id;
+    } 
   }
 
   recentChats = $derived.by(() => {
@@ -166,6 +182,8 @@ class ConversationStore {
       this.cp.set(cid, set);
       this.pu.set(pid, uid);
       this.uc.set(uid, cid);
+      this.pp.set(pid, item);
+      // this.cpid.set(cid,);
 
       // 2. Identify "Me" and Update State
       const state = this.chatState.get(cid);

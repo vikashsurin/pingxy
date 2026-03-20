@@ -1,4 +1,9 @@
-import db, { DB_TX } from "@lib/db/client";
+import db from "@lib/db/client";
+import { eventBus } from "@lib/events";
+import { createServerEvent } from "@lib/socket/socket.factory";
+import { SERVER_EVENTS } from "@pingxy/shared/constants";
+import { updatePartReqSchema, User } from "@pingxy/shared/domain";
+import z from "zod";
 import { ParticipantRepository } from "./participant.repository";
 
 export const ParticipantService = {
@@ -40,6 +45,58 @@ export const ParticipantService = {
     } catch (error) {
       console.error("Error creating participants:", error);
       throw new Error("Error creating participants");
+    }
+  },
+
+  updateParticipant: async (payload: z.infer<typeof updatePartReqSchema>['payload'], user: User) => {
+    const { lastReadMessageId, lastDeliveredMessageId, conversationId, senderId } = payload;
+    // let updatedParticipant;
+    try {
+      const update = async () => {
+
+        if (lastDeliveredMessageId) {
+          const updatedParticipant = await ParticipantRepository.update({
+            userId: user.id,
+            conversationId,
+            lastDeliveredMessageId,
+            lastDeliveredAt: new Date(),
+          })
+
+          return updatedParticipant;
+        } else {
+          const updatedParticipant = await ParticipantRepository.update({
+            userId: user.id,
+            conversationId,
+            lastReadMessageId,
+            lastReadAt: new Date(),
+          })
+
+          return updatedParticipant;
+        }
+      }
+
+      const [updatedParticipant] = await update();
+
+      const responseEnvelope = createServerEvent(SERVER_EVENTS.PARTICIPANTS.UPDATED, {
+        id: updatedParticipant.id,
+        userId: updatedParticipant.userId,
+        conversationId: updatedParticipant.conversationId,
+        lastReadMessageId: updatedParticipant.lastReadMessageId ?? undefined,
+        lastReadAt: updatedParticipant.lastReadAt ?? undefined,
+        lastDeliveredMessageId: updatedParticipant.lastDeliveredMessageId ?? undefined,
+        lastDeliveredAt: updatedParticipant.lastDeliveredAt ?? undefined,
+        senderId,
+      })
+
+
+      eventBus.emit(SERVER_EVENTS.PARTICIPANTS.UPDATED, responseEnvelope)
+
+
+      return updatedParticipant;
+
+    } catch (error) {
+      console.error("Error updating participant:", error);
+      throw new Error("Error updating participant");
     }
   },
 

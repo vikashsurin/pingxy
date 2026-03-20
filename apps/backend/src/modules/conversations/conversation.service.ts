@@ -167,6 +167,12 @@ export const ConversationService = {
       lastMessageId: insertedMessage.id,
     })
 
+    const [updatedParticipant] = await ParticipantRepository.update({
+      userId: user.id,
+      lastReadMessageId: insertedMessage.id,
+      lastReadAt: new Date(),
+      conversationId: conversation.id,
+    })
 
 
     const savedAttachments = await AttachmentService.createAttachment({
@@ -185,6 +191,8 @@ export const ConversationService = {
 
       attachmentsWithUrls.push({ ...a, url, thumbUrl });
     }
+
+    // to be removed
     const [messageReceipt] = await ReceiptService.createMessageReceipt({
       conversationId: conversation.id,
       messageId: insertedMessage.id,
@@ -203,7 +211,7 @@ export const ConversationService = {
       attachments: attachmentsWithUrls,
       receipt: messageReceipt,
       conversation: updatedConversation,
-      sender: user,
+      sender: updatedParticipant,
       recipient: recipient,
     });
 

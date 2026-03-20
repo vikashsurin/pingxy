@@ -15,7 +15,7 @@
 
   let { data } = $props();
 
-  $inspect({ data });
+  // $inspect({ data });
   // $inspect({ attachements: attachmentStore.attachments });
 
   let showLightbox = $derived(fileStore.viewSelected);
@@ -72,8 +72,9 @@
   $effect(() => {
     if (data.identifierType !== "conversation") return;
     const conversationId = data.idValue;
-    receiptManager.updateAllReceiptsToRead({
-      conversationId,
+    receiptManager.updateReceipt({
+      convId: conversationId,
+      lastReadMessageId: messageStore.getLastMessageId(conversationId),
       senderId: partnerId!,
     });
   });

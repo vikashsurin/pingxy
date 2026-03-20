@@ -1,6 +1,6 @@
+import db, { type DB_TX } from "@lib/db/client";
 import { conversations, ParticipantInsertType, participants, users } from "@pingxy/shared";
 import { aliasedTable, and, eq, inArray, ne, sql } from "drizzle-orm";
-import db, { type DB_TX } from "@lib/db/client";
 
 export const ParticipantRepository = {
   insertParticipant: async (
@@ -25,6 +25,51 @@ export const ParticipantRepository = {
         },
       })
       .returning();
+  },
+
+  update: async ({
+    userId,
+    lastReadMessageId,
+    lastDeliveredMessageId,
+    conversationId,
+    lastReadAt,
+    lastDeliveredAt,
+    tx = db
+  }: {
+    userId: number,
+    conversationId: number,
+    lastReadMessageId?: number,
+    lastDeliveredMessageId?: number,
+    lastReadAt?: Date,
+    lastDeliveredAt?: Date,
+    tx?: DB_TX
+  }) => {
+    return await tx
+      .update(participants)
+      .set({
+        lastDeliveredAt: lastDeliveredAt,
+        lastReadMessageId: lastReadMessageId,
+        lastDeliveredMessageId: lastDeliveredMessageId,
+        lastReadAt: lastReadAt,
+      })
+      .where(
+        and(
+          eq(participants.conversationId, conversationId),
+          eq(participants.userId, userId),
+        ),
+      )
+      .returning({
+        id: participants.id,
+        role: participants.role,
+        unreadCount: participants.unreadCount,
+        conversationId: participants.conversationId,
+        userId: participants.userId,
+        lastReadMessageId: participants.lastReadMessageId,
+        lastReadAt: participants.lastReadAt,
+        lastDeliveredMessageId: participants.lastDeliveredMessageId,
+        lastDeliveredAt: participants.lastDeliveredAt,
+      });
+
   },
 
   selectParticipant: async ({
@@ -133,6 +178,8 @@ export const ParticipantRepository = {
         role: p.role,
         lastReadMessageId: p.lastReadMessageId,
         lastReadAt: p.lastReadAt,
+        lastDeliveredAt: p.lastDeliveredAt,
+        lastDeliveredMessageId: p.lastDeliveredMessageId,
         unreadCount: p.unreadCount,
       })
       .from(p)

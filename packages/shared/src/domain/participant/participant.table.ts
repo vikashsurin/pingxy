@@ -28,6 +28,8 @@ export const participants = table(
     isArchived: t.boolean().default(false).notNull(), // User-level archive
     lastReadMessageId: t.integer(), // Track what user has read
     lastReadAt: t.timestamp({ withTimezone: true }),
+    lastDeliveredMessageId: t.integer(),
+    lastDeliveredAt: t.timestamp({ withTimezone: true }),
     unreadCount: t.integer().default(0).notNull(), // User-specific unread
 
     // Notifications
