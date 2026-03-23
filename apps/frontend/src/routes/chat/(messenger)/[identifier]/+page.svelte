@@ -23,7 +23,6 @@
   let conversationId = $state<number>();
 
   const chatState = $derived(conversationStore.chatState.get(conversationId!));
-  $inspect("unreadCount :: ", chatState?.unreadCount);
 
   $effect(() => {
     // check online status

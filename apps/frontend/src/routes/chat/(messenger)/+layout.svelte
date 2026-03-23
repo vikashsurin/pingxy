@@ -7,8 +7,6 @@
 
   let { children, data } = $props();
 
-  $inspect({ data });
-
   $effect.pre(() => {
     untrack(() => {
       userStore.seedFromBlockedUsers(data.blockedUserIds);
