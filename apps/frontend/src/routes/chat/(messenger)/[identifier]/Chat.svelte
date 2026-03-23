@@ -331,12 +331,12 @@
 </div>
 
 {#snippet receipt(msgId: number, cid: number)}
-  {@const pid = conversationStore.getPartnerPid(cid)}
-  {@const pp = conversationStore.pp.get(pid ?? -1)}
+  {@const state = conversationStore.chatState.get(cid)}
+  {@const pp = state?.partner}
   {#if pp}
-    {#if pp.lastReadMessageId >= msgId}
+    {#if pp?.lastReadMessageId! >= msgId}
       <CheckCheck size={14} class="text-blue-500" />
-    {:else if pp.lastDeliveredMessageId >= msgId}
+    {:else if pp?.lastDeliveredMessageId! >= msgId}
       <CheckCheck size={14} />
     {:else}
       <Check size={14} />

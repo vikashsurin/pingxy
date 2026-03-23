@@ -1,9 +1,13 @@
+import type { participantSelectSchema } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import type z from "zod";
 import { chatStore } from "./store.svelte";
 
 export class ChatState {
   conversationId = $state<number>(0);
   myPid = $state<number | undefined>();
+  partner = $state<z.infer<typeof participantSelectSchema>>();
+  participantsIndex = $state<number[]>([])
 
   root: ConversationStore;
 
@@ -81,6 +85,11 @@ class ConversationStore {
 
   participants = $state<any[]>([]);
 
+  conversationMap = new SvelteMap<number, any>();
+
+  // This can be separate store...
+  participantMap = new SvelteMap<number, any>();
+
   // participantId -> participant
   pp = new SvelteMap<number, any>();
 
@@ -100,7 +109,7 @@ class ConversationStore {
   ci = new SvelteMap<number, number>();
 
   //  conversationId -> pid
-  cpid = new SvelteMap<number, number>();
+  // cpid = new SvelteMap<number, number>();
 
 
   getMyPid(cid: number) {
@@ -124,20 +133,18 @@ class ConversationStore {
     for (const id of ids) {
       const uid = this.pu.get(id);
       if (this.myUserId !== uid) return id;
-    } 
+    }
   }
 
   recentChats = $derived.by(() => {
     return this.convIds
       .map((id) => {
-        const myPid = this.ci.get(id);
         const state = this.chatState.get(id);
-        const partnerUid = this.getPartnerId(id);
 
         return {
           ...this.cm.get(id),
-          participants: this.cp.get(id) ?? new SvelteSet<number>(),
-          partnerUid: partnerUid,
+          participants: state?.participantsIndex ?? [],
+          partnerUid: state?.partner?.userId,
           state: state,
         };
       })
@@ -167,7 +174,7 @@ class ConversationStore {
     }
   }
 
-  seedFromParticipants(items: any[]) {
+  seedFromParticipants(items: z.infer<typeof participantSelectSchema>[]) {
     // Grab the value once to avoid unnecessary re-reads of the derived property
     const currentUid = this.myUserId;
 
@@ -190,7 +197,12 @@ class ConversationStore {
       if (state && uid === currentUid) {
         state.myPid = pid; // Correctly assign identity
         this.ci.set(cid, pid); // Update root mapping
+        // Fix reactive unread count
         state.setUnreadCount(item.unreadCount); // Set the count for ME
+        state.participantsIndex.push(pid)
+      } else if (state) {
+        state.partner = item
+        state.participantsIndex.push(pid)
       }
     }
   }

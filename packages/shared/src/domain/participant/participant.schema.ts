@@ -16,6 +16,7 @@ export const participantSelectSchema = createSelectSchema(participants, {
   lastDeliveredMessageId: true,
   lastReadAt: true,
   lastReadMessageId: true,
+  unreadCount: true
 });
 
 

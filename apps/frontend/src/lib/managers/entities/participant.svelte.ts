@@ -7,14 +7,17 @@ const createParticipantManager = () => {
     const handleIncomingUpdate = (data: ServerEventMap[typeof SERVER_EVENTS.PARTICIPANTS.UPDATED]) => {
         // do something...
 
-        const { id, lastReadMessageId, lastDeliveredMessageId, lastReadAt, lastDeliveredAt } = data.payload;
+        const { id, lastReadMessageId, lastDeliveredMessageId, lastReadAt, lastDeliveredAt, conversationId } = data.payload;
 
-        conversationStore.pp.set(id, {
-            lastReadMessageId,
-            lastDeliveredMessageId,
-            lastReadAt,
-            lastDeliveredAt
-        })
+        const state = conversationStore.chatState.get(conversationId)
+        if (state) state.partner = data.payload
+
+        // conversationStore.pp.set(id, {
+        //     lastReadMessageId,
+        //     lastDeliveredMessageId,
+        //     lastReadAt,
+        //     lastDeliveredAt
+        // })
 
     }
     return {

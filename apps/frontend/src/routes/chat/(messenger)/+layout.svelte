@@ -7,14 +7,7 @@
 
   let { children, data } = $props();
 
-  // $inspect({ data });
-  // $inspect({ attachments: attachmentStore.attachments });
-  // $inspect("users::", userStore.getUsers());
-  $inspect("pp", conversationStore.pp);
-
-  // $inspect("pid", conversationStore.getPartnerPid(3));
-  //
-  // $inspect("lmi", messageStore.getLastMessageId(1));
+  $inspect({ data });
 
   $effect.pre(() => {
     untrack(() => {

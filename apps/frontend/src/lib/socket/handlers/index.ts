@@ -3,7 +3,7 @@ import { blockHandler } from "./socket.block";
 import { errorHandler } from "./socket.error";
 import { messageHandler } from "./socket.message";
 import { participantHandler } from "./socket.participant";
-import { receiptHandler } from "./socket.receipt";
+// import { receiptHandler } from "./socket.receipt";
 import { userHandler } from "./socket.user";
 import { uxHandler } from "./socket.ux";
 
@@ -16,7 +16,6 @@ export type SocketHandler = {
 export const handlers: SocketHandler = {
   ...errorHandler,
   ...messageHandler,
-  ...receiptHandler,
   ...userHandler,
   ...blockHandler,
   ...uxHandler,

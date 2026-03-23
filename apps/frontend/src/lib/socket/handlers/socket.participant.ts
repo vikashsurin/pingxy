@@ -6,7 +6,7 @@ export const participantHandler: SocketHandler = {
     [SERVER_EVENTS.PARTICIPANTS.UPDATED]: (data) => {
 
         console.log("participant update received")
-        console.log({ parupdate: data })
+        // console.log({ parupdate: data })
         participantManager.handleIncomingUpdate(data)
         // userManager.setOnlineUsers(data.payload.users);
     },

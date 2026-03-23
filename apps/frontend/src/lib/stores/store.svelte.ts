@@ -52,7 +52,7 @@ class ChatStore {
   readonly LIMIT = 20;
 
   upsertEntity(payload: z.infer<typeof messageCreatedSchema>["payload"]) {
-    const { message, receipt, attachments, sender } = payload;
+    const { message, attachments, sender } = payload;
 
     // messageStore.
     messageStore.upsertMessage(message);
