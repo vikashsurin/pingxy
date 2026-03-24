@@ -22,9 +22,13 @@ RESET  := \033[0m
 .PHONY: up down restart logs ps clean
 
 # Start environment (Usage: make up | make up ENV=prod)
-start:
+dev:
 	@echo "$(GREEN)🚀 Starting $(ENV) environment...$(RESET)"
-	$(DC) up -d --build
+	docker compose -f compose.dev.yml up -d --build
+
+prod:
+	@echo "$(GREEN)🚀 Starting $(ENV) environment...$(RESET)"
+	docker compose -f compose.yml up -d --build
 
 # Stop environment
 stop:
@@ -83,3 +87,23 @@ rm-db:
 
 	@echo "$(RED)🛑 Removing postgres volumes... $(ENV) $(RESET)"
 	docker volume rm pingxy_postgres_data_dev
+
+rm-vol:
+	@echo "$(RED)🛑 Removing volumes... $(ENV) $(RESET)"
+	docker volume rm $$(docker volume ls -q) || true
+
+rm-con:
+	@echo "$(RED)🛑 Removing containers... $(ENV) $(RESET)"
+	docker rm $$(docker ps -aq) || true
+
+rm-img:
+	@echo "$(RED)🛑 Removing images... $(ENV) $(RESET)"
+	docker rmi $$(docker images -q) || true
+
+clear:
+	make rm-vol
+	make rm-con
+	make rm-img
+
+	
+	

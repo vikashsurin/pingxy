@@ -1,35 +1,32 @@
 :80 {
     request_body max_size 20MB
 
-    # 1. MinIO API (The actual file data)
-    # We use 'handle_path' to automatically strip the prefix
+    # 1. Storage API (Stripping /storage/ so MinIO sees /bucket/file)
     handle_path /storage/* {
         reverse_proxy storage:9000
     }
 
-    # 2. MinIO Console (The Admin UI)
-    # MinIO Console needs specific websocket support and header pass-through
+    # 2. MinIO Console UI
     handle_path /minio-admin/* {
         reverse_proxy storage:9001
     }
 
-    # 3. Backend API & WebSockets
-    # Grouping these ensures all /api and /ws calls hit the Bun backend
+    # 3. Backend API (On port 3000)
     handle /api* {
         reverse_proxy backend:3000
     }
 
+    # 4. WebSockets (Crucial for Bun/Node real-time apps)
     handle /ws* {
         reverse_proxy backend:3000
     }
 
-    # 4. Frontend (SvelteKit)
-    # Handle HMR and then a fallback for all other routes
+    # 5. Frontend (Vite/SvelteKit on port 5173)
     handle /_svelte_kit_hmr* {
-        reverse_proxy frontend:3001
+        reverse_proxy frontend:5173
     }
 
     handle {
-        reverse_proxy frontend:3001
+        reverse_proxy frontend:5173
     }
 }

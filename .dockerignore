@@ -1,4 +1,7 @@
-**/node_modules
-**/dist
+node_modules
 .git
-.env
+apps/*/node_modules
+packages/*/node_modules
+dist
+build
+.svelte-kit

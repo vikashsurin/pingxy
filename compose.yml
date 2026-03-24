@@ -1,18 +1,4 @@
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: pingxy-redis
-    networks:
-      - pingxy-network
-    restart: always
-    volumes:
-      - redis_data:/data
-    command: [ "redis-server", "--appendonly", "yes" ]
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
   postgres:
     image: postgres:16-alpine
@@ -38,7 +24,6 @@ services:
       retries: 5
 
   migration:
-    image: vikashsurin/pingxy-backend:latest
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -53,8 +38,22 @@ services:
         condition: service_healthy
     command: [ "bun", "run", "db:migrate" ]
 
+  redis:
+    image: redis:7-alpine
+    container_name: pingxy-redis
+    networks:
+      - pingxy-network
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
-    image: vikashsurin/pingxy-backend:latest
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -69,28 +68,32 @@ services:
         condition: service_healthy
     environment:
       - PORT=3000
+      - SERVER_ID=${HOSTNAME}
+      - NODE_ENV=production
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       - MINIO_ENDPOINT=http://storage:9000
       - MINIO_BUCKET=pingxy
       - S3_REGION=us-east-1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6379i
+
     networks:
       - pingxy-network
     command: [ "bun", "run", "start" ]
 
   frontend:
-    image: vikashsurin/pingxy-frontend:latest
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
     container_name: pingxy-frontend
     restart: always
     environment:
-      - PORT=3001
+      - PORT=5173
       - ORIGIN=https://pingxy.com
+      - CHECK_ORIGIN=true
       - INTERNAL_BACKEND_URL=http://backend:3000
     networks:
       - pingxy-network
+    command: [ "bun", "run", "start" ]
 
   storage:
     image: minio/minio
@@ -106,8 +109,8 @@ services:
     command: server /data --console-address ":9001"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 20s
       retries: 3
 
   caddy:
