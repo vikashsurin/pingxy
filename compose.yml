@@ -71,10 +71,12 @@ services:
       - SERVER_ID=${HOSTNAME}
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_ENDPOINT=http://storage:9000
       - MINIO_BUCKET=pingxy
       - S3_REGION=us-east-1
-      - REDIS_URL=redis://redis:6379i
+      - REDIS_URL=redis://redis:6379
 
     networks:
       - pingxy-network
