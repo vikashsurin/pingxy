@@ -121,10 +121,13 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     networks:
       - pingxy-network
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - frontend
       - backend
@@ -137,3 +140,5 @@ volumes:
   postgres_data:
   minio_data:
   redis_data:
+  caddy_data:
+  caddy_config:
