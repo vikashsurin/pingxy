@@ -26,6 +26,7 @@ RUN bun run build
 FROM oven/bun:1-alpine AS production
 WORKDIR /app
 COPY --from=builder /app/apps/frontend/build ./build
+COPY --from=builder /app/apps/frontend/package.json ./package.json
 ENV NODE_ENV=production
 USER bun
 CMD ["bun", "./build/index.js"]

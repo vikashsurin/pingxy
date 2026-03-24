@@ -1,14 +1,18 @@
-# --- Variables ---
-# Default to development if no env is specified
-ENV  ?= dev
-FILE := compose.$(ENV).yml
+-include .env
+export
 
-# Handle the case where production uses the standard 'compose.yml'
+# --- Variables ---
+# Default to development
+ENV ?= dev
+
+# Determine which file to use based on ENV
 ifeq ($(ENV), prod)
   FILE := compose.yml
+else
+  FILE := compose.dev.yml
 endif
 
-# Common Docker command prefix
+# Common Docker command prefix - now this will dynamically follow $(FILE)
 DC := docker compose -f $(FILE)
 
 # Colors
@@ -19,91 +23,50 @@ RESET  := \033[0m
 
 # --- Primary Commands ---
 
-.PHONY: up down restart logs ps clean
+.PHONY: up stop restart logs ps clean dev prod
 
-# Start environment (Usage: make up | make up ENV=prod)
+# Shortcuts to start specific environments
 dev:
-	@echo "$(GREEN)🚀 Starting $(ENV) environment...$(RESET)"
-	docker compose -f compose.dev.yml up -d --build
+	@$(MAKE) up ENV=dev
 
 prod:
-	@echo "$(GREEN)🚀 Starting $(ENV) environment...$(RESET)"
-	docker compose -f compose.yml up -d --build
+	@$(MAKE) up ENV=prod
 
-# Stop environment
+# The core "up" command that uses the dynamic $(FILE)
+up:
+	@echo "$(GREEN)🚀 Starting $(ENV) environment using $(FILE)...$(RESET)"
+	$(DC) up -d --build
+
+# Stop environment (Now correctly targets the right file)
 stop:
 	@echo "$(YELLOW)🛑 Stopping $(ENV) containers...$(RESET)"
 	$(DC) down
 
 restart:
-	$(DC) restart $(s)
+	$(DC) restart
 
-# View logs
 logs:
 	$(DC) logs -f
-
-logs-frontend:
-	$(DC) logs -f frontend
-
-logs-backend:
-	$(DC) logs -f backend
 
 ps:
 	$(DC) ps
 
 # --- Database & Tools ---
 
-.PHONY: migrate studio shell-db
-
 migrate:
-	$(DC) run --rm migration $(cmd)
-
-migrate-gen:
-	$(DC) run --rm migration bun run db:generate
-
-studio:
-	cd apps/backend && bunx drizzle-kit studio
-
-shell-backend:
-	$(DC) exec backend sh
+	$(DC) run --rm migration
 
 shell-db:
-	$(DC) exec postgres psql -U postgres -d pingxy
+	# Use variables to avoid hardcoding "postgres" if ENV=prod uses different credentials
+	$(DC) exec postgres psql -U $${DB_USER:-postgres} -d $${DB_NAME:-pingxy}
 
 # --- Maintenance ---
 
 clean:
-	@echo "$(RED)⚠️  Removing all containers, volumes, and images...$(RESET)"
+	@echo "$(RED)⚠️  Removing $(ENV) containers, volumes, and images...$(RESET)"
 	$(DC) down -v --rmi all
 
-reset:
-	@echo "$(RED)⚠️  Resetting database...$(RESET)"
-	$(DC) down -v
-	$(DC) up -d --build
-
-rm-db:
-	@echo "$(RED)🛑 Removing drizzle migrations...$(RESET)"
-	rm -rf apps/backend/drizzle
-
-	@echo "$(RED)🛑 Removing postgres volumes... $(ENV) $(RESET)"
-	docker volume rm pingxy_postgres_data_dev
-
-rm-vol:
-	@echo "$(RED)🛑 Removing volumes... $(ENV) $(RESET)"
-	docker volume rm $$(docker volume ls -q) || true
-
-rm-con:
-	@echo "$(RED)🛑 Removing containers... $(ENV) $(RESET)"
-	docker rm $$(docker ps -aq) || true
-
-rm-img:
-	@echo "$(RED)🛑 Removing images... $(ENV) $(RESET)"
-	docker rmi $$(docker images -q) || true
-
-clear:
-	make rm-vol
-	make rm-con
-	make rm-img
-
-	
-	
+# Dangerous: This hits ALL docker volumes/images, not just this project
+clear-docker-nuclear:
+	@echo "$(RED)☢️  WARNING: Deleting ALL docker data on this machine...$(RESET)"
+	docker system prune -a --volumes -f
