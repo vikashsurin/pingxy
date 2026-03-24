@@ -20,7 +20,7 @@ import {
   usersList,
 } from "../domain/user/user.schema";
 
-import { presenceEventSchema, presenceRequestSchema, typingEventSchema, typingRequestSchema } from "../domain/ux/ux.schema";
+import { presenceEventSchema, presenceRequestSchema, reqHeartbeatSchema, resHeartbeatSchema, typingEventSchema, typingRequestSchema } from "../domain/ux/ux.schema";
 import { updatePartReqSchema, updatePartResSchema } from "../domain/participant/participant.schema";
 
 export const serverErrorSchema = z.object({
@@ -41,6 +41,7 @@ export const ClientReqSchema = z.discriminatedUnion("type", [
   typingRequestSchema,
   presenceRequestSchema,
   updatePartReqSchema,
+  reqHeartbeatSchema,
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
@@ -54,5 +55,6 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
   userUnblockedSchema,
   typingEventSchema,
   presenceEventSchema,
-  updatePartResSchema
+  updatePartResSchema,
+  resHeartbeatSchema
 ]);

@@ -8,6 +8,7 @@ import {
 import { createServerEvent } from "@lib/socket/socket.factory";
 import { SERVER_EVENTS } from "@pingxy/shared/constants";
 import { eventBus } from "@lib/events";
+import { broadcast } from "@lib/socket/pubsub";
 export const BlockService = {
   block: async ({
     blockerId,
@@ -34,7 +35,7 @@ export const BlockService = {
       const event = createServerEvent(SERVER_EVENTS.BLOCKS.UNBLOCKED, {
         ...unblocked,
       });
-      eventBus.emit(SERVER_EVENTS.BLOCKS.UNBLOCKED, event);
+      broadcast(SERVER_EVENTS.BLOCKS.UNBLOCKED, event);
 
       return unblocked;
     } catch (error) {

@@ -1,52 +1,33 @@
-// import { User } from "@pingxy/shared/types";
-// import { WebSocketData } from "./types";
-// import redis from "@lib/redis";
+import { eventBus } from "@lib/events";
+import redis from "@lib/redis";
 
-// let sockets: Map<string, Bun.ServerWebSocket<WebSocketData>> = new Map();
-// let serverInstance: Bun.Server<WebSocketData>;
+// Use Bun.env for better performance in the Bun runtime
+const SERVER_ID = Bun.env.HOSTNAME || Bun.env.SERVER_ID || "local-dev";
+const GLOBAL_CHAN = "pingxy:events";
 
-// export function setServer(server: Bun.Server<WebSocketData>) {
-//   serverInstance = server;
-// }
+export const initGlobalBus = async () => {
+    // Subscriptions MUST use a duplicate connection
+    const sub = await redis.duplicate();
 
-// export function getServer() {
-//   return serverInstance;
-// }
+    sub.subscribe(GLOBAL_CHAN, (message) => {
+        const { event, payload, sourceId } = JSON.parse(message);
 
-// export functionconnectionManager.publish(topic: string, data: string) {
-//   if (serverInstance) {
-//     serverInstance.publish(topic, data);
-//   }
-// }
+        // CRITICAL: Compare against the SERVER_ID variable we defined above
+        if (sourceId !== SERVER_ID) {
+            console.log(`[GlobalBus] Syncing ${event} from remote node: ${sourceId}`);
+            eventBus.emit(event, payload);
+        }
+    });
+};
 
+export const broadcast = (event: string, payload: any) => {
+    // 1. Emit locally for immediate response to sockets on THIS container
+    eventBus.emit(event, payload);
 
-// export function getSocket(id: string) {
-//   return sockets.get(id);
-// }
-
-// export function setSocket(id: string, socket: Bun.ServerWebSocket<WebSocketData>) {
-//   sockets.set(id, socket);
-// }
-
-// export function removeSocket(id: string) {
-//   sockets.delete(id);
-// }
-
-// export async function connect(user: User, socket: Bun.ServerWebSocket<WebSocketData>) {
-//   const id = Bun.randomUUIDv7();
-
-//   setSocket(id, socket);
-//   await redis.sadd(`user:${user.id}:sockets`, id);
-//   await redis.sadd(`online_users`, `${user.id}`);
-//   await redis.set(`presence:${user.id}`, 'online')
-
-// }
-
-// export async function disconnect(user: User) {
-//   console.log("called disconnect")
-//   await redis.del(`user:${user.id}:sockets`)
-//   await redis.srem(`online_users`, `${user.id}`);
-//   await redis.set(`presence:${user.id}`, 'offline');
-//   await redis.expire(`presence:${user.id}`, 60);
-
-// }
+    // 2. Publish to Redis so all OTHER containers can sync
+    redis.publish(GLOBAL_CHAN, JSON.stringify({
+        event,
+        payload,
+        sourceId: SERVER_ID
+    }));
+};

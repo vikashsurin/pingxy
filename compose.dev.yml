@@ -1,15 +1,15 @@
 services:
   redis:
-      image: redis:7-alpine
-      container_name: pingxy-redis
-      networks:
-        - pingxy-network-dev
-      restart: always
-      ports:
-        - "6379:6379"
-      volumes:
-        - redis_data:/data
-      command: ["redis-server", "--appendonly", "yes"]
+    image: redis:7-alpine
+    container_name: pingxy-redis
+    networks:
+      - pingxy-network-dev
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
 
   postgres:
     image: postgres:16-alpine
@@ -72,11 +72,10 @@ services:
       - /app/node_modules
       - /app/apps/backend/node_modules
     environment:
+      - SERVER_ID=${HOSTNAME}
       - NODE_ENV=development
       - PORT=3000
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
-      - MINIO_ROOT_USER=pingxy_admin
-      - MINIO_ROOT_PASSWORD=super_secret_password_123
       - MINIO_ENDPOINT=http://localhost/storage
       - MINIO_BUCKET=pingxy
       - S3_REGION=us-east-1
@@ -90,7 +89,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-
       # moderation:
       #   condition: service_healthy
     command: [ "bun", "--hot", "run", "src/index.ts" ]

@@ -1,5 +1,6 @@
 import { eventBus } from "@lib/events";
 import redis from "@lib/redis";
+import { broadcast } from "@lib/socket/pubsub";
 // import { getSocket } from "@lib/socket/pubsub";
 import { createServerEvent } from "@lib/socket/socket.factory";
 import { SessionService } from "@modules/sessions";
@@ -112,7 +113,7 @@ export const AuthService = {
     const event = createServerEvent(SERVER_EVENTS.USERS.LOGIN, {
       user: { ...user },
     });
-    eventBus.emit(SERVER_EVENTS.USERS.LOGIN, event);
+    broadcast(SERVER_EVENTS.USERS.LOGIN, event);
 
     return {
       user: user,
@@ -168,7 +169,7 @@ export const AuthService = {
       }
     }
     const event = createServerEvent(SERVER_EVENTS.USERS.LOGOUT, { user });
-    eventBus.emit(SERVER_EVENTS.USERS.LOGOUT, event);
+    broadcast(SERVER_EVENTS.USERS.LOGOUT, event);
 
     return success;
   },

@@ -1,4 +1,19 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: pingxy-redis
+    networks:
+      - pingxy-network
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   postgres:
     image: postgres:16-alpine
     shm_size: "512mb"
@@ -17,7 +32,7 @@ services:
         limits:
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,7 +51,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["bun", "run", "db:migrate"]
+    command: [ "bun", "run", "db:migrate" ]
 
   backend:
     image: vikashsurin/pingxy-backend:latest
@@ -48,12 +63,20 @@ services:
     depends_on:
       migration:
         condition: service_completed_successfully
+      storage:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - PORT=3000
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - MINIO_ENDPOINT=http://storage:9000
+      - MINIO_BUCKET=pingxy
+      - S3_REGION=us-east-1
+      - REDIS_URL=redis://redis:6379
     networks:
       - pingxy-network
-    command: ["bun", "run", "start"]
+    command: [ "bun", "run", "start" ]
 
   frontend:
     image: vikashsurin/pingxy-frontend:latest
@@ -69,18 +92,34 @@ services:
     networks:
       - pingxy-network
 
-  nginx:
-    image: nginx:alpine
-    container_name: pingxy-proxy
+  storage:
+    image: minio/minio
+    container_name: pingxy-storage
+    restart: always
+    networks:
+      - pingxy-network
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:alpine
+    container_name: pingxy-proxy-dev
     restart: always
     ports:
       - "80:80"
-      - "443:443"
     networks:
       - pingxy-network
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certs:/etc/nginx/certs:ro # Mount the certs here
+      - ./Caddyfile:/etc/caddy/Caddyfile
     depends_on:
       - frontend
       - backend
@@ -91,3 +130,5 @@ networks:
 
 volumes:
   postgres_data:
+  minio_data:
+  redis_data:

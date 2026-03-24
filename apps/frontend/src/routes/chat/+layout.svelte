@@ -2,12 +2,15 @@
   import Navbar from "./Navbar.svelte";
   import { chatStore } from "$lib/stores/store.svelte.js";
   import { initSocket } from "$lib/socket/socket.svelte.js";
+  import { uxManager } from "$lib/managers/entities/ux.svelte.js";
 
   let { children, data } = $props();
 
   $effect.pre(() => {
     chatStore.currentUser = data.user;
     initSocket();
+    // uxManager.stopHeartBeat();
+    // uxManager.emitHeartbeat();
   });
 </script>
 

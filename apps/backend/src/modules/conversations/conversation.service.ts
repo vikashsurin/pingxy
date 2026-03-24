@@ -10,6 +10,7 @@ import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants";
 import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
 import { ConversationRepository } from "./conversation.repository";
+import { broadcast } from "@lib/socket/pubsub";
 
 export const ConversationService = {
   findByUsers: async ({
@@ -206,9 +207,10 @@ export const ConversationService = {
       recipient: recipient,
     });
 
-    eventBus.emit(SERVER_EVENTS.MESSAGES.CREATED, {
+    broadcast(SERVER_EVENTS.MESSAGES.CREATED, {
       ...responseEnvelope,
     });
+
     return responseEnvelope;
   },
 

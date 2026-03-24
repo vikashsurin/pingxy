@@ -2,6 +2,28 @@ import { createUserApi } from "$lib/api/user.api";
 import type { User } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
+class UserState {
+  isOnline: boolean;
+  lastSeenAt: Date;
+
+  constructor() {
+    this.isOnline = false;
+    this.lastSeenAt = new Date();
+  }
+
+  setOnline() {
+    this.isOnline = true;
+  }
+
+  setOffline() {
+    this.isOnline = false;
+  }
+
+  setLastSeenAt(lastSeenAt: Date) {
+    this.lastSeenAt = lastSeenAt;
+  }
+}
+
 class UserStore {
   blockedUserIds = new SvelteSet<number>();
   blockedUsers = new SvelteMap<number, User>();

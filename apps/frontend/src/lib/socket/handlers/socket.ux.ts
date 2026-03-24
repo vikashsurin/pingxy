@@ -10,4 +10,8 @@ export const uxHandler: SocketHandler = {
   [SERVER_EVENTS.PRESENCE.ONLINE]: (data) => {
     uxManager.handlePresenceEvent(data);
   },
+
+  [SERVER_EVENTS.HEARTBEAT]: (data) => {
+    uxManager.handleHeartbeatEvent(data);
+  },
 };

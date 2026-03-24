@@ -24,12 +24,18 @@ function createConnectionManager() {
     // Save socket to in-memory map
     sockets.set(userId, socket);
 
+    // Set presence with a 60-second TTL
     // Add user to online users set
+    await redis.set(`presence:${userId}`, 'online', 'EX', 60)
+
     await redis.sadd('online_users', userId.toString())
 
-    // Add presence
-    await redis.set(`presence:${userId}`, 'online')
 
+  }
+
+  async function refreshHeartbeat(userId: number) {
+    // Simply reset the 60-second timer
+    await redis.expire(`presence:${userId}`, 60);
   }
 
   async function disconnect(userId: number) {
@@ -65,6 +71,7 @@ function createConnectionManager() {
     disconnect,
     publish,
     removeSocket,
+    refreshHeartbeat
   };
 }
 

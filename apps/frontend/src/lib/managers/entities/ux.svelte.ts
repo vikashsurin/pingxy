@@ -8,8 +8,10 @@ import {
 } from "@pingxy/shared";
 import { createClientReq } from "../factory";
 
-const createUxManager = () => ({
-  emitTyping: ({
+const createUxManager = () => {
+  let heartbeatInterval: ReturnType<typeof setInterval> | undefined;
+
+  const emitTyping = async ({
     conversationId,
     userId,
   }: {
@@ -21,9 +23,9 @@ const createUxManager = () => ({
       userId: userId,
     });
     send(payload);
-  },
+  }
 
-  handleTypingEvent: (
+  const handleTypingEvent = (
     data: ServerEventMap[typeof SERVER_EVENTS.TYPING.STARTED],
   ) => {
     const { conversationId, userId } = data.payload;
@@ -31,9 +33,9 @@ const createUxManager = () => ({
 
     // set typing state
     if (state) state.handleTyping();
-  },
+  }
 
-  emitPresenceCheck: (userId: number, conversationId: number) => {
+  const emitPresenceCheck = (userId: number, conversationId: number) => {
     const currentUser = chatStore.currentUser;
 
     if (!currentUser) return;
@@ -45,9 +47,9 @@ const createUxManager = () => ({
     });
 
     send(payload);
-  },
+  }
 
-  handlePresenceEvent: (
+  const handlePresenceEvent = (
     data: ServerEventMap[typeof SERVER_EVENTS.PRESENCE.ONLINE],
   ) => {
     const { of, for: userId, conversationId, online } = data.payload;
@@ -58,7 +60,45 @@ const createUxManager = () => ({
     } else {
       if (state) state.setOffline();
     }
-  },
-});
+  }
+
+  const emitHeartbeat = () => {
+
+    const payload = createClientReq(DOMAIN_EVENTS.HEARTBEAT, {
+      ping: true,
+    });
+    heartbeatInterval = setInterval(() => {
+      send(payload);
+    }, 30000)
+  }
+
+  const stopHeartBeat = () => {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+  }
+
+  const handleHeartbeatEvent = (
+    data: ServerEventMap[typeof SERVER_EVENTS.HEARTBEAT],
+  ) => {
+
+    // console.log('data', data)
+
+    // const { userId } = data.payload;
+    // const state = conversationStore.chatState.get();
+
+    // create this function
+    // if (state) state.handleHeartbeat();
+  }
+
+  return {
+    emitTyping,
+    handleTypingEvent,
+    emitPresenceCheck,
+    handlePresenceEvent,
+    emitHeartbeat,
+    handleHeartbeatEvent,
+    stopHeartBeat
+  }
+};
+
 
 export const uxManager = createUxManager();

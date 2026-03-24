@@ -35,6 +35,10 @@ export const DOMAIN_EVENTS = {
   PRESENCE: {
     ONLINE: "req:presence.online",
     OFFLINE: "req:presence.offline",
+  },
+  HEARTBEAT: "req:heartbeat",
+  SUBSCRIPTION: {
+    PRESENCE: "req:subscription.presence",
   }
 
 } as const;
@@ -81,6 +85,10 @@ export const SERVER_EVENTS = {
     ONLINE: "event:presence.online",
     OFFLINE: "event:presence.offline",
   },
+  HEARTBEAT: "event:heartbeat",
+  SUBSCRIPTION: {
+    PRESENCE: 'event:subscription.presence'
+  }
 
 } as const;
 

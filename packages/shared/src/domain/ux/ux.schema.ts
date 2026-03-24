@@ -40,3 +40,29 @@ export const presenceEventSchema = z.object({
     lastSeenAt: z.coerce.date().optional(),
   }),
 });
+
+export const reqHeartbeatSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.HEARTBEAT),
+  payload: z.object({
+    ping: z.boolean()
+  }),
+});
+
+export const resHeartbeatSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(SERVER_EVENTS.HEARTBEAT),
+  payload: z.object({
+    userId: z.number(),
+    pong: z.boolean()
+  }),
+});
+
+export const reqSubscriptionPresenceSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.SUBSCRIPTION.PRESENCE),
+  payload: z.object({
+    userId: z.number(),
+  }),
+})
+

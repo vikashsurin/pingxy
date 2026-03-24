@@ -5,6 +5,7 @@ import { SERVER_EVENTS } from "@pingxy/shared/constants";
 import { updatePartReqSchema, User } from "@pingxy/shared/domain";
 import z from "zod";
 import { ParticipantRepository } from "./participant.repository";
+import { broadcast } from "@lib/socket/pubsub";
 
 export const ParticipantService = {
   // Todo: create multiple participants for  group
@@ -89,7 +90,7 @@ export const ParticipantService = {
       })
 
 
-      eventBus.emit(SERVER_EVENTS.PARTICIPANTS.UPDATED, responseEnvelope)
+      broadcast(SERVER_EVENTS.PARTICIPANTS.UPDATED, responseEnvelope)
 
 
       return updatedParticipant;

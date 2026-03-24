@@ -1,11 +1,11 @@
 # --- Variables ---
 # Default to development if no env is specified
 ENV  ?= dev
-FILE := docker-compose.$(ENV).yml
+FILE := compose.$(ENV).yml
 
-# Handle the case where production uses the standard 'docker-compose.yml'
+# Handle the case where production uses the standard 'compose.yml'
 ifeq ($(ENV), prod)
-  FILE := docker-compose.yml
+  FILE := compose.yml
 endif
 
 # Common Docker command prefix

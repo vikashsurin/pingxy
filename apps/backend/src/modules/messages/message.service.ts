@@ -1,102 +1,9 @@
-import type { ClientReqMap } from "@pingxy/shared/socket/types";
-import { ConversationService } from "../conversations";
 import { ParticipantService } from "../participants";
 import { MessageRepository } from "./message.repository";
 
-import { eventBus } from "@lib/events";
-import { createServerEvent } from "@lib/socket/socket.factory";
-import { BlockService } from "@modules/block/block.service";
-import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants/index";
-import { HTTPException } from "hono/http-exception";
 import db from "@lib/db/client";
-import { AttachmentService } from "@modules/attachments/attachment.service";
-import { ConversationRepository } from "@modules/conversations/conversation.repository";
 
 export const MessageService = {
-  // sendMessage: async (
-  //   body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
-  // ) => {
-  //   const { message, recipient, sender, attachments } = body.payload;
-  //   // const result = await db.transaction(async (tx) => {
-  //   //  TODO: Wrap it in transaction
-
-  //   const hasBlock = await BlockService.hasBlock({
-  //     blockerId: message.senderId,
-  //     blockedId: recipient.id,
-  //   });
-
-  //   if (hasBlock) {
-  //     throw new HTTPException(400, {
-  //       message: "User is blocked",
-  //     });
-  //   }
-
-  //   const conversation = await ConversationService.findOrCreateByUsers({
-  //     currentUserId: message.senderId,
-  //     userId: recipient.id,
-  //   });
-
-  //   const participants = await ParticipantService.create({
-  //     conversationId: conversation.id,
-  //     user1Id: message.senderId,
-  //     user2Id: recipient.id,
-  //   });
-
-  //   const [insertedMessage] = await MessageRepository.insertMessage({
-  //     conversationId: conversation.id!,
-  //     clientMessageId: message.clientMessageId,
-  //     senderId: message.senderId,
-  //     content: message.content,
-  //   });
-
-  //   // update conversation activity
-  //   const [updatedConversation] = await ConversationRepository.updateActivity({
-  //     id: conversation.id,
-  //     lastMessageId: insertedMessage.id,
-  //   })
-
-
-
-  //   const savedAttachments = await AttachmentService.createAttachment({
-  //     attachments,
-  //     userId: message.senderId,
-  //     messageId: insertedMessage.id,
-  //   });
-
-  //   const attachmentsWithUrls = [];
-
-  //   for (const a of savedAttachments) {
-  //     const url = `http://localhost:9000/pingxy/${a.key}`
-  //     const thumbUrl = `http://localhost:9000/pingxy/${a.thumbKey}`
-  //     attachmentsWithUrls.push({ ...a, url, thumbUrl });
-  //   }
-  //   const [messageReceipt] = await ReceiptService.createMessageReceipt({
-  //     conversationId: conversation.id,
-  //     messageId: insertedMessage.id,
-  //     readerId: recipient.id,
-  //     status: "sent",
-  //   });
-
-
-  //   await ParticipantService.incrementUnreadCount({
-  //     conversationId: conversation.id,
-  //     senderId: message.senderId,
-  //   });
-
-  //   const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
-  //     message: insertedMessage,
-  //     attachments: attachmentsWithUrls,
-  //     receipt: messageReceipt,
-  //     conversation: updatedConversation,
-  //     sender: sender,
-  //     recipient: recipient,
-  //   });
-
-  //   eventBus.emit(SERVER_EVENTS.MESSAGES.CREATED, {
-  //     ...responseEnvelope,
-  //   });
-  //   return responseEnvelope;
-  // },
 
   getById: async (messageId: number) => {
     try {
@@ -165,7 +72,7 @@ export const MessageService = {
       const attachments = new Map();
 
       for (const row of rows) {
-        const { message,  attachment } = row;
+        const { message, attachment } = row;
         const msgId = message.id;
 
         if (!messages.has(msgId)) {

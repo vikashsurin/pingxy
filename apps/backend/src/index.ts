@@ -10,6 +10,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { prettyJSON } from "hono/pretty-json";
 import { registerRoutes } from "./routes/index";
+import { initGlobalBus } from "@lib/socket/pubsub";
 
 
 /*
@@ -89,6 +90,8 @@ serve({
   async fetch(req, server) {
 
     connectionManager.setServer(server)
+
+    initGlobalBus()
 
 
     const url = new URL(req.url);

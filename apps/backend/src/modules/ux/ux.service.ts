@@ -2,9 +2,21 @@ import { eventBus } from "@lib/events"
 import { createServerEvent } from "@lib/socket/socket.factory"
 import { SERVER_EVENTS } from "@pingxy/shared/constants"
 import redis from "@lib/redis"
+import { broadcast } from "@lib/socket/pubsub"
 
 
 export const UXService = {
+
+  heartbeat: async (userId: number) => {
+
+    const payload = createServerEvent(SERVER_EVENTS.HEARTBEAT, {
+      userId,
+      pong: true,
+    })
+
+    broadcast(SERVER_EVENTS.HEARTBEAT, payload)
+  },
+
   typingStart: async (conversationId: number, userId: number) => {
 
     const payload = createServerEvent(SERVER_EVENTS.TYPING.STARTED, {
@@ -12,7 +24,7 @@ export const UXService = {
       userId,
     })
 
-    eventBus.emit(SERVER_EVENTS.TYPING.STARTED, payload)
+    broadcast(SERVER_EVENTS.TYPING.STARTED, payload)
   },
 
 
@@ -29,6 +41,6 @@ export const UXService = {
       online: isOnline,
     })
 
-    eventBus.emit(SERVER_EVENTS.PRESENCE.ONLINE, payload)
+    broadcast(SERVER_EVENTS.PRESENCE.ONLINE, payload)
   },
 }
