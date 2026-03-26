@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite dev --host 0.0.0.0 --port 3001",
+    "dev": "vite dev --host 0.0.0.0 --port 5173",
     "preview": "vite preview",
     "start": "bun run build/index.js",
     "prepare": "svelte-kit sync || echo ''",

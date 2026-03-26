@@ -14,7 +14,7 @@
             Connect globally, chat instantly.
         </p>
     </div>
-    <div class="flex gap-3">
+    <div class="flex gap-3 justify-center">
         <a href="/login">login</a>
         <a href="/register">register</a>
         <a href="/guest">guest</a>
