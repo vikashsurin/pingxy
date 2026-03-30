@@ -3,10 +3,11 @@
   import OnlineUsers from "./OnlineUsers.svelte";
   import RecentChats from "./RecentChats.svelte";
   import SidebarFilter from "./SidebarFilter.svelte";
+  import GroupChats from "./GroupChats.svelte";
   let searchQuery = $state("");
   let gender = $state("all");
 
-  let activeTab = $state("users");
+  let activeTab = $state("groups");
 
   let tabs = [
     {
@@ -50,8 +51,7 @@
   {#if activeTab === "users"}
     <OnlineUsers {searchQuery} {gender} />
   {:else if activeTab === "groups"}
-    <div>Groups</div>
-    <!-- <OnlineGroups {searchQuery} {gender} bind:showGroups /> -->
+    <GroupChats />
   {:else}
     <RecentChats />
   {/if}

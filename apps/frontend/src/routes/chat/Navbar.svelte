@@ -35,7 +35,7 @@
                     class="absolute py-1 flex flex-col top-full min-w-50 right-0 bg-white border border-gray-200 rounded z-100"
                 >
                     {@render menuItem("/chat/view-details/me", "View details")}
-                    {@render menuItem("/chat/upgrade-to-pro", "Upgrade to Pro")}
+                    <!-- {@render menuItem("/chat/upgrade-to-pro", "Upgrade to Pro")} -->
                     {@render menuItem("/chat/settings", "Settings")}
                     <a
                         title="Logout"

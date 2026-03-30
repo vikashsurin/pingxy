@@ -1,4 +1,9 @@
 export const DOMAIN_EVENTS = {
+  CONVERSATIONS: {
+    CREATE: "req:conversation.create",
+    UPDATE: "req:conversation.update",
+    DELETE: "req:conversation.delete",
+  },
   MESSAGES: {
     SENT: "req:message.sent",
     CREATE: "req:message.create",
@@ -25,9 +30,6 @@ export const DOMAIN_EVENTS = {
   PARTICIPANTS: {
     UPDATE: "req:participant.update",
   },
-  CONVERSATIONS: {
-    OPEN: "req:conversation.open",
-  },
   TYPING: {
     START: "req:typing.start",
     STOP: "req:typing.stop",
@@ -39,13 +41,17 @@ export const DOMAIN_EVENTS = {
   HEARTBEAT: "req:heartbeat",
   SUBSCRIPTION: {
     PRESENCE: "req:subscription.presence",
-  }
-
+  },
 } as const;
 
 export const SERVER_EVENTS = {
   ERRORS: {
     SYSTEM: "event:error.system",
+  },
+  CONVERSATIONS: {
+    CREATE: "event:conversation.create",
+    UPDATE: "event:conversation.update",
+    DELETE: "event:conversation.delete",
   },
   MESSAGES: {
     SENT: "event:message.sent",
@@ -74,9 +80,6 @@ export const SERVER_EVENTS = {
   BLOCKS: {
     UNBLOCKED: "event:blocks.unblocked",
   },
-  CONVERSATIONS: {
-    OPEN: "event:conversation.open",
-  },
   TYPING: {
     STARTED: "event:typing.started",
     STOPPED: "event:typing.stopped",
@@ -87,9 +90,8 @@ export const SERVER_EVENTS = {
   },
   HEARTBEAT: "event:heartbeat",
   SUBSCRIPTION: {
-    PRESENCE: 'event:subscription.presence'
-  }
-
+    PRESENCE: "event:subscription.presence",
+  },
 } as const;
 
 type ExtractEvents<T> = T extends object

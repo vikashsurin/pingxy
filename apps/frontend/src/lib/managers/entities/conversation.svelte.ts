@@ -1,52 +1,27 @@
+import { conversationApi } from "$lib/api/conversation.api";
 import { DOMAIN_EVENTS } from "@pingxy/shared/constants/index";
-import type { ClientReqMap } from "@pingxy/shared/socket/types";
-import { validateSocket } from "$lib/utils/validateSocket";
-import { send } from "$lib/socket/socket.svelte";
-// export const subscribeToConversation = async ({
-//   conversationId,
-//   userId,
-// }: {
-//   conversationId: number;
-//   userId: number;
-// }) => {
-//   if (!conversationId || !userId) return;
+import { createClientReq } from "../factory";
 
-//   const socket = validateSocket();
-//   if (!socket) return;
-
-//   const message: ClientReqMap[typeof DOMAIN_EVENTS.CONVERSATIONS.OPEN] = {
-//     id: crypto.randomUUID(),
-//     type: DOMAIN_EVENTS.CONVERSATIONS.OPEN,
-//     payload: {
-//       conversationId: conversationId,
-//       userId: userId,
-//     },
-//   };
-
-//   socket.send(JSON.stringify(message));
-// };
-
-const createConversationManager = () => ({
-  subscribeToConversation: async ({
-    conversationId,
-    userId,
-  }: {
-    conversationId: number;
-    userId: number;
+const createConversationManager = () => {
+  const createGroupConversation = async (conversation: {
+    name: string;
+    description: string;
+    isPrivate: boolean;
+    maxParticipants: number;
   }) => {
-    if (!conversationId || !userId) return;
+    const payload = createClientReq(DOMAIN_EVENTS.CONVERSATIONS.CREATE, {
+      name: conversation.name,
+      isPrivate: conversation.isPrivate,
+      description: conversation.description,
+      maxParticipants: conversation.maxParticipants,
+    });
 
-    const message: ClientReqMap[typeof DOMAIN_EVENTS.CONVERSATIONS.OPEN] = {
-      id: crypto.randomUUID(),
-      type: DOMAIN_EVENTS.CONVERSATIONS.OPEN,
-      payload: {
-        conversationId: conversationId,
-        userId: userId,
-      },
-    };
+    return conversationApi.createGroupConversation(payload);
+  };
 
-    send(message);
-  },
-});
+  return {
+    createGroupConversation,
+  };
+};
 
 export const conversationManager = createConversationManager();

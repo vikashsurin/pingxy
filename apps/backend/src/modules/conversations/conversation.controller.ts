@@ -1,19 +1,34 @@
 import { factory } from "@lib/db/drizzle-factory";
 import { validate } from "@lib/utils/validator";
-import { messageCreateSchema } from "@pingxy/shared/domain";
+import {
+  createGroupReqSchema,
+  messageCreateSchema,
+} from "@pingxy/shared/domain";
 import { z } from "zod";
 import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 
 export const ConversationController = {
+  initialFetch: factory.createHandlers(async (c) => {
+    const user = c.get("user");
+    const userId = user.id;
+    const data = await ConversationService.convAggregation({ userId });
+    if (!data) return c.notFound();
+    return c.json(data);
+  }),
 
-  initialFetch: factory.createHandlers(
+  createGroup: factory.createHandlers(
+    validate("json", createGroupReqSchema),
     async (c) => {
+      const data = c.req.valid("json");
       const user = c.get("user");
       const userId = user.id;
-      const data = await ConversationService.convAggregation({ userId })
-      if (!data) return c.notFound();
-      return c.json(data);
+
+      const result = await ConversationService.createGroup(
+        data.payload,
+        userId,
+      );
+      return c.json(result);
     },
   ),
 
@@ -32,7 +47,6 @@ export const ConversationController = {
     },
   ),
 
-
   getAllMessages: factory.createHandlers(
     validate("param", z.object({ conversationId: z.coerce.number() })),
     validate(
@@ -49,7 +63,6 @@ export const ConversationController = {
       const userId = user.id;
       const { limit, before, after } = c.req.valid("query");
       const { conversationId } = c.req.valid("param");
-
 
       const result = await MessageService.getMessages({
         conversationId,
@@ -93,7 +106,6 @@ export const ConversationController = {
       return c.json({ data: message }, 201);
     },
   ),
-
 
   getConversationByUserIds: factory.createHandlers(
     validate(

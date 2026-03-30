@@ -21,6 +21,7 @@
   let newConversation = $state(false);
   let partnerId = $state<number>();
   let conversationId = $state<number>();
+  let groupId = $state<number>();
 
   const chatState = $derived(conversationStore.chatState.get(conversationId!));
 
@@ -64,6 +65,20 @@
         });
     }
 
+    if (data.identifierType === "group") {
+      newConversation = false;
+      groupId = data.idValue;
+
+      messageApi
+        .fetchMessages({ conversationId: data.idValue, limit: 20 })
+        .then((res) => {
+          if (!cancelled) {
+            messageStore.setMessages(res.entities.messages);
+            attachmentStore.setAttachments(res.entities.attachments);
+          }
+        });
+    }
+
     return () => {
       cancelled = true;
     };
@@ -82,7 +97,7 @@
 
 <div id="chatbox" class="flex flex-col h-full">
   {#if partnerId}
-    <ChatHeader id={partnerId} cid={conversationId} />
+    <ChatHeader id={partnerId} cid={conversationId} gid={groupId} />
 
     {#if newConversation}
       <div class="flex-1 flex min-h-0 items-center justify-center">

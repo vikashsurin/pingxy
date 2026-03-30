@@ -1,4 +1,4 @@
-import { eventBus } from "@lib/events";
+import { broadcast } from "@lib/socket/pubsub";
 import { createServerEvent } from "@lib/socket/socket.factory";
 import { AttachmentService } from "@modules/attachments/attachment.service";
 import { BlockService } from "@modules/block/block.service";
@@ -10,7 +10,8 @@ import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants";
 import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
 import { ConversationRepository } from "./conversation.repository";
-import { broadcast } from "@lib/socket/pubsub";
+import { createGroupReqSchema } from "@pingxy/shared/domain";
+import z from "zod";
 
 export const ConversationService = {
   findByUsers: async ({
@@ -31,12 +32,38 @@ export const ConversationService = {
     }
   },
 
+  createGroup: async (
+    payload: z.infer<typeof createGroupReqSchema>["payload"],
+    userId: number,
+  ) => {
+    console.log({ payload, userId })
+    const newConversation = {
+      type: "group" as const,
+      name: payload.name,
+      isPrivate: payload.isPrivate,
+      createdBy: userId,
+      description: payload.description,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const [conversation] = await ConversationRepository.insert(newConversation);
+
+    const participant = await ParticipantRepository.insertParticipant({
+      conversationId: conversation.id,
+      userId,
+      joinedAt: new Date(),
+      role: "admin" as const,
+    });
+    return conversation;
+  },
 
   convAggregation: async ({ userId }: { userId: number }) => {
-    const conversations = await ConversationRepository.selectAll({ userId })
+    const conversations = await ConversationRepository.selectAll({ userId });
     const cIds = conversations.map((c) => c.id);
 
-    const participants = await ParticipantRepository.selectManyByConvIds({ conversationIds: cIds });
+    const participants = await ParticipantRepository.selectManyByConvIds({
+      conversationIds: cIds,
+    });
     const ids = participants.map((p) => p.userId);
 
     const users = await UserRepository.selectManyByIds({ ids: ids });
@@ -44,8 +71,6 @@ export const ConversationService = {
     // may also send cids,uids,pids if needed
     return { conversations, participants, users };
   },
-
-
 
   findOrCreateByUsers: async ({
     currentUserId,
@@ -113,7 +138,6 @@ export const ConversationService = {
     }
   },
 
-
   delete: async (conversationId: number) => {
     try {
       return await ConversationRepository.delete(conversationId);
@@ -123,10 +147,9 @@ export const ConversationService = {
     }
   },
 
-
   sendMessage: async (
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
-    user: User
+    user: User,
   ) => {
     const { message, recipient, attachments } = body.payload;
     // const result = await db.transaction(async (tx) => {
@@ -165,15 +188,14 @@ export const ConversationService = {
     const [updatedConversation] = await ConversationRepository.updateActivity({
       id: conversation.id,
       lastMessageId: insertedMessage.id,
-    })
+    });
 
     const [updatedParticipant] = await ParticipantRepository.update({
       userId: user.id,
       lastReadMessageId: insertedMessage.id,
       lastReadAt: new Date(),
       conversationId: conversation.id,
-    })
-
+    });
 
     const savedAttachments = await AttachmentService.createAttachment({
       attachments,
@@ -184,15 +206,15 @@ export const ConversationService = {
     const attachmentsWithUrls = [];
 
     for (const a of savedAttachments) {
-      const endpoint = process.env.MINIO_ENDPOINT
-      const bucket = process.env.MINIO_BUCKET
-      const url = `${endpoint}/${bucket}/${a.key}`
-      const thumbUrl = a.thumbKey ? `${endpoint}/${bucket}/${a.thumbKey}` : undefined;
+      const endpoint = process.env.MINIO_ENDPOINT;
+      const bucket = process.env.MINIO_BUCKET;
+      const url = `${endpoint}/${bucket}/${a.key}`;
+      const thumbUrl = a.thumbKey
+        ? `${endpoint}/${bucket}/${a.thumbKey}`
+        : undefined;
 
       attachmentsWithUrls.push({ ...a, url, thumbUrl });
     }
-
-
 
     await ParticipantService.incrementUnreadCount({
       conversationId: conversation.id,
@@ -213,5 +235,4 @@ export const ConversationService = {
 
     return responseEnvelope;
   },
-
 };

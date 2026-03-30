@@ -6,25 +6,16 @@ export const conversationRouter = factory.createApp();
 
 conversationRouter.use(authMiddleware);
 
-
-conversationRouter.get(
-  "/",
-  ...ConversationController.initialFetch,
-);
+conversationRouter.get("/", ...ConversationController.initialFetch);
 
 // Todo
-conversationRouter.post(
-  "/messages",
-  ...ConversationController.createMessage,
-);
-
+conversationRouter.post("/messages", ...ConversationController.createMessage);
 
 // GET a conversation detail for a user
 conversationRouter.get(
   "/:conversationId/partner",
   ...ConversationController.getPartner,
 );
-
 
 // GET all the messages and receipts from a conversation
 conversationRouter.get(
@@ -44,3 +35,6 @@ conversationRouter.get(
   "/find",
   ...ConversationController.findConversationByUserId,
 );
+
+// POST create a new group
+conversationRouter.post("/groups", ...ConversationController.createGroup);

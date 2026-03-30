@@ -1,11 +1,12 @@
 import { SQL } from "bun";
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/bun-sql";
-import { BunSQLDatabase } from "drizzle-orm/bun-sql";
+import { BunSQLDatabase, drizzle } from "drizzle-orm/bun-sql";
 import { PgTransaction } from "drizzle-orm/pg-core";
 // import * as schema from "@pingxy/shared/db/schemas";
 import {
+  attachments,
   blockedUsers,
+  conversationInvites,
   conversations,
   messageReactions,
   messages,
@@ -13,7 +14,7 @@ import {
   refreshTokens,
   sessions,
   users,
-  attachments
+  membershipRequests,
 } from "@pingxy/shared/domain";
 
 export const schema = {
@@ -26,6 +27,8 @@ export const schema = {
   refreshTokens,
   sessions,
   attachments,
+  conversationInvites,
+  membershipRequests,
 };
 
 // 0. Check if DATABASE_URL is set

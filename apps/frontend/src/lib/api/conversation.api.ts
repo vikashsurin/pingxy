@@ -1,5 +1,20 @@
-export const createConversationApi = (customFetch: typeof fetch = fetch) => ({
-  fetchInitialData: async () => {
+export const createConversationApi = (customFetch: typeof fetch = fetch) => {
+  const createGroupConversation = async (conversation: any) => {
+    const res = await customFetch(`/api/conversations/groups`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(conversation),
+    });
+
+    if (!res.ok)
+      throw new Error("Failed to Create Conversation", { cause: res });
+    return await res.json();
+  };
+
+  const fetchInitialData = async () => {
     const res = await customFetch(`/api/conversations`, {
       method: "GET",
       credentials: "include",
@@ -7,37 +22,11 @@ export const createConversationApi = (customFetch: typeof fetch = fetch) => ({
 
     if (!res.ok) throw new Error("Failed to Load Chat", { cause: res });
     return await res.json();
-  },
-
-  // fetchConversations: async ({ userId }: { userId: number }) => {
-  //   const res = await customFetch(`/api/conversations?userId=${userId}`, {
-  //     method: "GET",
-  //     credentials: "include",
-  //   });
-  //   if (!res.ok) throw new Error("Failed to fetch conversations");
-  //   return await res.json();
-  // },
-
-  // fetchPartner: async ({ conversationId }: { conversationId: number }) => {
-  //   const res = await customFetch(
-  //     `/api/conversations/${conversationId}/partner`,
-  //     {
-  //       method: "GET",
-  //       credentials: "include",
-  //     },
-  //   );
-  //   if (!res.ok) throw new Error("Failed to fetch partner");
-  //   return await res.json();
-  // },
-
-  // findByUser: async ({ userId }: { userId: number }) => {
-  //   const res = await customFetch(`/api/conversations/find?userId=${userId}`, {
-  //     method: "GET",
-  //     credentials: "include",
-  //   });
-  //   if (!res.ok) throw new Error("Failed to fetch conversations");
-  //   return await res.json();
-  // },
-});
+  };
+  return {
+    fetchInitialData,
+    createGroupConversation,
+  };
+};
 
 export const conversationApi = createConversationApi();

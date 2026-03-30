@@ -13,6 +13,8 @@ export const conversations = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     type: conversationTypesEnum().default("direct").notNull(),
     name: t.varchar("name", { length: 100 }),
+    description: t.text(),
+    isPrivate: t.boolean().default(true).notNull(),
     lastMessageId: t.integer(),
     lastMessageAt: t.timestamp({ withTimezone: true }),
     isDeleted: t.boolean().default(false).notNull(),

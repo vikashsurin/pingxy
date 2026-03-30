@@ -1,9 +1,9 @@
+import db from "@lib/db/client";
 import { conversations, participants, users } from "@pingxy/shared/domain";
 import { publicUserColumns } from "@pingxy/shared/domain/user/user.schema";
 import { type InsertConversationType } from "@pingxy/shared/types";
-import { and, eq, desc, inArray, ne, sql, aliasedTable } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import db from "@lib/db/client";
 
 import { type DB_TX } from "@lib/db/client";
 
@@ -12,11 +12,15 @@ export const ConversationRepository = {
     return await tx.insert(conversations).values(conversation).returning();
   },
 
-
   updateActivity: async ({
     id,
     lastMessageId,
-    tx = db }: { id: number; lastMessageId: number; tx?: DB_TX }) => {
+    tx = db,
+  }: {
+    id: number;
+    lastMessageId: number;
+    tx?: DB_TX;
+  }) => {
     return await tx
       .update(conversations)
       .set({ lastMessageId: lastMessageId, lastMessageAt: sql`now()` })
@@ -38,7 +42,7 @@ export const ConversationRepository = {
       .limit(1);
   },
 
-  selectAll: async ({ userId, tx = db }: { userId: number, tx?: DB_TX }) => {
+  selectAll: async ({ userId, tx = db }: { userId: number; tx?: DB_TX }) => {
     const c = conversations;
     const p = participants;
     const rows = await tx
@@ -104,10 +108,7 @@ export const ConversationRepository = {
       .from(conversations)
       .innerJoin(
         conversationsWithBothUsers,
-        eq(
-          conversations.id,
-          conversationsWithBothUsers.conversationId,
-        ),
+        eq(conversations.id, conversationsWithBothUsers.conversationId),
       )
       .innerJoin(
         participants,
@@ -167,9 +168,12 @@ export const ConversationRepository = {
         lastSeenAt: users.lastSeenAt,
       })
       .from(conversations)
-      .innerJoin(participants, eq(participants.conversationId, conversations.id))
+      .innerJoin(
+        participants,
+        eq(participants.conversationId, conversations.id),
+      )
       .innerJoin(users, eq(users.id, participants.userId))
-      .where(inArray(conversations.id, userConversations))   // 👈 scope to user
+      .where(inArray(conversations.id, userConversations)) // 👈 scope to user
       .orderBy(desc(conversations.lastMessageAt));
   },
   //
@@ -195,8 +199,8 @@ export const ConversationRepository = {
         participants,
         and(
           eq(participants.conversationId, conversations.id),
-          eq(participants.userId, userId)  // scope to user AND get only their row
-        )
+          eq(participants.userId, userId), // scope to user AND get only their row
+        ),
       )
       .innerJoin(users, eq(users.id, participants.userId))
       .orderBy(desc(conversations.lastMessageAt));

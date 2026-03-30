@@ -1,13 +1,20 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { conversationStore } from "$lib/stores/conversationStore.svelte";
   import { chatStore } from "$lib/stores/store.svelte";
   import { userStore } from "$lib/stores/userStore.svelte";
   import { clickOutside } from "$lib/utils/clickOutside";
   import { Dot, EllipsisVertical } from "@lucide/svelte";
   import GenderIcon from "../GenderIcon.svelte";
+  import { page } from "$app/state";
 
-  let { id, cid }: { id: number; cid: number | undefined } = $props();
+  let {
+    id,
+    cid,
+    gid,
+  }: { id: number; cid: number | undefined; gid: number | undefined } =
+    $props();
+
+  // $inspect({ id, cid, gid });
 
   let partner = $derived(userStore.get(id));
 
@@ -22,41 +29,16 @@
 </script>
 
 <div class="flex relative bg-white py-1 px-2 shrink-0 text-sm">
-  {#if !partner}
-    <div>loading...</div>
-  {:else}
-    <!-- 1. show online status -->
-    {@const state = conversationStore.chatState.get(cid!)}
-
-    <div>
-      {#if userStore.getPresence(id)}
-        <Dot class="text-green-500 scale-150" />
-      {:else}
-        <Dot class="text-red-500 scale-150" />
-      {/if}
-    </div>
-    <div class="flex w-full items-center gap-2">
-      <span> Chatting with : </span>
-
-      <GenderIcon gender={partner?.gender} />
-      <span class=" font-bold">
-        {partner?.username}
-        {partner?.id === currentUser?.id ? " (You)" : ""}
-      </span>
-
-      {#if partner?.country && partner?.country !== "0"}
-        <span class={`fi fi-${partner?.country.toLocaleLowerCase()}`}></span>
-      {/if}
-
-      <EllipsisVertical
-        size={24}
-        class="hover:bg-gray-200 active:bg-gray-400 {toggleMenu
-          ? 'bg-gray-300'
-          : ''} p-1 rounded-full ml-auto"
-        onclick={() => (toggleMenu = !toggleMenu)}
-      />
-    </div>
+  {#if id || cid}
+    {#if !partner}
+      <div>loading...</div>
+    {:else}
+      {@render directConv()}
+    {/if}
+  {:else if gid}
+    {@render groupConv()}
   {/if}
+
   {#if toggleMenu}
     <div
       style="z-index: 999;"
@@ -68,6 +50,55 @@
     </div>
   {/if}
 </div>
+
+{#snippet directConv()}
+  <div>
+    <div>
+      {#if userStore.getPresence(id)}
+        <Dot class="text-green-500 scale-150" />
+      {:else}
+        <Dot class="text-red-500 scale-150" />
+      {/if}
+
+      {#if id || cid}
+        <div class="flex w-full items-center gap-2">
+          <span> Chatting with : </span>
+
+          <GenderIcon gender={partner?.gender} />
+          <span class=" font-bold">
+            {partner?.username}
+            {partner?.id === currentUser?.id ? " (You)" : ""}
+          </span>
+
+          {#if partner?.country && partner?.country !== "0"}
+            <span class={`fi fi-${partner?.country.toLocaleLowerCase()}`}
+            ></span>
+          {/if}
+
+          <EllipsisVertical
+            size={24}
+            class="hover:bg-gray-200 active:bg-gray-400 {toggleMenu
+              ? 'bg-gray-300'
+              : ''} p-1 rounded-full ml-auto"
+            onclick={() => (toggleMenu = !toggleMenu)}
+          />
+        </div>
+      {:else if gid}
+        <div class="flex w-full items-center gap-2">
+          <span> Group Chat : </span>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/snippet}
+
+{#snippet groupConv()}
+  <div>
+    <div>
+      <span> Group Chat : </span>
+    </div>
+  </div>
+{/snippet}
 
 {#snippet blockMenuItem()}
   <form

@@ -1,13 +1,14 @@
-import type { participantSelectSchema } from "@pingxy/shared";
+import type { Conversation, participantSelectSchema } from "@pingxy/shared";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type z from "zod";
 import { chatStore } from "./store.svelte";
 
 export class ChatState {
   conversationId = $state<number>(0);
+
   myPid = $state<number | undefined>();
   partner = $state<z.infer<typeof participantSelectSchema>>();
-  participantsIndex = $state<number[]>([])
+  participantsIndex = $state<number[]>([]);
 
   root: ConversationStore;
 
@@ -80,6 +81,8 @@ class ConversationStore {
 
   myUserId = $derived(chatStore.user?.id);
 
+  // groups = new SvelteMap<number, any>();
+
   // conversation id array to maintain order of conversations.
   convIds = $state<any[]>([]);
 
@@ -111,7 +114,6 @@ class ConversationStore {
   //  conversationId -> pid
   // cpid = new SvelteMap<number, number>();
 
-
   getMyPid(cid: number) {
     return this.ci.get(cid);
   }
@@ -139,19 +141,40 @@ class ConversationStore {
   recentChats = $derived.by(() => {
     return this.convIds
       .map((id) => {
+        const conv = this.cm.get(id);
+
+        // 1. Safety Check: If data is missing or it IS a group, ignore it.
+        if (!conv || conv.type === "group") {
+          return null;
+        }
+
         const state = this.chatState.get(id);
 
+        // 2. Only return the object for 1-on-1 chats
         return {
-          ...this.cm.get(id),
+          ...conv,
+          isGroup: false,
           participants: state?.participantsIndex ?? [],
           partnerUid: state?.partner?.userId,
           state: state,
         };
       })
-      .toSorted((a, b) => b.lastMessageId - a.lastMessageId);
+      .filter(Boolean) // This removes the 'nulls' we returned for groups
+      .toSorted((a, b) => (b.lastMessageId || 0) - (a.lastMessageId || 0));
   });
 
-  upsertConversation(c: any) {
+  groupChats = $derived.by(() => {
+    const groups = [];
+    for (const id of this.convIds) {
+      const conv = this.cm.get(id);
+      if (conv?.type === "group") {
+        groups.push(conv);
+      }
+    }
+    return groups;
+  });
+
+  upsertConversation(c: Conversation) {
     const id = c.id;
     const wasMissing = !this.cm.has(id);
 
@@ -162,14 +185,20 @@ class ConversationStore {
     }
   }
 
+  uconv(c: Conversation) {
+    const id = c.id;
+    this.conversationMap.set(id, c);
+  }
+
   initializeChatState(item: any) {
     const state = new ChatState(item.id, this);
     this.chatState.set(item.id, state);
   }
 
-  seedFromConversations(items: any[]) {
+  seedFromConversations(items: Conversation[]) {
     for (const item of items) {
       this.upsertConversation(item);
+      this.uconv(item);
       this.initializeChatState(item);
     }
   }
@@ -199,10 +228,10 @@ class ConversationStore {
         this.ci.set(cid, pid); // Update root mapping
         // Fix reactive unread count
         state.setUnreadCount(item.unreadCount); // Set the count for ME
-        state.participantsIndex.push(pid)
+        state.participantsIndex.push(pid);
       } else if (state) {
-        state.partner = item
-        state.participantsIndex.push(pid)
+        state.partner = item;
+        state.participantsIndex.push(pid);
       }
     }
   }

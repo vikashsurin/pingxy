@@ -8,6 +8,8 @@
 
   let activeCid = $derived(page.url.pathname.split("/").at(-1));
 
+  $inspect({ recentChats: conversationStore.recentChats });
+
   function handleClick(
     state: ChatState | undefined,
     uid: number | undefined,

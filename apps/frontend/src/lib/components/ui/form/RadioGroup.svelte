@@ -1,13 +1,18 @@
 <script lang="ts">
-  let { label, options } = $props<{
+  import type { HTMLInputAttributes } from "svelte/elements";
+
+  interface Props extends HTMLInputAttributes {
     label: string;
     options: {
-      id: string | number;
+      id: string | null | undefined;
       label: string;
       value: string;
       name: string;
+      default?: boolean;
     }[];
-  }>();
+  }
+
+  let { label, options, ...rest }: Props = $props();
 
   let selected = $state("");
 
@@ -29,8 +34,9 @@
           type="radio"
           name={item.name}
           value={item.value}
-          checked={selected === item.value}
+          checked={item.default || selected === item.value}
           onchange={(e) => handleChange(e)}
+          {...rest}
         />
         <span class="text-sm">{item.label}</span>
       </label>

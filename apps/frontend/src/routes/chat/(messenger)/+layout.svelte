@@ -7,6 +7,9 @@
 
   let { children, data } = $props();
 
+  // $inspect("conversation Store", conversationStore.cm);
+
+  $inspect({ data });
   $effect.pre(() => {
     untrack(() => {
       userStore.seedFromBlockedUsers(data.blockedUserIds);
