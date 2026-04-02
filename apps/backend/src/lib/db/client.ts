@@ -6,7 +6,7 @@ import { PgTransaction } from "drizzle-orm/pg-core";
 import {
   attachments,
   blockedUsers,
-  conversationInvites,
+  // conversationInvites,
   conversations,
   messageReactions,
   messages,
@@ -27,7 +27,7 @@ export const schema = {
   refreshTokens,
   sessions,
   attachments,
-  conversationInvites,
+  // conversationInvites,
   membershipRequests,
 };
 
