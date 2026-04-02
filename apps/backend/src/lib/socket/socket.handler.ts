@@ -11,12 +11,12 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
     const user = ws.data.user;
     console.info(`${user.username} joined`);
 
-
-
     await connectionManager.connect(user.id, ws);
     ws.subscribe(`inbox:${user.id}`);
     ws.subscribe(":server");
     emitUserList();
+
+    console.log("opened connection");
   },
 
   async message(ws, message) {
@@ -24,7 +24,7 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
   },
 
   async close(ws) {
-
+    console.log("closed connection");
     await connectionManager.disconnect(ws.data.user.id);
 
     emitDisconnected(ws.data.user);
@@ -34,9 +34,3 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
     console.warn("closed connection");
   },
 };
-
-
-// update every 30 seconds
-// setInterval(() => {
-//   broadcastOnlineUsers();
-// }, 30000);

@@ -2,32 +2,30 @@
 
 import Input from "@/components/ui/Input";
 import Primary from "@/components/ui/buttons/Primary";
-import { useState } from "react";
+import { login } from "@/lib/auth";
+
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const handleLogin = async (formData: FormData) => {
+    await login(formData);
+  };
   return (
-    <form className="flex flex-col border p-4 gap-6 rounded">
+    <form
+      className="flex flex-col border p-4 gap-6 rounded"
+      action={handleLogin}
+    >
       <Input
+        name="username"
         label="Username"
         type="text"
         placeholder="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
       />
       <Input
+        name="password"
         label="Password"
         type="password"
         placeholder="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
       />
-      <Primary
-        label="Login"
-        onClick={() => {
-          console.log("hello");
-        }}
-      />
+      <Primary label="Login" type="submit" />
     </form>
   );
 }

@@ -18,6 +18,10 @@ import {
 } from "../domain/user/user.schema";
 
 import {
+  pingEventSchema,
+  pingRequestSchema,
+} from "../domain/system/system.schema";
+import {
   createGroupReqSchema,
   createGroupResSchema,
 } from "../domain/conversation/conversation.schema";
@@ -44,6 +48,7 @@ export const serverErrorSchema = z.object({
 });
 
 export const ClientReqSchema = z.discriminatedUnion("type", [
+  pingRequestSchema,
   messageCreateSchema,
   userConnectSchema,
   userDisconnectSchema,
@@ -56,6 +61,7 @@ export const ClientReqSchema = z.discriminatedUnion("type", [
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
+  pingEventSchema,
   serverErrorSchema,
   messageCreatedSchema,
   usersList,

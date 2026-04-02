@@ -1,4 +1,3 @@
-// auth/layout.tsx
 import Image from "next/image";
 import CustomLink from "./components/CustomLink";
 
@@ -8,8 +7,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col items-center pt-12">
-      <header className="mb-8 flex flex-col items-center">
+    <section className="min-h-screen flex flex-col items-center pt-12">
+      <div className="mb-8 flex flex-col items-center">
         <Image src="/logo.svg" alt="Logo" width={360} height={144} priority />
 
         <nav
@@ -20,9 +19,9 @@ export default function AuthLayout({
           <CustomLink href="/auth/register" label="Register" />
           <CustomLink href="/auth/guest" label="Guest" />
         </nav>
-      </header>
+      </div>
 
-      <main className="w-full max-w-md px-4">{children}</main>
-    </div>
+      <div className="w-full max-w-md px-4">{children}</div>
+    </section>
   );
 }

@@ -9,7 +9,7 @@ services:
       - "6379:6379"
     volumes:
       - redis_data_dev:/data
-    command: [ "redis-server", "--appendonly", "yes" ]
+    command: ["redis-server", "--appendonly", "yes"]
 
   postgres:
     image: postgres:16-alpine
@@ -31,7 +31,11 @@ services:
         limits:
           memory: 512M # Less than prod
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-pingxy}" ]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-pingxy}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,7 +59,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: [ "bun", "run", "db:migrate" ]
+    command: ["bun", "run", "db:migrate"]
 
   backend:
     build:
@@ -91,7 +95,7 @@ services:
         condition: service_started
       # moderation:
       #   condition: service_healthy
-    command: [ "bun", "--hot", "run", "src/index.ts" ]
+    command: ["bun", "--hot", "run", "src/index.ts"]
 
   frontend:
     build:
@@ -101,20 +105,24 @@ services:
     container_name: pingxy-frontend-dev
     restart: always
     ports:
-      - "5173:5173" # Vite dev server
+      - "3001:3001" # Next.js dev server (was 5173 for Vite)
     volumes:
       - ./apps/frontend:/app/apps/frontend
       - ./packages/shared:/app/packages/shared
       - /app/node_modules
       - /app/apps/frontend/node_modules
+      - /app/apps/frontend/.next # isolate .next build cache from host
     environment:
       - NODE_ENV=development
-      - PORT=5173
-      - INTERNAL_BACKEND_URL=http://backend:3000
-      - HOST=0.0.0.0 # Ensure Vite binds to all interfaces
+      - PORT=3001
+      - NEXT_PUBLIC_API_URL=http://localhost:3001 # adjust as needed
+      - INTERNAL_BACKEND_URL=http://backend:3000 # server-side, not exposed to browser
+      - CHOKIDAR_USEPOLLING=true # hot reload in Docker
+      - WATCHPACK_POLLING=true # hot reload in Docker (Next.js 13+)
+      - NEXT_TELEMETRY_DISABLED=1
     networks:
       - pingxy-network-dev
-    command: [ "bun", "run", "dev", "--", "--host", "0.0.0.0" ]
+    command: ["bun", "run", "dev"] # Next.js handles host binding via HOSTNAME env
 
   caddy:
     image: caddy:alpine
@@ -162,7 +170,7 @@ services:
       - minio_data_dev:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3

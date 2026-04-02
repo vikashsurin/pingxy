@@ -45,7 +45,7 @@ export const reqHeartbeatSchema = z.object({
   id: z.uuid(),
   type: z.literal(DOMAIN_EVENTS.HEARTBEAT),
   payload: z.object({
-    ping: z.boolean()
+    ping: z.boolean(),
   }),
 });
 
@@ -54,7 +54,7 @@ export const resHeartbeatSchema = z.object({
   type: z.literal(SERVER_EVENTS.HEARTBEAT),
   payload: z.object({
     userId: z.number(),
-    pong: z.boolean()
+    pong: z.boolean(),
   }),
 });
 
@@ -64,5 +64,4 @@ export const reqSubscriptionPresenceSchema = z.object({
   payload: z.object({
     userId: z.number(),
   }),
-})
-
+});

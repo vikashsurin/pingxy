@@ -11,22 +11,28 @@
         reverse_proxy storage:9001
     }
 
-    # 3. Backend API (On port 3000)
+    # 3. Backend API (on port 3000)
     handle /api* {
         reverse_proxy backend:3000
     }
 
-    # 4. WebSockets (Crucial for Bun/Node real-time apps)
+    # 4. WebSockets (backend real-time)
     handle /ws* {
         reverse_proxy backend:3000
     }
 
-    # 5. Frontend (Vite/SvelteKit on port 5173)
-    handle /_svelte_kit_hmr* {
-        reverse_proxy frontend:5173
+    # 5. Next.js HMR websocket (hot reload in dev)
+    handle /_next/webpack-hmr* {
+        reverse_proxy frontend:3001
     }
 
+    # 6. Next.js static assets
+    handle /_next/* {
+        reverse_proxy frontend:3001
+    }
+
+    # 7. Frontend (Next.js on port 3001)
     handle {
-        reverse_proxy frontend:5173
+        reverse_proxy frontend:3001
     }
 }

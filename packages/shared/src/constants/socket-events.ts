@@ -1,4 +1,5 @@
 export const DOMAIN_EVENTS = {
+  PING: "req:ping",
   CONVERSATIONS: {
     CREATE: "req:conversation.create",
     UPDATE: "req:conversation.update",
@@ -45,6 +46,7 @@ export const DOMAIN_EVENTS = {
 } as const;
 
 export const SERVER_EVENTS = {
+  PING: "event:ping",
   ERRORS: {
     SYSTEM: "event:error.system",
   },
@@ -93,10 +95,3 @@ export const SERVER_EVENTS = {
     PRESENCE: "event:subscription.presence",
   },
 } as const;
-
-type ExtractEvents<T> = T extends object
-  ? { [K in keyof T]: ExtractEvents<T[K]> }[keyof T]
-  : T;
-
-// export type DomainEvent = ExtractEvents<typeof DOMAIN_EVENTS>;
-// export type ServerEvent = ExtractEvents<typeof SERVER_EVENTS>;

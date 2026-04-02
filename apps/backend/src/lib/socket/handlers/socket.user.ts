@@ -35,7 +35,6 @@ export const emitUserList = async () => {
     }),
   );
 
-
   const message = createServerEvent(SERVER_EVENTS.USERS.LIST, {
     users: results,
   });
@@ -48,14 +47,13 @@ export const emitUserList = async () => {
       console.error(`Failed to send to user ${id}: `, error);
     }
   }
-
 };
 
 export const emitConnected = (user: User) => {
   const message = createServerEvent(SERVER_EVENTS.USERS.CONNECTED, {
     user: { ...user, isOnline: true },
   });
-  const sockets = connectionManager.getSockets()
+  const sockets = connectionManager.getSockets();
   for (const [id, socket] of sockets.entries()) {
     try {
       socket.send(JSON.stringify(message));
@@ -70,7 +68,7 @@ export const emitDisconnected = (user: User) => {
     user: { ...user },
   });
 
-  const sockets = connectionManager.getSockets()
+  const sockets = connectionManager.getSockets();
   for (const [id, socket] of sockets.entries()) {
     try {
       socket.send(JSON.stringify(message));

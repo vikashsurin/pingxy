@@ -12,10 +12,9 @@ import { prettyJSON } from "hono/pretty-json";
 import { registerRoutes } from "./routes/index";
 import { initGlobalBus } from "@lib/socket/pubsub";
 
-
 /*
-* On startup, clear any stale Redis state (e.g., disconnected users)
-*/
+ * On startup, clear any stale Redis state (e.g., disconnected users)
+ */
 // await connectionManager.clearStaleState()
 
 const app = factory.createApp();
@@ -88,14 +87,12 @@ serve({
   websocket: socketHandler,
 
   async fetch(req, server) {
+    connectionManager.setServer(server);
 
-    connectionManager.setServer(server)
-
-    initGlobalBus()
-
+    initGlobalBus();
 
     const url = new URL(req.url);
-    if (url.pathname === "/ws/") {
+    if (url.pathname === "/ws/" || url.pathname === "/ws") {
       const user = await getAuthUserFromReq(req);
       if (!user) {
         throw new Error("Unauthorized Websocket Connection");

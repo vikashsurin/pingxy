@@ -5,7 +5,7 @@ import RadioGroup from "@/components/ui/RadioGroup";
 
 import Primary from "@/components/ui/buttons/Primary";
 
-import countries from "@/app/auth/lib/countries.json";
+import countries from "@/lib/countries.json";
 import Select from "@/components/ui/Select";
 import { useState } from "react";
 
