@@ -4,8 +4,6 @@ import { userManager } from "@/lib/managers/userManager";
 
 export const userHandler: SocketHandlerMap = {
   [SERVER_EVENTS.USERS.LIST]: (data) => {
-    console.log("Received user list", data.payload.users);
-
     const users = data.payload.users;
 
     for (const user of users) {

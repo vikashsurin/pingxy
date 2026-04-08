@@ -24,8 +24,6 @@ export default function ChatLayout({
         if (user) {
           useChatStore.setState({ authUser: user });
         }
-
-        console.log("user", user);
       } catch (e) {
         console.error(e);
       }
@@ -38,7 +36,6 @@ export default function ChatLayout({
   }, []);
   // const authUser =
 
-  console.log("");
   return (
     <section className="grid grid-cols-[200px_1fr]">
       <div className="grid gap-2">

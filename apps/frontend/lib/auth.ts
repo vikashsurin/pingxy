@@ -34,7 +34,6 @@ export async function login(formData: FormData) {
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
-  console.log("Login successful", data);
 
   // redirect("/chat");
 
@@ -42,7 +41,6 @@ export async function login(formData: FormData) {
 }
 
 export const getAuthUser = async () => {
-  console.log("getting auth user");
   const cookieStore = await cookies();
   const cookie = cookieStore.get("_Host-session");
 

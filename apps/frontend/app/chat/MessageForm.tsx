@@ -14,7 +14,6 @@ export default function MessageForm({
   recipientId: number;
   recipientName: string;
 }) {
-  console.log("receipeint name: ", recipientName);
   const [content, setContent] = useState("");
 
   const mutation = useMutation({
@@ -29,7 +28,6 @@ export default function MessageForm({
 
     // 2. What happens after the message is sent successfully
     onSuccess: (data) => {
-      console.log("Message sent successfully:", data);
       setContent(""); // Clear the input
       // Refresh the message list so the new message appears
       queryClient.invalidateQueries({

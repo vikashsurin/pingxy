@@ -14,8 +14,6 @@ export default function Page({
 
   useEffect(() => {});
 
-  console.log("Current User ID (slug):", slug, type);
-
   return (
     <div className="bg-amber-400 p-4">
       <h1>User ID: {slug}</h1>

@@ -17,10 +17,7 @@ export default function Guest() {
 
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("hello");
   }
-
-  console.log({ username, country });
 
   return (
     <form

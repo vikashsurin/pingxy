@@ -1,15 +1,14 @@
 import { DOMAIN_EVENTS, ServerEventMap } from "@pingxy/shared";
 import { createClientReq } from ".";
 import { conversationsApi } from "../api/conversation";
+import queryClient from "../queryClient";
 import { useConversationStore } from "../store/conversationStore";
 import { useUserStore } from "../store/userStore";
-import queryClient from "../queryClient";
-import { SERVER_EVENTS } from "@pingxy/shared";
+
 function createConversationManager() {
   const fetchConversations = async () => {
     const data = await conversationsApi.fetchConversations();
     const { conversations, participants, users } = data;
-    console.log("data", data);
     for (const conversation of conversations) {
       useConversationStore.getState().upsertConversation(conversation);
     }

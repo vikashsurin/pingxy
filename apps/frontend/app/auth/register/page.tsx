@@ -17,7 +17,6 @@ export default function Register() {
   const [age, setAge] = useState(18);
   const [country, setCountry] = useState({ key: "us", name: "United States" });
 
-  console.log({ username, password, confirmPassword, gender, age, country });
   return (
     <form className="flex flex-col border p-4 gap-6 rounded">
       <Input
@@ -71,12 +70,7 @@ export default function Register() {
         onChange={(value) => setCountry(value)}
       />
 
-      <Primary
-        label="Register"
-        onClick={() => {
-          console.log("hello");
-        }}
-      />
+      <Primary label="Register" onClick={() => {}} />
     </form>
   );
 }
