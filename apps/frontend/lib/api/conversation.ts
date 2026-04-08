@@ -23,8 +23,25 @@ function createConversationApi() {
   // find a conversation between 2 users
 
   // fetch messages + meta data of a conversation
-  const fetchMessages = async (conversationId: number) => {
-    const url = `http://localhost/api/conversations/${conversationId}/messages`;
+  const fetchMessages = async ({
+    conversationId,
+    before,
+    after,
+    limit = 20,
+  }: {
+    conversationId: number;
+    limit?: number;
+    before?: number | null;
+    after?: number | null;
+  }) => {
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+    });
+    if (before) params.append("after", before.toString());
+    if (after) params.append("before", after.toString());
+
+    const url = `http://localhost/api/conversations/${conversationId}/messages?${params.toString()}`;
+
     const res = await fetch(url, {
       method: "GET",
       headers: {

@@ -1,92 +1,225 @@
 "use client";
 
 import { conversationsApi } from "@/lib/api/conversation";
-import { useChatStore } from "@/lib/store/chatStore";
-import { formatTime } from "@/lib/utils/date";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { Check, CheckCheck } from "lucide-react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Check, CheckCheck } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 async function fetchServerPage(
-  convId: number,
+  conversationId: number,
   limit: number,
-  offset: number = 0,
-): Promise<{ rows: Array<string>; nextOffset: number }> {
-  //   const rows = new Array(limit)
-  //     .fill(0)
-  //     .map((_, i) => `Async loaded row #${i + offset * limit}`);
+  beforeId?: number,
+) {
+  const data = await conversationsApi.fetchMessages({
+    conversationId,
+    limit,
+    before: beforeId,
+  });
 
-  const data = await conversationsApi.fetchMessages(convId);
-  const { messages, attachments } = data.entities;
-  console.log({ dataFrom: data });
+  const messages = data.entities.messages;
 
-  const rows = messages;
-
-  await new Promise((r) => setTimeout(r, 500));
-
-  return { rows, nextOffset: offset + 1 };
+  return {
+    rows: messages,
+    nextCursor:
+      messages.length === limit ? messages[messages.length - 1].id : undefined,
+  };
 }
 
 export default function Messages({
   slug,
   participant,
+  socket,
 }: {
   slug: string;
   participant: any;
+  socket?: any;
 }) {
+  const queryClient = useQueryClient();
+  const queryKey = ["messages", slug];
+
   const {
     status,
     data,
     error,
-    isFetching,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["projects"],
-    queryFn: (ctx) => fetchServerPage(Number(slug), 10, ctx.pageParam),
-    getNextPageParam: (lastGroup) => lastGroup.nextOffset,
-    initialPageParam: 0,
+    queryKey,
+    queryFn: (ctx) => fetchServerPage(Number(slug), 20, ctx.pageParam),
+    getNextPageParam: (lastGroup) => lastGroup.nextCursor,
+    initialPageParam: undefined,
   });
 
-  //   const { isPending, error, data, isFetching } = useQuery({
-  //     queryKey: ["messages", String(slug)],
-  //     queryFn: async () => conversationsApi.fetchMessages(Number(slug)),
-  //   });
+  const allRows = data ? data.pages.flatMap((d) => d.rows) : [];
+  const parentRef = useRef<HTMLDivElement>(null);
+  const previousScrollHeightRef = useRef<number>(0);
 
-  const authUser = useChatStore((state) => state.authUser);
+  const rowVirtualizer = useVirtualizer({
+    count: hasNextPage ? allRows.length + 1 : allRows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 100,
+    overscan: 5,
+  });
 
-  if (isFetching) return <p>Fetching...</p>;
-  //   if (isPending && !data) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
+  // ✅ Scroll-based trigger for loading older messages
+  useEffect(() => {
+    const el = parentRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      if (el.scrollTop <= 100 && hasNextPage && !isFetchingNextPage) {
+        previousScrollHeightRef.current = el.scrollHeight;
+        fetchNextPage();
+      }
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // ✅ Restore scroll position after old messages are prepended
+  useLayoutEffect(() => {
+    if (previousScrollHeightRef.current && parentRef.current) {
+      const newScrollHeight = parentRef.current.scrollHeight;
+      const diff = newScrollHeight - previousScrollHeightRef.current;
+      if (diff > 0) {
+        parentRef.current.scrollTop += diff;
+        previousScrollHeightRef.current = 0;
+      }
+    }
+  }, [allRows.length]);
+
+  // ✅ Scroll to bottom on initial load
+  useEffect(() => {
+    if (status === "success" && allRows.length > 0) {
+      rowVirtualizer.scrollToIndex(allRows.length - 1, { behavior: "auto" });
+    }
+  }, [status]);
+
+  // ✅ Listen for new incoming messages via socket
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMessage: MessageType) => {
+      if (newMessage.conversationId !== Number(slug)) return;
+
+      queryClient.setQueryData(queryKey, (old: any) => {
+        if (!old) return old;
+        const pages = [...old.pages];
+        const lastPage = pages[pages.length - 1];
+        pages[pages.length - 1] = {
+          ...lastPage,
+          rows: [...lastPage.rows, newMessage],
+        };
+        return { ...old, pages };
+      });
+
+      // Auto-scroll to bottom if user is already near the bottom
+      const el = parentRef.current;
+      if (el) {
+        const isNearBottom =
+          el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+        if (isNearBottom) {
+          setTimeout(() => {
+            rowVirtualizer.scrollToIndex(allRows.length, {
+              behavior: "smooth",
+            });
+          }, 50);
+        }
+      }
+    };
+
+    socket.on("new_message", handleNewMessage);
+    return () => socket.off("new_message", handleNewMessage);
+  }, [socket, slug, allRows.length]);
 
   return (
-    <div className="bg-amber-400 p-4">
-      {/* {data.entities.messages.map((message) => {
-        const fromMe = message.senderId === authUser.id;
-        const id = message.id;
-        const content = message.content;
-        return (
-          <div
-            key={id}
-            className={`border p-2 w-48 flex ${fromMe ? "justify-self-end bg-blue-100" : "justify-self-start bg-white"}`}
-          >
-            <div className="flex flex-col  w-full">
-              <p>{content}</p>
-              <div className="text-xs flex justify-between items-center">
-                <span> {formatTime(message.createdAt)}</span>
-                <span>
-                  <CheckMark
-                    messageId={id}
-                    lastReadMessageId={participant?.lastReadMessageId}
-                    lastDeliveredMessageId={participant?.lastDeliveredMessageId}
-                  />
-                </span>
-              </div>
+    <div>
+      {status === "pending" ? (
+        <p>Loading...</p>
+      ) : status === "error" ? (
+        <p>Error: {(error as Error).message}</p>
+      ) : (
+        <div
+          ref={parentRef}
+          style={{ height: `500px`, width: `100%`, overflow: "auto" }}
+        >
+          {/* ✅ Loader shown at the top outside the virtualizer */}
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-2 text-sm text-gray-400">
+              Loading older messages...
             </div>
+          )}
+
+          <div
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualItems.map((virtualRow) => {
+              const post = allRows[virtualRow.index];
+
+              return (
+                <div
+                  key={virtualRow.index}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  {post ? (
+                    <Message post={post} participant={participant} />
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
-        );
-      })} */}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type MessageType = {
+  clientMessageId: string;
+  content: string;
+  conversationId: number;
+  createdAt: Date;
+  id: number;
+  senderId: number;
+};
+
+function Message({
+  post,
+  participant,
+}: {
+  post: MessageType;
+  participant: any;
+}) {
+  return (
+    <div className="border p-2 w-48 flex">
+      <div className="flex flex-col w-full">
+        <p>{post.id}</p>
+        <p>{post.content}</p>
+        <div className="text-xs flex justify-between items-center">
+          <span>{new Date(post.createdAt).toLocaleTimeString()}</span>
+          <CheckMark
+            messageId={post.id}
+            lastReadMessageId={participant?.lastReadMessageId}
+            lastDeliveredMessageId={participant?.lastDeliveredMessageId}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -104,16 +237,8 @@ function CheckMark({
     case lastReadMessageId >= messageId:
       return <CheckCheck size={12} className="text-blue-500" />;
     case lastDeliveredMessageId >= messageId:
-      return (
-        <div>
-          <CheckCheck size={12} className="text-gray-500" />
-        </div>
-      );
+      return <CheckCheck size={12} className="text-gray-500" />;
     default:
-      return (
-        <div>
-          <Check size={12} className="text-gray-500" />
-        </div>
-      );
+      return <Check size={12} className="text-gray-500" />;
   }
 }

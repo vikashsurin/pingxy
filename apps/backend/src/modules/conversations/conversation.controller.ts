@@ -8,6 +8,9 @@ import { z } from "zod";
 import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 
+const literalNullToUndefined = (val) =>
+  (val === "null" || val === "undefined" || val === "" || val === null) ? undefined : val;
+
 export const ConversationController = {
   initialFetch: factory.createHandlers(async (c) => {
     const user = c.get("user");
@@ -48,13 +51,14 @@ export const ConversationController = {
   ),
 
   getAllMessages: factory.createHandlers(
+
     validate("param", z.object({ conversationId: z.coerce.number() })),
     validate(
       "query",
       z.object({
         limit: z.coerce.number().optional().default(10),
-        before: z.coerce.number().optional().nullable(),
-        after: z.coerce.number().optional().nullable(),
+        before: z.preprocess(literalNullToUndefined, z.coerce.number().optional()),
+        after: z.preprocess(literalNullToUndefined, z.coerce.number().optional()),
       }),
     ),
 
