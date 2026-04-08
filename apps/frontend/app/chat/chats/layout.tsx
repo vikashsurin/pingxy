@@ -73,6 +73,7 @@ const Item = ({
   name: string;
   op?: { uid: number; pid: number };
 }) => {
+  console.log({ name });
   // const [selectedId, setSelected] = useState("");
 
   return (

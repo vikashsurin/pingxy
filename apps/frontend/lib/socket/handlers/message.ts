@@ -6,7 +6,6 @@ export const messageHandler: SocketHandlerMap = {
   [SERVER_EVENTS.MESSAGES.CREATED]: (
     data: ServerEventMap["event:message.created"],
   ) => {
-    if (!data) return;
     const payload = data.payload;
 
     conversationManager.handleNewMessage(payload);

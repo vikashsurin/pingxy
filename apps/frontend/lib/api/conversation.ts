@@ -37,8 +37,8 @@ function createConversationApi() {
     const params = new URLSearchParams({
       limit: limit.toString(),
     });
-    if (before) params.append("after", before.toString());
-    if (after) params.append("before", after.toString());
+    if (before != null) params.append("before", before.toString());
+    if (after != null) params.append("after", after.toString());
 
     const url = `http://localhost/api/conversations/${conversationId}/messages?${params.toString()}`;
 

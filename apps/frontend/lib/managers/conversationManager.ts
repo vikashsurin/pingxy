@@ -59,15 +59,35 @@ function createConversationManager() {
     queryClient.setQueryData(
       ["messages", String(message.conversationId)],
       (oldData: any) => {
-        if (!oldData) return oldData;
+        // If the cache doesn't exist or isn't an infinite query yet, do nothing
+        if (!oldData || !oldData.pages) return oldData;
 
-        // Immutably add the message
+        // 1. Prevent duplicate messages if optimistic UI already added it
+        const alreadyExists = oldData.pages.some((page: any) =>
+          page.rows.some(
+            (m: any) =>
+              m.id === message.id ||
+              m.clientMessageId === message.clientMessageId,
+          ),
+        );
+
+        if (alreadyExists) return oldData;
+
+        // 2. Clone the pages array
+        const newPages = [...oldData.pages];
+
+        // 3. Target the page with the newest messages (usually index 0 in your setup)
+        const latestPage = newPages[0];
+
+        // 4. Append the new message to the rows of that page
+        newPages[0] = {
+          ...latestPage,
+          rows: [...latestPage.rows, message],
+        };
+
         return {
           ...oldData,
-          entities: {
-            ...oldData.entities,
-            messages: [...oldData.entities.messages, message],
-          },
+          pages: newPages,
         };
       },
     );

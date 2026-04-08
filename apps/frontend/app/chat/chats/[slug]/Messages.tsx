@@ -21,8 +21,7 @@ async function fetchServerPage(
 
   return {
     rows: messages,
-    nextCursor:
-      messages.length === limit ? messages[messages.length - 1].id : undefined,
+    nextCursor: messages.length === limit ? messages[0].id - 1 : undefined,
   };
 }
 
@@ -52,12 +51,12 @@ export default function Messages({
     initialPageParam: undefined,
   });
 
-  const allRows = data ? data.pages.flatMap((d) => d.rows) : [];
+  const allRows = data ? [...data.pages].reverse().flatMap((d) => d.rows) : [];
   const parentRef = useRef<HTMLDivElement>(null);
   const previousScrollHeightRef = useRef<number>(0);
 
   const rowVirtualizer = useVirtualizer({
-    count: hasNextPage ? allRows.length + 1 : allRows.length,
+    count: allRows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 100,
     overscan: 5,
@@ -109,11 +108,24 @@ export default function Messages({
 
       queryClient.setQueryData(queryKey, (old: any) => {
         if (!old) return old;
+
+        const alreadyExists = old.pages.some((page: { rows: MessageType[] }) =>
+          page.rows.some(
+            (message) =>
+              message.id === newMessage.id ||
+              message.clientMessageId === newMessage.clientMessageId,
+          ),
+        );
+
+        if (alreadyExists) {
+          return old;
+        }
+
         const pages = [...old.pages];
-        const lastPage = pages[pages.length - 1];
-        pages[pages.length - 1] = {
-          ...lastPage,
-          rows: [...lastPage.rows, newMessage],
+        const latestPage = pages[0];
+        pages[0] = {
+          ...latestPage,
+          rows: [...latestPage.rows, newMessage],
         };
         return { ...old, pages };
       });
@@ -135,7 +147,7 @@ export default function Messages({
 
     socket.on("new_message", handleNewMessage);
     return () => socket.off("new_message", handleNewMessage);
-  }, [socket, slug, allRows.length]);
+  }, [socket, slug, allRows.length, queryClient]);
 
   return (
     <div>
