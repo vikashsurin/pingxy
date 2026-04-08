@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 export async function login(formData: FormData) {
@@ -37,5 +36,29 @@ export async function login(formData: FormData) {
   });
   console.log("Login successful", data);
 
-  redirect("/chat");
+  // redirect("/chat");
+
+  return data.user;
 }
+
+export const getAuthUser = async () => {
+  console.log("getting auth user");
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get("_Host-session");
+
+  if (!cookie) {
+    return null;
+  }
+  const url = "http://backend:3000/api/auth/me";
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      cookie: cookieStore.toString(),
+    },
+  });
+
+  const data = await res.json();
+
+  return data.user;
+};

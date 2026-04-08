@@ -1,7 +1,7 @@
 import { ServerEventMap, type ServerEvent } from "@pingxy/shared";
 import { ServerEventSchema } from "@pingxy/shared/socket/schema";
 import { z } from "zod";
-import { userHandler } from "./handlers/user";
+import { userHandler, messageHandler } from "./handlers/index";
 
 export type SocketHandlerMap = {
   [K in keyof ServerEventMap]?: (
@@ -11,7 +11,7 @@ export type SocketHandlerMap = {
 
 const registry: SocketHandlerMap = {
   ...userHandler,
-  // ...messageHandler
+  ...messageHandler,
 };
 
 export const dispatchServerEvent = (rawData: unknown) => {

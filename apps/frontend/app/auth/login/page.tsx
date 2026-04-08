@@ -6,7 +6,9 @@ import { login } from "@/lib/auth";
 
 export default function Login() {
   const handleLogin = async (formData: FormData) => {
-    await login(formData);
+    const result = await login(formData);
+
+    console.log("result", result);
   };
   return (
     <form

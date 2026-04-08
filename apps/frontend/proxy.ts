@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export default function proxy(request: NextRequest) {
   const token = request.cookies.get("_Host-session")?.value;
 
-  console.log("TOKEN==", token);
+  // console.log("TOKEN==", token);
 
   const { pathname } = request.nextUrl;
 
@@ -22,4 +22,3 @@ export default function proxy(request: NextRequest) {
 export const config = {
   matcher: ["/chat/:path*", "/auth/:path*"],
 };
-    
