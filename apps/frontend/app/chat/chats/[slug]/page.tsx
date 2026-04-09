@@ -28,12 +28,14 @@ export default function Page({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Messages slug={slug} participant={participant} />
-      <MessageForm
-        conversationId={Number(slug)}
-        recipientId={Number(uid)}
-        recipientName={name}
-      />
+      <div className="flex flex-col m-2  p-2 border border-gray-300 bg-gray-100 rounded-lg">
+        {/* <Messages slug={slug} participant={participant} /> */}
+        <MessageForm
+          conversationId={Number(slug)}
+          recipientId={Number(uid)}
+          recipientName={name}
+        />
+      </div>
     </QueryClientProvider>
   );
 }

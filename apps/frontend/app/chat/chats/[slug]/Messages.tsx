@@ -150,7 +150,7 @@ export default function Messages({
   }, [socket, slug, allRows.length, queryClient]);
 
   return (
-    <div>
+    <div className=" p-2  rounded-md ">
       {status === "pending" ? (
         <p>Loading...</p>
       ) : status === "error" ? (
@@ -190,7 +190,7 @@ export default function Messages({
                   }}
                 >
                   {post ? (
-                    <Message post={post} participant={participant} />
+                    <MessageItem post={post} participant={participant} />
                   ) : null}
                 </div>
               );
@@ -211,7 +211,7 @@ type MessageType = {
   senderId: number;
 };
 
-function Message({
+function MessageItem({
   post,
   participant,
 }: {
@@ -219,9 +219,9 @@ function Message({
   participant: any;
 }) {
   return (
-    <div className="border p-2 w-48 flex">
+    <div className="border p-2 w-48 flex rounded-xs">
       <div className="flex flex-col w-full">
-        <p>{post.id}</p>
+        {/* <p>{post.id}</p> */}
         <p>{post.content}</p>
         <div className="text-xs flex justify-between items-center">
           <span>{new Date(post.createdAt).toLocaleTimeString()}</span>

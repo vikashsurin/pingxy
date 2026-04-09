@@ -80,6 +80,7 @@ export const ConversationService = {
     userId: number;
   }) => {
     try {
+      // 1. Check if a conversation already exists between the two users
       const result = await ConversationRepository.selectByUsersPrecise(
         currentUserId,
         userId,
@@ -89,10 +90,19 @@ export const ConversationService = {
         return result.conversation;
       }
 
+
+      // 2. If no conversation exists, create a new one
+      // user1Id should be the smaller of the two user ids
+      // and user2Id should be the larger of the two user ids
+      const user1Id = Math.min(currentUserId, userId);
+      const user2Id = Math.max(currentUserId, userId);
+
       const [conversation] = await ConversationRepository.insert({
         type: "direct",
         createdAt: new Date(Date.now()),
         updatedAt: new Date(Date.now()),
+        user1Id,
+        user2Id,
       });
 
       return conversation;

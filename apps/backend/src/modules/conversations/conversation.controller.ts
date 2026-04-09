@@ -8,7 +8,7 @@ import { z } from "zod";
 import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 
-const literalNullToUndefined = (val) =>
+const literalNullToUndefined = (val: string) =>
   (val === "null" || val === "undefined" || val === "" || val === null) ? undefined : val;
 
 export const ConversationController = {

@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
 import { users } from "../user/user.table";
@@ -13,6 +14,9 @@ export const conversations = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     type: conversationTypesEnum().default("direct").notNull(),
     name: t.varchar("name", { length: 100 }),
+    user1Id: t.integer(),
+    user2Id: t.integer(),
+    maxParticipants: t.integer(),
     description: t.text(),
     isPrivate: t.boolean().default(true).notNull(),
     lastMessageId: t.integer(),
@@ -27,6 +31,17 @@ export const conversations = table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    t.check("user_order_check", sql`${table.user1Id} < ${table.user2Id}`),
+    t.unique("unique_user_pair").on(table.user1Id, table.user2Id),
+
+    t
+      .foreignKey({
+        name: "conversations_users_fk",
+        columns: [table.user1Id],
+        foreignColumns: [users.id],
+      })
+      .onDelete("cascade"),
+
     t
       .foreignKey({
         name: "conversations_created_by_fk",

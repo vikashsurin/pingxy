@@ -234,6 +234,19 @@ export const ConversationRepository = {
   //     .limit(10);
   //   return result;
   // },
+  selectExistingBetweenUids: async (userId1: number, userId2: number, tx: any = db) => {
+
+    const u1 = userId1;
+    const u2 = userId2;
+
+    const result = await tx
+      .select()
+      .from(conversations)
+      .where(and(eq(conversations.user1Id, u1), eq(conversations.user2Id, u2)))
+      .limit(1);
+
+    return result;
+  },
 
   selectDirectExisting: async (
     userIdA: number,

@@ -4,11 +4,7 @@ import { messages } from "../message/message.table";
 import { users } from "../user/user.table";
 import { conversations } from "../conversation/conversation.table";
 
-export const roleEnum = pgEnum("role", [
-  "admin",
-  "moderator",
-  "member",
-]);
+export const roleEnum = pgEnum("role", ["admin", "moderator", "member"]);
 
 export const participants = table(
   "participants",

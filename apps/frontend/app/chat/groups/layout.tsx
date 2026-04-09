@@ -6,7 +6,6 @@ import { useConversationStore } from "@/lib/store/conversationStore";
 import { useUserStore } from "@/lib/store/userStore";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import Users from "./Users";
 
 export default function UserLayout({
   children,
@@ -22,13 +21,11 @@ export default function UserLayout({
   }, []);
 
   return (
-    <div className="grid grid-cols-[200px_1fr_150px]">
+    <div className="grid grid-cols-[200px_1fr]">
       <div className="flex flex-col border border-gray-300 rounded-lg my-2 p-2 gap-1 bg-gray-100">
         <Conversations />
       </div>
       <div>{children}</div>
-
-      <Users />
     </div>
   );
 }
@@ -69,28 +66,25 @@ const ConversationItem = ({
   const otherUsername = useUserStore((state) => state.users[op?.uid]?.username);
 
   // 3. NOW you can do your conditional returns
-  if (conv.type === "group") return null;
-  // return (
-  //   <Item
-  //     cid={id}
-  //     name={conv.name}
-  //     selectedId={selectedId}
-  //     setSelectedId={setSelected}
-  //   />
-  // );
-  if (!op?.uid) return <div>No Participant</div>;
+  if (conv.type === "chat") return null;
   return (
-    <>
-      <Item
-        cid={id}
-        name={otherUsername}
-        op={op}
-        selectedId={selectedId}
-        setSelectedId={setSelected}
-      />
-      {/* <div>kala</div> */}
-    </>
+    <Item
+      cid={id}
+      name={conv.name}
+      selectedId={selectedId}
+      setSelectedId={setSelected}
+    />
   );
+  //   if (!op?.uid) return <div>No Participant</div>;
+  //   return (
+  //     <Item
+  //       cid={id}
+  //       name={otherUsername}
+  //       op={op}
+  //       selectedId={selectedId}
+  //       setSelectedId={setSelected}
+  //     />
+  //   );
 };
 
 const Item = ({
@@ -110,7 +104,7 @@ const Item = ({
 
   return (
     <Link
-      href={`/chat/chats/${cid}?type=conversation&pid=${op?.pid}&uid=${op?.uid}&name=${name}`}
+      href={`/chat/groups/${cid}?type=group&name=${name}`}
       id={cid}
       type="button"
       className={`block px-3 py-1 rounded  

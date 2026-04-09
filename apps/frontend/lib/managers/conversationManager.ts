@@ -29,7 +29,7 @@ function createConversationManager() {
     recipientUsername,
   }: {
     content: string;
-    conversationId: number;
+    conversationId?: number;
     recipientId: number;
     recipientUsername: string;
   }) => {

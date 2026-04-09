@@ -10,7 +10,7 @@ export default function MessageForm({
   recipientId,
   recipientName,
 }: {
-  conversationId: number;
+  conversationId?: number;
   recipientId: number;
   recipientName: string;
 }) {
@@ -27,11 +27,16 @@ export default function MessageForm({
       }),
 
     // 2. What happens after the message is sent successfully
-    onSuccess: (data) => {
-      setContent(""); // Clear the input
-      // Refresh the message list so the new message appears
+    onSuccess: (response) => {
+      setContent("");
+
+      const { data } = response;
+      const { payload } = data;
+      const { message } = payload;
+
+      console.log({ message });
       queryClient.invalidateQueries({
-        queryKey: ["messages", String(conversationId)],
+        queryKey: ["messages", String(message.conversationId)],
       });
     },
   });
@@ -44,21 +49,21 @@ export default function MessageForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-2 border-t bg-white">
+    <form onSubmit={handleSubmit} className="flex gap-2   ">
       <label className="w-full">
         <input
           type="text"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={`Message ${recipientName}...`}
-          className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={mutation.isPending}
         />
       </label>
       <button
         type="submit"
         disabled={mutation.isPending || !content.trim()}
-        className="bg-blue-600 text-white px-4 py-2 rounded-md disabled:bg-gray-400 hover:bg-blue-700 transition-colors"
+        className="bg-blue-600 text-white px-4 py-2 rounded-xs disabled:bg-gray-400 hover:bg-blue-700 transition-colors"
       >
         {mutation.isPending ? "..." : "Send"}
       </button>
