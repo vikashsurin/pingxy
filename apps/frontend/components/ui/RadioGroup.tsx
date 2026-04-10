@@ -1,9 +1,11 @@
 export default function RadioGroup({
+  name,
   label,
   options,
   value,
   onChange,
 }: {
+  name?: string;
   label?: string;
   value?: string;
   onChange?: (value: string) => void;
@@ -15,7 +17,7 @@ export default function RadioGroup({
   }[];
 }) {
   return (
-    <label htmlFor="radio-group">
+    <label>
       {label && <span className="text-sm text-gray-500">{label}</span>}
       <div className="flex  items-center  gap-4 ">
         {options.map((option) => (
@@ -23,7 +25,7 @@ export default function RadioGroup({
             <input
               type="radio"
               id={option.id}
-              name="radio-group"
+              name={name}
               value={option.value}
               checked={option.value === value}
               onChange={() => onChange?.(option.value)}

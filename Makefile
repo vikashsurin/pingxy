@@ -49,6 +49,12 @@ logs:
 	$(DC) logs -f
 
 
+logs frontend:
+	$(DC) logs -f frontend
+
+logs backend:
+	$(DC) logs -f backend
+
 
 ps:
 	$(DC) ps

@@ -1,0 +1,75 @@
+import { authApi } from "@/lib/api/auth";
+import { useChatStore } from "@/lib/store/chatStore";
+import { useMutation } from "@tanstack/react-query";
+import { LogOut, X } from "lucide-react";
+
+export default function SettingsPage({
+  setIsSettingsOpen,
+}: {
+  setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  return (
+    <div className=" border border-gray-300 shadow-2xl fixed inset-30 bg-gray-50 rounded-lg overflow-hidden">
+      <CloseSettingsButton setIsSettingsOpen={setIsSettingsOpen} />
+      <div className="grid grid-cols-[200px_1fr] h-full">
+        <div className="h-full  p-2 border-r border-gray-400">
+          <h2 className="font-bold  m-2">Settings</h2>
+          <section className="">
+            <LogoutButton />
+          </section>
+        </div>
+        <section className="bg-gray-200"></section>
+      </div>
+    </div>
+  );
+}
+
+function CloseSettingsButton({
+  setIsSettingsOpen,
+}: {
+  setIsSettingsOpen: (arg: boolean) => void;
+}) {
+  return (
+    <div
+      className="absolute top-2 right-2 cursor-pointer flex items-center gap-2"
+      title="Close the settings"
+    >
+      <div
+        onClick={() => setIsSettingsOpen(false)}
+        className="bg-gray-100 rounded-full p-1 hover:bg-gray-200  border border-gray-300 shadow-sm"
+      >
+        <X size={20} />
+      </div>
+    </div>
+  );
+}
+
+function LogoutButton() {
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => authApi.logout(),
+    onSuccess: () => {
+      window.location.href = "/auth/login";
+      useChatStore.setState({ authUser: null });
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
+  function handleLogout() {
+    mutate();
+  }
+
+  return (
+    <button
+      title="logout"
+      type="button"
+      className="bg-red-500 px-2 py-1 text-white rounded-md flex gap-2 items-center  hover:bg-red-600 transition-colors active:bg-red-700 w-full justify-between"
+      onClick={handleLogout}
+      disabled={isPending}
+    >
+      {isPending ? "Logging out..." : "Logout"}
+      <LogOut size={14} />
+    </button>
+  );
+}

@@ -2,10 +2,31 @@
 
 import Input from "@/components/ui/Input";
 import Primary from "@/components/ui/buttons/Primary";
-import { login } from "@/lib/auth";
+
+import { authManager } from "@/lib/managers/authManager";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Login() {
-  const handleLogin = async (formData: FormData) => {};
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await authManager.login(formData);
+    },
+
+    onSuccess: (data) => {
+      console.log({ dataFromLogin: data });
+      authManager.setToken(data.token);
+      authManager.setAuthUser(data.user);
+      window.location.href = "/chat";
+    },
+    onError: (error) => {
+      console.log({ errorFromLogin: error });
+    },
+  });
+
+  const handleLogin = async (formData: FormData) => {
+    console.log("hsdfsdf");
+    mutate(formData);
+  };
   return (
     <form
       className="flex flex-col border p-4 gap-6 rounded"
@@ -23,6 +44,7 @@ export default function Login() {
         type="password"
         placeholder="password"
       />
+
       <Primary label="Login" type="submit" />
     </form>
   );

@@ -5,45 +5,58 @@ import RadioGroup from "@/components/ui/RadioGroup";
 
 import Primary from "@/components/ui/buttons/Primary";
 
-import countries from "@/lib/countries.json";
 import Select from "@/components/ui/Select";
+import countries from "@/lib/countries.json";
+import { authManager } from "@/lib/managers/authManager";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 export default function Register() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: async (formdata: FormData) => {
+      return await authManager.register(formdata);
+    },
+    onSuccess: () => {},
+    onError: () => {},
+  });
+
   const [gender, setGender] = useState("");
   const [age, setAge] = useState(18);
   const [country, setCountry] = useState({ key: "us", name: "United States" });
 
+  const handleRegister = async (formData: FormData) => {
+    console.log("hsdfsdf");
+    mutate(formData);
+  };
+
   return (
-    <form className="flex flex-col border p-4 gap-6 rounded">
+    <form
+      className="flex flex-col border p-4 gap-6 rounded"
+      action={handleRegister}
+    >
       <Input
+        name="username"
         label="Username"
         type="text"
         placeholder="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
       />
 
       <Input
+        name="password"
         label="Password"
         type="password"
         placeholder="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
       />
 
       <Input
+        name="confirmPassword"
         label="Confirm Password"
         type="password"
         placeholder="confirm password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
       />
 
       <RadioGroup
+        name="gender"
         label="Gender"
         value={gender}
         onChange={(value) => setGender(value)}
@@ -55,6 +68,7 @@ export default function Register() {
       />
 
       <Input
+        name="age"
         type="number"
         label="Age"
         placeholder="Age"
@@ -64,13 +78,14 @@ export default function Register() {
       />
 
       <Select
+        name="country"
         label="Country"
         options={countries}
         value={country}
         onChange={(value) => setCountry(value)}
       />
 
-      <Primary label="Register" onClick={() => {}} />
+      <Primary label="Register" type="submit" />
     </form>
   );
 }

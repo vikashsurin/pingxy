@@ -112,6 +112,7 @@ services:
       - /app/node_modules
       - /app/apps/frontend/node_modules
       - /app/apps/frontend/.next # isolate .next build cache from host
+      - /app/packages/shared/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3001

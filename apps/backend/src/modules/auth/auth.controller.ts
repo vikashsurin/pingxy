@@ -26,6 +26,8 @@ export const AuthController = {
       try {
         // Todo: Remove confirm password
         const body = c.req.valid("json");
+        console.log({ body })
+        return c.json({ message: "test" }, 200);
         const info = getConnInfo(c);
         const ipAddress = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
