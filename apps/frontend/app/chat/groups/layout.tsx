@@ -12,6 +12,20 @@ export default function UserLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // const { data, isLoading, error } = useConversations("direct");
+
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // }
+
+  // if (error) {
+  //   return <div>Error: {error.message}</div>;
+  // }
+
+  // if (data) {
+  //   console.log({ dataFromQuery: data });
+  // }
+
   useEffect(() => {
     const fetchInitial = async () => {
       const data = await conversationManager.fetchConversations();
@@ -21,10 +35,7 @@ export default function UserLayout({
   }, []);
 
   return (
-    <div className="grid grid-cols-[200px_1fr]">
-      <div className="flex flex-col border border-gray-300 rounded-lg my-2 p-2 gap-1 bg-gray-100">
-        <Conversations />
-      </div>
+    <div className="">
       <div>{children}</div>
     </div>
   );

@@ -22,7 +22,7 @@ const BaseUserSchema = z.object({
     .min(MIN_NAME_LENGTH, "Username must be at least 3 characters")
     .max(MAX_NAME_LENGTH, "Username must be at most 16 characters"),
   gender: z.enum(["male", "female", "other"]),
-  age: z.number().min(18, "Age must be a positive number"),
+  age: z.coerce.number().min(18, "Age must be a positive number"),
   country: z.string(),
   bio: z.string().optional(),
 });

@@ -15,6 +15,7 @@ type ConversationState = {
   upsertConversation: (conversation: any) => void;
   upsertParticipant: (participant: any) => void;
 };
+
 export const useConversationStore = create<ConversationState>((set) => ({
   conversations: {},
   participants: {},

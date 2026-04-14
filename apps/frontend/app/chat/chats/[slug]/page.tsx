@@ -25,14 +25,24 @@ export default function Page({
   );
 
   return (
-    // <QueryClientProvider client={queryClient}>
     <div className="flex flex-col m-2  p-2 border border-gray-300 bg-gray-100 rounded-lg">
-      <Messages slug={slug} participant={participant} />
-      <MessageForm
-        conversationId={Number(slug)}
-        recipientId={Number(uid)}
-        recipientName={name}
-      />
+      {type === "conversation" && (
+        <div>
+          <Messages slug={slug} participant={participant} />
+          <MessageForm
+            conversationId={Number(slug)}
+            recipientId={Number(uid)}
+            recipientName={name}
+          />
+        </div>
+      )}
+
+      {type === "newConversation" && (
+        <div>
+          <p>Start a new conversations</p>
+          <MessageForm recipientId={Number(uid)} recipientName={name} />
+        </div>
+      )}
     </div>
   );
 }

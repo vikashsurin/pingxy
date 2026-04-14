@@ -16,7 +16,9 @@ export default function Register() {
     mutationFn: async (formdata: FormData) => {
       return await authManager.register(formdata);
     },
-    onSuccess: () => {},
+    onSuccess: () => {
+      window.location.href = "/chat";
+    },
     onError: () => {},
   });
 
@@ -85,7 +87,10 @@ export default function Register() {
         onChange={(value) => setCountry(value)}
       />
 
-      <Primary label="Register" type="submit" />
+      <Primary
+        label={isPending ? "Registering..." : "Register"}
+        type="submit"
+      />
     </form>
   );
 }

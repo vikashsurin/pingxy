@@ -12,7 +12,21 @@ const literalNullToUndefined = (val: string) =>
   (val === "null" || val === "undefined" || val === "" || val === null) ? undefined : val;
 
 export const ConversationController = {
-  initialFetch: factory.createHandlers(async (c) => {
+  initialFetch: factory.createHandlers(
+    validate("query", z.object({ type: z.enum(["direct", 'group']) })),
+    async (c) => {
+      const { type } = c.req.valid("query");
+      console.log({ type })
+      const user = c.get("user");
+      const userId = user.id;
+      // const data = await ConversationService.convAggregation({ userId });
+      //
+      const data = await ConversationService.getConversations({ userId, type });
+      if (!data) return c.notFound();
+      return c.json(data);
+    }),
+
+  fetchConversations: factory.createHandlers(async (c) => {
     const user = c.get("user");
     const userId = user.id;
     const data = await ConversationService.convAggregation({ userId });
@@ -108,6 +122,20 @@ export const ConversationController = {
       const message = await ConversationService.sendMessage(body, user);
 
       return c.json({ data: message }, 201);
+    },
+  ),
+
+  newFindByUid: factory.createHandlers(
+    validate("query", z.object({ userId: z.coerce.number() })),
+    async (c) => {
+      const { id } = c.get("user");
+      const { userId } = c.req.valid("query");
+
+      const result = await ConversationService.newFindByUsers({
+        authUserId: id,
+        userId: userId,
+      });
+      return c.json(result);
     },
   ),
 

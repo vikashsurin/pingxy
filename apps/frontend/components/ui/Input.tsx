@@ -17,6 +17,7 @@ export default function Input({
         <span className="text-sm text-gray-500 font-medium">{label}</span>
       )}
       <input
+        autoComplete="on"
         type={type}
         className={`border border-gray-300 rounded py-1 px-2 w-full focus:outline-blue-500 ${className}`}
         {...props}

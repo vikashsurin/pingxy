@@ -8,6 +8,7 @@ conversationRouter.use(authMiddleware);
 
 conversationRouter.get("/", ...ConversationController.initialFetch);
 
+
 // Todo
 conversationRouter.post("/messages", ...ConversationController.createMessage);
 
@@ -35,6 +36,8 @@ conversationRouter.get(
   "/find",
   ...ConversationController.findConversationByUserId,
 );
+
+conversationRouter.get('/new-find', ...ConversationController.newFindByUid)
 
 // POST create a new group
 conversationRouter.post("/groups", ...ConversationController.createGroup);

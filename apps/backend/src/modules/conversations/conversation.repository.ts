@@ -12,6 +12,36 @@ export const ConversationRepository = {
     return await tx.insert(conversations).values(conversation).returning();
   },
 
+  selectConversations: async ({ userId, type, tx = db }: { userId: number; type?: 'direct' | 'group'; tx?: DB_TX }) => {
+    const c = conversations;
+    const p = participants;
+    const rows = await tx
+      .select({
+        id: c.id,
+        type: c.type,
+        name: c.name,
+        description: c.description,
+        lastMessageId: c.lastMessageId,
+        lastMessageAt: c.lastMessageAt,
+        isPrivate: c.isPrivate,
+        user1Id: c.user1Id,
+        user2Id: c.user2Id,
+        createdBy: c.createdBy
+      })
+      .from(c)
+      .innerJoin(p, eq(p.conversationId, c.id))
+      .where(
+        and(
+          eq(p.userId, userId),
+          type ? eq(c.type, type) : undefined
+        )
+      )
+
+    return rows;
+  },
+
+
+
   updateActivity: async ({
     id,
     lastMessageId,
@@ -50,8 +80,13 @@ export const ConversationRepository = {
         id: c.id,
         type: c.type,
         name: c.name,
+        description: c.description,
         lastMessageId: c.lastMessageId,
         lastMessageAt: c.lastMessageAt,
+        isPrivate: c.isPrivate,
+        user1Id: c.user1Id,
+        user2Id: c.user2Id,
+        createdBy: c.createdBy
       })
       .from(c)
       .innerJoin(p, eq(p.conversationId, c.id))
@@ -234,18 +269,18 @@ export const ConversationRepository = {
   //     .limit(10);
   //   return result;
   // },
-  selectExistingBetweenUids: async (userId1: number, userId2: number, tx: any = db) => {
+  //
+  selectExistingBetweenUids: async (userId1: number, userId2: number, tx: DB_TX = db) => {
 
-    const u1 = userId1;
-    const u2 = userId2;
+    const u1 = Math.min(userId1, userId2);
+    const u2 = Math.max(userId1, userId2);
 
-    const result = await tx
+    const row = await tx
       .select()
       .from(conversations)
       .where(and(eq(conversations.user1Id, u1), eq(conversations.user2Id, u2)))
-      .limit(1);
-
-    return result;
+      .limit(1)
+    return row;
   },
 
   selectDirectExisting: async (

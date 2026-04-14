@@ -29,7 +29,7 @@ export const createGroupReqSchema = z.object({
   payload: z.object({
     name: z.string(),
     isPrivate: z.boolean(),
-    maxParticipants: z.number().optional(),
+    maxParticipants: z.coerce.number().optional(),
     description: z.string().optional(),
   }),
 });

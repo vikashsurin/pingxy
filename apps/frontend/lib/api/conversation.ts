@@ -1,9 +1,34 @@
 import { ClientReqMap } from "@pingxy/shared";
 
 function createConversationApi() {
+  const baseUrl = "http://localhost/api/conversations";
+  // find a conversation between 2 users
+  const findConversation = async ({ userId }: { userId: number }) => {
+    const url = `${baseUrl}/new-find?userId=${userId}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      console.error("findConversation failed", await res.json());
+      throw new Error("findConversation failed");
+    }
+    const data = await res.json();
+    return data;
+  };
+
   // fetch all conversations of a user
-  const fetchConversations = async () => {
-    const url = `http://localhost/api/conversations`;
+  const fetchConversations = async ({
+    type,
+  }: {
+    type?: "direct" | "group";
+  }) => {
+    console.log("api called", type);
+    const url = `http://localhost/api/conversations?type=${type}`;
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -78,11 +103,36 @@ function createConversationApi() {
     return data;
   };
 
-  // send a message to a conversation
+  // create a group/conversation
+  const createGroup = async (
+    payload: ClientReqMap["req:conversation.create"],
+  ) => {
+    const url = `${baseUrl}/groups`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      console.error("createGroup failed", await res.json());
+      throw new Error("createGroup failed");
+    }
+
+    const data = await res.json();
+    return data;
+  };
+
   return {
+    findConversation,
     fetchConversations,
     fetchMessages,
     sendMessage,
+    createGroup,
   };
 }
 

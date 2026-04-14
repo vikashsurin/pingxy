@@ -6,8 +6,21 @@ import { useConversationStore } from "../store/conversationStore";
 import { useUserStore } from "../store/userStore";
 
 function createConversationManager() {
-  const fetchConversations = async () => {
-    const data = await conversationsApi.fetchConversations();
+  const findConversation = async ({ userId }: { userId: number }) => {
+    const data = await conversationsApi.findConversation({ userId });
+
+    return data;
+  };
+
+  const fetchConversations = async ({
+    type,
+  }: {
+    type?: "direct" | "group";
+  } = {}) => {
+    console.log("manager called", type);
+    const data = await conversationsApi.fetchConversations({ type });
+
+    console.log({ data });
     const { conversations, participants, users } = data;
     for (const conversation of conversations) {
       useConversationStore.getState().upsertConversation(conversation);
@@ -20,6 +33,7 @@ function createConversationManager() {
     for (const user of users) {
       useUserStore.getState().upsertUser(user);
     }
+    return data;
   };
 
   const createMessage = async ({
@@ -36,7 +50,7 @@ function createConversationManager() {
     const payload = createClientReq(DOMAIN_EVENTS.MESSAGES.CREATE, {
       message: {
         clientMessageId: crypto.randomUUID(),
-        conversationId: conversationId,
+        conversationId: conversationId ?? null,
         content: content,
       },
       attachments: [],
@@ -44,10 +58,11 @@ function createConversationManager() {
         id: recipientId,
         username: recipientUsername,
       },
-      conversationId: conversationId,
+      conversationId: conversationId ?? undefined,
     });
 
     const data = await conversationsApi.sendMessage(payload);
+    console.log({ messageCreated: data });
     return data;
   };
 
@@ -93,7 +108,33 @@ function createConversationManager() {
     );
   };
 
-  return { fetchConversations, createMessage, handleNewMessage };
+  const createGroup = async (formData: FormData) => {
+    const visibility = formData.get("visibility") as string;
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const maxParticipants = formData.get("maxParticipants") as string;
+
+    console.log({ visibility, name, description, maxParticipants });
+
+    if (!visibility || !name || !description || !maxParticipants) return;
+
+    const payload = createClientReq(DOMAIN_EVENTS.CONVERSATIONS.CREATE, {
+      name,
+      isPrivate: visibility === "private",
+      description,
+      maxParticipants: parseInt(maxParticipants),
+    });
+    const data = await conversationsApi.createGroup(payload);
+    return data;
+  };
+
+  return {
+    findConversation,
+    fetchConversations,
+    createMessage,
+    handleNewMessage,
+    createGroup,
+  };
 }
 
 export const conversationManager = createConversationManager();

@@ -50,7 +50,6 @@ function createAuthApi() {
     const age = formData.get("age");
     const gender = formData.get("gender");
     const country = formData.get("country");
-    const bio = formData.get("bio");
 
     console.log({
       username,
@@ -59,9 +58,7 @@ function createAuthApi() {
       age,
       gender,
       country,
-      bio,
     });
-    // return null;
 
     const url = `${baseUrl}/register`;
     const res = await fetch(url, {
@@ -76,7 +73,6 @@ function createAuthApi() {
         age,
         gender,
         country,
-        bio,
       }),
     });
 
@@ -86,6 +82,7 @@ function createAuthApi() {
     }
 
     const data = await res.json();
+    console.log({ data });
     return data;
   };
 

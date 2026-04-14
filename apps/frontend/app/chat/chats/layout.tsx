@@ -1,11 +1,11 @@
 "use client";
 
-import { conversationManager } from "@/lib/managers/conversationManager";
+import { useConversations } from "@/lib/queries/conversations";
 import { useChatStore } from "@/lib/store/chatStore";
 import { useConversationStore } from "@/lib/store/conversationStore";
 import { useUserStore } from "@/lib/store/userStore";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Users from "./Users";
 
 export default function UserLayout({
@@ -13,13 +13,15 @@ export default function UserLayout({
 }: {
   children: React.ReactNode;
 }) {
-  useEffect(() => {
-    const fetchInitial = async () => {
-      const data = await conversationManager.fetchConversations();
-      console.log({ data });
-    };
-    fetchInitial();
-  }, []);
+  const { data, isLoading } = useConversations("direct");
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (data) {
+    console.log({ dataQuery: data });
+  }
 
   return (
     <div className="grid grid-cols-[200px_1fr_150px]">
@@ -48,7 +50,7 @@ function Conversations() {
       />
     </div>
   ));
-}
+} 
 
 const ConversationItem = ({
   id,

@@ -13,7 +13,20 @@ import { ConversationRepository } from "./conversation.repository";
 import { createGroupReqSchema } from "@pingxy/shared/domain";
 import z from "zod";
 
+
 export const ConversationService = {
+  getConversations: async ({ userId, type }: { userId: number; type?: 'direct' | 'group' }) => {
+
+    const conversations = await ConversationRepository.selectConversations({ userId, type });
+
+    const cIds = conversations.map(c => c.id);
+    const participants = await ParticipantRepository.selectManyByConvIds({ conversationIds: cIds });
+
+    const uIds = participants.map(p => p.userId);
+    const users = await UserRepository.selectManyByIds({ ids: uIds });
+    return { conversations, participants, users };
+
+  },
   findByUsers: async ({
     currentUserId,
     userId,
@@ -22,15 +35,41 @@ export const ConversationService = {
     userId: number;
   }) => {
     try {
-      return await ConversationRepository.selectByUsersPrecise(
+      const conversation = await ConversationRepository.selectByUsersPrecise(
         currentUserId,
         userId,
       );
+      if (!conversation) {
+        return null;
+      }
+      return conversation;
     } catch (error) {
       console.error("Error finding conversation by user ids:", error);
       throw new Error("Error finding conversation by user ids");
     }
   },
+
+
+  newFindByUsers: async ({
+    authUserId,
+    userId,
+  }: {
+    authUserId: number;
+    userId: number;
+  }) => {
+    try {
+      const conversation = await ConversationRepository.selectExistingBetweenUids(authUserId, userId);
+
+      if (conversation.length === 0) {
+        return null;
+      }
+      return conversation[0];
+    } catch (error) {
+      console.error("Error finding conversation by user ids:", error);
+      throw new Error("Error finding conversation by user ids");
+    }
+  },
+
 
   createGroup: async (
     payload: z.infer<typeof createGroupReqSchema>["payload"],

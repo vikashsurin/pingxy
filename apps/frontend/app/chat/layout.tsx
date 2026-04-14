@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import SettingsPage from "./components/SettingsPage";
+import SettingsPage from "./_components/SettingsPage";
 
 export default function ChatLayout({
   children,
@@ -42,7 +42,6 @@ export default function ChatLayout({
       socket.close();
     };
   }, []);
-  // const authUser =c
 
   return (
     <section className="grid grid-cols-[200px_1fr] h-screen ">
