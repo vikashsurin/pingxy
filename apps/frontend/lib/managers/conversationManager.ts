@@ -125,15 +125,49 @@ function createConversationManager() {
       maxParticipants: parseInt(maxParticipants),
     });
     const data = await conversationsApi.createGroup(payload);
+    console.log({ groupCreated: data });
     return data;
   };
 
+  // Create Invite
+  const createInvite = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const data = await conversationsApi.createInvite({ conversationId });
+    console.log({ datafrominvite: data });
+    return data;
+  };
+
+  // Fetch Invites
+  const fetchInvites = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const data = await conversationsApi.fetchInvites({ conversationId });
+    console.log({ datafrominvite: data });
+    return data;
+  };
+
+  const joinGroup = async ({ conversationId }: { conversationId: number }) => {
+    const data = await conversationsApi.joinGroup({ conversationId });
+
+    return data;
+  };
+
+  const leaveGroup = async () => {};
   return {
     findConversation,
     fetchConversations,
     createMessage,
     handleNewMessage,
     createGroup,
+    joinGroup,
+    leaveGroup,
+    createInvite,
+    fetchInvites,
   };
 }
 

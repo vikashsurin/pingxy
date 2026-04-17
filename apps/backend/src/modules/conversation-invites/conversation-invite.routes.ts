@@ -7,3 +7,10 @@ conversationInviteRouter.post(
   "/",
   ...ConversationIniviteController.createInvite,
 );
+
+
+// Preview Invite
+// GET api/invites/{invitecode}
+
+// Join Invite
+// POST api/invites/{invitecode}/join

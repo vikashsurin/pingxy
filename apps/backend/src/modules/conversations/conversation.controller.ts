@@ -34,6 +34,7 @@ export const ConversationController = {
     return c.json(data);
   }),
 
+
   createGroup: factory.createHandlers(
     validate("json", createGroupReqSchema),
     async (c) => {
@@ -45,6 +46,62 @@ export const ConversationController = {
         data.payload,
         userId,
       );
+      return c.json(result);
+    },
+  ),
+
+  joinGroup: factory.createHandlers(
+    validate("param", z.object({ groupId: z.coerce.number() })),
+    async (c) => {
+      const user = c.get("user");
+      const { groupId } = c.req.valid("param");
+
+      const result = await ConversationService.joinGroup(
+        groupId,
+        user.id,
+      );
+      return c.json(result);
+    },
+  ),
+
+  leaveGroup: factory.createHandlers(
+    validate("param", z.object({ groupId: z.coerce.number() })),
+    async (c) => {
+      const user = c.get("user");
+      const { groupId } = c.req.valid("param");
+
+      const result = await ConversationService.leaveGroup(
+        groupId,
+        user.id,
+      );
+      return c.json(result);
+    },
+  ),
+
+  createInvite: factory.createHandlers(
+    validate("param", z.object({ groupId: z.coerce.number() })),
+    async (c) => {
+      const user = c.get("user");
+      const { groupId } = c.req.valid("param");
+
+      const result = await ConversationService.createInvite({
+        groupId,
+        userId: user.id,
+      });
+      return c.json(result);
+    },
+  ),
+
+  getInvites: factory.createHandlers(
+    validate("param", z.object({ groupId: z.coerce.number() })),
+    async (c) => {
+      const user = c.get("user");
+      const { groupId } = c.req.valid("param");
+
+      const result = await ConversationService.getInvites({
+        groupId,
+      });
+
       return c.json(result);
     },
   ),
@@ -158,4 +215,5 @@ export const ConversationController = {
       return c.json({ ...conversation });
     },
   ),
+
 };

@@ -13,20 +13,16 @@ export default function UserLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data, isLoading } = useConversations("direct");
+  const { data, isLoading, error } = useConversations("direct");
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (data) {
-    console.log({ dataQuery: data });
-  }
-
   return (
     <div className="grid grid-cols-[200px_1fr_150px]">
       <div className="flex flex-col border border-gray-300 rounded-lg my-2 p-2 gap-1 bg-gray-100">
-        <Conversations />
+        <Conversations conversations={data.conversations} />
       </div>
       <div>{children}</div>
 
@@ -35,22 +31,19 @@ export default function UserLayout({
   );
 }
 
-function Conversations() {
+function Conversations({ conversations }: { conversations: any[] }) {
   const [selectedId, setSelected] = useState("");
-  const conversationIdx = useConversationStore(
-    (state) => state.conversationIdx,
-  );
 
-  return Array.from(conversationIdx.values()).map((id) => (
-    <div key={id}>
+  return conversations.map((conv) => (
+    <div key={conv.id}>
       <ConversationItem
-        id={id}
+        id={conv.id}
         selectedId={selectedId}
         setSelected={setSelected}
       />
     </div>
   ));
-} 
+}
 
 const ConversationItem = ({
   id,
@@ -70,16 +63,6 @@ const ConversationItem = ({
 
   const otherUsername = useUserStore((state) => state.users[op?.uid]?.username);
 
-  // 3. NOW you can do your conditional returns
-  if (conv.type === "group") return null;
-  // return (
-  //   <Item
-  //     cid={id}
-  //     name={conv.name}
-  //     selectedId={selectedId}
-  //     setSelectedId={setSelected}
-  //   />
-  // );
   if (!op?.uid) return <div>No Participant</div>;
   return (
     <>
@@ -90,7 +73,6 @@ const ConversationItem = ({
         selectedId={selectedId}
         setSelectedId={setSelected}
       />
-      {/* <div>kala</div> */}
     </>
   );
 };

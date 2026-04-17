@@ -127,12 +127,82 @@ function createConversationApi() {
     return data;
   };
 
+  // Join conversation
+  const joinGroup = async ({ conversationId }: { conversationId: number }) => {
+    const url = `${baseUrl}/groups/${conversationId}/join`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      console.error("joinGroup failed", await res.json());
+      throw new Error("joinGroup failed");
+    }
+    const data = await res.json();
+    console.log({ dataJoin: data });
+    return data;
+  };
+
+  // Create Invite
+
+  const createInvite = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const url = `${baseUrl}/groups/${conversationId}/invites`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      console.error("createInvite failed", await res.json());
+      throw new Error("createInvite failed");
+    }
+    const data = await res.json();
+    return data;
+  };
+
+  // Fetch al invites
+  const fetchInvites = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const url = `${baseUrl}/groups/${conversationId}/invites`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      console.error("fetchInvites failed", await res.json());
+    }
+    const data = await res.json();
+    return data;
+  };
+
+  // Leave conversation
+  const leaveGroup = async () => {};
   return {
     findConversation,
     fetchConversations,
     fetchMessages,
     sendMessage,
     createGroup,
+    joinGroup,
+    leaveGroup,
+    createInvite,
+    fetchInvites,
   };
 }
 

@@ -48,9 +48,9 @@ function CloseSettingsButton({
     >
       <div
         onClick={() => setIsSettingsOpen(false)}
-        className="bg-gray-100 rounded-full p-1 hover:bg-gray-200  border border-gray-300 shadow-sm"
+        className=" rounded-xs p-1 hover:bg-gray-700 hover:text-white transition-colors"
       >
-        <X size={20} />
+        <X size={16} />
       </div>
     </div>
   );
@@ -76,7 +76,7 @@ function LogoutButton() {
     <button
       title="logout"
       type="button"
-      className="bg-red-500 px-2 py-1  text-white rounded-md flex gap-2 items-center  hover:bg-red-600 transition-colors active:bg-red-700 w-full justify-between"
+      className=" px-2 py-1  font-medium text-red-600 border-2 border-red-400 rounded-md flex gap-2 items-center  hover:bg-red-600 hover:text-white transition-colors active:bg-red-700 w-full justify-between"
       onClick={handleLogout}
       disabled={isPending}
     >

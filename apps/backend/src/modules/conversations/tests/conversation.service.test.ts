@@ -31,4 +31,10 @@ describe("ConversationService", () => {
     console.log('result', result)
     expect(result).toBeDefined()
   });
+
+  it('should return invites', async () => {
+    const result = await ConversationService.getInvites({ groupId: 13 });
+    console.log('result', result)
+    expect(result).toBeDefined()
+  });
 });

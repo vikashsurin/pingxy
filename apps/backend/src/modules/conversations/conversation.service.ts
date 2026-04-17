@@ -2,16 +2,17 @@ import { broadcast } from "@lib/socket/pubsub";
 import { createServerEvent } from "@lib/socket/socket.factory";
 import { AttachmentService } from "@modules/attachments/attachment.service";
 import { BlockService } from "@modules/block/block.service";
+import { ConversationInviteRepository } from "@modules/conversation-invites/conversation-invite.repository";
 import { MessageRepository } from "@modules/messages/message.repository";
 import { ParticipantService } from "@modules/participants";
 import { ParticipantRepository } from "@modules/participants/participant.repository";
 import { UserRepository } from "@modules/users/user.repository";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "@pingxy/shared/constants";
+import { createGroupReqSchema, InviteInserSchema } from "@pingxy/shared/domain";
 import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
-import { ConversationRepository } from "./conversation.repository";
-import { createGroupReqSchema } from "@pingxy/shared/domain";
 import z from "zod";
+import { ConversationRepository } from "./conversation.repository";
 
 
 export const ConversationService = {
@@ -49,6 +50,81 @@ export const ConversationService = {
     }
   },
 
+  joinGroup: async (
+    groupId: number,
+    userId: number,
+  ) => {
+    try {
+      const participant = await ParticipantRepository.insertParticipant({
+        conversationId: groupId,
+        userId,
+        role: "member",
+      });
+
+      if (participant.length === 0) {
+        throw new Error("Error joining group");
+      }
+
+      return participant[0];
+    } catch (error) {
+      console.error("Error joining group:", error);
+      throw new Error("Error joining group");
+    }
+  },
+
+  leaveGroup: async (
+    groupId: number,
+    userId: number,
+  ) => {
+    try {
+
+    } catch (error) {
+      console.error("Error leaving group:", error);
+      throw new Error("Error leaving group");
+    }
+  },
+
+
+  createInvite: async ({ groupId, userId }: {
+    groupId: number; userId: number,
+  }) => {
+    try {
+      // Check if the conversation/group exists
+      const conversation = await ConversationRepository.selectById(groupId)
+
+      if (conversation.length === 0) {
+        throw new Error("Conversation not found");
+      }
+
+      const inviteCode = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      const invite: z.infer<typeof InviteInserSchema> = {
+        conversationId: groupId,
+        requiresApproval: true,
+        inviteCode,
+        maxUses: 50,
+        createdBy: userId,
+        expiresAt,
+        createdAt: new Date(),
+      };
+
+      const result = await ConversationInviteRepository.insert({ invite })
+
+      return result;
+
+    } catch (error) {
+      console.error("Error creating invite:", error);
+      throw new Error("Error creating invite");
+    }
+  },
+
+  getInvites: async ({ groupId }: { groupId: number }) => {
+    const result = await ConversationInviteRepository.selectAll({ groupId })
+    if (result.length === 0) return null;
+    return result;
+  },
 
   newFindByUsers: async ({
     authUserId,
