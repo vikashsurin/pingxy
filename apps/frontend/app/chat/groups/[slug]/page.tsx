@@ -1,8 +1,9 @@
 "use client";
 
 import { EllipsisVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { use, useState } from "react";
-import GroupAdminPanel from "./GroupAdminPanel";
+// import GroupAdminPanel from "./GroupAdminPanel";
 
 export default function Page({
   params,
@@ -24,9 +25,6 @@ export default function Page({
   console.log({ isMenuOpen });
   return (
     <div className="grid grid-cols-[1fr_200px]">
-      {activeMenu === "admin" && (
-        <GroupAdminPanel setActiveMenu={setActiveMenu} conversationId={slug} />
-      )}
       <div
         id={slug}
         className="m-2 border flex items-center justify-between gap-2 p-2 rounded-lg border-gray-300 bg-gray-100 h-max"
@@ -38,7 +36,11 @@ export default function Page({
         >
           <EllipsisVertical size={16} />
           {isMenuOpen && (
-            <Menu setIsMenuOpen={setIsMenuOpen} setActiveMenu={setActiveMenu} />
+            <Menu
+              setIsMenuOpen={setIsMenuOpen}
+              setActiveMenu={setActiveMenu}
+              conversationId={slug}
+            />
           )}
         </span>
       </div>
@@ -74,26 +76,27 @@ function Member({ name }: { name: string }) {
 }
 
 // Menu
-
 function Menu({
+  conversationId,
   setIsMenuOpen,
   setActiveMenu,
 }: {
+  conversationId: string;
   setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setActiveMenu: React.Dispatch<React.SetStateAction<string>>;
 }) {
+  const router = useRouter();
   return (
     <ul className="absolute top-full border right-0 bg-white border-gray-300 p-2 rounded-lg shadow-md min-w-40">
       <MenuItem
-        label="Admin"
+        label="Settings"
         onClick={(e) => {
           e.stopPropagation();
 
           setIsMenuOpen(false);
-          setActiveMenu("admin");
+          router.push(`/chat/groups/${conversationId}/settings`);
         }}
       />
-      <MenuItem label="Settings" />
     </ul>
   );
 }

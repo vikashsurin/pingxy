@@ -28,6 +28,18 @@ export const ConversationService = {
     return { conversations, participants, users };
 
   },
+
+  getConversation: async ({ conversationId }: { conversationId: number }) => {
+    const conversation = await ConversationRepository.selectById(conversationId);
+    if (!conversation) return null;
+    return conversation[0];
+  },
+
+  getGroupParticipants: async ({ groupId }: { groupId: number }) => {
+    const participants = await ParticipantRepository.selectParticipantsByConversationId(groupId);
+    return participants;
+  },
+
   findByUsers: async ({
     currentUserId,
     userId,

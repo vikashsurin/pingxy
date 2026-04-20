@@ -27,3 +27,17 @@ export const useFetchInvites = (conversationId: number) => {
     queryFn: () => conversationManager.fetchInvites({ conversationId }),
   });
 };
+
+export const useFetchConversation = (conversationId: number) => {
+  return useQuery({
+    queryKey: ["conversations", conversationId],
+    queryFn: () => conversationManager.fetchConversation({ conversationId }),
+  });
+};
+
+export const useFetchParticipants = (conversationId: number) => {
+  return useQuery({
+    queryKey: ["participants", conversationId],
+    queryFn: () => conversationManager.fetchParticipants({ conversationId }),
+  });
+};

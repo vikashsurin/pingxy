@@ -45,6 +45,30 @@ function createConversationApi() {
     return data;
   };
 
+  const fetchConversation = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const url = `${baseUrl}/${conversationId}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      console.error("fetchConversation failed", await res.json());
+      throw new Error("fetchConversation failed");
+    }
+
+    const data = await res.json();
+    console.log({ fetchConversation: data });
+    return data;
+  };
+
   // find a conversation between 2 users
 
   // fetch messages + meta data of a conversation
@@ -193,9 +217,33 @@ function createConversationApi() {
 
   // Leave conversation
   const leaveGroup = async () => {};
+
+  // Fetch all pariticipants of a conversation
+  const fetchParticipants = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const url = `${baseUrl}/groups/${conversationId}/participants`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      console.error("fetchParticipants failed", await res.json());
+      throw new Error("fetchParticipants failed");
+    }
+    const data = await res.json();
+    return data;
+  };
+
   return {
     findConversation,
     fetchConversations,
+    fetchConversation,
     fetchMessages,
     sendMessage,
     createGroup,
@@ -203,6 +251,7 @@ function createConversationApi() {
     leaveGroup,
     createInvite,
     fetchInvites,
+    fetchParticipants,
   };
 }
 

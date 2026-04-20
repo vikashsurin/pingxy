@@ -36,6 +36,15 @@ function createConversationManager() {
     return data;
   };
 
+  const fetchConversation = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const data = await conversationsApi.fetchConversation({ conversationId });
+    return data;
+  };
+
   const createMessage = async ({
     content,
     conversationId,
@@ -147,7 +156,7 @@ function createConversationManager() {
     conversationId: number;
   }) => {
     const data = await conversationsApi.fetchInvites({ conversationId });
-    console.log({ datafrominvite: data });
+
     return data;
   };
 
@@ -157,10 +166,21 @@ function createConversationManager() {
     return data;
   };
 
+  const fetchParticipants = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const data = await conversationsApi.fetchParticipants({ conversationId });
+    console.log({ dataFromFetchParticipants: data });
+    return data;
+  };
+
   const leaveGroup = async () => {};
   return {
     findConversation,
     fetchConversations,
+    fetchConversation,
     createMessage,
     handleNewMessage,
     createGroup,
@@ -168,6 +188,7 @@ function createConversationManager() {
     leaveGroup,
     createInvite,
     fetchInvites,
+    fetchParticipants,
   };
 }
 

@@ -34,4 +34,14 @@ describe("ConversationRepository", () => {
     console.log({ result })
     expect(result).toBeArray();
   });
+
+  it("should return a conversation ", async () => {
+    const conversationId = 8;
+    const result = await ConversationRepository.selectById(conversationId);
+
+
+
+    console.log({ result })
+    expect(result).toBeObject();
+  })
 });

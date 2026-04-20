@@ -115,8 +115,29 @@ export const ParticipantRepository = {
 
   selectParticipantsByConversationId: async (conversationId: number) => {
     return await db
-      .select()
+      .select({
+        id: participants.id,
+        userId: participants.userId,
+        role: participants.role,
+        joinedAt: participants.joinedAt,
+        leftAt: participants.leftAt,
+        isActive: participants.isActive,
+        isMuted: participants.isMuted,
+        mutedUntil: participants.mutedUntil,
+        isPinned: participants.isPinned,
+        isArchived: participants.isArchived,
+        lastReadMessageId: participants.lastReadMessageId,
+        lastReadAt: participants.lastReadAt,
+        lastDeliveredMessageId: participants.lastDeliveredMessageId,
+        lastDeliveredAt: participants.lastDeliveredAt,
+        unreadCount: participants.unreadCount,
+        notificationSettings: participants.notificationSettings,
+        isDeleted: participants.isDeleted,
+        deletedAt: participants.deletedAt,
+        username: users.username,
+      })
       .from(participants)
+      .innerJoin(users, eq(participants.userId, users.id))
       .where(eq(participants.conversationId, conversationId));
   },
 

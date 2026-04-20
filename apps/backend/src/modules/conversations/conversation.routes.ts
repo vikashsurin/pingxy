@@ -1,6 +1,7 @@
 import { factory } from "@lib/db/drizzle-factory";
 import { authMiddleware } from "@lib/middlewares/auth";
 import { ConversationController } from "./conversation.controller";
+import { ConversationRepository } from "./conversation.repository";
 
 export const conversationRouter = factory.createApp();
 
@@ -9,6 +10,8 @@ conversationRouter.use(authMiddleware);
 // /api/conversations?type=direct|group
 conversationRouter.get("/", ...ConversationController.initialFetch);
 
+// Fetch a single conversation
+conversationRouter.get("/:conversationId", ...ConversationController.getConversation);
 
 // Todo
 conversationRouter.post("/messages", ...ConversationController.createMessage);
@@ -59,6 +62,9 @@ conversationRouter.post("/groups/:groupId/invites", ...ConversationController.cr
 conversationRouter.get('/groups/:groupId/invites', ...ConversationController.getInvites)
 
 
+// List all participants of a group conversation
+// GET /groups/:groupId/participants
+conversationRouter.get('/groups/:groupId/participants', ...ConversationController.getGroupParticipants)
 
 
 // # 1. Main list (Direct + Joined Groups)

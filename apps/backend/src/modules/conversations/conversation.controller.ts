@@ -26,6 +26,24 @@ export const ConversationController = {
       return c.json(data);
     }),
 
+  getConversation: factory.createHandlers(
+    validate("param", z.object({ conversationId: z.coerce.number() })),
+    async (c) => {
+      const { conversationId } = c.req.valid("param");
+      const data = await ConversationService.getConversation({ conversationId });
+      if (!data) return c.notFound();
+      return c.json(data);
+    }),
+
+  getGroupParticipants: factory.createHandlers(
+    validate("param", z.object({ groupId: z.coerce.number() })),
+    async (c) => {
+      const { groupId } = c.req.valid("param");
+      const data = await ConversationService.getGroupParticipants({ groupId });
+      if (!data) return c.notFound();
+      return c.json(data);
+    }),
+
   fetchConversations: factory.createHandlers(async (c) => {
     const user = c.get("user");
     const userId = user.id;
