@@ -1,7 +1,6 @@
 import { factory } from "@lib/db/drizzle-factory";
 import { authMiddleware } from "@lib/middlewares/auth";
 import { ConversationController } from "./conversation.controller";
-import { ConversationRepository } from "./conversation.repository";
 
 export const conversationRouter = factory.createApp();
 

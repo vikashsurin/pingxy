@@ -1,0 +1,13 @@
+import { conversationService } from "@/src/services/conversationService";
+import { SERVER_EVENTS, ServerEventMap } from "@pingxy/shared";
+import { SocketHandlerMap } from "../dispatcher";
+
+export const messageHandler: SocketHandlerMap = {
+  [SERVER_EVENTS.MESSAGES.CREATED]: (
+    data: ServerEventMap["event:message.created"],
+  ) => {
+    const payload = data.payload;
+
+    conversationService.handleNewMessage(payload);
+  },
+};

@@ -14,29 +14,39 @@ import { HTTPException } from "hono/http-exception";
 import z from "zod";
 import { ConversationRepository } from "./conversation.repository";
 
-
 export const ConversationService = {
-  getConversations: async ({ userId, type }: { userId: number; type?: 'direct' | 'group' }) => {
+  getConversations: async ({
+    userId,
+    type,
+  }: {
+    userId: number;
+    type?: "direct" | "group";
+  }) => {
+    const conversations = await ConversationRepository.selectConversations({
+      userId,
+      type,
+    });
 
-    const conversations = await ConversationRepository.selectConversations({ userId, type });
+    const cIds = conversations.map((c) => c.id);
+    const participants = await ParticipantRepository.selectManyByConvIds({
+      conversationIds: cIds,
+    });
 
-    const cIds = conversations.map(c => c.id);
-    const participants = await ParticipantRepository.selectManyByConvIds({ conversationIds: cIds });
-
-    const uIds = participants.map(p => p.userId);
+    const uIds = participants.map((p) => p.userId);
     const users = await UserRepository.selectManyByIds({ ids: uIds });
     return { conversations, participants, users };
-
   },
 
   getConversation: async ({ conversationId }: { conversationId: number }) => {
-    const conversation = await ConversationRepository.selectById(conversationId);
+    const conversation =
+      await ConversationRepository.selectById(conversationId);
     if (!conversation) return null;
     return conversation[0];
   },
 
   getGroupParticipants: async ({ groupId }: { groupId: number }) => {
-    const participants = await ParticipantRepository.selectParticipantsByConversationId(groupId);
+    const participants =
+      await ParticipantRepository.selectParticipantsByConversationId(groupId);
     return participants;
   },
 
@@ -62,10 +72,7 @@ export const ConversationService = {
     }
   },
 
-  joinGroup: async (
-    groupId: number,
-    userId: number,
-  ) => {
+  joinGroup: async (groupId: number, userId: number) => {
     try {
       const participant = await ParticipantRepository.insertParticipant({
         conversationId: groupId,
@@ -73,36 +80,35 @@ export const ConversationService = {
         role: "member",
       });
 
-      if (participant.length === 0) {
+      if (!participant) {
         throw new Error("Error joining group");
       }
 
-      return participant[0];
+      return participant;
     } catch (error) {
       console.error("Error joining group:", error);
       throw new Error("Error joining group");
     }
   },
 
-  leaveGroup: async (
-    groupId: number,
-    userId: number,
-  ) => {
+  leaveGroup: async (groupId: number, userId: number) => {
     try {
-
     } catch (error) {
       console.error("Error leaving group:", error);
       throw new Error("Error leaving group");
     }
   },
 
-
-  createInvite: async ({ groupId, userId }: {
-    groupId: number; userId: number,
+  createInvite: async ({
+    groupId,
+    userId,
+  }: {
+    groupId: number;
+    userId: number;
   }) => {
     try {
       // Check if the conversation/group exists
-      const conversation = await ConversationRepository.selectById(groupId)
+      const conversation = await ConversationRepository.selectById(groupId);
 
       if (conversation.length === 0) {
         throw new Error("Conversation not found");
@@ -122,10 +128,9 @@ export const ConversationService = {
         createdAt: new Date(),
       };
 
-      const result = await ConversationInviteRepository.insert({ invite })
+      const result = await ConversationInviteRepository.insert({ invite });
 
       return result;
-
     } catch (error) {
       console.error("Error creating invite:", error);
       throw new Error("Error creating invite");
@@ -133,7 +138,7 @@ export const ConversationService = {
   },
 
   getInvites: async ({ groupId }: { groupId: number }) => {
-    const result = await ConversationInviteRepository.selectAll({ groupId })
+    const result = await ConversationInviteRepository.selectAll({ groupId });
     if (result.length === 0) return null;
     return result;
   },
@@ -146,7 +151,11 @@ export const ConversationService = {
     userId: number;
   }) => {
     try {
-      const conversation = await ConversationRepository.selectExistingBetweenUids(authUserId, userId);
+      const conversation =
+        await ConversationRepository.selectExistingBetweenUids(
+          authUserId,
+          userId,
+        );
 
       if (conversation.length === 0) {
         return null;
@@ -158,12 +167,11 @@ export const ConversationService = {
     }
   },
 
-
   createGroup: async (
     payload: z.infer<typeof createGroupReqSchema>["payload"],
     userId: number,
   ) => {
-    console.log({ payload, userId })
+    console.log({ payload, userId });
     const newConversation = {
       type: "group" as const,
       name: payload.name,
@@ -204,7 +212,7 @@ export const ConversationService = {
     userId,
   }: {
     currentUserId: number;
-    userId: number;
+    userId?: number | null;
   }) => {
     try {
       // 1. Check if a conversation already exists between the two users
@@ -216,7 +224,6 @@ export const ConversationService = {
       if (result) {
         return result.conversation;
       }
-
 
       // 2. If no conversation exists, create a new one
       // user1Id should be the smaller of the two user ids
@@ -283,6 +290,92 @@ export const ConversationService = {
       throw new Error("Error removing conversation");
     }
   },
+  newSendMessage: async (
+    body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
+    user: User,
+  ) => {
+    const { message, recipient, conversationId, attachments } = body.payload;
+    // check for blocks
+
+    const conversation = conversationId
+      ? await ConversationRepository.selectById(conversationId)
+      : await ConversationService.findOrCreateByUsers({
+        currentUserId: user.id,
+        userId: recipient?.id,
+      });
+
+    if (conversation.type === "direct") {
+      if (!recipient || recipient.id === null || !recipient.id) return;
+      await ParticipantService.create({
+        conversationId: conversation.id,
+        user1Id: user.id,
+        user2Id: recipient.id,
+      });
+    } else {
+      const isParticipant = await ParticipantService.isParticipant({
+        conversationId: conversation.id,
+        userId: user.id,
+      });
+
+      if (!isParticipant)
+        throw new HTTPException(403, { message: "Not a participant" });
+    }
+
+    // Insert the message
+    const [insertedMessage] = await MessageRepository.insertMessage({
+      conversationId: conversation.id!,
+      clientMessageId: message.clientMessageId,
+      senderId: user.id,
+      content: message.content,
+    });
+
+    // update conversation activity
+    const [updatedConversation] = await ConversationRepository.updateActivity({
+      id: conversation.id,
+      lastMessageId: insertedMessage.id,
+    });
+
+    // Update lastReadMessageId and timestamp
+    const [updatedParticipant] = await ParticipantRepository.update({
+      userId: user.id,
+      lastReadMessageId: insertedMessage.id,
+      lastReadAt: new Date(),
+      conversationId: conversation.id,
+    });
+
+    const savedAttachments = await AttachmentService.createAttachment({
+      attachments,
+      userId: user.id,
+      messageId: insertedMessage.id,
+    });
+
+    const attachmentsWithUrls = [];
+
+    for (const a of savedAttachments) {
+      const endpoint = process.env.MINIO_ENDPOINT;
+      const bucket = process.env.MINIO_BUCKET;
+      const url = `${endpoint}/${bucket}/${a.key}`;
+      const thumbUrl = a.thumbKey
+        ? `${endpoint}/${bucket}/${a.thumbKey}`
+        : undefined;
+
+      attachmentsWithUrls.push({ ...a, url, thumbUrl });
+    }
+
+    // Update unread count
+    await ParticipantService.incrementUnreadCount({
+      conversationId: conversation.id,
+      senderId: user.id,
+    });
+
+    const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
+      message: insertedMessage,
+      attachments: attachmentsWithUrls,
+      conversation: updatedConversation,
+      sender: updatedParticipant,
+      recipient: recipient,
+    });
+  },
 
   sendMessage: async (
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
@@ -292,20 +385,20 @@ export const ConversationService = {
     // const result = await db.transaction(async (tx) => {
     //  TODO: Wrap it in transaction
 
-    const hasBlock = await BlockService.hasBlock({
-      blockerId: user.id,
-      blockedId: recipient.id,
-    });
+    // const hasBlock = await BlockService.hasBlock({
+    //   blockerId: user.id,
+    //   blockedId: recipient.id,
+    // });
 
-    if (hasBlock) {
-      throw new HTTPException(400, {
-        message: "User is blocked",
-      });
-    }
+    // if (hasBlock) {
+    //   throw new HTTPException(400, {
+    //     message: "User is blocked",
+    //   });
+    // }
 
     const conversation = await ConversationService.findOrCreateByUsers({
       currentUserId: user.id,
-      userId: recipient.id,
+      userId: recipient?.id,
     });
 
     const participants = await ParticipantService.create({

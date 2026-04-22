@@ -12,7 +12,15 @@ export const ConversationRepository = {
     return await tx.insert(conversations).values(conversation).returning();
   },
 
-  selectConversations: async ({ userId, type, tx = db }: { userId: number; type?: 'direct' | 'group'; tx?: DB_TX }) => {
+  selectConversations: async ({
+    userId,
+    type,
+    tx = db,
+  }: {
+    userId: number;
+    type?: "direct" | "group";
+    tx?: DB_TX;
+  }) => {
     const c = conversations;
     const p = participants;
     const rows = await tx
@@ -26,21 +34,14 @@ export const ConversationRepository = {
         isPrivate: c.isPrivate,
         user1Id: c.user1Id,
         user2Id: c.user2Id,
-        createdBy: c.createdBy
+        createdBy: c.createdBy,
       })
       .from(c)
       .innerJoin(p, eq(p.conversationId, c.id))
-      .where(
-        and(
-          eq(p.userId, userId),
-          type ? eq(c.type, type) : undefined
-        )
-      )
+      .where(and(eq(p.userId, userId), type ? eq(c.type, type) : undefined));
 
     return rows;
   },
-
-
 
   updateActivity: async ({
     id,
@@ -65,11 +66,13 @@ export const ConversationRepository = {
   },
 
   selectById: async (id: number) => {
-    return await db
+    const row = await db
       .select()
       .from(conversations)
       .where(eq(conversations.id, id))
       .limit(1);
+
+    return row[0];
   },
 
   selectAll: async ({ userId, tx = db }: { userId: number; tx?: DB_TX }) => {
@@ -86,7 +89,7 @@ export const ConversationRepository = {
         isPrivate: c.isPrivate,
         user1Id: c.user1Id,
         user2Id: c.user2Id,
-        createdBy: c.createdBy
+        createdBy: c.createdBy,
       })
       .from(c)
       .innerJoin(p, eq(p.conversationId, c.id))
@@ -270,8 +273,11 @@ export const ConversationRepository = {
   //   return result;
   // },
   //
-  selectExistingBetweenUids: async (userId1: number, userId2: number, tx: DB_TX = db) => {
-
+  selectExistingBetweenUids: async (
+    userId1: number,
+    userId2: number,
+    tx: DB_TX = db,
+  ) => {
     const u1 = Math.min(userId1, userId2);
     const u2 = Math.max(userId1, userId2);
 
@@ -279,7 +285,7 @@ export const ConversationRepository = {
       .select()
       .from(conversations)
       .where(and(eq(conversations.user1Id, u1), eq(conversations.user2Id, u2)))
-      .limit(1)
+      .limit(1);
     return row;
   },
 

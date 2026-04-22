@@ -7,24 +7,12 @@ export const ParticipantRepository = {
     participant: ParticipantInsertType,
     tx: DB_TX = db,
   ) => {
-    return await tx
+    const [row] = await tx
       .insert(participants)
-      .values({
-        conversationId: participant.conversationId,
-        userId: participant.userId,
-        role: participant.role,
-        joinedAt: participant.joinedAt,
-        leftAt: participant.leftAt,
-        isActive: participant.isActive,
-      })
-      .onConflictDoUpdate({
-        target: [participants.conversationId, participants.userId],
-        set: {
-          leftAt: null,
-          isActive: true,
-        },
-      })
+      .values(participant)
+      .onConflictDoNothing()
       .returning();
+    return row ?? null;
   },
 
   update: async ({

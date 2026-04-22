@@ -5,7 +5,10 @@ import {
 } from "drizzle-zod";
 import { z } from "zod";
 import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/socket-events";
-import { attachmentReqSchema, attachmentResponseSchema } from "../attachment/attachment.schema";
+import {
+  attachmentReqSchema,
+  attachmentResponseSchema,
+} from "../attachment/attachment.schema";
 import { selectUserSchema } from "../user/user.schema";
 import { messages } from "./message.table";
 import { participantSelectSchema } from "../participant/participant.schema";
@@ -21,7 +24,7 @@ export const selectMessageSchema = createSelectSchema(messages, {
   senderId: true,
   content: true,
   clientMessageId: true,
-  createdAt: true
+  createdAt: true,
 });
 
 export const updateMessageSchema = createUpdateSchema(messages);
@@ -71,10 +74,12 @@ export const messageCreateSchema = z.object({
     message: InsertMessageSchema,
     attachments: z.array(attachmentReqSchema),
     conversationId: z.number().nullish(),
-    recipient: z.object({
-      id: z.number(),
-      username: z.string(),
-    }),
+    recipient: z
+      .object({
+        id: z.number().nullish(),
+        username: z.string().nullish(),
+      })
+      .nullish(),
   }),
 });
 

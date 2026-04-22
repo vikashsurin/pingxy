@@ -30,4 +30,21 @@ describe("ConversationInviteRepository", () => {
     console.log("result", result)
     expect(result).toBeDefined()
   })
+
+  it('should get a invite', async () => {
+    const result = await ConversationInviteRepository.selectById(6)
+    console.log("result", result)
+    expect(result).toBeDefined()
+  })
+  it('should get a invite by code', async () => {
+    const result = await ConversationInviteRepository.selectByCode('d73bee62-0f51-453d-bac5-c7236827b30f')
+    console.log("result", result)
+    expect(result).toBeDefined()
+  })
+
+  it('should delete invites in an array', async () => {
+    const result = await ConversationInviteRepository.deleteInvitesByIds([27, 28])
+    console.log("result", result)
+    expect(result).toBeDefined()
+  })
 });
