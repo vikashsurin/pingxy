@@ -5,26 +5,31 @@ function createAttachmentApi() {
 
   const uploadAttachment = async (
     file: File,
+    signal: AbortSignal,
     onProgress: (percent: number) => void,
   ) => {
     const url = `${baseUrl}/upload`;
     const formData = new FormData();
     formData.append("file", file);
 
+    console.log({ uploading: file });
+
     const { data } = await axios.post(url, formData, {
+      signal,
       withCredentials: true,
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / (progressEvent.total ?? 1),
         );
+
         onProgress(percentCompleted);
       },
     });
-    console.log({ uploading: data });
-    if (!data.success) {
-      throw new Error(data.message);
+
+    if (!data) {
+      throw new Error("Upload failed");
     }
-    return null;
+    return data;
   };
   return {
     uploadAttachment,

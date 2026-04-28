@@ -1,33 +1,35 @@
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUploadAttachment } from "@/src/queries/attachment";
 import { attachmentReqSchema } from "@pingxy/shared";
 import {
-  IconFile,
-  IconFileMusic,
-  IconPhoto,
-  IconPlus,
+    IconFile,
+    IconFileMusic,
+    IconPhoto,
+    IconPlus,
 } from "@tabler/icons-react";
 import { useRef } from "react";
 import z from "zod";
+import { type Upload } from "./types";
 
 export function AttachmentsMenu({
   setFiles,
   setAttachments,
+  setUploads,
 }: {
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
   setAttachments: React.Dispatch<
     React.SetStateAction<z.infer<typeof attachmentReqSchema>[]>
   >;
+  setUploads: React.Dispatch<React.SetStateAction<Record<string, Upload>>>;
 }) {
-  const { mutateAsync: upload, progress, isPending } = useUploadAttachment();
+  //   const { mutateAsync: upload, progress, isPending } = useUploadAttachment();
 
-  console.log({ progress });
+  //   console.log({ progress });
 
   // 1. Setup refs for the hidden inputs
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -41,13 +43,15 @@ export function AttachmentsMenu({
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      setFiles((prevFiles: File[]) => [...prevFiles, file]);
-      const attachment = await upload(file);
-
-      // setAttachments((prevAttachments) => [...prevAttachments, attachment]);
-
-      // const attachment = await attachmentService.uploadAttachment(file);
-      // setAttachments((prevAttachments) => [...prevAttachments, attachment]);
+      setUploads((prev) => ({
+        ...prev,
+        [`${file.name}-${file.size}`]: {
+          id: file.name,
+          file,
+          progress: 0,
+          controller: new AbortController(),
+        },
+      }));
 
       event.target.value = "";
     }

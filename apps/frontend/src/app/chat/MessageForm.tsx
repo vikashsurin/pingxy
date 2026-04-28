@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Sending from "@/src/components/Sending";
 import { useSendMessage } from "@/src/queries/conversations";
+import { attachmentService } from "@/src/services/attachementService";
 import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
 import { IconFileDescription, IconSend2, IconX } from "@tabler/icons-react";
+import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
 import { AttachmentsMenu } from "./AttachmentsMenu";
+import { type Upload } from "./types";
 
 export default function MessageForm({
   conversationId,
@@ -52,20 +55,58 @@ export default function MessageForm({
     );
   }
 
-  useEffect(() => {
-    console.log("diles:", files);
-  }, [files]);
+  const [uploads, setUploads] = useState<Record<string, Upload>>({});
+  const startedUploads = useRef<Set<string>>(new Set());
+  const controllersRef = useRef<Record<string, AbortController>>({});
 
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+  // const [progress, setProgress] = useState(0);
+
+  console.log({ uploads });
+
+  useEffect(() => {
+    for (const [key, upload] of Object.entries(uploads)) {
+      if (startedUploads.current.has(key)) continue;
+      startedUploads.current.add(key);
+
+      const controller = new AbortController();
+      controllersRef.current[key] = controller;
+
+      attachmentService
+        .uploadAttachment(upload.file, controller.signal, (p) => {
+          setUploads((prev) => ({
+            ...prev,
+            [key]: { ...prev[key], progress: p },
+          }));
+        })
+        .catch((err) => {
+          if (axios.isCancel(err)) return;
+          console.log("Upload failed or cancelled ", err);
+        });
+    }
+  }, [uploads]);
+
+  const removeFile = (key: string) => {
+    controllersRef.current[key]?.abort();
+    delete controllersRef.current[key];
+    startedUploads.current.delete(key);
+
+    setUploads((prev) => {
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
   };
+
   return (
     <form
       onSubmit={handleSubmit}
       className="flex gap-2  relative items-center  "
     >
-      <SelectedPreview files={files} onRemove={removeFile} />
-      <AttachmentsMenu setFiles={setFiles} setAttachments={setAttachments} />
+      <SelectedPreview uploads={uploads} onRemove={removeFile} />
+      <AttachmentsMenu
+        setFiles={setFiles}
+        setUploads={setUploads}
+        setAttachments={setAttachments}
+      />
 
       <label className="w-full">
         <input
@@ -94,123 +135,19 @@ export default function MessageForm({
   );
 }
 
-// export function AttachmentsMenu({
-//   setFiles,
-//   setAttachments,
-// }: {
-//   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
-//   setAttachments: React.Dispatch<
-//     React.SetStateAction<z.infer<typeof attachmentReqSchema>[]>
-//   >;
-// }) {
-//   const { mutateAsync: upload, progress, isPending } = useUploadAttachment();
+export function SelectedPreview({
+  uploads,
+  onRemove,
+}: {
+  uploads: Record<string, Upload>;
+  onRemove: (key: string) => void;
+}) {
+  const files = Object.values(uploads);
 
-//   console.log({ progress });
-
-//   // 1. Setup refs for the hidden inputs
-//   const audioInputRef = useRef<HTMLInputElement>(null);
-//   const photoInputRef = useRef<HTMLInputElement>(null);
-//   const fileInputRef = useRef<HTMLInputElement>(null);
-
-//   // 2. Handle the file selection logic
-//   const handleFileChange = async (
-//     event: React.ChangeEvent<HTMLInputElement>,
-//     type: string,
-//   ) => {
-//     const file = event.target.files?.[0];
-//     if (file) {
-//       setFiles((prevFiles: File[]) => [...prevFiles, file]);
-//       const attachment = await upload(file);
-
-//       // setAttachments((prevAttachments) => [...prevAttachments, attachment]);
-
-//       // const attachment = await attachmentService.uploadAttachment(file);
-//       // setAttachments((prevAttachments) => [...prevAttachments, attachment]);
-
-//       event.target.value = "";
-//     }
-//   };
-
-//   return (
-//     <>
-//       {/* 3. Hidden Inputs */}
-//       <input
-//         title="audio"
-//         type="file"
-//         ref={audioInputRef}
-//         className="hidden"
-//         accept="audio/*"
-//         onChange={(e) => handleFileChange(e, "audio")}
-//       />
-//       <input
-//         title="image"
-//         type="file"
-//         ref={photoInputRef}
-//         className="hidden"
-//         accept="image/*"
-//         onChange={(e) => handleFileChange(e, "photo")}
-//       />
-//       <input
-//         title="file"
-//         type="file"
-//         ref={fileInputRef}
-//         className="hidden"
-//         onChange={(e) => handleFileChange(e, "general")}
-//       />
-
-//       <DropdownMenu>
-//         <DropdownMenuTrigger
-//           render={
-//             <Button variant="outline" size="icon" className="rounded-full">
-//               <IconPlus size={16} />
-//             </Button>
-//           }
-//         ></DropdownMenuTrigger>
-
-//         <DropdownMenuContent
-//           align="start"
-//           side="top"
-//           className="rounded-lg w-40"
-//         >
-//           <DropdownMenuItem
-//             className="cursor-pointer gap-2 rounded-sm"
-//             onClick={() => audioInputRef.current?.click()}
-//           >
-//             <IconFileMusic size={18} />
-//             <span>Audio</span>
-//           </DropdownMenuItem>
-
-//           <DropdownMenuItem
-//             className="cursor-pointer gap-2 rounded-sm"
-//             onClick={() => photoInputRef.current?.click()}
-//           >
-//             <IconPhoto size={18} />
-//             <span>Photo</span>
-//           </DropdownMenuItem>
-
-//           <DropdownMenuItem
-//             className="cursor-pointer gap-2 rounded-sm"
-//             onClick={() => fileInputRef.current?.click()}
-//           >
-//             <IconFile size={18} />
-//             <span>File</span>
-//           </DropdownMenuItem>
-//         </DropdownMenuContent>
-//       </DropdownMenu>
-//     </>
-//   );
-// }
-
-interface PreviewProps {
-  files: File[];
-  onRemove: (index: number) => void;
-}
-
-export function SelectedPreview({ files, onRemove }: PreviewProps) {
   if (files.length === 0) return null;
 
   return (
-    <div className="absolute bottom-full left-0 mb-3 w-full flex gap-2 flex-wrap p-3 bg-white/90 backdrop-blur-md border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
+    <div className="absolute bottom-full left-0 mb-2 w-full flex gap-2 flex-wrap p-3 bg-white/80 backdrop-blur-md border border-gray-200 rounded-lg  max-h-64 overflow-y-auto z-50">
       {/* Header */}
       <div className="w-full flex items-center justify-between px-0.5 mb-1">
         <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
@@ -218,14 +155,16 @@ export function SelectedPreview({ files, onRemove }: PreviewProps) {
         </span>
       </div>
 
-      {files.map((file, index) => (
-        <FileCard
-          key={`${file.name}-${file.size}-${index}`}
-          file={file}
-          onRemove={() => onRemove(index)}
-          progress={0}
-        />
-      ))}
+      {Object.entries(uploads)
+        .filter(([, upload]) => upload.file)
+        .map(([key, upload]) => (
+          <FileCard
+            key={upload.id}
+            file={upload.file}
+            onRemove={() => onRemove(key)}
+            progress={upload.progress}
+          />
+        ))}
     </div>
   );
 }
@@ -260,7 +199,7 @@ function FileCard({
   }, [file, isImage, isVideo]);
 
   return (
-    <div className="relative group flex flex-col items-center bg-white  rounded-sm p-2 w-28 hover:shadow-sm transition-shadow duration-200">
+    <div className="relative group flex flex-col items-center bg-white  rounded-sm p-2 border w-28 hover:shadow-sm transition-shadow duration-200">
       <button
         type="button"
         onClick={onRemove}
@@ -296,15 +235,15 @@ function FileCard({
         </span>
       </div>
 
-      <div className="w-full text-center space-y-0.5 px-1">
-        <Progress value={progress} className="h-1 mb-1 " />
+      <div className="w-full flex flex-col gap-2 text-center space-y-0.5 px-1">
+        <RenderProgress progress={progress} />
         <p
           className="text-[10px] font-medium truncate text-gray-700 leading-tight"
           title={file.name}
         >
           {file.name}
         </p>
-        <p className="text-[9px] text-gray-400 font-mono">
+        <p className="text-xs text-gray-400 font-mono">
           {formatSize(file.size)}
         </p>
       </div>
@@ -326,4 +265,13 @@ function getTypeBadge(type: string): string {
   if (type.includes("sheet") || type.includes("excel")) return "XLS";
   if (type.includes("zip") || type.includes("compressed")) return "ZIP";
   return type.split("/")[1]?.toUpperCase().slice(0, 4) ?? "FILE";
+}
+
+function RenderProgress({ progress }: { progress: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      <Progress value={progress} className={"w-full"}></Progress>
+      <span className="text-xs">{progress}%</span>
+    </div>
+  );
 }
