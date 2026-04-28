@@ -1,29 +1,29 @@
 "use client";
 
-import { conversationsApi } from "@/src/lib/api/conversation";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { queryClient } from "@/src/lib/queryClient";
+import { useMessages } from "@/src/queries/conversations";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Check, CheckCheck } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
-async function fetchServerPage(
-  conversationId: number,
-  limit: number,
-  beforeId?: number,
-) {
-  const data = await conversationsApi.fetchMessages({
-    conversationId,
-    limit,
-    before: beforeId,
-  });
+// async function fetchServerPage(
+//   conversationId: number,
+//   limit: number,
+//   beforeId?: number,
+// ) {
+//   const data = await conversationsApi.fetchMessages({
+//     conversationId,
+//     limit,
+//     before: beforeId,
+//   });
 
-  const messages = data.entities.messages;
+//   const messages = data.entities.messages;
 
-  return {
-    rows: messages,
-    nextCursor: messages.length === limit ? messages[0].id - 1 : undefined,
-  };
-}
+//   return {
+//     rows: messages,
+//     nextCursor: messages.length === limit ? messages[0].id - 1 : undefined,
+//   };
+// }
 
 export default function Messages({
   slug,
@@ -34,8 +34,22 @@ export default function Messages({
   participant: any;
   socket?: any;
 }) {
-  const queryClient = useQueryClient();
-  const queryKey = ["messages", slug];
+  // const queryClient = useQueryClient();
+  // const queryKey = ["messages", slug];
+
+  // const {
+  //   status,
+  //   data,
+  //   error,
+  //   isFetchingNextPage,
+  //   fetchNextPage,
+  //   hasNextPage,
+  // } = useInfiniteQuery({
+  //   queryKey,
+  //   queryFn: (ctx) => fetchServerPage(Number(slug), 20, ctx.pageParam),
+  //   getNextPageParam: (lastGroup) => lastGroup.nextCursor,
+  //   initialPageParam: undefined,
+  // });
 
   const {
     status,
@@ -44,12 +58,7 @@ export default function Messages({
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-  } = useInfiniteQuery({
-    queryKey,
-    queryFn: (ctx) => fetchServerPage(Number(slug), 20, ctx.pageParam),
-    getNextPageParam: (lastGroup) => lastGroup.nextCursor,
-    initialPageParam: undefined,
-  });
+  } = useMessages(parseInt(slug));
 
   const allRows = data ? [...data.pages].reverse().flatMap((d) => d.rows) : [];
   const parentRef = useRef<HTMLDivElement>(null);
@@ -106,7 +115,7 @@ export default function Messages({
     const handleNewMessage = (newMessage: MessageType) => {
       if (newMessage.conversationId !== Number(slug)) return;
 
-      queryClient.setQueryData(queryKey, (old: any) => {
+      queryClient.setQueryData(["messages", parseInt(slug)], (old: any) => {
         if (!old) return old;
 
         const alreadyExists = old.pages.some((page: { rows: MessageType[] }) =>

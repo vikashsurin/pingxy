@@ -7,13 +7,14 @@ export const AttachmentController = {
     const file = body.file as File;
     const user = c.get("user");
 
+    console.log("file", file);
+
     if (!file) return c.json({ error: "No file provided" }, 400);
 
-    const { key, thumbKey, } = await AttachmentService.uploadToStorage({
+    const { key, thumbKey } = await AttachmentService.uploadToStorage({
       file,
       userId: user.id,
     });
-
 
     return c.json(
       {

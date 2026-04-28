@@ -6,7 +6,4 @@ export const attachmentRouter = factory.createApp();
 
 attachmentRouter.use(authMiddleware);
 
-attachmentRouter.post(
-  "/upload",
-  ...AttachmentController.upload,
-);
+attachmentRouter.post("/upload", ...AttachmentController.upload);

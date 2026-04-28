@@ -9,14 +9,16 @@ import { MessageService } from "../messages/message.service";
 import { ConversationService } from "./conversation.service";
 
 const literalNullToUndefined = (val: string) =>
-  (val === "null" || val === "undefined" || val === "" || val === null) ? undefined : val;
+  val === "null" || val === "undefined" || val === "" || val === null
+    ? undefined
+    : val;
 
 export const ConversationController = {
   initialFetch: factory.createHandlers(
-    validate("query", z.object({ type: z.enum(["direct", 'group']) })),
+    validate("query", z.object({ type: z.enum(["direct", "group"]) })),
     async (c) => {
       const { type } = c.req.valid("query");
-      console.log({ type })
+      console.log({ type });
       const user = c.get("user");
       const userId = user.id;
       // const data = await ConversationService.convAggregation({ userId });
@@ -24,16 +26,20 @@ export const ConversationController = {
       const data = await ConversationService.getConversations({ userId, type });
       if (!data) return c.notFound();
       return c.json(data);
-    }),
+    },
+  ),
 
   getConversation: factory.createHandlers(
     validate("param", z.object({ conversationId: z.coerce.number() })),
     async (c) => {
       const { conversationId } = c.req.valid("param");
-      const data = await ConversationService.getConversation({ conversationId });
+      const data = await ConversationService.getConversation({
+        conversationId,
+      });
       if (!data) return c.notFound();
       return c.json(data);
-    }),
+    },
+  ),
 
   getGroupParticipants: factory.createHandlers(
     validate("param", z.object({ groupId: z.coerce.number() })),
@@ -42,7 +48,8 @@ export const ConversationController = {
       const data = await ConversationService.getGroupParticipants({ groupId });
       if (!data) return c.notFound();
       return c.json(data);
-    }),
+    },
+  ),
 
   fetchConversations: factory.createHandlers(async (c) => {
     const user = c.get("user");
@@ -51,7 +58,6 @@ export const ConversationController = {
     if (!data) return c.notFound();
     return c.json(data);
   }),
-
 
   createGroup: factory.createHandlers(
     validate("json", createGroupReqSchema),
@@ -74,10 +80,7 @@ export const ConversationController = {
       const user = c.get("user");
       const { groupId } = c.req.valid("param");
 
-      const result = await ConversationService.joinGroup(
-        groupId,
-        user.id,
-      );
+      const result = await ConversationService.joinGroup(groupId, user.id);
       return c.json(result);
     },
   ),
@@ -88,10 +91,7 @@ export const ConversationController = {
       const user = c.get("user");
       const { groupId } = c.req.valid("param");
 
-      const result = await ConversationService.leaveGroup(
-        groupId,
-        user.id,
-      );
+      const result = await ConversationService.leaveGroup(groupId, user.id);
       return c.json(result);
     },
   ),
@@ -140,14 +140,19 @@ export const ConversationController = {
   ),
 
   getAllMessages: factory.createHandlers(
-
     validate("param", z.object({ conversationId: z.coerce.number() })),
     validate(
       "query",
       z.object({
         limit: z.coerce.number().optional().default(10),
-        before: z.preprocess(literalNullToUndefined, z.coerce.number().optional()),
-        after: z.preprocess(literalNullToUndefined, z.coerce.number().optional()),
+        before: z.preprocess(
+          literalNullToUndefined,
+          z.coerce.number().optional(),
+        ),
+        after: z.preprocess(
+          literalNullToUndefined,
+          z.coerce.number().optional(),
+        ),
       }),
     ),
 
@@ -194,8 +199,7 @@ export const ConversationController = {
       const body = c.req.valid("json");
       const user = c.get("user");
 
-      const message = await ConversationService.sendMessage(body, user);
-
+      const message = await ConversationService.newSendMessage(body, user);
       return c.json({ data: message }, 201);
     },
   ),
@@ -234,4 +238,12 @@ export const ConversationController = {
     },
   ),
 
+  deleteConversation: factory.createHandlers(
+    validate("param", z.object({ conversationId: z.coerce.number() })),
+    async (c) => {
+      const { conversationId } = c.req.valid("param");
+      const result = await ConversationService.delete(conversationId);
+      return c.json(result);
+    },
+  ),
 };

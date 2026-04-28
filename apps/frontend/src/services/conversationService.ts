@@ -1,4 +1,6 @@
 import { DOMAIN_EVENTS, ServerEventMap } from "@pingxy/shared";
+import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
+import z from "zod";
 import { createClientReq } from ".";
 import { conversationsApi } from "../lib/api/conversation";
 import queryClient from "../lib/queryClient";
@@ -50,11 +52,13 @@ function createConversationService() {
     conversationId,
     recipientId,
     recipientUsername,
+    attachments = [],
   }: {
     content: string;
     conversationId?: number;
     recipientId?: number;
     recipientUsername?: string;
+    attachments: z.infer<typeof attachmentReqSchema>[];
   }) => {
     const payload = createClientReq(DOMAIN_EVENTS.MESSAGES.CREATE, {
       message: {
@@ -62,7 +66,7 @@ function createConversationService() {
         conversationId: conversationId ?? null,
         content: content,
       },
-      attachments: [],
+      attachments: attachments,
       recipient: {
         id: recipientId,
         username: recipientUsername,
@@ -75,10 +79,34 @@ function createConversationService() {
     return data;
   };
 
+  const fetchMessages = async (
+    conversationId: number,
+    limit?: number,
+    beforeId?: number,
+  ) => {
+    const data = await conversationsApi.fetchMessages({
+      conversationId,
+      limit,
+      before: beforeId,
+    });
+    const messages = data.entities.messages;
+    const attachments = data.entities.attachments;
+
+    for (const attachment of attachments) {
+      useConversationStore.getState().upsertAttachment(attachment);
+    }
+
+    console.log({ data, messages, attachments });
+    return {
+      rows: messages,
+      nextCursor: messages.length === limit ? messages[0].id - 1 : undefined,
+    };
+  };
+
   const handleNewMessage = (
     payload: ServerEventMap["event:message.created"]["payload"],
   ) => {
-    const { message, conversation, attachments, sender, recipient } = payload;
+    const { message, conversation, attachments, sender } = payload;
 
     queryClient.setQueryData(
       ["messages", String(message.conversationId)],
@@ -181,12 +209,23 @@ function createConversationService() {
   //   return data;
   // };
 
+  const deleteConversation = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const data = await conversationsApi.deleteConversation({ conversationId });
+    return data;
+  };
+
   const leaveGroup = async () => {};
   return {
     findConversation,
     fetchConversations,
     fetchConversation,
+    deleteConversation,
     createMessage,
+    fetchMessages,
     handleNewMessage,
     createGroup,
     joinGroup,

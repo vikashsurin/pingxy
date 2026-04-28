@@ -104,9 +104,10 @@ export const messageCreatedSchema = z.object({
       lastMessageAt: z.coerce.date().nullable(),
     }),
     sender: participantSelectSchema,
-    recipient: z.object({
-      id: z.number(),
-      username: z.string(),
-    }),
+    participants: z.array(participantSelectSchema),
+    // recipient: z.object({
+    //   id: z.number(),
+    //   username: z.string(),
+    // }),
   }),
 });

@@ -1,14 +1,20 @@
 "use client";
 
 import Loading from "@/src/components/Loading";
-import { useOnClickOutside } from "@/src/lib/utils/useOnClickOutside";
 import { useFetchParticipants } from "@/src/queries/conversations";
-import { EllipsisVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useRef, useState } from "react";
-import Messages from "./Messages";
+import { use } from "react";
 import MessageForm from "../../MessageForm";
-// import GroupAdminPanel from "./GroupAdminPanel";
+import Messages from "./Messages";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { IconDotsVertical } from "@tabler/icons-react";
 
 export default function Page({
   params,
@@ -23,35 +29,21 @@ export default function Page({
   const { slug } = use(params);
   const { type, name } = use(searchParams);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("");
-
-  console.log({ activeMenu });
-  console.log({ isMenuOpen });
   return (
     <div className="grid grid-cols-[1fr_200px] h-screen">
-      <section className="m-2 p-2  flex flex-col border rounded-lg border-gray-300 bg-gray-100 gap-2">
-        <div className="flex items-center justify-between">
-          <h1 className="px-2  font-bold text-lg">{name}</h1>
-          <span
-            className="relative hover:bg-gray-200 rounded-full p-1 active:bg-gray-300"
-            onClick={() => setIsMenuOpen(true)}
-          >
-            <EllipsisVertical size={16} />
-            {isMenuOpen && (
-              <Menu
-                setIsMenuOpen={setIsMenuOpen}
-                setActiveMenu={setActiveMenu}
-                conversationId={slug}
-              />
-            )}
-          </span>
+      <section className="m-2 p-2 flex flex-col border rounded-lg border-gray-300 bg-gray-100 gap-2 h-[calc(100dvh-1rem)]">
+        <div className="flex items-center justify-between flex-none border-b pb-2">
+          <h1 className="px-2 font-bold text-lg">{name}</h1>
+
+          <Menu id={parseInt(slug)} />
         </div>
+
         <div className="flex-1 min-h-0">
           <Messages id={parseInt(slug)} />
         </div>
+
         <div className="flex-none">
-          <MessageForm conversationId={parseInt(slug)} />
+          <MessageForm conversationId={parseInt(slug)} recipientName={name} />
         </div>
       </section>
       <section>
@@ -89,47 +81,23 @@ function Member({ name }: { name: string }) {
 }
 
 // Menu
-function Menu({
-  conversationId,
-  setIsMenuOpen,
-  setActiveMenu,
-}: {
-  conversationId: string;
-  setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setActiveMenu: React.Dispatch<React.SetStateAction<string>>;
-}) {
-  const menuRef = useRef<HTMLUListElement>(null);
-  useOnClickOutside(menuRef, () => setIsMenuOpen(false));
-
+function Menu({ id }: { id: number }) {
   const router = useRouter();
   return (
-    <ul
-      ref={menuRef}
-      className="absolute top-full border right-0 bg-white border-gray-300 p-2 rounded-lg shadow-md min-w-40"
-    >
-      <MenuItem
-        label="Settings"
-        onClick={(e) => {
-          e.stopPropagation();
-
-          setIsMenuOpen(false);
-          router.push(`/chat/groups/${conversationId}/settings`);
-        }}
-      />
-    </ul>
-  );
-}
-
-function MenuItem({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick?: (e: React.MouseEvent) => void;
-}) {
-  return (
-    <li className="hover:bg-gray-200  px-2 py-1 rounded" onClick={onClick}>
-      {label}
-    </li>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<Button variant={"secondary"} size={"icon"} />}
+      >
+        <IconDotsVertical size={16} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className={"rounded-md"}>
+        <DropdownMenuItem
+          onClick={() => router.push(`/chat/groups/${id}/settings`)}
+          className={"rounded-sm"}
+        >
+          Setting
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

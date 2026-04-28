@@ -1,10 +1,21 @@
 "use client";
 
+import {
+  IconCircleCheck,
+  IconCopy,
+  IconDotsVertical,
+  IconEdit,
+} from "@tabler/icons-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { copyToClipboard } from "@/src/lib/utils/clipboard";
 import { formatDate } from "@/src/lib/utils/date";
-import { useOnClickOutside } from "@/src/lib/utils/useOnClickOutside";
 import { useFetchInvites } from "@/src/queries/conversations";
-import { Check, Clipboard, EllipsisVertical, SquarePen } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DeleteSelectedInvites from "./DeleteSelectedInvites";
@@ -49,8 +60,24 @@ export default function InviteList({ cid }: { cid: number }) {
   }
   console.log({ selectedIds });
 
+  const [copiedCode, setCopiedCode] = useState("");
+
+  const handleCopy = async (e: React.MouseEvent, code: string) => {
+    e.stopPropagation(); // Prevents triggering row clicks
+
+    const success = await copyToClipboard(code);
+    if (success) {
+      setCopiedCode(code);
+      // Brief delay so user sees "Copied" before menu closes
+      setTimeout(() => {
+        setCopiedCode("");
+        setActiveId(null);
+      }, 800);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full min-h-0 border rounded-lg overflow-hidden">
       {selectedIds.length > 0 && (
         <DeleteSelectedInvites
           selectedIds={selectedIds}
@@ -58,7 +85,7 @@ export default function InviteList({ cid }: { cid: number }) {
         />
       )}
       <div className="p-4 bg-white border-b">
-        <h2 className="font-bold text-lg">Invite List</h2>
+        <h2 className="font-bold text-lg">Manage Invite Codes</h2>
       </div>
 
       {isPending && <p className="p-4">Loading...</p>}
@@ -105,8 +132,20 @@ export default function InviteList({ cid }: { cid: number }) {
                       title="select"
                     />
                   </td>
-                  <td className="p-3 font-mono text-[10px] break-all text-gray-600">
-                    {invite.inviteCode}
+                  <td className="  items-center p-3 font-mono text-[10px] break-all text-gray-500 ">
+                    <div
+                      // data-value={invite.inviteCode}
+                      title="click to copy"
+                      className="flex items-center gap-2 border w-max px-2 py-1 hover:border-gray-500 rounded hover:text-gray-900"
+                      onClick={(e) => handleCopy(e, invite.inviteCode)}
+                    >
+                      {invite.inviteCode}
+                      {copiedCode === invite.inviteCode ? (
+                        <IconCircleCheck size={14} className="text-green-500" />
+                      ) : (
+                        <IconCopy size={14} />
+                      )}
+                    </div>
                   </td>
                   <td className="p-3 whitespace-nowrap text-gray-600">
                     {formatDate(invite.createdAt)}
@@ -121,21 +160,7 @@ export default function InviteList({ cid }: { cid: number }) {
                     {invite.maxUses}
                   </td>
                   <td>
-                    <div
-                      className="relative hover:bg-gray-200 p-2  w-max rounded-full active:bg-gray-300 flex items-center justify-center"
-                      onClick={() => {
-                        setActiveId(invite.id);
-                      }}
-                    >
-                      <EllipsisVertical size={16} />
-                      {activeId === invite.id && (
-                        <ActionMenu
-                          setActiveId={setActiveId}
-                          inviteCode={invite.inviteCode}
-                          id={invite.id}
-                        />
-                      )}
-                    </div>
+                    <ActionMenu id={invite.id} />
                   </td>
                 </tr>
               ))}
@@ -146,96 +171,28 @@ export default function InviteList({ cid }: { cid: number }) {
     </div>
   );
 }
-function ActionMenu({
-  setActiveId,
-  inviteCode,
-  id,
-}: {
-  setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
-  inviteCode: string;
-  id?: number;
-}) {
-  const menuRef = useRef<HTMLDivElement>(null);
+
+function ActionMenu({ id }: { id?: number }) {
   const router = useRouter();
   const pathname = usePathname();
-  // Close menu on outside click
-  useOnClickOutside(menuRef, () => setActiveId(null));
 
   return (
-    // "relative" here ensures "absolute" below is positioned correctly
-    <div ref={menuRef} className="relative">
-      <ul className="absolute top-full right-4 mt-1 bg-white border border-gray-200 p-1 rounded-md shadow-xl z-999">
-        <CopyMenuItem text={inviteCode} onDone={() => setActiveId(null)} />
+    <DropdownMenu>
+      <DropdownMenuTrigger className="p-2  rounded-full hover:bg-gray-200 active:bg-gray-300 transition-colors">
+        <IconDotsVertical size={16} />
+      </DropdownMenuTrigger>
 
-        <ActionMenuItem
-          label="Edit"
-          icon={<SquarePen size={14} className="text-gray-400" />}
+      <DropdownMenuContent className="rounded-md ">
+        <DropdownMenuItem
+          className="rounded-sm text-sm"
           onClick={() => {
-            console.log("Edit clicked");
-            setActiveId(null);
             router.push(`${pathname}/invite-code/${id}`);
           }}
-        />
-      </ul>
-    </div>
-  );
-}
-
-// Internal component to handle the specific "Copy" logic but keep the UI consistent
-function CopyMenuItem({ text, onDone }: { text: string; onDone: () => void }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevents triggering row clicks
-    const success = await copyToClipboard(text);
-    if (success) {
-      setCopied(true);
-      // Brief delay so user sees "Copied" before menu closes
-      setTimeout(() => {
-        setCopied(false);
-        onDone();
-      }, 800);
-    }
-  };
-
-  return (
-    <ActionMenuItem
-      label={copied ? "Copied!" : "Copy Code"}
-      icon={
-        copied ? (
-          <Check size={14} className="text-green-500" />
-        ) : (
-          <Clipboard size={14} className="text-gray-400" />
-        )
-      }
-      onClick={handleCopy}
-      className={copied ? "text-green-600 bg-green-50" : ""}
-    />
-  );
-}
-
-function ActionMenuItem({
-  label,
-  icon,
-  onClick,
-  className = "",
-}: {
-  label: string;
-  icon: React.ReactNode;
-  onClick?: (e: React.MouseEvent) => void;
-  className?: string;
-}) {
-  return (
-    <li
-      role="button" // Accessibility
-      className={`px-3 py-2 flex items-center gap-2 hover:bg-gray-100 rounded cursor-pointer text-sm transition-colors ${className} text-nowrap`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.(e);
-      }}
-    >
-      <span className="shrink-0">{icon}</span>
-      <span className="flex-1 text-left">{label}</span>
-    </li>
+        >
+          <IconEdit size={12} />
+          Edit
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

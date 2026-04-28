@@ -9,12 +9,10 @@ export const AttachmentService = {
     }
 
     // 2. Upload the file
-    const { key, thumbKey, } =
-      await uploadToStorage(file);
+    const { key, thumbKey } = await uploadToStorage(file);
 
-    return { key, thumbKey, };
+    return { key, thumbKey };
   },
-
 
   createAttachment: async ({
     attachments,
@@ -25,15 +23,16 @@ export const AttachmentService = {
     userId: number;
     messageId: number;
   }) => {
-
     if (!attachments || attachments.length === 0) return [];
 
     for (const a of attachments) {
       a.messageId = messageId;
       a.uploadedBy = userId;
     }
-    const result = await AttachmentRepository.bulkInsert({ allAttachments: attachments });
+    const result = await AttachmentRepository.bulkInsert({
+      allAttachments: attachments,
+    });
 
-    return result
+    return result;
   },
 };

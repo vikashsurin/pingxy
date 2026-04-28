@@ -240,23 +240,45 @@ function createConversationApi() {
     return data;
   };
 
-  // Fetch a single invite
-  const fetchInvite = async ({ inviteId }: { inviteId: number }) => {
-    const url = `${baseUrl}/invites/${inviteId}`;
+  const deleteConversation = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const url = `${baseUrl}/${conversationId}`;
     const res = await fetch(url, {
-      method: "GET",
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
     });
     if (!res.ok) {
-      console.error("fetchInvite failed", await res.json());
-      throw new Error("fetchInvite failed");
+      console.error("deleteConversation failed", await res.json());
+      throw new Error("deleteConversation failed");
+    } else {
+      const data = await res.json();
+      return data;
     }
-    const data = await res.json();
-    return data;
   };
+
+  // Fetch a single invite
+  // const fetchInvite = async ({ inviteId }: { inviteId: number }) => {
+  //   const url = `${baseUrl}/invites/${inviteId}`;
+  //   const res = await fetch(url, {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     credentials: "include",
+  //   });
+  //   if (!res.ok) {
+  //     console.error("fetchInvite failed", await res.json());
+  //     throw new Error("fetchInvite failed");
+  //   }
+  //   const data = await res.json();
+  //   return data;
+  // };
   return {
     findConversation,
     fetchConversations,
@@ -269,6 +291,7 @@ function createConversationApi() {
     createInvite,
     fetchInvites,
     fetchParticipants,
+    deleteConversation,
   };
 }
 

@@ -5,6 +5,7 @@ type ParticipantMeta = {
   pid: number;
 };
 type ConversationState = {
+  attachments: Record<number, any>;
   conversations: Record<number, any>;
   participants: Record<number, any>;
   conversationIdx: Set<number>;
@@ -14,9 +15,11 @@ type ConversationState = {
   meta: Record<string, any>;
   upsertConversation: (conversation: any) => void;
   upsertParticipant: (participant: any) => void;
+  upsertAttachment: (attachment: any) => void;
 };
 
 export const useConversationStore = create<ConversationState>((set) => ({
+  attachments: {},
   conversations: {},
   participants: {},
   convUserIdx: new Map(),
@@ -30,6 +33,10 @@ export const useConversationStore = create<ConversationState>((set) => ({
       conversations: {
         ...state.conversations,
         [conversation.id]: conversation,
+      },
+      attachments: {
+        ...state.attachments,
+        [conversation.id]: {},
       },
       meta: {
         ...state.meta,
@@ -68,5 +75,13 @@ export const useConversationStore = create<ConversationState>((set) => ({
         ]),
       };
     });
+  },
+  upsertAttachment: (attachment: any) => {
+    set((state) => ({
+      attachments: {
+        ...state.attachments,
+        [attachment.id]: attachment,
+      },
+    }));
   },
 }));

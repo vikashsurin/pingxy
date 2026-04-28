@@ -3,7 +3,7 @@
 import { useConversationStore } from "@/src/store/conversationStore";
 import { use } from "react";
 import MessageForm from "../../MessageForm";
-import Messages from "./Messages";
+import NewMessages from "./NewMessages";
 
 export default function Page({
   params,
@@ -28,7 +28,8 @@ export default function Page({
     <div className="flex flex-col m-2  p-2 border border-gray-300 bg-gray-100 rounded-lg">
       {type === "conversation" && (
         <div>
-          <Messages slug={slug} participant={participant} />
+          <NewMessages id={Number(slug)} participant={participant} />
+          {/* <Messages slug={slug} participant={participant} /> */}
           <MessageForm
             conversationId={Number(slug)}
             recipientId={Number(uid)}

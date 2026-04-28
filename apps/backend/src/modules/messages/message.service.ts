@@ -4,7 +4,6 @@ import { MessageRepository } from "./message.repository";
 import db from "@lib/db/client";
 
 export const MessageService = {
-
   getById: async (messageId: number) => {
     try {
       return await MessageRepository.selectMessageById(messageId);
@@ -13,7 +12,6 @@ export const MessageService = {
       throw new Error("Error getting message by id");
     }
   },
-
 
   getByConversationId: async ({
     conversationId,
@@ -76,26 +74,29 @@ export const MessageService = {
         const msgId = message.id;
 
         if (!messages.has(msgId)) {
-          messages.set(msgId, message);
+          messages.set(msgId, { ...message, attachments: [] });
         }
 
+        if (attachment?.id) {
+          const msg = messages.get(msgId);
+          msg.attachments.push(attachment.id);
+          messages.set(msgId, msg);
 
-        if (attachment?.id && !attachments.has(attachment.id)) {
-          const endpoint = process.env.MINIO_ENDPOINT
-          const bucket = process.env.MINIO_BUCKET
-          const url = `${endpoint}/${bucket}/${attachment.key}`
-          const thumbUrl = `${endpoint}/${bucket}/${attachment.thumbKey}`
-          attachments.set(attachment.id, { ...attachment, url, thumbUrl });
+          if (!attachments.has(attachment.id)) {
+            const endpoint = process.env.MINIO_ENDPOINT_PUBLIC;
+            const bucket = process.env.MINIO_BUCKET;
+            const url = `${endpoint}/${bucket}/${attachment.key}`;
+            const thumbUrl = `${endpoint}/${bucket}/${attachment.thumbKey}`;
+            attachments.set(attachment.id, { ...attachment, url, thumbUrl });
+          }
         }
-
       }
-
 
       return {
         entities: {
           messages: Array.from(messages.values()),
           attachments: Array.from(attachments.values()),
-        }
+        },
       };
     } catch (error) {
       console.error(

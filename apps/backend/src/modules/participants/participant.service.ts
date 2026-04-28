@@ -21,7 +21,7 @@ export const ParticipantService = {
   }) => {
     try {
       return await db.transaction(async (tx) => {
-        const [p1] = await ParticipantRepository.insertParticipant(
+        const p1 = await ParticipantRepository.insertParticipant(
           {
             conversationId,
             userId: user1Id,
@@ -31,7 +31,7 @@ export const ParticipantService = {
           },
           tx,
         );
-        const [p2] = await ParticipantRepository.insertParticipant(
+        const p2 = await ParticipantRepository.insertParticipant(
           {
             conversationId,
             userId: user2Id,

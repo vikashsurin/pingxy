@@ -81,6 +81,7 @@ services:
       - PORT=3000
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
       - MINIO_ENDPOINT=http://storage:9000
+      - MINIO_ENDPOINT_PUBLIC=http://localhost:9000
       - MINIO_BUCKET=pingxy
       - S3_REGION=us-east-1
       - REDIS_URL=redis://redis:6379

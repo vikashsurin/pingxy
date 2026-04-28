@@ -41,7 +41,7 @@ export const ConversationService = {
     const conversation =
       await ConversationRepository.selectById(conversationId);
     if (!conversation) return null;
-    return conversation[0];
+    return conversation;
   },
 
   getGroupParticipants: async ({ groupId }: { groupId: number }) => {
@@ -110,7 +110,7 @@ export const ConversationService = {
       // Check if the conversation/group exists
       const conversation = await ConversationRepository.selectById(groupId);
 
-      if (conversation.length === 0) {
+      if (!conversation) {
         throw new Error("Conversation not found");
       }
 
@@ -207,7 +207,7 @@ export const ConversationService = {
     return { conversations, participants, users };
   },
 
-  findOrCreateByUsers: async ({
+  findOrCreate: async ({
     currentUserId,
     userId,
   }: {
@@ -216,6 +216,8 @@ export const ConversationService = {
   }) => {
     try {
       // 1. Check if a conversation already exists between the two users
+      if (!currentUserId || !userId) throw new Error("Missing fields");
+
       const result = await ConversationRepository.selectByUsersPrecise(
         currentUserId,
         userId,
@@ -299,13 +301,18 @@ export const ConversationService = {
 
     const conversation = conversationId
       ? await ConversationRepository.selectById(conversationId)
-      : await ConversationService.findOrCreateByUsers({
-        currentUserId: user.id,
-        userId: recipient?.id,
-      });
+      : await ConversationService.findOrCreate({
+          currentUserId: user.id,
+          userId: recipient?.id,
+        });
+
+    console.log({ conversationId, conversation, message, user, recipient });
 
     if (conversation.type === "direct") {
-      if (!recipient || recipient.id === null || !recipient.id) return;
+      if (!recipient || recipient.id === null || !recipient.id) {
+        return null;
+      }
+
       await ParticipantService.create({
         conversationId: conversation.id,
         user1Id: user.id,
@@ -368,101 +375,106 @@ export const ConversationService = {
       senderId: user.id,
     });
 
-    const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
-      message: insertedMessage,
-      attachments: attachmentsWithUrls,
-      conversation: updatedConversation,
-      sender: updatedParticipant,
-      recipient: recipient,
-    });
-  },
-
-  sendMessage: async (
-    body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
-    user: User,
-  ) => {
-    const { message, recipient, attachments } = body.payload;
-    // const result = await db.transaction(async (tx) => {
-    //  TODO: Wrap it in transaction
-
-    // const hasBlock = await BlockService.hasBlock({
-    //   blockerId: user.id,
-    //   blockedId: recipient.id,
-    // });
-
-    // if (hasBlock) {
-    //   throw new HTTPException(400, {
-    //     message: "User is blocked",
-    //   });
-    // }
-
-    const conversation = await ConversationService.findOrCreateByUsers({
-      currentUserId: user.id,
-      userId: recipient?.id,
-    });
-
-    const participants = await ParticipantService.create({
-      conversationId: conversation.id,
-      user1Id: user.id,
-      user2Id: recipient.id,
-    });
-
-    const [insertedMessage] = await MessageRepository.insertMessage({
-      conversationId: conversation.id!,
-      clientMessageId: message.clientMessageId,
-      senderId: user.id,
-      content: message.content,
-    });
-
-    // update conversation activity
-    const [updatedConversation] = await ConversationRepository.updateActivity({
-      id: conversation.id,
-      lastMessageId: insertedMessage.id,
-    });
-
-    const [updatedParticipant] = await ParticipantRepository.update({
-      userId: user.id,
-      lastReadMessageId: insertedMessage.id,
-      lastReadAt: new Date(),
-      conversationId: conversation.id,
-    });
-
-    const savedAttachments = await AttachmentService.createAttachment({
-      attachments,
-      userId: user.id,
-      messageId: insertedMessage.id,
-    });
-
-    const attachmentsWithUrls = [];
-
-    for (const a of savedAttachments) {
-      const endpoint = process.env.MINIO_ENDPOINT;
-      const bucket = process.env.MINIO_BUCKET;
-      const url = `${endpoint}/${bucket}/${a.key}`;
-      const thumbUrl = a.thumbKey
-        ? `${endpoint}/${bucket}/${a.thumbKey}`
-        : undefined;
-
-      attachmentsWithUrls.push({ ...a, url, thumbUrl });
-    }
-
-    await ParticipantService.incrementUnreadCount({
-      conversationId: conversation.id,
-      senderId: user.id,
-    });
+    const participants =
+      await ParticipantService.getParticipantsByConversationId(conversation.id);
 
     const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
       message: insertedMessage,
       attachments: attachmentsWithUrls,
       conversation: updatedConversation,
       sender: updatedParticipant,
-      recipient: recipient,
-    });
-
-    broadcast(SERVER_EVENTS.MESSAGES.CREATED, {
-      ...responseEnvelope,
+      participants: participants,
     });
 
     return responseEnvelope;
   },
+
+  // sendMessage: async (
+  //   body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
+  //   user: User,
+  // ) => {
+  //   const { message, recipient, attachments } = body.payload;
+  //   // const result = await db.transaction(async (tx) => {
+  //   //  TODO: Wrap it in transaction
+
+  //   // const hasBlock = await BlockService.hasBlock({
+  //   //   blockerId: user.id,
+  //   //   blockedId: recipient.id,
+  //   // });
+
+  //   // if (hasBlock) {
+  //   //   throw new HTTPException(400, {
+  //   //     message: "User is blocked",
+  //   //   });
+  //   // }
+
+  //   const conversation = await ConversationService.findOrCreate({
+  //     currentUserId: user.id,
+  //     userId: recipient?.id,
+  //   });
+
+  //   const participants = await ParticipantService.create({
+  //     conversationId: conversation.id,
+  //     user1Id: user.id,
+  //     user2Id: recipient?.id,
+  //   });
+
+  //   const [insertedMessage] = await MessageRepository.insertMessage({
+  //     conversationId: conversation.id!,
+  //     clientMessageId: message.clientMessageId,
+  //     senderId: user.id,
+  //     content: message.content,
+  //   });
+
+  //   // update conversation activity
+  //   const [updatedConversation] = await ConversationRepository.updateActivity({
+  //     id: conversation.id,
+  //     lastMessageId: insertedMessage.id,
+  //   });
+
+  //   const [updatedParticipant] = await ParticipantRepository.update({
+  //     userId: user.id,
+  //     lastReadMessageId: insertedMessage.id,
+  //     lastReadAt: new Date(),
+  //     conversationId: conversation.id,
+  //   });
+
+  //   const savedAttachments = await AttachmentService.createAttachment({
+  //     attachments,
+  //     userId: user.id,
+  //     messageId: insertedMessage.id,
+  //   });
+
+  //   const attachmentsWithUrls = [];
+
+  //   for (const a of savedAttachments) {
+  //     const endpoint = process.env.MINIO_ENDPOINT;
+  //     const bucket = process.env.MINIO_BUCKET;
+  //     const url = `${endpoint}/${bucket}/${a.key}`;
+  //     const thumbUrl = a.thumbKey
+  //       ? `${endpoint}/${bucket}/${a.thumbKey}`
+  //       : undefined;
+
+  //     attachmentsWithUrls.push({ ...a, url, thumbUrl });
+  //   }
+
+  //   await ParticipantService.incrementUnreadCount({
+  //     conversationId: conversation.id,
+  //     senderId: user.id,
+  //   });
+
+  //   const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
+  //     message: insertedMessage,
+  //     attachments: attachmentsWithUrls,
+  //     conversation: updatedConversation,
+  //     sender: updatedParticipant,
+  //     recipient: recipient,
+  //   });
+
+  //   broadcast(SERVER_EVENTS.MESSAGES.CREATED, {
+  //     ...responseEnvelope,
+  //   });
+
+  //   return responseEnvelope;
+  // },
 };

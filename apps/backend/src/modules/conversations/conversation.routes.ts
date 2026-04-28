@@ -9,8 +9,18 @@ conversationRouter.use(authMiddleware);
 // /api/conversations?type=direct|group
 conversationRouter.get("/", ...ConversationController.initialFetch);
 
+// Delete a conversation
+// /api/conversations/:conversationId
+conversationRouter.delete(
+  "/:conversationId",
+  ...ConversationController.deleteConversation,
+);
+
 // Fetch a single conversation
-conversationRouter.get("/:conversationId", ...ConversationController.getConversation);
+conversationRouter.get(
+  "/:conversationId",
+  ...ConversationController.getConversation,
+);
 
 // Todo
 conversationRouter.post("/messages", ...ConversationController.createMessage);
@@ -40,31 +50,35 @@ conversationRouter.get(
   ...ConversationController.findConversationByUserId,
 );
 
-conversationRouter.get('/new-find', ...ConversationController.newFindByUid)
+conversationRouter.get("/new-find", ...ConversationController.newFindByUid);
 
 // POST create a new group
 conversationRouter.post("/groups", ...ConversationController.createGroup);
-
 
 // Join a group
 // POST /groups/:groupId/join
 // conversationRouter.post("/groups/:groupId/join", ...ConversationController.joinGroup);
 
-
 // Create new invite link
 // POST /groups/:groupId/invites
-conversationRouter.post("/groups/:groupId/invites", ...ConversationController.createInvite);
-
+conversationRouter.post(
+  "/groups/:groupId/invites",
+  ...ConversationController.createInvite,
+);
 
 // List all active invites
 // GET /groups/:groupId/invites
-conversationRouter.get('/groups/:groupId/invites', ...ConversationController.getInvites)
-
+conversationRouter.get(
+  "/groups/:groupId/invites",
+  ...ConversationController.getInvites,
+);
 
 // List all participants of a group conversation
 // GET /groups/:groupId/participants
-conversationRouter.get('/groups/:groupId/participants', ...ConversationController.getGroupParticipants)
-
+conversationRouter.get(
+  "/groups/:groupId/participants",
+  ...ConversationController.getGroupParticipants,
+);
 
 // # 1. Main list (Direct + Joined Groups)
 // GET /api/conversations

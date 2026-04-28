@@ -1,5 +1,10 @@
 import db, { type DB_TX } from "@lib/db/client";
-import { conversations, ParticipantInsertType, participants, users } from "@pingxy/shared";
+import {
+  conversations,
+  ParticipantInsertType,
+  participants,
+  users,
+} from "@pingxy/shared";
 import { aliasedTable, and, eq, inArray, ne, sql } from "drizzle-orm";
 
 export const ParticipantRepository = {
@@ -22,15 +27,15 @@ export const ParticipantRepository = {
     conversationId,
     lastReadAt,
     lastDeliveredAt,
-    tx = db
+    tx = db,
   }: {
-    userId: number,
-    conversationId: number,
-    lastReadMessageId?: number,
-    lastDeliveredMessageId?: number,
-    lastReadAt?: Date,
-    lastDeliveredAt?: Date,
-    tx?: DB_TX
+    userId: number;
+    conversationId: number;
+    lastReadMessageId?: number;
+    lastDeliveredMessageId?: number;
+    lastReadAt?: Date;
+    lastDeliveredAt?: Date;
+    tx?: DB_TX;
   }) => {
     return await tx
       .update(participants)
@@ -57,7 +62,6 @@ export const ParticipantRepository = {
         lastDeliveredMessageId: participants.lastDeliveredMessageId,
         lastDeliveredAt: participants.lastDeliveredAt,
       });
-
   },
 
   selectParticipant: async ({
@@ -79,13 +83,12 @@ export const ParticipantRepository = {
       .limit(1);
   },
 
-
   selectByUserId: async ({
     userId,
-    tx = db
+    tx = db,
   }: {
-    userId: number,
-    tx?: DB_TX
+    userId: number;
+    tx?: DB_TX;
   }) => {
     return await tx
       .select()
@@ -105,6 +108,7 @@ export const ParticipantRepository = {
     return await db
       .select({
         id: participants.id,
+        conversationId: participants.conversationId,
         userId: participants.userId,
         role: participants.role,
         joinedAt: participants.joinedAt,
@@ -129,24 +133,17 @@ export const ParticipantRepository = {
       .where(eq(participants.conversationId, conversationId));
   },
 
-  test: async ({ userId, tx = db }: { userId: number, tx?: DB_TX }) => {
+  test: async ({ userId, tx = db }: { userId: number; tx?: DB_TX }) => {
     const c = conversations;
     const u = users;
     const p = participants;
     return await tx
       .select()
       .from(p)
-      .where(
-        and(
-          eq(p.userId, userId),
-          eq(p.conversationId, c.id),
-        )
-      )
+      .where(and(eq(p.userId, userId), eq(p.conversationId, c.id)))
       .leftJoin(u, eq(p.userId, u.id))
       .leftJoin(c, eq(p.conversationId, c.id));
   },
-
-
 
   // selectManyByConvIds: async ({ conversationIds }: { conversationIds: number[] }) => {
   //   const p = participants;
@@ -177,7 +174,11 @@ export const ParticipantRepository = {
   //     .leftJoin(u, eq(p.userId, u.id))
   // },
 
-  selectManyByConvIds: async ({ conversationIds }: { conversationIds: number[] }) => {
+  selectManyByConvIds: async ({
+    conversationIds,
+  }: {
+    conversationIds: number[];
+  }) => {
     const p = participants;
     return await db
       .select({
@@ -192,11 +193,16 @@ export const ParticipantRepository = {
         unreadCount: p.unreadCount,
       })
       .from(p)
-      .where(inArray(participants.conversationId, conversationIds))
+      .where(inArray(participants.conversationId, conversationIds));
   },
 
-
-  selectManyParticipantsByManyConversationIds: async ({ conversationIds, tx = db }: { conversationIds: number[], tx?: DB_TX }) => {
+  selectManyParticipantsByManyConversationIds: async ({
+    conversationIds,
+    tx = db,
+  }: {
+    conversationIds: number[];
+    tx?: DB_TX;
+  }) => {
     return await tx
       .select({
         participantId: participants.id,
@@ -218,9 +224,9 @@ export const ParticipantRepository = {
       .where(
         and(
           inArray(participants.conversationId, conversationIds),
-          eq(participants.isDeleted, false)
-        )
-      )
+          eq(participants.isDeleted, false),
+        ),
+      );
   },
 
   updateParticipantRole: async (
@@ -294,10 +300,7 @@ export const ParticipantRepository = {
       })
       .from(p1)
       .innerJoin(p2, eq(p1.conversationId, p2.conversationId))
-      .innerJoin(
-        conversations,
-        eq(p1.conversationId, conversations.id),
-      )
+      .innerJoin(conversations, eq(p1.conversationId, conversations.id))
       .where(
         and(
           eq(p1.userId, userId),

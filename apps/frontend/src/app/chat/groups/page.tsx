@@ -42,13 +42,13 @@ function Groups() {
   }
 
   if (data) {
-    console.log({ dataFromQuery: data });
+
   }
   console.log({ conversationIdx });
   return (
     <div className="grid grid-cols-4 gap-2">
       {data.conversations?.map((conv: any) => (
-        <ConversationItem
+        <GroupItemCard
           key={conv.id}
           id={conv.id}
           selectedId={selectedId}
@@ -59,7 +59,7 @@ function Groups() {
   );
 }
 
-const ConversationItem = ({
+const GroupItemCard = ({
   id,
   selectedId,
   setSelected,
@@ -76,7 +76,10 @@ const ConversationItem = ({
     setSelected(String(id));
   }
   return (
-    <div className="border flex flex-col gap-2 border-gray-300 p-4 rounded  aspect-square bg-gray-100 hover:shadow-xl transition-shadow duration-200 ease-in-out hover:bg-gray-50 hover:border-gray-400">
+    <div
+      className="border flex flex-col gap-2 border-gray-300 p-4 rounded  aspect-square bg-gray-100 hover:shadow-xl transition-shadow duration-200 ease-in-out hover:bg-gray-50 hover:border-gray-400"
+      onClick={() => handleClick()}
+    >
       <div className="flex items-center justify-between">
         <h4 className="font-bold text-xl ">{conv.name}</h4>
         <p className="text-xs text-gray-400">
@@ -89,7 +92,7 @@ const ConversationItem = ({
 
       <div className="flex justify-between items-baseline mt-auto">
         <p className="text-sm">20 Active Now</p>
-        <JoinButton id={id} name={conv.name} />
+        {/* <JoinButton id={id} name={conv.name} /> */}
         {/* <button
           type="button"
           className="bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-500 transition-colors active:bg-blue-700"
@@ -101,25 +104,3 @@ const ConversationItem = ({
     </div>
   );
 };
-
-function JoinButton({ id, name }: { id: string; name: string }) {
-  const router = useRouter();
-  const { mutate, data, isLoading, error } = useMutation({
-    mutationFn: (conversationId: number) =>
-      conversationService.joinGroup({ conversationId }),
-    onSuccess: () => {},
-  });
-  function handleClick() {
-    router.push(`/chat/groups/${id}?name=${name}`);
-    // mutate(parseInt(id));
-  }
-  return (
-    <button
-      type="button"
-      className="bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-500 transition-colors active:bg-blue-700"
-      onClick={() => handleClick()}
-    >
-      Enter
-    </button>
-  );
-}
