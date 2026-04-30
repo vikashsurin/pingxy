@@ -1,96 +1,260 @@
 "use client";
-
-import Input from "@/src/components/ui/Input";
-import RadioGroup from "@/src/components/ui/RadioGroup";
-
-import Primary from "@/src/components/ui/buttons/Primary";
-
-import Select from "@/src/components/ui/Select";
-import countries from "@/src/constants/countries.json";
-import { authManager } from "@/src/services/authService";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import countries from '@/src/constants/countries.json';
+import { useRegister } from "@/src/hooks/api/auth";
+import { registerFormSchema } from "@/src/lib/schema/auth";
+import { useForm } from "@tanstack/react-form";
 
 export default function Register() {
-  const { mutate, isPending, isError } = useMutation({
-    mutationFn: async (formdata: FormData) => {
-      return await authManager.register(formdata);
-    },
-    onSuccess: () => {
-      window.location.href = "/chat";
-    },
-    onError: () => {},
-  });
 
-  const [gender, setGender] = useState("");
-  const [age, setAge] = useState(18);
-  const [country, setCountry] = useState({ key: "us", name: "United States" });
+  const { mutate } = useRegister()
+  const genders = [
+    { id: "male", label: "Male", value: "male" },
+    { id: "female", label: "Female", value: "female" },
+    { id: "other", label: "Other", value: "other" },
+  ]
 
-  const handleRegister = async (formData: FormData) => {
-    console.log("hsdfsdf");
-    mutate(formData);
-  };
+  // const { mutate, isPending, isError } = useMutation({
+  //   mutationFn: async (formdata: FormData) => {
+  //     return await authManager.register(formdata);
+  //   },
+  //   onSuccess: () => {
+  //     window.location.href = "/chat";
+  //   },
+  //   onError: () => { },
+  // });
+  // const [gender, setGender] = useState("");
+  // const [age, setAge] = useState(18);
+  // const [country, setCountry] = useState({ key: "us", name: "United States" });
+
+  // const handleRegister = async (formData: FormData) => {
+  //   console.log("hsdfsdf");
+  //   mutate(formData);
+  // };
+
+
+  const form = useForm({
+    defaultValues: {
+      username: "",
+      password: "",
+      confirmPassword: "",
+      gender: "",
+      age: 18,
+      country: null as { value: string; label: string; } | null,
+    },
+    validators: {
+      onSubmit: registerFormSchema
+    },
+    onSubmit: async ({ value }) => {
+      mutate({
+        ...value,
+        country: value.country!,
+      });
+    }
+  })
 
   return (
-    <form
-      className="flex flex-col border p-4 gap-6 rounded"
-      action={handleRegister}
-    >
-      <Input
-        name="username"
-        label="Username"
-        type="text"
-        placeholder="username"
-      />
+    <Card className="rounded-md" >
+      <CardContent>
 
-      <Input
-        name="password"
-        label="Password"
-        type="password"
-        placeholder="password"
-      />
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}>
 
-      <Input
-        name="confirmPassword"
-        label="Confirm Password"
-        type="password"
-        placeholder="confirm password"
-      />
+          <FieldGroup>
+            <form.Field name="username">
+              {(field) => {
+                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
+                  && !field.state.meta.isValid;
 
-      <RadioGroup
-        name="gender"
-        label="Gender"
-        value={gender}
-        onChange={(value) => setGender(value)}
-        options={[
-          { id: "male", name: "Male", value: "male" },
-          { id: "female", name: "Female", value: "female" },
-          { id: "other", name: "Other", value: "other" },
-        ]}
-      />
+                return (
+                  <>
+                    <Field>
+                      <FieldLabel htmlFor={field.name}>
+                        Username
+                      </FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        type="text"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="username"
+                      />
+                    </Field>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </>
+                )
+              }}
+            </form.Field>
+            <form.Field name="password">
+              {(field) => {
+                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
+                  && !field.state.meta.isValid;
+                return (
+                  <>
+                    <Field>
+                      <FieldLabel htmlFor={field.name}>
+                        Password
+                      </FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        type="password"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="*****"
 
-      <Input
-        name="age"
-        type="number"
-        label="Age"
-        placeholder="Age"
-        min="18"
-        value={age}
-        onChange={(e) => setAge(Number(e.target.value))}
-      />
+                      />
+                    </Field>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </>
+                )
+              }}
+            </form.Field>
+            <form.Field name="confirmPassword">
+              {(field) => {
+                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
+                  && !field.state.meta.isValid;
+                return (
+                  <>
+                    <Field>
+                      <FieldLabel htmlFor={field.name}>
+                        Confirm Password
+                      </FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        type="password"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="*****"
+                      />
+                    </Field>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </>
+                )
+              }}
+            </form.Field>
+            <form.Field name="gender">
+              {(field) => {
+                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
+                  && !field.state.meta.isValid;
+                return (
+                  <>
+                    <Field >
+                      <FieldLabel htmlFor={field.name}>
+                        Gender
+                      </FieldLabel>
+                      <RadioGroup
+                        name={field.name}
+                        value={field.state.value}
+                        onValueChange={(value) => field.setValue(value)}
+                      >
 
-      <Select
-        name="country"
-        label="Country"
-        options={countries}
-        value={country}
-        onChange={(value) => setCountry(value)}
-      />
+                        {genders.map((gender) => (
+                          <Field key={gender.id} >
+                            <div className="flex items-center gap-2">
+                              <RadioGroupItem
+                                id={gender.id}
+                                value={gender.value}
+                                aria-invalid={isInvalid}
+                              />
+                              <FieldLabel htmlFor={gender.id}>
+                                {gender.label}
+                              </FieldLabel>
+                            </div>
+                          </Field>
+                        ))}
 
-      <Primary
-        label={isPending ? "Registering..." : "Register"}
-        type="submit"
-      />
-    </form>
+                      </RadioGroup>
+                    </Field>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </>
+                )
+              }}
+            </form.Field>
+            <form.Field name="age">
+              {(field) => {
+                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
+                  && !field.state.meta.isValid;
+                return (
+                  <>
+                    <Field>
+                      <FieldLabel htmlFor={field.name}>
+                        Age
+                      </FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        type="number"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(Number(e.target.value))}
+                        placeholder="age"
+                      />
+                    </Field>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </>
+                )
+              }}
+            </form.Field>
+            <form.Field name="country">
+              {(field) => {
+                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
+                  && !field.state.meta.isValid;
+                return (
+                  <>
+                    <Field>
+                      <FieldContent>
+                        <FieldLabel htmlFor={field.name}>
+                          Country
+                        </FieldLabel>
+                      </FieldContent>
+
+                      <Select
+                        name={field.name}
+                        value={field.state.value?.label ?? ""}
+                        onValueChange={(val) => {
+                          const selected = countries.find((c) => c.label === val) ?? null;
+                          field.handleChange(selected);
+                        }}
+                      >
+
+                        <SelectTrigger
+                          id="select-country"
+                          aria-invalid={isInvalid}
+
+                        >
+                          <SelectValue placeholder='Select' />
+                        </SelectTrigger>
+                        <SelectContent className={'px-2'}>
+                          {countries.map((country) => (
+                            <SelectItem
+                              key={country.value}
+                              value={country.label}
+                            >
+                              {country.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field >
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />
+                    }
+                  </>
+                )
+              }}
+            </form.Field>
+            <Button type="submit">Register</Button>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card >
   );
 }

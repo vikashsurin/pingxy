@@ -1,6 +1,6 @@
 // "use server";
 
-import { loginFormSchema } from "@/src/app/auth/login/page";
+import { loginFormSchema, registerFormSchema } from "@/src/lib/schema/auth";
 import z from "zod";
 
 function createAuthApi() {
@@ -9,6 +9,8 @@ function createAuthApi() {
   async function login(formData: z.infer<typeof loginFormSchema>) {
     const username = formData.username;
     const password = formData.password;
+
+    console.log("username, password", username, password)
 
     if (!username || !password) {
       return new Response("Please enter a username and password", {
@@ -44,13 +46,13 @@ function createAuthApi() {
     return data.user;
   }
 
-  const register = async (formData: FormData) => {
-    const username = formData.get("username");
-    const password = formData.get("password");
-    const confirmPassword = formData.get("confirmPassword");
-    const age = formData.get("age");
-    const gender = formData.get("gender");
-    const country = formData.get("country");
+  const register = async (formData: z.infer<typeof registerFormSchema>) => {
+    const username = formData.username;
+    const password = formData.password;
+    const confirmPassword = formData.confirmPassword;
+    const age = formData.age;
+    const gender = formData.gender;
+    const country = formData.country;
 
     console.log({
       username,
@@ -73,7 +75,7 @@ function createAuthApi() {
         confirmPassword,
         age,
         gender,
-        country,
+        country: country.value,
       }),
     });
 
@@ -87,7 +89,7 @@ function createAuthApi() {
     return data;
   };
 
-  const guest = async (formData: FormData) => {};
+  const guest = async (formData: FormData) => { };
 
   const logout = async () => {
     const url = `${baseUrl}/logout`;

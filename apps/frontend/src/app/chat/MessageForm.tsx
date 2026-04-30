@@ -35,7 +35,6 @@ export default function MessageForm({
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if ((!content.trim() && attachments.length === 0) || isPending) return;
-
     mutate(
       {
         conversationId,
@@ -59,7 +58,6 @@ export default function MessageForm({
   }
   // const [progress, setProgress] = useState(0);
 
-  console.log({ uploads });
 
   useEffect(() => {
     for (const [key, upload] of Object.entries(uploads)) {
@@ -77,17 +75,14 @@ export default function MessageForm({
           }));
         })
         .then((data) => {
-          // console.log({ attached: data });
           setAttachments((prev) => [...prev, data.attachment]);
         })
         .catch((err) => {
           if (axios.isCancel(err)) return;
-          console.log("Upload failed or cancelled ", err);
         });
     }
   }, [uploads]);
 
-  console.log({ attachments });
 
   const removeFile = (key: string) => {
     controllersRef.current[key]?.abort();

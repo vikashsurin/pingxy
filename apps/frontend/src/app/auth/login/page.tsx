@@ -10,22 +10,12 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/src/hooks/api/auth";
+import { loginFormSchema } from "@/src/lib/schema/auth";
 import { useForm } from "@tanstack/react-form";
-import z from "zod";
 
-export const loginFormSchema = z.object({
-  username: z
-    .string()
-    .min(5, "Username must be at least 5 characters long")
-    .max(20, "Username must be at most 20 characters long"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters long")
-    .max(20, "Password must be at most 20 characters long"),
-});
 
 export default function Login() {
-  const { mutate, isPending } = useLogin();
+  const { mutate, isPending, isSuccess } = useLogin();
   const form = useForm({
     defaultValues: {
       username: "",
@@ -39,28 +29,10 @@ export default function Login() {
       mutate(value);
     },
   });
-  // const { mutate, isPending } = useMutation({
-  //   mutationFn: async (formData: FormData) => {
-  //     return await authManager.login(formData);
-  //   },
 
-  //   onSuccess: (data) => {
-  //     console.log({ dataFromLogin: data });
-  //     authManager.setToken(data.token);
-  //     authManager.setAuthUser(data.user);
-  //     window.location.href = "/chat";
-  //   },
-  //   onError: (error) => {
-  //     console.log({ errorFromLogin: error });
-  //   },
-  // });
 
-  // const handleLogin = async (formData: FormData) => {
-  //   console.log("hsdfsdf");
-  //   mutate(formData);
-  // };
   return (
-    <Card>
+    <Card className="rounded-md">
       <CardContent>
         <form
           onSubmit={(e) => {
@@ -71,22 +43,6 @@ export default function Login() {
           <FieldGroup>
             <form.Field
               name="username"
-              validators={{
-                onChange: ({ value }) =>
-                  !value
-                    ? "Username is required"
-                    : value.length < 3
-                      ? "Username must be atleast 3 characters"
-                      : undefined,
-                onChangeAsyncDebounceMs: 500,
-                onChangeAsync: async ({ value }) => {
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
-                  return (
-                    value.includes("error") &&
-                    'No "error" allowed in first name'
-                  );
-                },
-              }}
             >
               {(field) => {
                 const isInvalid =
@@ -102,43 +58,20 @@ export default function Login() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         className="rounded-sm"
+                        placeholder="Enter username"
                       />
                     </Field>
-                    {isInvalid && (
-                      <FieldError
-                        errors={
-                          field.state.meta.errors?.map((error) => ({
-                            message: error as string,
-                          })) || []
-                        }
-                      />
-                    )}
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </>
                 );
               }}
             </form.Field>
             <form.Field
               name="password"
-              validators={{
-                onChange: ({ value }) =>
-                  !value
-                    ? "A Password is required"
-                    : value.length < 3
-                      ? "Password name must be at least 8 characters"
-                      : undefined,
-                onChangeAsyncDebounceMs: 500,
-                onChangeAsync: async ({ value }) => {
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
-                  return (
-                    value.includes("error") &&
-                    'No "error" allowed in first name'
-                  );
-                },
-              }}
             >
               {(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <>
                     <Field>
@@ -146,27 +79,22 @@ export default function Login() {
                       <Input
                         id={field.name}
                         name={field.name}
+                        type="password"
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         className="rounded-sm"
+                        placeholder="*****"
                       />
                     </Field>
-                    {/* {isInvalid && (
-                      <FieldError
-                        errors={
-                          field.state.meta.errors?.map((error) => ({
-                            message: error as string,
-                          })) || []
-                        }
-                      />
-                    )} */}
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+
                   </>
                 );
               }}
             </form.Field>
-            <Button type="submit" className={"w-full rounded-sm"}>
-              Login
+            <Button type="submit" className={"w-full rounded-sm"} disabled={isPending || isSuccess}>
+              {isPending ? "Logging in..." : isSuccess ? "Redirecting..." : "Login"}
             </Button>
           </FieldGroup>
         </form>

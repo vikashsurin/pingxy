@@ -1,5 +1,5 @@
+import { guestFormSchema, loginFormSchema, registerFormSchema } from "@/src/lib/schema/auth";
 import z from "zod";
-import { loginFormSchema } from "../app/auth/login/page";
 import { authApi } from "../lib/api/auth";
 import { useChatStore } from "../store/chatStore";
 
@@ -15,17 +15,17 @@ function createAuthService() {
   const login = async (formData: z.infer<typeof loginFormSchema>) => {
     return await authApi.login(formData);
   };
-  const register = async (formData: FormData) => {
+  const register = async (formData: z.infer<typeof registerFormSchema>) => {
     return await authApi.register(formData);
   };
-  const guest = async (formData: FormData) => {};
+  const guestLogin = async (formData: z.infer<typeof guestFormSchema>) => { };
 
   return {
     setToken,
     setAuthUser,
     login,
     register,
-    guest,
+    guestLogin,
   };
 }
 
