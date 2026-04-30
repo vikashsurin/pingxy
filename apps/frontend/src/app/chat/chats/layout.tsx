@@ -1,6 +1,6 @@
 "use client";
 
-import { useConversations } from "@/src/queries/conversations";
+import { useConversations } from "@/src/hooks/api/conversations";
 import { useChatStore } from "@/src/store/chatStore";
 import { useConversationStore } from "@/src/store/conversationStore";
 import { useUserStore } from "@/src/store/userStore";

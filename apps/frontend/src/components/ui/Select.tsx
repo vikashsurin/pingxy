@@ -1,4 +1,4 @@
-import useClickOutside from "@/src/hooks/useClickOutside";
+import useClickOutside from "@/src/hooks/utils/useClickOutside";
 import { ChevronsUpDown } from "lucide-react";
 import { useRef, useState } from "react";
 

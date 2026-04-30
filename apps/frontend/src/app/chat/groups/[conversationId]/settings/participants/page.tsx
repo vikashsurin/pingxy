@@ -2,7 +2,7 @@
 
 import Loading from "@/src/components/Loading";
 import Dialog from "@/src/components/ui/Dialog";
-import { useFetchParticipants } from "@/src/queries/conversations";
+import { useFetchParticipants } from "@/src/hooks/api/conversations";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
 

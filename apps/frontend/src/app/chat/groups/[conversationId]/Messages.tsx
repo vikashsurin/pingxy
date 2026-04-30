@@ -1,12 +1,9 @@
 import Loading from "@/src/components/Loading";
-import { useMessages } from "@/src/queries/conversations";
+import { useMessages } from "@/src/hooks/api/conversations";
 import { useConversationStore } from "@/src/store/conversationStore";
 import { useUserStore } from "@/src/store/userStore";
-import { attachments } from "@pingxy/shared/domain/attachment/index";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
-import { id } from "zod/v4/locales";
-import Image from "next/image";
 import { ImageModal } from "./ImageModal";
 
 export default function Messages({ id }: { id: number }) {

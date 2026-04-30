@@ -1,5 +1,5 @@
 import Loading from "@/src/components/Loading";
-import { useMessages } from "@/src/queries/conversations";
+import { useMessages } from "@/src/hooks/api/conversations";
 import { useUserStore } from "@/src/store/userStore";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Check, CheckCheck } from "lucide-react";

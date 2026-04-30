@@ -1,8 +1,9 @@
+import { useChatStore } from "@/src/store/chatStore";
 import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import z from "zod";
-import queryClient from "../lib/queryClient";
-import { conversationService } from "../services/conversationService";
+import queryClient from "../../lib/queryClient";
+import { conversationService } from "../../services/conversationService";
 
 export const useConversations = (type?: "direct" | "group") => {
   return useQuery({
@@ -109,3 +110,13 @@ export const useDeleteConversation = () => {
     },
   });
 };
+
+export function useIsRoomCreator(conversationId: number) {
+  const { data: conversation } = useFetchConversation(conversationId);
+
+  const authUser = useChatStore((state) => state.authUser);
+
+  if (!conversation || !authUser) return false;
+
+  return conversation.creatorId === authUser.id;
+}

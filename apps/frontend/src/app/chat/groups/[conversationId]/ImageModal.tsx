@@ -1,8 +1,8 @@
 import {
   Dialog,
   DialogContent,
-  DialogTrigger,
   DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import Image from "next/image";
 export function ImageModal({

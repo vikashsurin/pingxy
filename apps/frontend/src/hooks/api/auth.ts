@@ -1,0 +1,19 @@
+import { loginFormSchema } from "@/src/app/auth/login/page";
+import { authManager } from "@/src/services/authService";
+import { useMutation } from "@tanstack/react-query";
+import z from "zod";
+export const useLogin = () => {
+  return useMutation({
+    mutationFn: async (formData: z.infer<typeof loginFormSchema>) => {
+      return await authManager.login(formData);
+    },
+    onSuccess: (data) => {
+      authManager.setToken(data.token);
+      authManager.setAuthUser(data.user);
+      window.location.href = "/chat";
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+};

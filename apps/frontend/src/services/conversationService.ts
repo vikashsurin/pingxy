@@ -73,7 +73,7 @@ function createConversationService() {
       },
       conversationId: conversationId ?? undefined,
     });
-
+    console.log({ payload });
     const data = await conversationsApi.sendMessage(payload);
     console.log({ messageCreated: data });
     return data;

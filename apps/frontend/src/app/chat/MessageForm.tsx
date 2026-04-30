@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Sending from "@/src/components/Sending";
-import { useSendMessage } from "@/src/queries/conversations";
+import { useSendMessage } from "@/src/hooks/api/conversations";
 import { attachmentService } from "@/src/services/attachementService";
 import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
 import { IconFileDescription, IconSend2, IconX } from "@tabler/icons-react";
@@ -22,20 +22,19 @@ export default function MessageForm({
   recipientId?: number;
   recipientName?: string;
 }) {
-  const [files, setFiles] = useState<File[]>([]);
+  const [uploads, setUploads] = useState<Record<string, Upload>>({});
   const [attachments, setAttachments] = useState<
     z.infer<typeof attachmentReqSchema>[]
   >([]);
-
-  console.log("files", files);
-
+  const startedUploads = useRef<Set<string>>(new Set());
+  const controllersRef = useRef<Record<string, AbortController>>({});
   const [content, setContent] = useState("");
 
   const { mutate, isPending } = useSendMessage();
 
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if ((!content.trim() && files.length === 0) || isPending) return;
+    if ((!content.trim() && attachments.length === 0) || isPending) return;
 
     mutate(
       {
@@ -47,18 +46,17 @@ export default function MessageForm({
       },
       {
         onSuccess: () => {
-          setContent("");
-          setFiles([]);
-          setAttachments([]);
+          clearForm();
         },
       },
     );
   }
 
-  const [uploads, setUploads] = useState<Record<string, Upload>>({});
-  const startedUploads = useRef<Set<string>>(new Set());
-  const controllersRef = useRef<Record<string, AbortController>>({});
-
+  function clearForm() {
+    setContent("");
+    setUploads({});
+    setAttachments([]);
+  }
   // const [progress, setProgress] = useState(0);
 
   console.log({ uploads });
@@ -78,12 +76,18 @@ export default function MessageForm({
             [key]: { ...prev[key], progress: p },
           }));
         })
+        .then((data) => {
+          // console.log({ attached: data });
+          setAttachments((prev) => [...prev, data.attachment]);
+        })
         .catch((err) => {
           if (axios.isCancel(err)) return;
           console.log("Upload failed or cancelled ", err);
         });
     }
   }, [uploads]);
+
+  console.log({ attachments });
 
   const removeFile = (key: string) => {
     controllersRef.current[key]?.abort();
@@ -102,11 +106,7 @@ export default function MessageForm({
       className="flex gap-2  relative items-center  "
     >
       <SelectedPreview uploads={uploads} onRemove={removeFile} />
-      <AttachmentsMenu
-        setFiles={setFiles}
-        setUploads={setUploads}
-        setAttachments={setAttachments}
-      />
+      <AttachmentsMenu setUploads={setUploads} />
 
       <label className="w-full">
         <input
@@ -120,7 +120,7 @@ export default function MessageForm({
       </label>
       <Button
         type="submit"
-        disabled={isPending || (!content.trim() && files.length === 0)}
+        disabled={isPending || (!content.trim() && attachments.length === 0)}
         className="rounded-sm"
       >
         {isPending ? (

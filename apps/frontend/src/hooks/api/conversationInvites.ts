@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import queryClient from "../lib/queryClient";
-import { conversationInviteService } from "../services/conversationInviteService";
+import queryClient from "../../lib/queryClient";
+import { conversationInviteService } from "../../services/conversationInviteService";
 
 export const useFetchInvite = (id: number) => {
   return useQuery({

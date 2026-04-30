@@ -6,7 +6,7 @@ import RadioGroup from "@/src/components/ui/RadioGroup";
 import Primary from "@/src/components/ui/buttons/Primary";
 
 import Select from "@/src/components/ui/Select";
-import countries from "@/lib/countries.json";
+import countries from "@/src/constants/countries.json";
 import { authManager } from "@/src/services/authService";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";

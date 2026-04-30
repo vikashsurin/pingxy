@@ -18,7 +18,7 @@ import {
   useCreateInvite,
   useDeleteConversation,
   useFetchConversation,
-} from "@/src/queries/conversations";
+} from "@/src/hooks/api/conversations";
 import {
   IconAlertSquareRounded,
   IconCaretDownFilled,

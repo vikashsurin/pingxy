@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useJoinViaInvite } from "@/src/queries/conversationInvite";
+import { useJoinViaInvite } from "@/src/hooks/api/conversationInvites";
 
 export default function JoinViaInvite() {
   const { mutate, isPending, isError, error } = useJoinViaInvite();

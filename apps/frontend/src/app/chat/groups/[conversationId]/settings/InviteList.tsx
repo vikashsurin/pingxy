@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { copyToClipboard } from "@/src/lib/utils/clipboard";
 import { formatDate } from "@/src/lib/utils/date";
-import { useFetchInvites } from "@/src/queries/conversations";
+import { useFetchInvites } from "@/src/hooks/api/conversations";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DeleteSelectedInvites from "./DeleteSelectedInvites";

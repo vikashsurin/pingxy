@@ -1,13 +1,14 @@
 // "use server";
 
-// import { cookies } from "next/headers";
+import { loginFormSchema } from "@/src/app/auth/login/page";
+import z from "zod";
 
 function createAuthApi() {
   const baseUrl = "http://localhost/api/auth";
 
-  async function login(formData: FormData) {
-    const username = formData.get("username");
-    const password = formData.get("password");
+  async function login(formData: z.infer<typeof loginFormSchema>) {
+    const username = formData.username;
+    const password = formData.password;
 
     if (!username || !password) {
       return new Response("Please enter a username and password", {

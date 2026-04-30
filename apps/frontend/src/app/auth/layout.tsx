@@ -1,5 +1,6 @@
+"use client";
 import Image from "next/image";
-import CustomLink from "./components/CustomLink";
+import TabButton from "./components/TabButton";
 
 export default function AuthLayout({
   children,
@@ -11,13 +12,10 @@ export default function AuthLayout({
       <div className="mb-8 flex flex-col items-center">
         <Image src="/logo.svg" alt="Logo" width={360} height={144} priority />
 
-        <nav
-          className="mt-6 flex gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200"
-          role="tablist"
-        >
-          <CustomLink href="/auth/login" label="Login" />
-          <CustomLink href="/auth/register" label="Register" />
-          <CustomLink href="/auth/guest" label="Guest" />
+        <nav className="flex gap-1 bg-radial from-gray-200 to-gray-50 p-2 rounded-md mb-8">
+          <TabButton href="/auth/login" label="Login" />
+          <TabButton href="/auth/register" label="Register" />
+          <TabButton href="/auth/guest" label="Guest" />
         </nav>
       </div>
 

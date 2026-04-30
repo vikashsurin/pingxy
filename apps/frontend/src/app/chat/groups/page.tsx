@@ -1,10 +1,8 @@
 "use client";
 
-import { useConversations } from "@/src/queries/conversations";
+import { useConversations } from "@/src/hooks/api/conversations";
 import { useConversationStore } from "@/src/store/conversationStore";
 
-import { conversationService } from "@/src/services/conversationService";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import GroupPageHeader from "./GroupPageHeader";
@@ -24,9 +22,6 @@ export default function Page() {
 
 function Groups() {
   const [selectedId, setSelected] = useState("");
-  const conversationIdx = useConversationStore(
-    (state) => state.conversationIdx,
-  );
 
   const { data, isLoading, error } = useConversations("group");
   if (isLoading) {
@@ -42,9 +37,8 @@ function Groups() {
   }
 
   if (data) {
-
   }
-  console.log({ conversationIdx });
+
   return (
     <div className="grid grid-cols-4 gap-2">
       {data.conversations?.map((conv: any) => (
@@ -92,14 +86,6 @@ const GroupItemCard = ({
 
       <div className="flex justify-between items-baseline mt-auto">
         <p className="text-sm">20 Active Now</p>
-        {/* <JoinButton id={id} name={conv.name} /> */}
-        {/* <button
-          type="button"
-          className="bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-500 transition-colors active:bg-blue-700"
-          onClick={() => handleClick()}
-        >
-          Join
-        </button> */}
       </div>
     </div>
   );

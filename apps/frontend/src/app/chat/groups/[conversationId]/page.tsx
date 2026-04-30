@@ -1,32 +1,24 @@
 "use client";
 
 import Loading from "@/src/components/Loading";
-import { useFetchParticipants } from "@/src/queries/conversations";
-import { useRouter } from "next/navigation";
+import { useFetchParticipants } from "@/src/hooks/api/conversations";
 import { use } from "react";
 import MessageForm from "../../MessageForm";
+import Menu from "./Menu";
 import Messages from "./Messages";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { IconDotsVertical } from "@tabler/icons-react";
 
 export default function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ conversationId: string }>;
   searchParams: Promise<{
-    [type: string]: string | string[] | undefined;
-    name: string;
+    type?: string;
+    name?: string;
+    [key: string]: string | string[] | undefined;
   }>;
 }) {
-  const { slug } = use(params);
+  const { conversationId } = use(params);
   const { type, name } = use(searchParams);
 
   return (
@@ -35,19 +27,22 @@ export default function Page({
         <div className="flex items-center justify-between flex-none border-b pb-2">
           <h1 className="px-2 font-bold text-lg">{name}</h1>
 
-          <Menu id={parseInt(slug)} />
+          <Menu id={parseInt(conversationId)} />
         </div>
 
         <div className="flex-1 min-h-0">
-          <Messages id={parseInt(slug)} />
+          <Messages id={parseInt(conversationId)} />
         </div>
 
         <div className="flex-none">
-          <MessageForm conversationId={parseInt(slug)} recipientName={name} />
+          <MessageForm
+            conversationId={parseInt(conversationId)}
+            recipientName={name}
+          />
         </div>
       </section>
       <section>
-        <Members id={slug} />
+        <Members id={conversationId} />
       </section>
     </div>
   );
@@ -77,27 +72,5 @@ function Member({ name }: { name: string }) {
     <li className=" text-sm py-1  px-2">
       <span>{name}</span>
     </li>
-  );
-}
-
-// Menu
-function Menu({ id }: { id: number }) {
-  const router = useRouter();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant={"secondary"} size={"icon"} />}
-      >
-        <IconDotsVertical size={16} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className={"rounded-md"}>
-        <DropdownMenuItem
-          onClick={() => router.push(`/chat/groups/${id}/settings`)}
-          className={"rounded-sm"}
-        >
-          Setting
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }

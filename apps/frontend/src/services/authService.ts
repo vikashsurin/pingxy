@@ -1,3 +1,5 @@
+import z from "zod";
+import { loginFormSchema } from "../app/auth/login/page";
 import { authApi } from "../lib/api/auth";
 import { useChatStore } from "../store/chatStore";
 
@@ -10,7 +12,7 @@ function createAuthService() {
     useChatStore.getState().setAuthUser(user);
   };
 
-  const login = async (formData: FormData) => {
+  const login = async (formData: z.infer<typeof loginFormSchema>) => {
     return await authApi.login(formData);
   };
   const register = async (formData: FormData) => {
