@@ -5,10 +5,9 @@ import { createClientReq } from ".";
 import { conversationsApi } from "../lib/api/conversation";
 import queryClient from "../lib/queryClient";
 import { GroupCreateForm } from "../lib/schema/group";
+import { send } from "../socket/socket";
 import { useConversationStore } from "../store/conversationStore";
 import { useUserStore } from "../store/userStore";
-import { send } from "../socket/socket";
-import { AttachmentsMenu } from "../app/chat/AttachmentsMenu";
 
 function createConversationService() {
   const findConversation = async ({ userId }: { userId: number }) => {
@@ -92,11 +91,11 @@ function createConversationService() {
 
     console.log({ dataMessages: data })
     const messages = data.entities.messages;
-    const attachments = data.entities.attachments;
+    // const attachments = data.entities.attachments;
 
-    for (const attachment of attachments) {
-      useConversationStore.getState().upsertAttachment(attachment);
-    }
+    // for (const attachment of attachments) {
+    //   useConversationStore.getState().upsertAttachment(attachment);
+    // }
 
     return {
       rows: messages,
@@ -109,11 +108,11 @@ function createConversationService() {
   ) => {
     const { message, conversation, attachments, sender } = payload;
 
-    if (attachments.length > 0) {
-      for (const attachment of attachments) {
-        useConversationStore.getState().upsertAttachment(attachment);
-      }
-    }
+    // if (attachments.length > 0) {
+    //   for (const attachment of attachments) {
+    //     useConversationStore.getState().upsertAttachment(attachment);
+    //   }
+    // }
 
 
     console.log({ from: message })

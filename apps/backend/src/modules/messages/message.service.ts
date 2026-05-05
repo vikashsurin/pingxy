@@ -67,7 +67,7 @@ export const MessageService = {
       });
 
       const messages = new Map();
-      const attachments = new Map();
+      // const attachments = new Map();
 
       for (const row of rows) {
         const { message, attachment } = row;
@@ -79,23 +79,25 @@ export const MessageService = {
 
         if (attachment?.id) {
           const msg = messages.get(msgId);
-          msg.attachments.push(attachment.id);
+
+
+          // const endpoint = process.env.MINIO_ENDPOINT_PUBLIC;
+          const endpoint = 'http://localhost:9000';
+          const bucket = process.env.MINIO_BUCKET;
+          const url = `${endpoint}/${bucket}/${attachment.key}`;
+          const thumbUrl = `${endpoint}/${bucket}/${attachment.thumbKey}`;
+          // attachments.set(attachment.id, { ...attachment, url, thumbUrl });
+
+          msg.attachments.push({ ...attachment, url, thumbUrl });
           messages.set(msgId, msg);
 
-          if (!attachments.has(attachment.id)) {
-            const endpoint = process.env.MINIO_ENDPOINT_PUBLIC;
-            const bucket = process.env.MINIO_BUCKET;
-            const url = `${endpoint}/${bucket}/${attachment.key}`;
-            const thumbUrl = `${endpoint}/${bucket}/${attachment.thumbKey}`;
-            attachments.set(attachment.id, { ...attachment, url, thumbUrl });
-          }
         }
       }
 
       return {
         entities: {
           messages: Array.from(messages.values()),
-          attachments: Array.from(attachments.values()),
+          // attachments: Array.from(attachments.values()),
         },
       };
     } catch (error) {

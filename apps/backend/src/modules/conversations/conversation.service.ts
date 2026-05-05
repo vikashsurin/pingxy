@@ -356,7 +356,7 @@ export const ConversationService = {
       conversationId: conversation.id,
     });
 
-    const withAttachements = { ...insertedMessage, attachments: [] }
+    // const withAttachements = { ...insertedMessage, attachments: [] }
 
     const savedAttachments = await AttachmentService.createAttachment({
       attachments,
@@ -368,7 +368,8 @@ export const ConversationService = {
     const attachmentsWithUrls = [];
 
     for (const a of savedAttachments) {
-      const endpoint = process.env.MINIO_ENDPOINT;
+      // const endpoint = process.env.MINIO_ENDPOINT;
+      const endpoint = 'http://localhost:9000';
       const bucket = process.env.MINIO_BUCKET;
       const url = `${endpoint}/${bucket}/${a.key}`;
       const thumbUrl = a.thumbKey
@@ -376,8 +377,11 @@ export const ConversationService = {
         : undefined;
 
       attachmentsWithUrls.push({ ...a, url, thumbUrl });
-      withAttachements.attachments.push(a.id)
     }
+
+    const withAttachements = { ...insertedMessage, attachments: attachmentsWithUrls };
+
+    // withAttachements.attachments = attachmentsWithUrls;
 
     // Update unread count
     await ParticipantService.incrementUnreadCount({
@@ -421,93 +425,4 @@ export const ConversationService = {
     broadcast(SERVER_EVENTS.CONVERSATIONS.SUBSCRIBE, responseEnvelope)
 
   },
-
-  // sendMessage: async (
-  //   body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
-  //   user: User,
-  // ) => {
-  //   const { message, recipient, attachments } = body.payload;
-  //   // const result = await db.transaction(async (tx) => {
-  //   //  TODO: Wrap it in transaction
-
-  //   // const hasBlock = await BlockService.hasBlock({
-  //   //   blockerId: user.id,
-  //   //   blockedId: recipient.id,
-  //   // });
-
-  //   // if (hasBlock) {
-  //   //   throw new HTTPException(400, {
-  //   //     message: "User is blocked",
-  //   //   });
-  //   // }
-
-  //   const conversation = await ConversationService.findOrCreate({
-  //     currentUserId: user.id,
-  //     userId: recipient?.id,
-  //   });
-
-  //   const participants = await ParticipantService.create({
-  //     conversationId: conversation.id,
-  //     user1Id: user.id,
-  //     user2Id: recipient?.id,
-  //   });
-
-  //   const [insertedMessage] = await MessageRepository.insertMessage({
-  //     conversationId: conversation.id!,
-  //     clientMessageId: message.clientMessageId,
-  //     senderId: user.id,
-  //     content: message.content,
-  //   });
-
-  //   // update conversation activity
-  //   const [updatedConversation] = await ConversationRepository.updateActivity({
-  //     id: conversation.id,
-  //     lastMessageId: insertedMessage.id,
-  //   });
-
-  //   const [updatedParticipant] = await ParticipantRepository.update({
-  //     userId: user.id,
-  //     lastReadMessageId: insertedMessage.id,
-  //     lastReadAt: new Date(),
-  //     conversationId: conversation.id,
-  //   });
-
-  //   const savedAttachments = await AttachmentService.createAttachment({
-  //     attachments,
-  //     userId: user.id,
-  //     messageId: insertedMessage.id,
-  //   });
-
-  //   const attachmentsWithUrls = [];
-
-  //   for (const a of savedAttachments) {
-  //     const endpoint = process.env.MINIO_ENDPOINT;
-  //     const bucket = process.env.MINIO_BUCKET;
-  //     const url = `${endpoint}/${bucket}/${a.key}`;
-  //     const thumbUrl = a.thumbKey
-  //       ? `${endpoint}/${bucket}/${a.thumbKey}`
-  //       : undefined;
-
-  //     attachmentsWithUrls.push({ ...a, url, thumbUrl });
-  //   }
-
-  //   await ParticipantService.incrementUnreadCount({
-  //     conversationId: conversation.id,
-  //     senderId: user.id,
-  //   });
-
-  //   const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
-  //     message: insertedMessage,
-  //     attachments: attachmentsWithUrls,
-  //     conversation: updatedConversation,
-  //     sender: updatedParticipant,
-  //     recipient: recipient,
-  //   });
-
-  //   broadcast(SERVER_EVENTS.MESSAGES.CREATED, {
-  //     ...responseEnvelope,
-  //   });
-
-  //   return responseEnvelope;
-  // },
 };

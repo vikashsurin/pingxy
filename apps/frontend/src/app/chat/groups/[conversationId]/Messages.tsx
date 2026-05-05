@@ -16,7 +16,7 @@ export default function Messages({ id }: { id: number }) {
     hasNextPage,
   } = useMessages(id);
 
-  const attachments = useConversationStore((state) => state.attachments);
+  // const attachments = useConversationStore((state) => state.attachments);
 
   // console.log({ attachments })
 
@@ -100,7 +100,7 @@ function Message({ message, sender }: { message: any; sender: any }) {
         <div className="flex flex-col gap-2">
 
           {message.attachments?.length > 0 && (
-            <RenderAttachment ids={message.attachments} />
+            <MessageAttachments attachments={message.attachments} />
           )}
 
           <span className="">{message.content}</span>
@@ -117,23 +117,28 @@ function Message({ message, sender }: { message: any; sender: any }) {
   );
 }
 
-function RenderAttachment({ ids }: { ids: number[] }) {
-  const attachments = useConversationStore((state) => state.attachments);
+function MessageAttachments({ attachments }: { attachments: any[] }) {
+  // useShallow performs a shallow equality check on the mapped array
+  // const attachments = useConversationStore(
+  //   useShallow((state) => ids.map(id => state.attachments[id]).filter(Boolean))
+  // );
+
+
+  console.log({ attachemtnssdfsdf: attachments })
+
+  if (attachments.length === 0) return null;
+
   return (
-    <div className="images flex border p-1 gap-1 rounded-lg bg-blue-200 w-max ">
-      {ids.map((id) => {
-        const attachment = attachments[id];
-        return (
-          <div key={id} className="" onClick={() => { }}>
-            <ImageModal
-              fileName={attachment.fileName}
-              thumbUrl={attachment.thumbUrl}
-              url={attachment.url}
-              alt={`Attachment ${id}`}
-            />
-          </div>
-        );
-      })}
+    <div className="images flex border p-1 gap-1 rounded-lg bg-blue-200 w-max">
+      {attachments.map(file => (
+        <ImageModal
+          key={file.id}
+          fileName={file.fileName}
+          thumbUrl={file.thumbUrl}
+          url={file.url}
+          alt={`Attachment ${file.id}`}
+        />
+      ))}
     </div>
   );
 }
