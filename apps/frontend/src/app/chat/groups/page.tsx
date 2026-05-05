@@ -73,10 +73,19 @@ const GroupItemCard = ({
   return (
     <Card className="rounded-md aspect-square shadow-sm hover:shadow-lg transition-shadow" onClick={() => handleClick()}>
       <CardHeader>
-        <CardTitle>{conv.name} </CardTitle>
-        <span className="text-xs text-gray-400">{conv.isPrivate ? "Private" : "Public"}</span>
+        {conv.isPrivate && <InviteOnly />}
+        <CardTitle className="font-bold">{conv.name} </CardTitle>
         <CardDescription>{conv.description}</CardDescription>
       </CardHeader>
     </Card>
   );
 };
+
+
+function InviteOnly() {
+  return (
+    <span className="mb-1 text-xs w-max px-1.5 py-0.5 rounded-xs  bg-red-100 text-red-500 font-medium">
+      INVITE ONLY
+    </span>
+  );
+}

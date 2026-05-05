@@ -32,3 +32,15 @@ export const useDeleteInvites = () => {
     },
   });
 };
+
+export const useRevokeInvite = () => {
+  return useMutation({
+    mutationFn: (id: number) =>
+      conversationInviteService.revokeInvite({ id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["conversations", "invites"],
+      });
+    },
+  });
+};

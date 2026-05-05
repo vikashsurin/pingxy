@@ -25,3 +25,11 @@ conversationInviteRouter.post('/:invitecode/join', ...ConversationIniviteControl
 // Delete invites by ids
 // DELETE api/invites
 conversationInviteRouter.delete('/', ...ConversationIniviteController.deleteInvitesByIds);
+
+// Invalidate invite
+// POST api/invites/{id}/invalidate
+conversationInviteRouter.post('/:id/revoke', ...ConversationIniviteController.invalidateInviteCode);
+
+// Update invite
+// PUT api/invites/{id}
+conversationInviteRouter.put('/:id', ...ConversationIniviteController.updateInvite);

@@ -1,7 +1,10 @@
 import { db, DB_TX } from "@lib/db/client";
 import { conversationInvites, InviteInserSchema } from "@pingxy/shared";
-import { eq, inArray, sql, } from "drizzle-orm";
+import { eq, inArray, sql, InferInsertModel } from "drizzle-orm";
 import z from "zod";
+
+
+
 export const ConversationInviteRepository = {
   insert: async ({ invite, tx = db }: { invite: z.infer<typeof InviteInserSchema>; tx?: DB_TX }) => {
 
@@ -16,6 +19,19 @@ export const ConversationInviteRepository = {
         maxUses: invite.maxUses,
         createdAt: invite.createdAt,
       })
+      .returning();
+
+    return row[0];
+  },
+
+  update: async ({ id, fields, tx = db }: { id: number; fields: Partial<InferInsertModel<typeof conversationInvites>>; tx?: DB_TX }) => {
+    const row = await tx
+      .update(conversationInvites)
+      .set(fields)
+      .where(eq(
+        conversationInvites.id,
+        id,
+      ))
       .returning();
 
     return row[0];

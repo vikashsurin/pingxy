@@ -1,7 +1,6 @@
 import { broadcast } from "@lib/socket/pubsub";
 import { createServerEvent } from "@lib/socket/socket.factory";
 import { AttachmentService } from "@modules/attachments/attachment.service";
-import { BlockService } from "@modules/block/block.service";
 import { ConversationInviteRepository } from "@modules/conversation-invites/conversation-invite.repository";
 import { MessageRepository } from "@modules/messages/message.repository";
 import { ParticipantService } from "@modules/participants";
@@ -13,8 +12,6 @@ import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
 import z from "zod";
 import { ConversationRepository } from "./conversation.repository";
-import { createServer } from "tls";
-import { connectionManager } from "@lib/socket/connectionManager";
 
 export const ConversationService = {
   getConversations: async ({

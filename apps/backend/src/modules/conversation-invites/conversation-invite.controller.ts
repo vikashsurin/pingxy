@@ -10,7 +10,18 @@ export const ConversationIniviteController = {
 
   rejectInvite: factory.createHandlers(async () => { }),
 
-  invalidate: factory.createHandlers(async () => { }),
+  updateInvite: factory.createHandlers(async () => { }),
+
+  invalidateInviteCode: factory.createHandlers(
+    validate('param', z.object({ id: z.coerce.number() })),
+    async (c) => {
+      const { id } = c.req.valid('param');
+      const result = await ConversationInviteService.invalidate(id);
+      if (!result) {
+        return c.notFound();
+      }
+      return c.json({ message: 'Invite code invalidated' });
+    }),
 
   getInviteById: factory.createHandlers(
     validate('param', z.object({ id: z.coerce.number() })),

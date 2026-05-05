@@ -41,10 +41,36 @@ function createConversationInviteApi() {
     return await res.json();
   };
 
+  const revokeInvite = async ({ id }: { id: number }) => {
+    const url = `${baseUrl}/${id}/revoke`;
+    const res = await fetch(`${url}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return await res.json();
+  };
+
+  const updateInvite = async ({ id, fields }: { id: number; fields: any }) => {
+    const url = `${baseUrl}/${id}`;
+    const res = await fetch(`${url}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return await res.json();
+  };
+
   return {
     fetchById,
     joinViaInvite,
     deleteInvites,
+    revokeInvite,
+    updateInvite,
   };
 }
 

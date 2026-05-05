@@ -1,4 +1,7 @@
 "use client";
+
+import React from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,13 +22,18 @@ import {
 import { formatDate } from "@/src/lib/utils/date";
 import {
   IconAlertSquareRounded,
+  IconCalendar,
   IconCaretDownFilled,
-  IconCaretUpFilled
+  IconCaretUpFilled,
+  IconChevronRight,
+  IconLockSquareRounded,
+  IconUsers
 } from "@tabler/icons-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import GenerateInviteLink from "./GenerateInviteLink";
 import InviteList from "./InviteList";
+import { Input } from "@/components/ui/input";
 export default function AdminPage() {
   const params = useParams();
   const conversationId = params.conversationId;
@@ -41,120 +49,99 @@ export default function AdminPage() {
 
   if (isSuccess)
     return (
-      <div className="m-2 border border-gray-300 bg-gray-100 rounded-md  p-4 ">
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold">{data?.name}</h2>
+      <div className="m-2 flex flex-col gap-3  rounded-2xl  ">
+        <section className="flex flex-col gap-1 bg-gray-100 p-4  rounded-xl ">
+          <p className="flex items-center gap-1 text-xs text-gray-500 ">
+            <IconCalendar size={14} /> Created {formatDate(data?.createdAt)}
+          </p>
+          <h2 className="text-2xl font-bold">{data?.name}</h2>
           <div>
-            <p>
-              <span className="text-sm text-gray-500 ">Description:</span>
+            <p className="flex  items-center text-sm text-gray-500">
               {data?.description}
-            </p>
-            <p className="text-xs text-gray-500 ">
-              created at : {formatDate(data?.createdAt)}
+              <Button size="xs" variant={'ghost'} className={"rounded-sm"}>
+                modify
+              </Button>
             </p>
           </div>
           <div className="flex gap-2">
-            <div className="border border-gray-300 bg-white py-2 px-3 rounded-md  flex gap-2 items-center">
-              <p>{data?.isPrivate ? "Private" : "Public"}</p>
-              <Button size="xs" className={"rounded-sm"}>
+            <div className=" rounded-md flex items-end gap-4 p-4 bg-white">
+              <span className="flex items-center gap-2 bg-sky-100 p-3 rounded-sm">
+                <IconLockSquareRounded size={24} className="text-blue-500" />
+              </span>
+              <div className="">
+                <span className="text-xs text-gray-400 font-medium">
+                  Access Level
+                </span>
+                <p className=" font-bold">
+                  {data?.isPrivate ? "Invite Only" : "Public"}
+                </p>
+              </div>
+              <Button size="xs" variant={'secondary'} className={"rounded-sm text-blue-600"}>
                 Modify
               </Button>
             </div>
-            <div className="border border-gray-300 bg-white py-2 px-3 rounded-md  flex gap-2 items-center">
-              <p>Max Participants:{data?.maxParticipants}</p>
-              <Button size="xs" className={"rounded-sm"}>
-                Modify
-              </Button>
-            </div>
-            <div className="flex items-end underline py-2 px-3 text-gray-500 hover:text-blue-600">
-              <a href={`/chat/groups/${conversationId}/settings/participants`}>
-                view all participants
-              </a>
-            </div>
-          </div>
-          <div className="separator border border-gray-200 "></div>
-          <GenerateInviteLink conversationId={data?.id} />
-          <InviteList cid={data?.id} />
-          <div className="flex flex-col border p-2 rounded-lg gap-2 w-max bg-gray-50">
-            <Button
-              size="xs"
-              className="rounded-sm w-max"
-              onClick={() => {
-                setMoreActions(!moreActions);
-              }}
-            >
-              {moreActions ? "Hide actions" : "More actions"}
-              {moreActions ? <IconCaretUpFilled /> : <IconCaretDownFilled />}
-            </Button>
 
-            {moreActions && <ControlSection id={parseInt(data?.id)} />}
+            <div className="rounded-md flex items-end gap-4 p-4 bg-white">
+              <span className="flex items-center gap-2 bg-sky-100 p-3 rounded-sm">
+                <IconUsers size={24} className="text-blue-500" />
+              </span>
+              <div className="">
+                <span className="text-xs text-gray-400 font-medium">
+                  Max Participants
+                </span>
+                <p className=" font-bold">
+                  {data?.maxParticipants}
+                </p>
+              </div>
+              <Button size="xs" variant={'secondary'} className={"rounded-sm text-blue-600"}>
+                Modify
+              </Button>
+            </div>
+
+
           </div>
-        </div>
+        </section>
+
+        <section>
+          <Button size={'sm'} variant={'secondary'} className={"group rounded-sm text-blue-700"}>
+            <a href={`/chat/groups/${conversationId}/settings/participants`}
+            >
+              Manage Members
+            </a>
+            <IconChevronRight size={20} className="transition-all inline-block group-hover:ml-2" />
+          </Button>
+          <Button size="sm" variant={'secondary'} className={"rounded-sm text-blue-700 ml-2"}>
+            + Add Member
+          </Button>
+        </section>
+
+        <InviteList cid={data?.id} />
+
+        <section className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div>
+            <h2 className="font-bold text-lg mb-1 text-red-500">Danger Zone</h2>
+            <p className="text-gray-700 text-sm text-wrap">Deleting a group is permanent and cannot be undone. All associated data, including members and logs, will be wiped from the system.</p>
+          </div>
+          <DeleteGroupDialog id={parseInt(data?.id)} name={data?.name} />
+        </section>
       </div>
     );
 }
 
-// function GenerateInviteLink({ cid }: { cid: number }) {
-//   const { data, mutate, isPending, error } = useCreateInvite();
-//   const [copied, setCopied] = useState(false);
 
-//   const handleCopy = async () => {
-//     if (data?.inviteCode) {
-//       try {
-//         await navigator.clipboard.writeText(data.inviteCode);
-//         setCopied(true);
-//       } catch (err) {
-//         console.error("Failed to copy!", err);
-//       }
-//     }
-//   };
+function ModifyDescription() {
+  return (
+    <div>
+      {/*dialog*/}
+    </div>
+  )
+}
 
-//   useEffect(() => {
-//     if (!copied) return;
-
-//     const timer = setTimeout(() => {
-//       setCopied(false);
-//     }, 2000);
-
-//     return () => clearTimeout(timer); // Clean up on unmount or re-render
-//   }, [copied]);
-
-//   return (
-//     <div className="flex flex-col gap-2 ">
-//       <Button
-//         className="w-max rounded-sm"
-//         size="xs"
-//         onClick={() => mutate(cid)}
-//         disabled={isPending}
-//       >
-//         {isPending ? "Generating..." : "Generate Invite Link"}
-//       </Button>
-
-//       {error && <p className="text-red-500 text-sm mt-1">{error.message}</p>}
-
-//       {data?.inviteCode && (
-//         <div className="flex p-2 w-max items-center border border-gray-300 rounded-md hover:outline-2 hover:outline-blue-400">
-//           <p className="text-gray-600 px-2">{data.inviteCode}</p>
-//           <button
-//             type="button"
-//             title="Copy invite link"
-//             onClick={handleCopy}
-//             className="p-2 bg-gray-100 rounded-full hover:bg-blue-500 active:bg-blue-600 hover:text-white"
-//           >
-//             {copied ? (
-//               <IconCircleCheck size={16} className="text-green-500" />
-//             ) : (
-//               <IconCopy size={16} />
-//             )}
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-function ControlSection({ id }: { id: number }) {
+function DeleteGroupDialog({ id, name }: { id: number; name: string }) {
   const router = useRouter();
+
+  const [confirmName, setConfirmName] = useState("");
+
   const { mutate, isPending, error } = useDeleteConversation();
 
   function handleClick() {
@@ -165,25 +152,26 @@ function ControlSection({ id }: { id: number }) {
     });
   }
   return (
-    <div>
-      <AlertDialog>
+    <div className="">
+      <AlertDialog >
         <AlertDialogTrigger
-          render={<Button variant="destructive" className="rounded-sm" />}
+          render={<Button variant="destructive" size='lg' className="rounded-sm bg-red-500 text-white  font-bold" />}
         >
-          <IconAlertSquareRounded size={16} />
           Delete Group
         </AlertDialogTrigger>
-        <AlertDialogContent>
+        <AlertDialogContent className={'rounded-lg'}>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account from our servers.
+              This action cannot be undone. This will permanently delete the group.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <Input
+            placeholder={`Type ${name} to confirm`}
+            value={confirmName} onChange={(e) => setConfirmName(e.target.value)} />
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClick}>
+            <AlertDialogAction onClick={handleClick} disabled={confirmName !== name}>
               {isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>

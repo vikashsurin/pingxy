@@ -18,6 +18,7 @@ export const conversationInvites = table(
       .defaultNow()
       .notNull(),
     expiresAt: t.timestamp("expires_at", { withTimezone: true }), // Removed .notNull() for permanent links
+    revokedAt: t.timestamp("revoked_at", { withTimezone: true }),
     maxUses: t.integer("max_uses"),
     usesCount: t.integer("uses_count").default(0).notNull(),
     createdBy: t

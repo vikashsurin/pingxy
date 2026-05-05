@@ -47,4 +47,14 @@ describe("ConversationInviteRepository", () => {
     console.log("result", result)
     expect(result).toBeDefined()
   })
+
+  it('should update an invite', async () => {
+    const result = await ConversationInviteRepository.update({
+      id: 58,
+      fields: { expiresAt: new Date() }
+    })
+    console.log("result", result)
+    expect(result).toBeDefined()
+  })
+
 });

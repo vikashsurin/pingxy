@@ -5,6 +5,8 @@ import {
   IconCopy,
   IconDotsVertical,
   IconEdit,
+  IconUnlink,
+  IconLink
 } from "@tabler/icons-react";
 
 import {
@@ -19,6 +21,9 @@ import { formatDate } from "@/src/lib/utils/date";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DeleteSelectedInvites from "./DeleteSelectedInvites";
+import GenerateInviteLink from "./GenerateInviteLink";
+import { useRevokeInvite } from "@/src/hooks";
+import { is } from "zod/v4/locales";
 
 export default function InviteList({ cid }: { cid: number }) {
   const { data, isPending, error } = useFetchInvites(cid);
@@ -77,15 +82,16 @@ export default function InviteList({ cid }: { cid: number }) {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 border rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 border rounded-xl overflow-hidden">
       {selectedIds.length > 0 && (
         <DeleteSelectedInvites
           selectedIds={selectedIds}
           clearSelected={clearSelected}
         />
       )}
-      <div className="p-4 bg-white border-b">
+      <div className="p-4 bg-white border-b flex justify-between">
         <h2 className="font-bold text-lg">Manage Invite Codes</h2>
+        <GenerateInviteLink conversationId={cid} />
       </div>
 
       {isPending && <p className="p-4">Loading...</p>}
@@ -106,15 +112,16 @@ export default function InviteList({ cid }: { cid: number }) {
                       selectedIds.length === data.length && data.length > 0
                     }
                     onChange={handleSelectAll}
-                    className="rounded border-gray-300 m-2"
+                    className="rounded border-gray-300 mx-4"
                     title="select all"
                   />
                 </th>
                 <th className="p-3">Code</th>
+                <th className="p-3">Status</th>
                 <th className="p-3 whitespace-nowrap">Created At</th>
-                <th className="p-3 whitespace-nowrap">Expires At</th>
-                <th className="p-3">Uses</th>
-                <th className="p-3">Max Uses</th>
+                <th className="p-3 whitespace-nowrap">Expiry</th>
+                <th className="p-3">Usage</th>
+                {/*<th className="p-3">Max Uses</th>*/}
               </tr>
             </thead>
             <tbody className="text-sm divide-y">
@@ -128,7 +135,7 @@ export default function InviteList({ cid }: { cid: number }) {
                       type="checkbox"
                       checked={selectedIds.includes(invite.id)}
                       onChange={() => handleSelectOne(invite.id)}
-                      className="rounded border-gray-300 m-2"
+                      className="rounded border-gray-300 mx-4"
                       title="select"
                     />
                   </td>
@@ -148,16 +155,18 @@ export default function InviteList({ cid }: { cid: number }) {
                     </div>
                   </td>
                   <td className="p-3 whitespace-nowrap text-gray-600">
+                    {invite.revokedAt ? <RevokedTag />
+                      : invite.expiresAt && new Date(invite.expiresAt) >= new Date() ? <ActiveTag />
+                        : <ExpiredTag />}
+                  </td>
+                  <td className="p-3 whitespace-nowrap text-gray-600">
                     {formatDate(invite.createdAt)}
                   </td>
                   <td className="p-3 whitespace-nowrap text-gray-600">
-                    {formatDate(invite.expiresAt)}
+                    {invite.revokedAt ? 'N/A' : formatDate(invite.expiresAt)}
                   </td>
                   <td className="p-3 text-gray-900 font-medium">
-                    {invite.usesCount}
-                  </td>
-                  <td className="p-3 text-gray-900 font-medium">
-                    {invite.maxUses}
+                    {invite.usesCount}/{invite.maxUses}
                   </td>
                   <td>
                     <ActionMenu id={invite.id} />
@@ -172,10 +181,23 @@ export default function InviteList({ cid }: { cid: number }) {
   );
 }
 
+function ActiveTag() {
+  return <span className="inline-block rounded-sm bg-green-100 px-1.5 py-0.5 text-xs text-green-800">Active</span>;
+}
+
+function ExpiredTag() {
+  return <span className="inline-block rounded-sm bg-red-100 px-1.5 py-0.5 text-xs text-red-800">Expired</span>;
+}
+
+function RevokedTag() {
+  return <span className="inline-block rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-800">Revoked</span>;
+}
+
 function ActionMenu({ id }: { id?: number }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const { mutate, isPending } = useRevokeInvite()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="p-2  rounded-full hover:bg-gray-200 active:bg-gray-300 transition-colors">
@@ -191,6 +213,16 @@ function ActionMenu({ id }: { id?: number }) {
         >
           <IconEdit size={12} />
           Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="rounded-sm text-sm"
+          onClick={() => {
+            if (id)
+              mutate(id);
+          }}
+        >
+          <IconUnlink size={12} />
+          {isPending ? "Revoke..." : "Revoke"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { IconCirclesRelation, IconLink } from "@tabler/icons-react";
+
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -41,7 +43,9 @@ export default function GenerateInviteLink({ conversationId }: { conversationId:
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className={'rounded-md w-max'} render={<Button variant="default" >Generate Invite Code</Button>}>
+      <DialogTrigger className={'rounded-md w-max'} render={<Button variant="default" >
+        <IconLink />
+        Generate Invite Code</Button>}>
       </DialogTrigger>
       <DialogContent >
         <DialogHeader>
@@ -171,7 +175,7 @@ function CreateInviteForm({ conversationId, onSuccess }: { conversationId: numbe
           }}
         </form.Field>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Generating..." : "Generate Invite Link"}
+          {isPending ? "Generating..." : "Generate"}
         </Button>
       </FieldGroup>
     </form>

@@ -18,10 +18,22 @@ function createConversationInviteService() {
     return data;
   };
 
+  const revokeInvite = async ({ id }: { id: number }) => {
+    const data = await conversationInviteApi.revokeInvite({ id });
+    return data;
+  };
+
+  const updateInvite = async ({ id, }: { id: number }) => {
+    // const data = await conversationInviteApi.updateInvite({ inviteId });
+    return null;
+  };
+
   return {
     fetchInvite,
     joinViaInvite,
     deleteInvites,
+    updateInvite,
+    revokeInvite,
   };
 }
 

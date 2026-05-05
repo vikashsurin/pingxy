@@ -6,7 +6,19 @@ export const ConversationInviteService = {
   createInvite: async () => { },
   acceptInvite: async () => { },
   rejectInvite: async () => { },
-  invalidate: async () => { },
+
+  invalidate: async (id: number) => {
+    const invite = await ConversationInviteRepository.update({
+      id,
+      fields: { revokedAt: new Date() },
+    });
+
+    if (invite) {
+      return invite;
+    }
+
+    return null;
+  },
   getInviteById: async (id: number) => {
     const invite = await ConversationInviteRepository.selectById(id);
     return invite;
@@ -39,5 +51,5 @@ export const ConversationInviteService = {
   deleteInvitesByIds: async (ids: number[]) => {
     return await ConversationInviteRepository.deleteInvitesByIds(ids)
   },
-  
+
 };
