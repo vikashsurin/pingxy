@@ -94,6 +94,8 @@ export const messageCreatedSchema = z.object({
       content: true,
       createdAt: true,
       senderId: true,
+    }).extend({
+      attachments: z.array(z.number().int())
     }),
     attachments: z.array(attachmentResponseSchema),
     conversation: z.object({

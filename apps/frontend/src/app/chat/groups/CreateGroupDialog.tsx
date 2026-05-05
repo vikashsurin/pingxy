@@ -1,80 +1,105 @@
-import Primary from "@/src/components/ui/buttons/Primary";
-import Secondary from "@/src/components/ui/buttons/Secondary";
-import Input from "@/src/components/ui/Input";
-import RadioGroup from "@/src/components/ui/RadioGroup";
-import { conversationService } from "@/src/services/conversationService";
-import queryClient from "@/src/lib/queryClient";
-import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { LabeledField } from "@/src/components/forms/LabeledField";
+import { TextFormField } from "@/src/components/forms/TextFormField";
+import { useCreateGroup } from "@/src/hooks";
+import { groupCreateSchema } from "@/src/lib/schema/group";
+import { IconPlus } from "@tabler/icons-react";
+import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 
-export default function CreateGroupDialog({
-  setIsCreateGroupDialogOpen,
-}: {
-  setIsCreateGroupDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
-  const [visibility, setVisibility] = useState("private");
+export default function CreateGroupDialog() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className={' text-white flex gap-2 flex-col py-3 px-4 bg-blue-500 rounded-sm hover:bg-blue-600 transition-colors active:bg-blue-700'}>
+        <IconPlus size={20} />
+        <span className="text-nowrap">Create Group</span>
+      </DialogTrigger>
+      <DialogContent className={'rounded-lg'}>
+        <DialogHeader>
+          <DialogTitle>Create Group</DialogTitle>
+        </DialogHeader>
+        <CreateGroupForm onSuccess={() => setOpen(false)} />
+      </DialogContent >
+    </Dialog >
+  );
+}
 
-  const { mutate, isPending, isError } = useMutation({
-    mutationFn: async (formdata: FormData) => {
-      return await conversationService.createGroup(formdata);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["conversations", "group"],
-      });
-      setIsCreateGroupDialogOpen(false);
-    },
-    onError: () => {},
-  });
 
-  function handleSubmit(formData: FormData) {
-    mutate(formData);
-  }
+function CreateGroupForm({ onSuccess }: { onSuccess: () => void }) {
+  const visibilityOptions = [
+    { id: "private", label: "Private", value: "private" },
+    { id: "public", label: "Public", value: "public" },
+  ]
+
+  const { mutate: createGroup, isPending } = useCreateGroup()
+
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      visibility: "private" as 'private' | 'public',
+      description: '',
+      maxParticipants: 20,
+    },
+    validators: {
+      onSubmit: groupCreateSchema
+
+    }
+    ,
+    onSubmit: async ({ value }) => {
+      createGroup(value, {
+        onSuccess: () => {
+          onSuccess()
+        }
+      })
+    }
+  })
 
   return (
-    <div className="fixed flex items-center justify-center inset-0 bg-gray-900/50 ">
-      <div className="border p-6 rounded-xl bg-gray-100 shadow-xl border-gray-300 min-w-lg min-h-lg flex flex-col gap-4">
-        <h2 className="font-bold text-lg">Create Group</h2>
-        <form action={handleSubmit} className="flex flex-col gap-2">
-          <RadioGroup
-            name="visibility"
-            label="Visibility"
-            value={visibility}
-            onChange={(value) => setVisibility(value)}
-            options={[
-              { id: "private", name: "Private", value: "private" },
-              { id: "public", name: "Public", value: "public" },
-            ]}
-          />
-          <Input name="name" label="Name" type="text" placeholder="name" />
-          <Input
-            name="description"
-            label="Description"
-            type="text"
-            placeholder="description"
-          />
-          <Input
-            name="maxParticipants"
-            label="Max Participants"
-            type="number"
-            max={50}
-            min={2}
-          />
-          <div className="flex gap-2 justify-end">
-            <Secondary
-              label="Cancel"
-              type="button"
-              onClick={() => setIsCreateGroupDialogOpen(false)}
-              disabled={isPending}
-            />
-            <Primary
-              label={isPending ? "Creating..." : "Create"}
-              type="submit"
-              disabled={isPending}
-            />
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
+      <FieldGroup>
+        <form.Field name="visibility">
+          {(field) => {
+            const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted) && !field.state.meta.isValid;
+            return (
+              <LabeledField label="Visibility" name={field.name} isInvalid={isInvalid} errors={field.state.meta.errors}>
+                <RadioGroup name={field.name} value={field.state.value} onValueChange={(v) => field.setValue(v)}>
+                  {visibilityOptions.map((opt) => (
+                    <Field key={opt.id}>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem id={opt.id} value={opt.value} aria-invalid={isInvalid} />
+                        <FieldLabel htmlFor={opt.id}>{opt.label}</FieldLabel>
+                      </div>
+                    </Field>
+                  ))}
+                </RadioGroup>
+              </LabeledField>
+            );
+          }}
+        </form.Field>
+
+        <TextFormField form={form} name="name" label="Name" placeholder="Group name" />
+
+        <TextFormField form={form} name="description" label="Description" placeholder="Group description" />
+
+        <TextFormField form={form} name="maxParticipants" label="Max Participants" type="number" />
+
+        <div className="flex gap-2 justify-end">
+          <DialogClose render={<Button variant={'outline'}>Cancel</Button>}>
+          </DialogClose>
+          <Button type="submit">
+            {isPending ? "Creating..." : "Create"}
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
+  )
 }

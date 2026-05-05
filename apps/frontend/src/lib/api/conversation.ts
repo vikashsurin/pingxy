@@ -175,8 +175,12 @@ function createConversationApi() {
 
   const createInvite = async ({
     conversationId,
+    expiresAt,
+    maxUses,
   }: {
     conversationId: number;
+    expiresAt: string;
+    maxUses: number;
   }) => {
     const url = `${baseUrl}/groups/${conversationId}/invites`;
     const res = await fetch(url, {
@@ -185,6 +189,7 @@ function createConversationApi() {
         "Content-Type": "application/json",
       },
       credentials: "include",
+      body: JSON.stringify({ expiresAt, maxUses }),
     });
     if (!res.ok) {
       console.error("createInvite failed", await res.json());
@@ -216,7 +221,7 @@ function createConversationApi() {
   };
 
   // Leave conversation
-  const leaveGroup = async () => {};
+  const leaveGroup = async () => { };
 
   // Fetch all pariticipants of a conversation
   const fetchParticipants = async ({

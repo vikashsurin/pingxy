@@ -3,7 +3,7 @@ import z from "zod";
 export const loginFormSchema = z.object({
   username: z
     .string()
-    .min(5, "Username must be at least 5 characters long")
+    .min(3, "Username must be at least 3 characters long")
     .max(20, "Username must be at most 20 characters long"),
   password: z
     .string()

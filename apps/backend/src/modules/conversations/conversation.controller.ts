@@ -97,14 +97,24 @@ export const ConversationController = {
   ),
 
   createInvite: factory.createHandlers(
+
     validate("param", z.object({ groupId: z.coerce.number() })),
+
+    validate("json", z.object({
+      expiresAt: z.string(),
+      maxUses: z.coerce.number(),
+    })),
     async (c) => {
       const user = c.get("user");
       const { groupId } = c.req.valid("param");
+      const { expiresAt, maxUses } = c.req.valid("json");
+
 
       const result = await ConversationService.createInvite({
         groupId,
         userId: user.id,
+        expiresAt,
+        maxUses,
       });
       return c.json(result);
     },
@@ -199,7 +209,7 @@ export const ConversationController = {
       const body = c.req.valid("json");
       const user = c.get("user");
 
-      const message = await ConversationService.newSendMessage(body, user);
+      const message = await ConversationService.sendMessage(body, user);
       return c.json({ data: message }, 201);
     },
   ),

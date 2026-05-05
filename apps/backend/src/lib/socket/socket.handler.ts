@@ -16,6 +16,9 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
     ws.subscribe(":server");
     emitUserList();
 
+    ws.subscriptions.forEach((topic) => {
+      console.log(`subscribed to ${topic}`);
+    });
     console.log("opened connection");
   },
 

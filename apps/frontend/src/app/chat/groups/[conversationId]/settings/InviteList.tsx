@@ -13,9 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useFetchInvites } from "@/src/hooks/api/conversations";
 import { copyToClipboard } from "@/src/lib/utils/clipboard";
 import { formatDate } from "@/src/lib/utils/date";
-import { useFetchInvites } from "@/src/hooks/api/conversations";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DeleteSelectedInvites from "./DeleteSelectedInvites";
@@ -114,7 +114,7 @@ export default function InviteList({ cid }: { cid: number }) {
                 <th className="p-3 whitespace-nowrap">Created At</th>
                 <th className="p-3 whitespace-nowrap">Expires At</th>
                 <th className="p-3">Uses</th>
-                <th className="p-3">Max</th>
+                <th className="p-3">Max Uses</th>
               </tr>
             </thead>
             <tbody className="text-sm divide-y">

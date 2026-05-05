@@ -24,6 +24,8 @@ import {
 import {
   createGroupReqSchema,
   createGroupResSchema,
+  createSubscriptionReqSchema,
+  createSubscriptionResSchema,
 } from "../domain/conversation/conversation.schema";
 import {
   updatePartReqSchema,
@@ -58,6 +60,7 @@ export const ClientReqSchema = z.discriminatedUnion("type", [
   updatePartReqSchema,
   reqHeartbeatSchema,
   createGroupReqSchema,
+  createSubscriptionReqSchema
 ]);
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
@@ -75,4 +78,5 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
   updatePartResSchema,
   resHeartbeatSchema,
   createGroupResSchema,
+  createSubscriptionResSchema
 ]);

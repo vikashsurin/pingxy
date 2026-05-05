@@ -1,8 +1,9 @@
 "use client";
 
+import React from "react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConversations } from "@/src/hooks/api/conversations";
 import { useConversationStore } from "@/src/store/conversationStore";
-
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import GroupPageHeader from "./GroupPageHeader";
@@ -70,23 +71,12 @@ const GroupItemCard = ({
     setSelected(String(id));
   }
   return (
-    <div
-      className="border flex flex-col gap-2 border-gray-300 p-4 rounded  aspect-square bg-gray-100 hover:shadow-xl transition-shadow duration-200 ease-in-out hover:bg-gray-50 hover:border-gray-400"
-      onClick={() => handleClick()}
-    >
-      <div className="flex items-center justify-between">
-        <h4 className="font-bold text-xl ">{conv.name}</h4>
-        <p className="text-xs text-gray-400">
-          {conv.isPrivate ? "Private" : "Public"}
-        </p>
-      </div>
-      <p className="text-gray-500 text-sm">
-        {conv.description || "No description"}
-      </p>
-
-      <div className="flex justify-between items-baseline mt-auto">
-        <p className="text-sm">20 Active Now</p>
-      </div>
-    </div>
+    <Card className="rounded-md aspect-square shadow-sm hover:shadow-lg transition-shadow" onClick={() => handleClick()}>
+      <CardHeader>
+        <CardTitle>{conv.name} </CardTitle>
+        <span className="text-xs text-gray-400">{conv.isPrivate ? "Private" : "Public"}</span>
+        <CardDescription>{conv.description}</CardDescription>
+      </CardHeader>
+    </Card>
   );
 };

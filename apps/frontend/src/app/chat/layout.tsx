@@ -1,26 +1,24 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { authApi } from "@/src/lib/api/auth";
-
-import { initializeWebSocket } from "@/src/lib/socket/socket";
+import { initializeWebSocket } from "@/src/socket/socket";
 import { useChatStore } from "@/src/store/chatStore";
 import {
   Group,
   MessagesSquare,
-  Settings,
-  ShieldQuestionMark,
-  Users as UsersIcon,
+  Users as UsersIcon
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import SettingsPage from "./_components/SettingsPage";
+import { useEffect } from "react";
+import SettingsPage from "./[settings]/SettingsPage";
+import { IconHelp } from "@tabler/icons-react";
 
 export default function ChatLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     const socket = initializeWebSocket();
@@ -51,15 +49,9 @@ export default function ChatLayout({
         <CustomLink href="/chat/groups" type="groups" />
         <div aria-label="separator" className="border-t border-gray-400"></div>
         <div className="flex flex-col gap-1 mt-auto">
-          <SidebarItem
-            label="Settings"
-            icon={<Settings size={16} />}
-            onclick={() => setIsSettingsOpen(!isSettingsOpen)}
-          />
-          {isSettingsOpen && (
-            <SettingsPage setIsSettingsOpen={setIsSettingsOpen} />
-          )}
-          <SidebarItem label="Help" icon={<ShieldQuestionMark size={16} />} />
+          <SettingsPage />
+          <Button variant={'secondary'} className="flex justify-start hover:bg-gray-200" > <IconHelp size={20} />Help</Button>
+          {/*<SidebarItem label="Help" icon={<ShieldQuestionMark size={16} />} />*/}
         </div>
         <div className="flex gap-2 items-center w-full px-3 py-1 relative"></div>
       </div>
@@ -84,28 +76,5 @@ function CustomLink({ href, type }: { href: string; type: string }) {
       )}
       {type}
     </Link>
-  );
-}
-
-function SidebarItem({
-  href,
-  label,
-  icon,
-  onclick,
-}: {
-  href?: string;
-  label: string;
-  icon: React.ReactNode;
-  onclick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className="flex items-center gap-2  px-3 py-1 rounded hover:bg-gray-700 hover:text-white transition-colors w-full"
-      onClick={onclick}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }

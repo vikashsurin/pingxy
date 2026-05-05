@@ -18,15 +18,13 @@ export default function Messages({ id }: { id: number }) {
 
   const attachments = useConversationStore((state) => state.attachments);
 
-  console.log({ attachments });
+  // console.log({ attachments })
 
   const users = useUserStore((state) => state.users);
-  console.log({ users });
 
   const allRows = data ? [...data.pages].reverse().flatMap((d) => d.rows) : [];
   const parentRef = useRef<HTMLDivElement>(null);
 
-  console.log({ allRows });
 
   const rowVirtualizer = useVirtualizer({
     count: allRows.length,
@@ -36,7 +34,7 @@ export default function Messages({ id }: { id: number }) {
     // 👇 This is the key for dynamic heights
     measureElement:
       typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
+        navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
   });
@@ -95,16 +93,16 @@ export default function Messages({ id }: { id: number }) {
 function Message({ message, sender }: { message: any; sender: any }) {
   return (
     <div className="px-2 py-2 border-b">
-      <div className="flex  items-center gap-2 ">
-        <span className="font-bold text-xs underline ">
+      <div className="flex  items-center  gap-2 ">
+        <span className="font-bold text-xs ">
           {sender?.username}:{" "}
         </span>
         <div className="flex flex-col gap-2">
-          <span>
-            {message.attachments?.length > 0 && (
-              <RenderAttachment ids={message.attachments} />
-            )}
-          </span>
+
+          {message.attachments?.length > 0 && (
+            <RenderAttachment ids={message.attachments} />
+          )}
+
           <span className="">{message.content}</span>
         </div>
         <span className="text-xs text-gray-400 ml-auto text-nowrap">
@@ -126,7 +124,7 @@ function RenderAttachment({ ids }: { ids: number[] }) {
       {ids.map((id) => {
         const attachment = attachments[id];
         return (
-          <div key={id} className="" onClick={() => {}}>
+          <div key={id} className="" onClick={() => { }}>
             <ImageModal
               fileName={attachment.fileName}
               thumbUrl={attachment.thumbUrl}

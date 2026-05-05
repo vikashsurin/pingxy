@@ -7,6 +7,7 @@ export const conversationInviteRouter = factory.createApp();
 
 conversationInviteRouter.use(authMiddleware)
 
+// create a new Invite
 conversationInviteRouter.post(
   "/",
   ...ConversationIniviteController.createInvite,

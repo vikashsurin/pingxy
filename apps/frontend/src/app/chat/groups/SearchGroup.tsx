@@ -1,10 +1,11 @@
+import { Input } from "@/components/ui/input";
+
 export default function SearchGroup() {
   return (
     <form action="">
-      <input
+      <Input
         type="text"
         placeholder="Search group"
-        className="border border-gray-300 text-sm rounded px-2 py-1 w-full"
       />
     </form>
   );

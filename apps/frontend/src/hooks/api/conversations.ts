@@ -1,3 +1,4 @@
+import { GroupCreateForm } from "@/src/lib/schema/group";
 import { useChatStore } from "@/src/store/chatStore";
 import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
@@ -14,8 +15,12 @@ export const useConversations = (type?: "direct" | "group") => {
 
 export const useCreateInvite = () => {
   return useMutation({
-    mutationFn: (convId: number) =>
-      conversationService.createInvite({ conversationId: convId }),
+    mutationFn: ({ conversationId, expiresAt, maxUses }: { conversationId: number, expiresAt: string, maxUses: number }) =>
+      conversationService.createInvite({
+        conversationId,
+        expiresAt,
+        maxUses
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["conversations", "invites"],
@@ -115,8 +120,22 @@ export function useIsRoomCreator(conversationId: number) {
   const { data: conversation } = useFetchConversation(conversationId);
 
   const authUser = useChatStore((state) => state.authUser);
-
   if (!conversation || !authUser) return false;
 
-  return conversation.creatorId === authUser.id;
+  return conversation.createdBy === authUser.id;
+}
+
+export function useCreateGroup() {
+  return useMutation({
+    mutationFn: async (formdata: GroupCreateForm) => {
+      return await conversationService.createGroup(formdata);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["conversations", "group"],
+      });
+    },
+    onError: () => { },
+  });
+
 }

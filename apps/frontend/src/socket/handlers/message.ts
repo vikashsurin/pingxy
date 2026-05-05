@@ -8,6 +8,6 @@ export const messageHandler: SocketHandlerMap = {
   ) => {
     const payload = data.payload;
 
-    conversationService.handleNewMessage(payload);
+    conversationService.handleIncomingMessage(payload);
   },
 };

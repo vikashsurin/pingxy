@@ -4,8 +4,11 @@ import z from "zod";
 import { createClientReq } from ".";
 import { conversationsApi } from "../lib/api/conversation";
 import queryClient from "../lib/queryClient";
+import { GroupCreateForm } from "../lib/schema/group";
 import { useConversationStore } from "../store/conversationStore";
 import { useUserStore } from "../store/userStore";
+import { send } from "../socket/socket";
+import { AttachmentsMenu } from "../app/chat/AttachmentsMenu";
 
 function createConversationService() {
   const findConversation = async ({ userId }: { userId: number }) => {
@@ -19,10 +22,8 @@ function createConversationService() {
   }: {
     type?: "direct" | "group";
   } = {}) => {
-    console.log("manager called", type);
     const data = await conversationsApi.fetchConversations({ type });
 
-    console.log({ data });
     const { conversations, participants, users } = data;
     for (const conversation of conversations) {
       useConversationStore.getState().upsertConversation(conversation);
@@ -73,9 +74,7 @@ function createConversationService() {
       },
       conversationId: conversationId ?? undefined,
     });
-    console.log({ payload });
     const data = await conversationsApi.sendMessage(payload);
-    console.log({ messageCreated: data });
     return data;
   };
 
@@ -89,6 +88,9 @@ function createConversationService() {
       limit,
       before: beforeId,
     });
+
+
+    console.log({ dataMessages: data })
     const messages = data.entities.messages;
     const attachments = data.entities.attachments;
 
@@ -96,20 +98,28 @@ function createConversationService() {
       useConversationStore.getState().upsertAttachment(attachment);
     }
 
-    console.log({ data, messages, attachments });
     return {
       rows: messages,
       nextCursor: messages.length === limit ? messages[0].id - 1 : undefined,
     };
   };
 
-  const handleNewMessage = (
+  const handleIncomingMessage = (
     payload: ServerEventMap["event:message.created"]["payload"],
   ) => {
     const { message, conversation, attachments, sender } = payload;
 
+    if (attachments.length > 0) {
+      for (const attachment of attachments) {
+        useConversationStore.getState().upsertAttachment(attachment);
+      }
+    }
+
+
+    console.log({ from: message })
+
     queryClient.setQueryData(
-      ["messages", String(message.conversationId)],
+      ["messages", message.conversationId],
       (oldData: any) => {
         // If the cache doesn't exist or isn't an infinite query yet, do nothing
         if (!oldData || !oldData.pages) return oldData;
@@ -145,13 +155,13 @@ function createConversationService() {
     );
   };
 
-  const createGroup = async (formData: FormData) => {
-    const visibility = formData.get("visibility") as string;
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-    const maxParticipants = formData.get("maxParticipants") as string;
+  const createGroup = async (formData: GroupCreateForm) => {
+    // const visibility = formData.get("visibility") as string;
+    // const name = formData.get("name") as string;
+    // const description = formData.get("description") as string;
+    // const maxParticipants = formData.get("maxParticipants") as string;
+    const { visibility, name, description, maxParticipants } = formData;
 
-    console.log({ visibility, name, description, maxParticipants });
 
     if (!visibility || !name || !description || !maxParticipants) return;
 
@@ -159,21 +169,26 @@ function createConversationService() {
       name,
       isPrivate: visibility === "private",
       description,
-      maxParticipants: parseInt(maxParticipants),
+      maxParticipants,
     });
     const data = await conversationsApi.createGroup(payload);
-    console.log({ groupCreated: data });
     return data;
   };
 
   // Create Invite
   const createInvite = async ({
     conversationId,
+    expiresAt,
+    maxUses,
   }: {
     conversationId: number;
+    expiresAt: string;
+    maxUses: number;
   }) => {
-    const data = await conversationsApi.createInvite({ conversationId });
-    console.log({ datafrominvite: data });
+
+
+    const data = await conversationsApi.createInvite({ conversationId, expiresAt: expiresAt, maxUses });
+
     return data;
   };
 
@@ -200,7 +215,6 @@ function createConversationService() {
     conversationId: number;
   }) => {
     const data = await conversationsApi.fetchParticipants({ conversationId });
-    console.log({ dataFromFetchParticipants: data });
     return data;
   };
 
@@ -218,7 +232,29 @@ function createConversationService() {
     return data;
   };
 
-  const leaveGroup = async () => {};
+
+  const subscribe = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    const message = createClientReq(DOMAIN_EVENTS.CONVERSATIONS.SUBSCRIBE, {
+      conversationId,
+    });
+
+    send(message)
+  }
+
+
+  const handleSubscription = async ({
+    conversationId,
+  }: {
+    conversationId: number;
+  }) => {
+    console.log("subscribed", conversationId)
+  };
+
+  const leaveGroup = async () => { };
   return {
     findConversation,
     fetchConversations,
@@ -226,13 +262,15 @@ function createConversationService() {
     deleteConversation,
     createMessage,
     fetchMessages,
-    handleNewMessage,
+    handleIncomingMessage,
     createGroup,
     joinGroup,
     leaveGroup,
     createInvite,
     fetchInvites,
     fetchParticipants,
+    subscribe,
+    handleSubscription,
   };
 }
 

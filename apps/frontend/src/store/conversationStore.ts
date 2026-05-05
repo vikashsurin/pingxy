@@ -76,6 +76,7 @@ export const useConversationStore = create<ConversationState>((set) => ({
       };
     });
   },
+  
   upsertAttachment: (attachment: any) => {
     set((state) => ({
       attachments: {

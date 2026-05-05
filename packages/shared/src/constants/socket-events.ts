@@ -4,6 +4,7 @@ export const DOMAIN_EVENTS = {
     CREATE: "req:conversation.create",
     UPDATE: "req:conversation.update",
     DELETE: "req:conversation.delete",
+    SUBSCRIBE: "req:conversation.subscribe",
   },
   MESSAGES: {
     SENT: "req:message.sent",
@@ -54,6 +55,7 @@ export const SERVER_EVENTS = {
     CREATE: "event:conversation.create",
     UPDATE: "event:conversation.update",
     DELETE: "event:conversation.delete",
+    SUBSCRIBE: "event:conversation.subscribe",
   },
   MESSAGES: {
     SENT: "event:message.sent",

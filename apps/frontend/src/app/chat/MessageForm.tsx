@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import Sending from "@/src/components/Sending";
 import { useSendMessage } from "@/src/hooks/api/conversations";
@@ -104,13 +105,12 @@ export default function MessageForm({
       <AttachmentsMenu setUploads={setUploads} />
 
       <label className="w-full">
-        <input
+        <Input
           type="text"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder={`Message ${recipientName}...`}
-          className="w-full border rounded-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-          disabled={isPending}
+          placeholder={`Message ${recipientName}`}
+          className="bg-white border border-gray-300"
         />
       </label>
       <Button

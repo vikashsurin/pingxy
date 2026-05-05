@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useJoinViaInvite } from "@/src/hooks/api/conversationInvites";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 export default function JoinViaInvite() {
   const { mutate, isPending, isError, error } = useJoinViaInvite();
@@ -12,11 +14,11 @@ export default function JoinViaInvite() {
     <div>
       <p className="font-bold mb-1">Join via invite code</p>
       <form action={handleSubmit} className="flex gap-2">
-        <input
+        <Input
           type="text"
           name="invite-code"
           placeholder="Enter invite code"
-          className="border px-2 py-1 rounded border-gray-300"
+          className="w-max"
         />
 
         <Button
@@ -27,6 +29,9 @@ export default function JoinViaInvite() {
           {isPending ? "Joining..." : "Join"}
         </Button>
       </form>
-    </div>
+      <div>
+        {isError && <p className="flex gap-1 items-center text-xs bg-red-100 text-red-700 rounded-sm px-1.5 py-1 w-max mt-1"><IconAlertCircle size={14} /> {error?.message}</p>}
+      </div>
+    </div >
   );
 }

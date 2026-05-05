@@ -14,8 +14,6 @@ import { useRouter } from "next/navigation";
 export default function Menu({ id }: { id: number }) {
   const isCreator = useIsRoomCreator(id);
 
-  console.log({ iid: id });
-
   const router = useRouter();
   return (
     <DropdownMenu>

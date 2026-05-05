@@ -13,6 +13,8 @@ import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
 import z from "zod";
 import { ConversationRepository } from "./conversation.repository";
+import { createServer } from "tls";
+import { connectionManager } from "@lib/socket/connectionManager";
 
 export const ConversationService = {
   getConversations: async ({
@@ -102,9 +104,13 @@ export const ConversationService = {
   createInvite: async ({
     groupId,
     userId,
+    expiresAt: expiresAtStr,
+    maxUses,
   }: {
     groupId: number;
     userId: number;
+    expiresAt: string;
+    maxUses: number;
   }) => {
     try {
       // Check if the conversation/group exists
@@ -115,16 +121,16 @@ export const ConversationService = {
       }
 
       const inviteCode = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
+      const defaultExpiresAt = new Date();
+      defaultExpiresAt.setHours(defaultExpiresAt.getHours() + 24);
 
       const invite: z.infer<typeof InviteInserSchema> = {
         conversationId: groupId,
         requiresApproval: true,
         inviteCode,
-        maxUses: 50,
+        maxUses: maxUses,
         createdBy: userId,
-        expiresAt,
+        expiresAt: expiresAtStr.length > 0 ? new Date(expiresAtStr) : defaultExpiresAt,
         createdAt: new Date(),
       };
 
@@ -292,7 +298,7 @@ export const ConversationService = {
       throw new Error("Error removing conversation");
     }
   },
-  newSendMessage: async (
+  sendMessage: async (
     body: ClientReqMap[typeof DOMAIN_EVENTS.MESSAGES.CREATE],
     user: User,
   ) => {
@@ -302,9 +308,9 @@ export const ConversationService = {
     const conversation = conversationId
       ? await ConversationRepository.selectById(conversationId)
       : await ConversationService.findOrCreate({
-          currentUserId: user.id,
-          userId: recipient?.id,
-        });
+        currentUserId: user.id,
+        userId: recipient?.id,
+      });
 
     console.log({ conversationId, conversation, message, user, recipient });
 
@@ -350,11 +356,14 @@ export const ConversationService = {
       conversationId: conversation.id,
     });
 
+    const withAttachements = { ...insertedMessage, attachments: [] }
+
     const savedAttachments = await AttachmentService.createAttachment({
       attachments,
       userId: user.id,
       messageId: insertedMessage.id,
     });
+
 
     const attachmentsWithUrls = [];
 
@@ -367,6 +376,7 @@ export const ConversationService = {
         : undefined;
 
       attachmentsWithUrls.push({ ...a, url, thumbUrl });
+      withAttachements.attachments.push(a.id)
     }
 
     // Update unread count
@@ -375,18 +385,41 @@ export const ConversationService = {
       senderId: user.id,
     });
 
+
+    // add attachements ids
+    // const includeAttachments = attachments.length > 0;
+    // // const updatedMessage = includeAttachments
+    // //   ? { ...insertedMessage, attachments:[]  }
+    // //   : insertedMessage;
+    // if()
+
+
+
     const participants =
       await ParticipantService.getParticipantsByConversationId(conversation.id);
 
     const responseEnvelope = createServerEvent(SERVER_EVENTS.MESSAGES.CREATED, {
-      message: insertedMessage,
+      message: withAttachements,
       attachments: attachmentsWithUrls,
       conversation: updatedConversation,
       sender: updatedParticipant,
       participants: participants,
     });
 
+    console.log('dd', responseEnvelope)
+
+    broadcast(SERVER_EVENTS.MESSAGES.CREATED, responseEnvelope);
     return responseEnvelope;
+  },
+
+
+  subscribed: async (conversationId: number) => {
+    const responseEnvelope = createServerEvent(SERVER_EVENTS.CONVERSATIONS.SUBSCRIBE, {
+      conversationId,
+    });
+
+    broadcast(SERVER_EVENTS.CONVERSATIONS.SUBSCRIBE, responseEnvelope)
+
   },
 
   // sendMessage: async (

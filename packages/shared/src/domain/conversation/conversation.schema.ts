@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { DOMAIN_EVENTS } from "../../constants/index";
+import { DOMAIN_EVENTS, SERVER_EVENTS } from "../../constants/index";
 import { conversations } from "./conversation.table";
 
 export const insertConversationSchema = createInsertSchema(conversations);
@@ -44,5 +44,22 @@ export const createGroupResSchema = z.object({
     maxParticipants: z.number().optional(),
     description: z.string().optional(),
     createdBy: z.number(),
+  }),
+});
+
+export const createSubscriptionReqSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(DOMAIN_EVENTS.CONVERSATIONS.SUBSCRIBE),
+  payload: z.object({
+    conversationId: z.number(),
+  }),
+});
+
+
+export const createSubscriptionResSchema = z.object({
+  id: z.uuid(),
+  type: z.literal(SERVER_EVENTS.CONVERSATIONS.SUBSCRIBE),
+  payload: z.object({
+    conversationId: z.number(),
   }),
 });

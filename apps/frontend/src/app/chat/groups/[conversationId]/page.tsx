@@ -2,10 +2,11 @@
 
 import Loading from "@/src/components/Loading";
 import { useFetchParticipants } from "@/src/hooks/api/conversations";
-import { use } from "react";
+import { use, useEffect } from "react";
 import MessageForm from "../../MessageForm";
 import Menu from "./Menu";
 import Messages from "./Messages";
+import { conversationService } from "@/src/services/conversationService";
 
 export default function Page({
   params,
@@ -20,6 +21,10 @@ export default function Page({
 }) {
   const { conversationId } = use(params);
   const { type, name } = use(searchParams);
+
+  useEffect(() => {
+    conversationService.subscribe({ conversationId: Number(conversationId) })
+  });
 
   return (
     <div className="grid grid-cols-[1fr_200px] h-screen">
@@ -50,7 +55,6 @@ export default function Page({
 
 function Members({ id }: { id: string }) {
   const { data, isLoading } = useFetchParticipants(parseInt(id));
-  console.log(data);
 
   return (
     <div className="m-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
