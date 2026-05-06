@@ -27,7 +27,7 @@ export const updatePartReqSchema = z.object({
     conversationId: z.number(),
     lastReadMessageId: z.number().optional(),
     lastDeliveredMessageId: z.number().optional(),
-    senderId: z.number()
+    senderId: z.number(),
   })
 });
 export const updatePartResSchema = z.object({
@@ -41,6 +41,6 @@ export const updatePartResSchema = z.object({
     lastReadAt: z.coerce.date().optional(),
     lastDeliveredMessageId: z.number().optional(),
     lastDeliveredAt: z.coerce.date().optional(),
-    senderId: z.number()
+    senderId: z.number(),
   })
 });

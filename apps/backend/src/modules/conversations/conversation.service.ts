@@ -183,6 +183,7 @@ export const ConversationService = {
       description: payload.description,
       createdAt: new Date(),
       updatedAt: new Date(),
+      maxParticipants: payload.maxParticipants
     };
     const [conversation] = await ConversationRepository.insert(newConversation);
 

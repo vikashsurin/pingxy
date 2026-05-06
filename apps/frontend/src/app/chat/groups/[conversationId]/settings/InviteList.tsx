@@ -5,8 +5,7 @@ import {
   IconCopy,
   IconDotsVertical,
   IconEdit,
-  IconUnlink,
-  IconLink
+  IconUnlink
 } from "@tabler/icons-react";
 
 import {
@@ -15,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useRevokeInvite } from "@/src/hooks";
 import { useFetchInvites } from "@/src/hooks/api/conversations";
 import { copyToClipboard } from "@/src/lib/utils/clipboard";
 import { formatDate } from "@/src/lib/utils/date";
@@ -22,8 +22,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DeleteSelectedInvites from "./DeleteSelectedInvites";
 import GenerateInviteLink from "./GenerateInviteLink";
-import { useRevokeInvite } from "@/src/hooks";
-import { is } from "zod/v4/locales";
+import { truncateUUID } from "@/src/lib/utils/truncateUUID";
 
 export default function InviteList({ cid }: { cid: number }) {
   const { data, isPending, error } = useFetchInvites(cid);
@@ -139,18 +138,17 @@ export default function InviteList({ cid }: { cid: number }) {
                       title="select"
                     />
                   </td>
-                  <td className="  items-center p-3 font-mono text-[10px] break-all text-gray-500 ">
+                  <td className="  items-center p-3  font-sans  break-all text-gray-500 ">
                     <div
-                      // data-value={invite.inviteCode}
                       title="click to copy"
-                      className="flex items-center gap-2 border w-max px-2 py-1 hover:border-gray-500 rounded hover:text-gray-900"
+                      className="flex w-max px-2 rounded items-center gap-2 hover:bg-gray-200"
                       onClick={(e) => handleCopy(e, invite.inviteCode)}
                     >
-                      {invite.inviteCode}
+                      {truncateUUID(invite.inviteCode)}
                       {copiedCode === invite.inviteCode ? (
-                        <IconCircleCheck size={14} className="text-green-500" />
+                        <IconCircleCheck size={16} className="text-green-500" />
                       ) : (
-                        <IconCopy size={14} />
+                        <IconCopy size={16} />
                       )}
                     </div>
                   </td>
@@ -159,14 +157,18 @@ export default function InviteList({ cid }: { cid: number }) {
                       : invite.expiresAt && new Date(invite.expiresAt) >= new Date() ? <ActiveTag />
                         : <ExpiredTag />}
                   </td>
-                  <td className="p-3 whitespace-nowrap text-gray-600">
+                  <td className="p-3 whitespace-nowrap text-xs text-gray-600">
                     {formatDate(invite.createdAt)}
                   </td>
                   <td className="p-3 whitespace-nowrap text-gray-600">
-                    {invite.revokedAt ? 'N/A' : formatDate(invite.expiresAt)}
+                    {invite.revokedAt ?
+                      'N/A'
+                      : <ExpiryCell expiry={invite.expiresAt} />
+                    }
                   </td>
                   <td className="p-3 text-gray-900 font-medium">
-                    {invite.usesCount}/{invite.maxUses}
+                    {/*{invite.usesCount}/{invite.maxUses}*/}
+                    <UsageCell used={invite.usesCount} total={invite.maxUses} />
                   </td>
                   <td>
                     <ActionMenu id={invite.id} />
@@ -191,6 +193,51 @@ function ExpiredTag() {
 
 function RevokedTag() {
   return <span className="inline-block rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-800">Revoked</span>;
+}
+
+
+function ExpiryCell({ expiry }: { expiry: string }) {
+  const expiryDate = new Date(expiry);
+  const now = new Date();
+  const diffInDays = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  const isExpired = diffInDays < 0;
+  const isUrgent = diffInDays <= 3 && !isExpired;
+
+  const formattedDate = formatDate(expiryDate)
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className={`text-sm font-medium ${isExpired ? 'text-destructive' : isUrgent ? 'text-orange-600' : 'text-foreground'
+        }`}>
+        {isExpired ? 'Expired' : diffInDays === 0 ? 'Expires today' : `${diffInDays} days left`}
+      </span>
+      <span className="text-xs text-muted-foreground">
+        {formattedDate}
+      </span>
+    </div>
+  );
+}
+
+
+function UsageCell({ used, total }: { used: number, total: number }) {
+  const percentage = (used / total) * 100;
+  const isNearLimit = percentage > 80;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className={isNearLimit ? "text-orange-600 font-medium" : "text-foreground"}>
+        {used}/{total}
+      </span>
+      {/* Optional: Tiny progress bar */}
+      <div className="h-1 w-16 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${isNearLimit ? 'bg-orange-500' : 'bg-blue-500'}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function ActionMenu({ id }: { id?: number }) {
@@ -225,6 +272,6 @@ function ActionMenu({ id }: { id?: number }) {
           {isPending ? "Revoke..." : "Revoke"}
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+    </DropdownMenu >
   );
 }

@@ -2,11 +2,12 @@
 
 import Loading from "@/src/components/Loading";
 import { useFetchParticipants } from "@/src/hooks/api/conversations";
+import { conversationService } from "@/src/services/conversationService";
 import { use, useEffect } from "react";
 import MessageForm from "../../MessageForm";
 import Menu from "./Menu";
 import Messages from "./Messages";
-import { conversationService } from "@/src/services/conversationService";
+import { Participant } from "@pingxy/shared";
 
 export default function Page({
   params,
@@ -20,7 +21,7 @@ export default function Page({
   }>;
 }) {
   const { conversationId } = use(params);
-  const { type, name } = use(searchParams);
+  const { name } = use(searchParams);
 
   useEffect(() => {
     conversationService.subscribe({ conversationId: Number(conversationId) })
@@ -56,6 +57,8 @@ export default function Page({
 function Members({ id }: { id: string }) {
   const { data, isLoading } = useFetchParticipants(parseInt(id));
 
+  console.log({ data })
+
   return (
     <div className="m-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
       <h2 className="text-sm text-gray-400 px-2">
@@ -63,7 +66,7 @@ function Members({ id }: { id: string }) {
         {isLoading ? <Loading /> : "Members"}
       </h2>
       <ul>
-        {data?.map((participant: any) => (
+        {data?.map((participant: Participant) => (
           <Member key={participant.id} name={participant.username} />
         ))}
       </ul>

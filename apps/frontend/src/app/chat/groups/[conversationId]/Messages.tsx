@@ -93,7 +93,7 @@ export default function Messages({ id }: { id: number }) {
 function Message({ message, sender }: { message: any; sender: any }) {
   return (
     <div className="px-2 py-2 border-b">
-      <div className="flex  items-center  gap-2 ">
+      <div className="flex flex-col  items-start  gap-2 ">
         <span className="font-bold text-xs ">
           {sender?.username}:{" "}
         </span>

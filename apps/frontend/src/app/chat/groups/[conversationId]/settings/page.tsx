@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 
 import {
   AlertDialog,
@@ -14,6 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Loading from "@/src/components/Loading";
 import {
   useDeleteConversation,
@@ -21,19 +21,14 @@ import {
 } from "@/src/hooks/api/conversations";
 import { formatDate } from "@/src/lib/utils/date";
 import {
-  IconAlertSquareRounded,
   IconCalendar,
-  IconCaretDownFilled,
-  IconCaretUpFilled,
   IconChevronRight,
   IconLockSquareRounded,
   IconUsers
 } from "@tabler/icons-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import GenerateInviteLink from "./GenerateInviteLink";
 import InviteList from "./InviteList";
-import { Input } from "@/components/ui/input";
 export default function AdminPage() {
   const params = useParams();
   const conversationId = params.conversationId;
@@ -65,8 +60,8 @@ export default function AdminPage() {
           </div>
           <div className="flex gap-2">
             <div className=" rounded-md flex items-end gap-4 p-4 bg-white">
-              <span className="flex items-center gap-2 bg-sky-100 p-3 rounded-sm">
-                <IconLockSquareRounded size={24} className="text-blue-500" />
+              <span className="flex items-center gap-2 bg-gray-100 p-3 rounded-sm">
+                <IconLockSquareRounded size={24} className="text-gray-500" />
               </span>
               <div className="">
                 <span className="text-xs text-gray-400 font-medium">
@@ -82,8 +77,8 @@ export default function AdminPage() {
             </div>
 
             <div className="rounded-md flex items-end gap-4 p-4 bg-white">
-              <span className="flex items-center gap-2 bg-sky-100 p-3 rounded-sm">
-                <IconUsers size={24} className="text-blue-500" />
+              <span className="flex items-center gap-2 bg-gray-100 p-3 rounded-sm">
+                <IconUsers size={24} className="text-gray-500" />
               </span>
               <div className="">
                 <span className="text-xs text-gray-400 font-medium">
@@ -104,7 +99,7 @@ export default function AdminPage() {
 
         <section>
           <Button size={'sm'} variant={'secondary'} className={"group rounded-sm text-blue-700"}>
-            <a href={`/chat/groups/${conversationId}/settings/participants`}
+            <a href={`/chat/groups/${conversationId}/settings/members`}
             >
               Manage Members
             </a>
@@ -117,10 +112,12 @@ export default function AdminPage() {
 
         <InviteList cid={data?.id} />
 
-        <section className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <div>
-            <h2 className="font-bold text-lg mb-1 text-red-500">Danger Zone</h2>
-            <p className="text-gray-700 text-sm text-wrap">Deleting a group is permanent and cannot be undone. All associated data, including members and logs, will be wiped from the system.</p>
+        <section className="flex items-center gap-3 p-8 bg-red-50 border border-red-200 rounded-xl">
+          <div className="flex flex-col gap-3 ">
+            <h2 className="font-bold text-lg mb-1 text-red-500">
+              Danger Zone
+            </h2>
+            <p className="text-gray-700 text-sm text-wrap ">Deleting a group is permanent and cannot be undone. All associated data, including members and logs, will be wiped from the system.</p>
           </div>
           <DeleteGroupDialog id={parseInt(data?.id)} name={data?.name} />
         </section>

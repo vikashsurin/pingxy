@@ -22,6 +22,7 @@ export const ParticipantRepository = {
 
   update: async ({
     userId,
+    role,
     lastReadMessageId,
     lastDeliveredMessageId,
     conversationId,
@@ -30,6 +31,7 @@ export const ParticipantRepository = {
     tx = db,
   }: {
     userId: number;
+    role?: 'member' | 'moderator';
     conversationId: number;
     lastReadMessageId?: number;
     lastDeliveredMessageId?: number;
@@ -40,6 +42,7 @@ export const ParticipantRepository = {
     return await tx
       .update(participants)
       .set({
+        role: role,
         lastDeliveredAt: lastDeliveredAt,
         lastReadMessageId: lastReadMessageId,
         lastDeliveredMessageId: lastDeliveredMessageId,

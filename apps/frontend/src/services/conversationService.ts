@@ -155,12 +155,7 @@ function createConversationService() {
   };
 
   const createGroup = async (formData: GroupCreateForm) => {
-    // const visibility = formData.get("visibility") as string;
-    // const name = formData.get("name") as string;
-    // const description = formData.get("description") as string;
-    // const maxParticipants = formData.get("maxParticipants") as string;
     const { visibility, name, description, maxParticipants } = formData;
-
 
     if (!visibility || !name || !description || !maxParticipants) return;
 
