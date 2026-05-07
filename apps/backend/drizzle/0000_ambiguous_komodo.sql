@@ -131,7 +131,7 @@ CREATE TABLE "users" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "users_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"type" "userType" DEFAULT 'guest',
 	"email" text,
-	"username" text NOT NULL,
+	"userName" text NOT NULL,
 	"hashed_password" text,
 	"gender" "gender" DEFAULT 'other' NOT NULL,
 	"age" integer DEFAULT 18 NOT NULL,
@@ -142,7 +142,7 @@ CREATE TABLE "users" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
-	CONSTRAINT "users_username_unique" UNIQUE("username")
+	CONSTRAINT "users_username_unique" UNIQUE("userName")
 );
 --> statement-breakpoint
 ALTER TABLE "attachments" ADD CONSTRAINT "attachments_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -199,4 +199,4 @@ CREATE INDEX "sessions_userIdIdx" ON "sessions" USING btree ("user_id");--> stat
 CREATE INDEX "session_expires_atIdx" ON "sessions" USING btree ("expires_at");--> statement-breakpoint
 CREATE INDEX "sessions_ipAddressIdx" ON "sessions" USING btree ("ip_address");--> statement-breakpoint
 CREATE INDEX "session_is_active_lastActivityIdx" ON "sessions" USING btree ("is_active","last_activity");--> statement-breakpoint
-CREATE UNIQUE INDEX "users_usernameIdx" ON "users" USING btree ("username");
+CREATE UNIQUE INDEX "users_usernameIdx" ON "users" USING btree ("userName");

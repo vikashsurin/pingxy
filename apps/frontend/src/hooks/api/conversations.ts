@@ -78,6 +78,8 @@ export const useSendMessage = () => {
       const { payload } = data;
       const { message } = payload;
 
+      console.log("from query fn ", message)
+
       queryClient.invalidateQueries({
         queryKey: ["messages", message.conversationId],
       });

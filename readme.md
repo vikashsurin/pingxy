@@ -7,7 +7,7 @@ To progressively build a chat app with Bun WebSocket, here is a suggested step-b
 
 2. **User Authentication Setup**
    - Decide between simple login or registration first.
-   - Start with a lightweight login system (username only or with password).
+   - Start with a lightweight login system (userName only or with password).
    - Implement basic user registration after the login is functional.
    - Optionally consider sessions or token management for authenticated state.
 

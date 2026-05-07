@@ -12,7 +12,6 @@ import { useUserStore } from "../store/userStore";
 function createConversationService() {
   const findConversation = async ({ userId }: { userId: number }) => {
     const data = await conversationsApi.findConversation({ userId });
-
     return data;
   };
 
@@ -69,7 +68,7 @@ function createConversationService() {
       attachments: attachments,
       recipient: {
         id: recipientId,
-        username: recipientUsername,
+        userName: recipientUsername,
       },
       conversationId: conversationId ?? undefined,
     });

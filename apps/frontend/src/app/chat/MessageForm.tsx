@@ -36,6 +36,9 @@ export default function MessageForm({
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if ((!content.trim() && attachments.length === 0) || isPending) return;
+
+
+    console.log({ content, attachments })
     mutate(
       {
         conversationId,

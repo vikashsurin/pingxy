@@ -14,16 +14,16 @@ const literalNullToUndefined = (val: string) =>
     : val;
 
 export const ConversationController = {
-  initialFetch: factory.createHandlers(
+  getConversations: factory.createHandlers(
     validate("query", z.object({ type: z.enum(["direct", "group"]) })),
     async (c) => {
       const { type } = c.req.valid("query");
-      console.log({ type });
       const user = c.get("user");
       const userId = user.id;
-      // const data = await ConversationService.convAggregation({ userId });
-      //
+
       const data = await ConversationService.getConversations({ userId, type });
+
+      console.log({ dataee: data })
       if (!data) return c.notFound();
       return c.json(data);
     },
@@ -64,26 +64,25 @@ export const ConversationController = {
     async (c) => {
       const data = c.req.valid("json");
       const user = c.get("user");
-      const userId = user.id;
 
-      const result = await ConversationService.createGroup(
-        data.payload,
-        userId,
-      );
+      const result = await ConversationService.createGroup({
+        payload: data.payload,
+        user: user,
+      });
       return c.json(result);
     },
   ),
 
-  joinGroup: factory.createHandlers(
-    validate("param", z.object({ groupId: z.coerce.number() })),
-    async (c) => {
-      const user = c.get("user");
-      const { groupId } = c.req.valid("param");
+  // joinGroup: factory.createHandlers(
+  //   validate("param", z.object({ groupId: z.coerce.number() })),
+  //   async (c) => {
+  //     const user = c.get("user");
+  //     const { groupId } = c.req.valid("param");
 
-      const result = await ConversationService.joinGroup(groupId, user.id);
-      return c.json(result);
-    },
-  ),
+  //     const result = await ConversationService.joinGroup(groupId, user.id);
+  //     return c.json(result);
+  //   },
+  // ),
 
   leaveGroup: factory.createHandlers(
     validate("param", z.object({ groupId: z.coerce.number() })),
@@ -183,7 +182,7 @@ export const ConversationController = {
       return c.json({
         entities: {
           messages: result.entities.messages,
-          attachments: result.entities.attachments,
+          // attachments: result.entities.attachments,
         },
         hasMore: result.entities.messages.length === limit,
       });
@@ -214,14 +213,15 @@ export const ConversationController = {
     },
   ),
 
-  newFindByUid: factory.createHandlers(
+  findByUid: factory.createHandlers(
     validate("query", z.object({ userId: z.coerce.number() })),
     async (c) => {
-      const { id } = c.get("user");
+
+      const user = c.get("user")
       const { userId } = c.req.valid("query");
 
       const result = await ConversationService.newFindByUsers({
-        authUserId: id,
+        authUserId: user.id,
         userId: userId,
       });
       return c.json(result);

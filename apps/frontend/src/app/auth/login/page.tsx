@@ -1,5 +1,6 @@
 "use client";
 
+import buttonStyles from "@/src/_styles/button.module.css";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,7 +19,7 @@ export default function Login() {
   const { mutate, isPending, isSuccess } = useLogin();
   const form = useForm({
     defaultValues: {
-      username: "",
+      userName: "",
       password: "",
     },
     validators: {
@@ -42,7 +43,7 @@ export default function Login() {
         >
           <FieldGroup>
             <form.Field
-              name="username"
+              name="userName"
             >
               {(field) => {
                 const isInvalid =
@@ -58,7 +59,7 @@ export default function Login() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         className="rounded-sm"
-                        placeholder="Enter username"
+                        placeholder="Enter userName"
                       />
                     </Field>
                     {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -96,6 +97,7 @@ export default function Login() {
             <Button type="submit" className={"w-full rounded-sm"} disabled={isPending || isSuccess}>
               {isPending ? "Logging in..." : isSuccess ? "Redirecting..." : "Login"}
             </Button>
+
           </FieldGroup>
         </form>
       </CardContent>

@@ -17,7 +17,7 @@ export const publicUserColumns = publicColumns;
 export const insertUserSchema = createInsertSchema(users);
 
 const BaseUserSchema = z.object({
-  username: z
+  userName: z
     .string()
     .min(MIN_NAME_LENGTH, "Username must be at least 3 characters")
     .max(MAX_NAME_LENGTH, "Username must be at most 16 characters"),

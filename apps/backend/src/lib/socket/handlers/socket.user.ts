@@ -24,7 +24,7 @@ export const emitUserList = async () => {
         id: Number(raw.id),
         age: Number(raw.age),
         email: raw.email || null,
-        username: raw.username,
+        userName: raw.userName,
         country: raw.country,
         bio: raw.bio || null,
         lastSeenAt: raw.lastSeenAt ? new Date(raw.lastSeenAt) : null,

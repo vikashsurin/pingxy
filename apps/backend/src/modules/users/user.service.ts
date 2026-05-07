@@ -6,7 +6,7 @@ export const UserService = {
   createUser: async (newUser: NewUser) => {
     try {
       const [existingUser] = await UserRepository.selectByUsername(
-        newUser.username,
+        newUser.userName,
       );
       if (existingUser) {
         throw new Error("User already exists");
@@ -18,17 +18,17 @@ export const UserService = {
     }
   },
 
-  getUserByUsername: async (username: string) => {
+  getUserByUsername: async (userName: string) => {
     try {
-      return await UserRepository.selectByUsername(username);
+      return await UserRepository.selectByUsername(userName);
     } catch (error) {
       throw new HTTPException(404, { message: "User not found" });
     }
   },
 
-  getAuthUserByUsername: async (username: string) => {
+  getAuthUserByUsername: async (userName: string) => {
     try {
-      const [result] = await UserRepository.selectForAuth(username);
+      const [result] = await UserRepository.selectForAuth(userName);
 
       if (!result) {
         throw new Error("User not found");
@@ -36,7 +36,7 @@ export const UserService = {
       return result;
     } catch (error) {
       console.error(error);
-      throw new Error("Error getting user by username");
+      throw new Error("Error getting user by userName");
     }
   },
   getUserById: async (id: number) => {

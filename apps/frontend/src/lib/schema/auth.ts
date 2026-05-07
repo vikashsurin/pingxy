@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const loginFormSchema = z.object({
-  username: z
+  userName: z
     .string()
     .min(3, "Username must be at least 3 characters long")
     .max(20, "Username must be at most 20 characters long"),
@@ -13,7 +13,7 @@ export const loginFormSchema = z.object({
 
 
 export const registerFormSchema = z.object({
-  username: z
+  userName: z
     .string()
     .min(3, "Username must be at least 3 characters long")
     .max(20, "Username must be at most 20 characters long"),
@@ -44,7 +44,7 @@ export const registerFormSchema = z.object({
 })
 
 export const guestFormSchema = z.object({
-  username: z
+  userName: z
     .string()
     .min(3, "Username must be at least 3 characters long")
     .max(20, "Username must be at most 20 characters long"),

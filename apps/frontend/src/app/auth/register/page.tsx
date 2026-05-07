@@ -40,7 +40,7 @@ export default function Register() {
 
   const form = useForm({
     defaultValues: {
-      username: "",
+      userName: "",
       password: "",
       confirmPassword: "",
       gender: "",
@@ -68,7 +68,7 @@ export default function Register() {
         }}>
 
           <FieldGroup>
-            <form.Field name="username">
+            <form.Field name="userName">
               {(field) => {
                 const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
                   && !field.state.meta.isValid;
@@ -85,7 +85,7 @@ export default function Register() {
                         type="text"
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="username"
+                        placeholder="userName"
                       />
                     </Field>
                     {isInvalid && <FieldError errors={field.state.meta.errors} />}

@@ -1826,8 +1826,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "username": {
-          "name": "username",
+        "userName": {
+          "name": "userName",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1892,7 +1892,7 @@
           "name": "users_usernameIdx",
           "columns": [
             {
-              "expression": "username",
+              "expression": "userName",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1918,7 +1918,7 @@
           "name": "users_username_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "username"
+            "userName"
           ]
         }
       },

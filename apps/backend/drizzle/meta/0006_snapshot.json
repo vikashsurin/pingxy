@@ -1,6 +1,6 @@
 {
-  "id": "fe77ad76-154d-4998-ad35-a348d5e3eaa7",
-  "prevId": "4b50b017-c660-4e3c-9765-d2a252f9bd66",
+  "id": "a5eb41ef-a6da-469f-8b0a-c1734297c9e0",
+  "prevId": "fe77ad76-154d-4998-ad35-a348d5e3eaa7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1210,6 +1210,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "user_name": {
+          "name": "user_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "role": {
           "name": "role",
           "type": "role",
@@ -1832,8 +1838,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "userName": {
-          "name": "userName",
+        "user_name": {
+          "name": "user_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1898,7 +1904,7 @@
           "name": "users_usernameIdx",
           "columns": [
             {
-              "expression": "userName",
+              "expression": "user_name",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1920,11 +1926,11 @@
             "email"
           ]
         },
-        "users_username_unique": {
-          "name": "users_username_unique",
+        "users_userName_unique": {
+          "name": "users_userName_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "userName"
+            "user_name"
           ]
         }
       },

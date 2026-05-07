@@ -60,6 +60,7 @@ export const ParticipantRepository = {
         unreadCount: participants.unreadCount,
         conversationId: participants.conversationId,
         userId: participants.userId,
+        userName: participants.userName,
         lastReadMessageId: participants.lastReadMessageId,
         lastReadAt: participants.lastReadAt,
         lastDeliveredMessageId: participants.lastDeliveredMessageId,
@@ -129,7 +130,7 @@ export const ParticipantRepository = {
         notificationSettings: participants.notificationSettings,
         isDeleted: participants.isDeleted,
         deletedAt: participants.deletedAt,
-        username: users.username,
+        userName: users.userName,
       })
       .from(participants)
       .innerJoin(users, eq(participants.userId, users.id))
@@ -163,7 +164,7 @@ export const ParticipantRepository = {
   //       // user: {
   //       //   id: u.id,
   //       //   type: u.type,
-  //       //   username: u.username,
+  //       //   userName: u.userName,
   //       //   email: u.email,
   //       //   age: u.age,
   //       //   gender: u.gender,
@@ -216,7 +217,7 @@ export const ParticipantRepository = {
         joinedAt: participants.joinedAt,
         leftAt: participants.leftAt,
         isActive: participants.isActive,
-        username: users.username,
+        userName: users.userName,
         gender: users.gender,
         age: users.age,
         country: users.country,

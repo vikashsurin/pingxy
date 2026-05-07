@@ -11,6 +11,7 @@ export const participantSelectSchema = createSelectSchema(participants, {
   id: true,
   role: true,
   userId: true,
+  userName: true,
   conversationId: true,
   lastDeliveredAt: true,
   lastDeliveredMessageId: true,

@@ -7,13 +7,13 @@ function createAuthApi() {
   const baseUrl = "http://localhost/api/auth";
 
   async function login(formData: z.infer<typeof loginFormSchema>) {
-    const username = formData.username;
+    const userName = formData.userName;
     const password = formData.password;
 
-    console.log("username, password", username, password)
+    console.log("userName, password", userName, password)
 
-    if (!username || !password) {
-      return new Response("Please enter a username and password", {
+    if (!userName || !password) {
+      return new Response("Please enter a userName and password", {
         status: 400,
       });
     }
@@ -24,7 +24,7 @@ function createAuthApi() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ userName, password }),
     });
 
     if (!res.ok) {
@@ -47,7 +47,7 @@ function createAuthApi() {
   }
 
   const register = async (formData: z.infer<typeof registerFormSchema>) => {
-    const username = formData.username;
+    const userName = formData.userName;
     const password = formData.password;
     const confirmPassword = formData.confirmPassword;
     const age = formData.age;
@@ -55,7 +55,7 @@ function createAuthApi() {
     const country = formData.country;
 
     console.log({
-      username,
+      userName,
       password,
       confirmPassword,
       age,
@@ -70,7 +70,7 @@ function createAuthApi() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username,
+        userName,
         password,
         confirmPassword,
         age,

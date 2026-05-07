@@ -38,7 +38,7 @@ export default function Page({ }) {
                 key={participant.id}
                 className="flex items-center gap-2 py-2 px-3 hover:bg-gray-200  border-b"
               >
-                <span>{participant.username}</span>
+                <span>{participant.userName}</span>
                 <span className="text-xs text-gray-400">{participant.role}</span>
                 <div className="ml-auto">
                   <ManageRoleDialog
@@ -46,7 +46,7 @@ export default function Page({ }) {
                     conversationId={participant.conversationId}
                     userId={participant.userId}
                     role={participant.role}
-                    name={participant.username}
+                    name={participant.userName}
                   />
                   <RemoveParticipantDialog />
                 </div>

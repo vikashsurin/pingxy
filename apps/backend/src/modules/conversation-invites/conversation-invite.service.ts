@@ -1,7 +1,7 @@
 import { ParticipantRepository } from "@modules/participants/participant.repository";
 import { ParticipantInsertType } from "@pingxy/shared/types";
 import { ConversationInviteRepository } from "./conversation-invite.repository";
-
+import type { User } from "@pingxy/shared/types";
 export const ConversationInviteService = {
   createInvite: async () => { },
   acceptInvite: async () => { },
@@ -24,7 +24,7 @@ export const ConversationInviteService = {
     return invite;
   },
 
-  joinViaInvite: async ({ invitecode, userId }: { invitecode: string; userId: number }) => {
+  joinViaInvite: async ({ invitecode, user }: { invitecode: string; user: User }) => {
     const invite = await ConversationInviteRepository.selectByCode(invitecode);
 
     if (!invite) {
@@ -33,7 +33,8 @@ export const ConversationInviteService = {
     const conversationId = invite.conversationId
     const participantData: ParticipantInsertType = {
       conversationId,
-      userId,
+      userId: user.id,
+      userName: user.userName,
       role: 'member' as const,
       joinedAt: new Date(),
     }

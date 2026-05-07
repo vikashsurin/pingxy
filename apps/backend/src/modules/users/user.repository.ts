@@ -24,17 +24,17 @@ export const UserRepository = {
       .where(eq(users.id, id));
   },
 
-  selectForAuth: async (username: string) => {
-    return await db.select().from(users).where(eq(users.username, username));
+  selectForAuth: async (userName: string) => {
+    return await db.select().from(users).where(eq(users.userName, userName));
   },
 
-  selectByUsername: async (username: string) => {
+  selectByUsername: async (userName: string) => {
     return await db
       .select({
         ...safeUserColumns
       })
       .from(users)
-      .where(eq(users.username, username));
+      .where(eq(users.userName, userName));
   },
 
   selectManyByIds: async ({

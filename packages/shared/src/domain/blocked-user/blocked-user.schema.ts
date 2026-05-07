@@ -13,7 +13,7 @@ export const blockedUserSelectSchema = createSelectSchema(blockedUsers, {
 
 export const blockedUserInfoSchema = z.object({
   id: z.number(),
-  username: z.string(),
+  userName: z.string(),
   block: blockedUserSelectSchema.extend({ blockedAt: z.coerce.date() }),
 });
 

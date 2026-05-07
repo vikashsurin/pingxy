@@ -31,12 +31,12 @@ function Users() {
         {userIds.map((id) => (
           <li key={id}>
             <Link
-              href={`/chat/users/${id}?type=user&name=${users[id]?.username}`}
+              href={`/chat/users/${id}?type=user&name=${users[id]?.userName}`}
               className={`block px-3 py-1 rounded  
                 ${selectedId === id && "bg-blue-100 text-blue-600  border-blue-300"} hover:bg-blue-100 `}
               onClick={() => setSelected(id)}
             >
-              {users[id]?.username}
+              {users[id]?.userName}
             </Link>
           </li>
         ))}

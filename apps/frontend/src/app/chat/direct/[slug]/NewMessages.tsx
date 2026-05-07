@@ -2,16 +2,10 @@ import Loading from "@/src/components/Loading";
 import { useMessages } from "@/src/hooks/api/conversations";
 import { useUserStore } from "@/src/store/userStore";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Check, CheckCheck } from "lucide-react";
 import { useRef } from "react";
+// import { ImageModal } from "./ImageModal";
 
-export default function Messages({
-  id,
-  participant,
-}: {
-  id: number;
-  participant: any;
-}) {
+export default function Messages({ id }: { id: number }) {
   const {
     status,
     data,
@@ -21,8 +15,11 @@ export default function Messages({
     hasNextPage,
   } = useMessages(id);
 
+  // const attachments = useConversationStore((state) => state.attachments);
+
+  // console.log({ attachments })
+
   const users = useUserStore((state) => state.users);
-  console.log({ users });
 
   const allRows = data ? [...data.pages].reverse().flatMap((d) => d.rows) : [];
   const parentRef = useRef<HTMLDivElement>(null);
@@ -79,11 +76,7 @@ export default function Messages({
               }}
             >
               {message ? (
-                <Message
-                  message={message}
-                  sender={users[message.senderId]}
-                  participant={participant}
-                />
+                <Message message={message} sender={users[message.senderId]} />
               ) : (
                 <div>No messages yet</div>
               )}
@@ -95,58 +88,45 @@ export default function Messages({
   );
 }
 
-function Message({
-  message,
-  sender,
-  participant,
-}: {
-  message: any;
-  sender: any;
-  participant: any;
-}) {
+function Message({ message, sender }: { message: any; sender: any }) {
   return (
     <div className="px-2 py-2 border-b">
-      <div className="flex  items-center gap-2 ">
-        <span className="font-bold text-xs underline ">
-          {sender?.username}:{" "}
-        </span>
-        <span className="">{message.content}</span>
-        <div className="flex ml-auto items-center gap-1">
-          <span>
-            <CheckMark
-              messageId={message.id}
-              lastReadMessageId={participant?.lastReadMessageId}
-              lastDeliveredMessageId={participant?.lastDeliveredMessageId}
-            />
-          </span>
-          <span className="text-xs text-gray-400  text-nowrap">
-            {new Date(message.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </span>
+      <div className="flex flex-col  items-start  gap-2 ">
+        <span className="font-bold text-xs ">{sender?.userName}: </span>
+        <div className="flex flex-col gap-2">
+          {message.attachments?.length > 0 && (
+            <MessageAttachments attachments={message.attachments} />
+          )}
+
+          <span className="">{message.content}</span>
         </div>
+        <span className="text-xs text-gray-400 ml-auto text-nowrap">
+          {new Date(message.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })}
+        </span>
       </div>
     </div>
   );
 }
 
-function CheckMark({
-  messageId,
-  lastReadMessageId,
-  lastDeliveredMessageId,
-}: {
-  messageId: number;
-  lastReadMessageId: number;
-  lastDeliveredMessageId: number;
-}) {
-  switch (true) {
-    case lastReadMessageId >= messageId:
-      return <CheckCheck size={12} className="text-blue-500" />;
-    case lastDeliveredMessageId >= messageId:
-      return <CheckCheck size={12} className="text-gray-500" />;
-    default:
-      return <Check size={12} className="text-gray-500" />;
-  }
+function MessageAttachments({ attachments }: { attachments: any[] }) {
+  if (attachments.length === 0) return null;
+
+  return (
+    <div className="images flex border p-1 gap-1 rounded-lg bg-blue-200 w-max">
+      {attachments.map((file) => (
+        <div key={file.id}>{file.fileName}</div>
+        // <ImageModal
+        //   key={file.id}
+        //   fileName={file.fileName}
+        //   thumbUrl={file.thumbUrl}
+        //   url={file.url}
+        //   alt={`Attachment ${file.id}`}
+        // />
+      ))}
+    </div>
+  );
 }

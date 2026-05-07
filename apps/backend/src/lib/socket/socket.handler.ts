@@ -9,7 +9,7 @@ export const socketHandler: WebSocketHandler<WebSocketData> = {
   data: {} as WebSocketData,
   async open(ws) {
     const user = ws.data.user;
-    console.info(`${user.username} joined`);
+    console.info(`${user.userName} joined`);
 
     await connectionManager.connect(user.id, ws);
     ws.subscribe(`inbox:${user.id}`);

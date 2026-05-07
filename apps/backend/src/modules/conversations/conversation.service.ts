@@ -12,6 +12,7 @@ import { ClientReqMap, User } from "@pingxy/shared/types";
 import { HTTPException } from "hono/http-exception";
 import z from "zod";
 import { ConversationRepository } from "./conversation.repository";
+import { UserService } from "@modules/users";
 
 export const ConversationService = {
   getConversations: async ({
@@ -71,24 +72,24 @@ export const ConversationService = {
     }
   },
 
-  joinGroup: async (groupId: number, userId: number) => {
-    try {
-      const participant = await ParticipantRepository.insertParticipant({
-        conversationId: groupId,
-        userId,
-        role: "member",
-      });
+  // joinGroup: async (groupId: number, userId: number) => {
+  //   try {
+  //     const participant = await ParticipantRepository.insertParticipant({
+  //       conversationId: groupId,
+  //       userId,
+  //       role: "member",
+  //     });
 
-      if (!participant) {
-        throw new Error("Error joining group");
-      }
+  //     if (!participant) {
+  //       throw new Error("Error joining group");
+  //     }
 
-      return participant;
-    } catch (error) {
-      console.error("Error joining group:", error);
-      throw new Error("Error joining group");
-    }
-  },
+  //     return participant;
+  //   } catch (error) {
+  //     console.error("Error joining group:", error);
+  //     throw new Error("Error joining group");
+  //   }
+  // },
 
   leaveGroup: async (groupId: number, userId: number) => {
     try {
@@ -170,16 +171,18 @@ export const ConversationService = {
     }
   },
 
-  createGroup: async (
-    payload: z.infer<typeof createGroupReqSchema>["payload"],
-    userId: number,
-  ) => {
-    console.log({ payload, userId });
+  createGroup: async ({
+    payload,
+    user }: {
+      payload: z.infer<typeof createGroupReqSchema>["payload"],
+      user: User
+    }) => {
+
     const newConversation = {
       type: "group" as const,
       name: payload.name,
       isPrivate: payload.isPrivate,
-      createdBy: userId,
+      createdBy: user.id,
       description: payload.description,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -189,7 +192,8 @@ export const ConversationService = {
 
     const participant = await ParticipantRepository.insertParticipant({
       conversationId: conversation.id,
-      userId,
+      userId: user.id,
+      userName: user.userName,
       joinedAt: new Date(),
       role: "admin" as const,
     });
@@ -317,10 +321,16 @@ export const ConversationService = {
         return null;
       }
 
+      // TODO: inclue recipient userName in message payload
+      // or improve current implement i.e fetch user details via uid
+      const user2 = await UserService.getUserById(recipient.id)
+
       await ParticipantService.create({
         conversationId: conversation.id,
         user1Id: user.id,
+        user1Name: user.userName,
         user2Id: recipient.id,
+        user2Name: user2.userName,
       });
     } else {
       const isParticipant = await ParticipantService.isParticipant({

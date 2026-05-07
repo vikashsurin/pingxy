@@ -13,11 +13,15 @@ export const ParticipantService = {
   create: async ({
     conversationId,
     user1Id,
+    user1Name,
     user2Id,
+    user2Name,
   }: {
     conversationId: number;
     user1Id: number;
+    user1Name: string;
     user2Id: number;
+    user2Name: string;
   }) => {
     try {
       return await db.transaction(async (tx) => {
@@ -25,6 +29,7 @@ export const ParticipantService = {
           {
             conversationId,
             userId: user1Id,
+            userName: user1Name,
             role: "member",
             joinedAt: new Date(Date.now()),
             isActive: true,
@@ -35,6 +40,7 @@ export const ParticipantService = {
           {
             conversationId,
             userId: user2Id,
+            userName: user2Name,
             role: "member",
             joinedAt: new Date(Date.now()),
             isActive: true,

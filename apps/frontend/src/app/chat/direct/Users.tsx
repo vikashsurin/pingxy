@@ -18,7 +18,8 @@ export default function Users() {
   const [selectedId, setSelected] = useState<string | undefined>(undefined);
 
   async function handleClick(userId: string) {
-    setSelected(userId);
+    // setSelected(userId);
+    console.log("userId", userId);
     const data = await conversationService.findConversation({
       userId: Number(userId),
     });
@@ -26,7 +27,7 @@ export default function Users() {
     if (data) {
       const meta = cps.get(data.id);
       const op = meta?.find((item) => item.uid !== authUser.id);
-      const otherUsername = users[op?.uid]?.username;
+      const otherUsername = users[op?.uid]?.userName;
 
       console.log("{ op, otherUsername , userId}", {
         op,
@@ -36,11 +37,11 @@ export default function Users() {
 
       // ✅ navigate directly, no useEffect needed
       router.push(
-        `/chat/chats/${data.id}?type=conversation&pid=${op?.pid}&uid=${op?.uid}&name=${otherUsername}`,
+        `/chat/direct/${data.id}?type=conversation&pid=${op?.pid}&uid=${op?.uid}&name=${otherUsername}`,
       );
     } else {
       router.push(
-        `/chat/chats/${userId}?type=newConversation&uid=${userId}&name=${users[userId]?.username}`,
+        `/chat/direct/${userId}?type=newConversation&uid=${userId}&name=${users[userId]?.userName}`,
       );
       console.log(
         "No existing conversation — handle new conversation flow here",
@@ -66,7 +67,7 @@ export default function Users() {
                 ${selectedId === id ? "bg-blue-100 text-blue-600 border-blue-300" : ""}`}
               onClick={() => handleClick(id)}
             >
-              {users[id]?.username}
+              {users[id]?.userName}
             </button>
           </li>
         ))}

@@ -16,7 +16,7 @@ export const users = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     type: userTypeEnum().default("guest").notNull(),
     email: t.text().unique(),
-    username: t.text().notNull().unique(),
+    userName: t.text().notNull().unique(),
     hashedPassword: t.text(),
     gender: genderEnum().notNull().default("other"),
     age: t.integer().notNull().default(18),
@@ -30,5 +30,5 @@ export const users = table(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [t.uniqueIndex("users_usernameIdx").on(table.username)],
+  (table) => [t.uniqueIndex("users_usernameIdx").on(table.userName)],
 );

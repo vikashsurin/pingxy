@@ -99,7 +99,7 @@ export default function AdminPage() {
 
         <section>
           <Button size={'sm'} variant={'secondary'} className={"group rounded-sm text-blue-700"}>
-            <a href={`/chat/groups/${conversationId}/settings/members`}
+            <a href={`/chat/group/${conversationId}/settings/members`}
             >
               Manage Members
             </a>

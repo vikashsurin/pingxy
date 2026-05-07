@@ -6,8 +6,11 @@ export const conversationRouter = factory.createApp();
 
 conversationRouter.use(authMiddleware);
 
+// Find a conversation with a given user id
+conversationRouter.get("/find", ...ConversationController.findByUid);
+
 // /api/conversations?type=direct|group
-conversationRouter.get("/", ...ConversationController.initialFetch);
+conversationRouter.get("/", ...ConversationController.getConversations);
 
 // Delete a conversation
 // /api/conversations/:conversationId
@@ -45,12 +48,13 @@ conversationRouter.get(
 
 // GET a conversation by user id
 // url /conversations/find?userId=
-conversationRouter.get(
-  "/find",
-  ...ConversationController.findConversationByUserId,
-);
+// conversationRouter.get(
+//   "/find",
+//   ...ConversationController.findConversationByUserId,
+// );
 
-conversationRouter.get("/new-find", ...ConversationController.newFindByUid);
+
+
 
 // POST create a new group
 conversationRouter.post("/groups", ...ConversationController.createGroup);

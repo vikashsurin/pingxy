@@ -18,11 +18,11 @@ export default function GroupItemCard({
   const conv = useConversationStore((state) => state.conversations[Number(id)]);
   const authUser = useChatStore(state => state.authUser)
   function handleClick() {
-    router.push(`/chat/groups/${id}?name=${conv.name}`);
+    router.push(`/chat/group/${id}?name=${conv.name}`);
   }
 
   function handleSettings() {
-    router.push(`/chat/groups/${id}/settings`)
+    router.push(`/chat/group/${id}/settings`)
   }
 
 

@@ -1,13 +1,11 @@
 "use client";
 
-import Loading from "@/src/components/Loading";
-import { useFetchParticipants } from "@/src/hooks/api/conversations";
 import { conversationService } from "@/src/services/conversationService";
 import { use, useEffect } from "react";
 import MessageForm from "../../MessageForm";
+import Members from "./Members";
 import Menu from "./Menu";
 import Messages from "./Messages";
-import { Participant } from "@pingxy/shared";
 
 export default function Page({
   params,
@@ -51,33 +49,5 @@ export default function Page({
         <Members id={conversationId} />
       </section>
     </div>
-  );
-}
-
-function Members({ id }: { id: string }) {
-  const { data, isLoading } = useFetchParticipants(parseInt(id));
-
-  console.log({ data })
-
-  return (
-    <div className="m-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
-      <h2 className="text-sm text-gray-400 px-2">
-        {" "}
-        {isLoading ? <Loading /> : "Members"}
-      </h2>
-      <ul>
-        {data?.map((participant: Participant) => (
-          <Member key={participant.id} name={participant.username} />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function Member({ name }: { name: string }) {
-  return (
-    <li className=" text-sm py-1  px-2">
-      <span>{name}</span>
-    </li>
   );
 }

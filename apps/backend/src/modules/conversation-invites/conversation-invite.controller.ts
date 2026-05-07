@@ -43,7 +43,7 @@ export const ConversationIniviteController = {
     async (c) => {
       const { invitecode } = c.req.valid('param');
       const user = c.get("user")
-      const result = await ConversationInviteService.joinViaInvite({ invitecode, userId: user.id });
+      const result = await ConversationInviteService.joinViaInvite({ invitecode, user });
 
       return c.json(result)
     }),

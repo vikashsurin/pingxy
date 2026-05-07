@@ -1,6 +1,5 @@
 import Loading from "@/src/components/Loading";
 import { useMessages } from "@/src/hooks/api/conversations";
-import { useConversationStore } from "@/src/store/conversationStore";
 import { useUserStore } from "@/src/store/userStore";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
@@ -25,7 +24,6 @@ export default function Messages({ id }: { id: number }) {
   const allRows = data ? [...data.pages].reverse().flatMap((d) => d.rows) : [];
   const parentRef = useRef<HTMLDivElement>(null);
 
-
   const rowVirtualizer = useVirtualizer({
     count: allRows.length,
     getScrollElement: () => parentRef.current,
@@ -34,7 +32,7 @@ export default function Messages({ id }: { id: number }) {
     // 👇 This is the key for dynamic heights
     measureElement:
       typeof window !== "undefined" &&
-        navigator.userAgent.indexOf("Firefox") === -1
+      navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
   });
@@ -94,11 +92,8 @@ function Message({ message, sender }: { message: any; sender: any }) {
   return (
     <div className="px-2 py-2 border-b">
       <div className="flex flex-col  items-start  gap-2 ">
-        <span className="font-bold text-xs ">
-          {sender?.username}:{" "}
-        </span>
+        <span className="font-bold text-xs ">{sender?.userName}: </span>
         <div className="flex flex-col gap-2">
-
           {message.attachments?.length > 0 && (
             <MessageAttachments attachments={message.attachments} />
           )}
@@ -118,19 +113,11 @@ function Message({ message, sender }: { message: any; sender: any }) {
 }
 
 function MessageAttachments({ attachments }: { attachments: any[] }) {
-  // useShallow performs a shallow equality check on the mapped array
-  // const attachments = useConversationStore(
-  //   useShallow((state) => ids.map(id => state.attachments[id]).filter(Boolean))
-  // );
-
-
-  console.log({ attachemtnssdfsdf: attachments })
-
   if (attachments.length === 0) return null;
 
   return (
     <div className="images flex border p-1 gap-1 rounded-lg bg-blue-200 w-max">
-      {attachments.map(file => (
+      {attachments.map((file) => (
         <ImageModal
           key={file.id}
           fileName={file.fileName}

@@ -4,11 +4,7 @@ import { Button } from "@/components/ui/button";
 import { authApi } from "@/src/lib/api/auth";
 import { initializeWebSocket } from "@/src/socket/socket";
 import { useChatStore } from "@/src/store/chatStore";
-import {
-  Group,
-  MessagesSquare,
-  Users as UsersIcon
-} from "lucide-react";
+import { Group, MessagesSquare, Users as UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 import SettingsPage from "./[settings]/SettingsPage";
@@ -19,7 +15,6 @@ export default function ChatLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   useEffect(() => {
     const socket = initializeWebSocket();
 
@@ -45,12 +40,19 @@ export default function ChatLayout({
     <section className="grid grid-cols-[200px_1fr] h-screen ">
       <div className="flex flex-col  bg-gray-100 gap-1  p-2 m-2 rounded-lg border border-slate-300 ">
         {/* <CustomLink href="/chat/users" type="users" /> */}
-        <CustomLink href="/chat/chats" type="chats" />
-        <CustomLink href="/chat/groups" type="groups" />
+        <CustomLink href="/chat/direct" type="direct" />
+        <CustomLink href="/chat/group" type="group" />
         <div aria-label="separator" className="border-t border-gray-400"></div>
         <div className="flex flex-col gap-1 mt-auto">
           <SettingsPage />
-          <Button variant={'secondary'} className="flex justify-start hover:bg-gray-200" > <IconHelp size={20} />Help</Button>
+          <Button
+            variant={"secondary"}
+            className="flex justify-start hover:bg-gray-200"
+          >
+            {" "}
+            <IconHelp size={20} />
+            Help
+          </Button>
           {/*<SidebarItem label="Help" icon={<ShieldQuestionMark size={16} />} />*/}
         </div>
         <div className="flex gap-2 items-center w-full px-3 py-1 relative"></div>
@@ -69,7 +71,7 @@ function CustomLink({ href, type }: { href: string; type: string }) {
     >
       {type === "users" ? (
         <UsersIcon size={14} />
-      ) : type === "chats" ? (
+      ) : type === "direct" ? (
         <MessagesSquare size={14} />
       ) : (
         <Group size={14} />

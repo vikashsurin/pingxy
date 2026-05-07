@@ -15,6 +15,7 @@ export default function UserLayout({
 }) {
   const { data, isLoading, error } = useConversations("direct");
 
+  console.log("datarere", data);
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -61,7 +62,7 @@ const ConversationItem = ({
   const authUser = useChatStore((state) => state.authUser);
   const op = meta?.find((item) => item.uid !== authUser.id);
 
-  const otherUsername = useUserStore((state) => state.users[op?.uid]?.username);
+  const otherUsername = useUserStore((state) => state.users[op?.uid]?.userName);
 
   if (!op?.uid) return <div>No Participant</div>;
   return (
@@ -94,10 +95,10 @@ const Item = ({
 
   return (
     <Link
-      href={`/chat/chats/${cid}?type=conversation&pid=${op?.pid}&uid=${op?.uid}&name=${name}`}
+      href={`/chat/direct/${cid}?type=conversation&pid=${op?.pid}&uid=${op?.uid}&name=${name}`}
       id={cid}
       type="button"
-      className={`block px-3 py-1 rounded  
+      className={`block px-3 py-1 rounded
         ${selectedId === cid && "bg-blue-100 text-blue-600  border-blue-300"} hover:bg-blue-100 `}
       onClick={() => setSelectedId(cid)}
     >

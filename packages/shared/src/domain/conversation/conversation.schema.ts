@@ -10,7 +10,7 @@ export const selectConversationSchema = createSelectSchema(conversations);
 //   conversationId: z.number(),
 //   user: z.object({
 //     id: z.number(),
-//     username: z.string(),
+//     userName: z.string(),
 //   }),
 // });
 

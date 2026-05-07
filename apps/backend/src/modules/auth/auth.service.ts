@@ -31,7 +31,7 @@ export const AuthService = {
     const newUser = {
       type: "user" as const,
       hashedPassword: hashedPassword,
-      username: body.username,
+      userName: body.userName,
       age: body.age,
       gender: body.gender,
       country: body.country,
@@ -48,7 +48,7 @@ export const AuthService = {
     await redis.hset(`user:${user.id}`, {
       id: user.id,
       type: user.type,
-      username: user.username,
+      userName: user.userName,
       age: user.age,
       gender: user.gender,
       country: user.country,
@@ -62,13 +62,13 @@ export const AuthService = {
     };
   },
   login: async ({
-    username,
+    userName,
     password,
     info,
     ipAddress,
     userAgent,
   }: {
-    username: string;
+    userName: string;
     password: string;
     info: ConnInfo;
     ipAddress: string;
@@ -76,7 +76,7 @@ export const AuthService = {
   }) => {
 
     const { hashedPassword, ...user } =
-      await UserService.getAuthUserByUsername(username);
+      await UserService.getAuthUserByUsername(userName);
 
     if (!user) {
       throw new HTTPException(401, { message: "Invalid credentials" });
@@ -99,7 +99,7 @@ export const AuthService = {
     await redis.hset(`user:${user.id}`, {
       id: user.id,
       type: user.type,
-      username: user.username,
+      userName: user.userName,
       age: user.age,
       gender: user.gender,
       country: user.country,
@@ -133,7 +133,7 @@ export const AuthService = {
     userAgent: string;
   }) => {
     const newUser: NewUser = {
-      username: body.username,
+      userName: body.userName,
       type: "guest" as const,
       age: body.age,
       gender: body.gender,

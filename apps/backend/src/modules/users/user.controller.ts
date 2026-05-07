@@ -9,18 +9,18 @@ export const UserController = {
     validate(
       "query",
       z.object({
-        username: z
+        userName: z
           .string()
           .min(3, "Too short")
           .max(20, "Too long")
-          .regex(/^[a-zA-Z0-9]+$/, "Invalid username"),
+          .regex(/^[a-zA-Z0-9]+$/, "Invalid userName"),
       }),
     ),
     async (c) => {
       try {
-        const username = c.req.valid("query").username;
+        const userName = c.req.valid("query").userName;
 
-        const UserName = capitalizeFirst(username ?? "");
+        const UserName = capitalizeFirst(userName ?? "");
         let available: boolean;
         const result = await UserService.getUserByUsername(UserName);
 

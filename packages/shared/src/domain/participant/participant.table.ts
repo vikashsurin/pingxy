@@ -12,6 +12,7 @@ export const participants = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     conversationId: t.integer().notNull(),
     userId: t.integer().notNull(),
+    userName: t.text().notNull(),
     role: roleEnum("role").default("member").notNull(), // owner, admin, member
     joinedAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     leftAt: t.timestamp({ withTimezone: true }), // When user left the conversation

@@ -14,6 +14,7 @@ export type InsertMessageType = z.infer<typeof InsertMessageSchema>;
 export type UpdateMessageType = z.infer<typeof updateMessageSchema>;
 export type selectMessageType = z.infer<typeof selectMessageSchema>;
 
+
 export type DbInsertMessageType = z.infer<typeof dbMessageInsertSchema>;
 export type SendMessageRequest = z.infer<typeof InsertMessageSchema>;
 export type Message = z.infer<typeof selectMessageSchema>;
@@ -29,7 +30,7 @@ export interface MessageEventMap {
       conversationId: number | null;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -41,7 +42,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -52,7 +53,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -63,7 +64,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -75,7 +76,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -87,7 +88,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -99,7 +100,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;
@@ -111,7 +112,7 @@ export interface MessageEventMap {
       conversationId: number;
       recipient: {
         id: number;
-        username: string;
+        userName: string;
       };
     }
   >;

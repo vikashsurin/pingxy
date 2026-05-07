@@ -4,7 +4,7 @@ function createConversationApi() {
   const baseUrl = "http://localhost/api/conversations";
   // find a conversation between 2 users
   const findConversation = async ({ userId }: { userId: number }) => {
-    const url = `${baseUrl}/new-find?userId=${userId}`;
+    const url = `${baseUrl}/find?userId=${userId}`;
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -109,6 +109,7 @@ function createConversationApi() {
 
   // send a message
   const sendMessage = async (payload: ClientReqMap["req:message.create"]) => {
+
     const url = `http://localhost/api/conversations/messages`;
     const res = await fetch(url, {
       method: "POST",
@@ -153,7 +154,7 @@ function createConversationApi() {
 
   // Join conversation
   const joinGroup = async ({ conversationId }: { conversationId: number }) => {
-    const url = `${baseUrl}/groups/${conversationId}/join`;
+    const url = `${baseUrl}/group/${conversationId}/join`;
 
     const res = await fetch(url, {
       method: "POST",
@@ -182,7 +183,7 @@ function createConversationApi() {
     expiresAt: string;
     maxUses: number;
   }) => {
-    const url = `${baseUrl}/groups/${conversationId}/invites`;
+    const url = `${baseUrl}/group/${conversationId}/invites`;
     const res = await fetch(url, {
       method: "POST",
       headers: {
@@ -205,7 +206,7 @@ function createConversationApi() {
   }: {
     conversationId: number;
   }) => {
-    const url = `${baseUrl}/groups/${conversationId}/invites`;
+    const url = `${baseUrl}/group/${conversationId}/invites`;
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -229,7 +230,7 @@ function createConversationApi() {
   }: {
     conversationId: number;
   }) => {
-    const url = `${baseUrl}/groups/${conversationId}/participants`;
+    const url = `${baseUrl}/group/${conversationId}/participants`;
     const res = await fetch(url, {
       method: "GET",
       headers: {

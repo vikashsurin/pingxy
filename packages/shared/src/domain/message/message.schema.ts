@@ -77,7 +77,7 @@ export const messageCreateSchema = z.object({
     recipient: z
       .object({
         id: z.number().nullish(),
-        username: z.string().nullish(),
+        userName: z.string().nullish(),
       })
       .nullish(),
   }),
@@ -109,7 +109,7 @@ export const messageCreatedSchema = z.object({
     participants: z.array(participantSelectSchema),
     // recipient: z.object({
     //   id: z.number(),
-    //   username: z.string(),
+    //   userName: z.string(),
     // }),
   }),
 });
