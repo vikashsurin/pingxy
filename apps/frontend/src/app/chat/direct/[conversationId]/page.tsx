@@ -4,13 +4,13 @@ import { useConversationStore } from "@/src/store/conversationStore";
 import { use } from "react";
 import MessageForm from "../../MessageForm";
 import NewMessages from "./NewMessages";
-import Members from "../../group/[conversationId]/Members";
+// import Members from "../../group/[conversationId]/Members";
 
 export default function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ conversationId: string }>;
   searchParams: Promise<{
     [type: string]: string | string[] | undefined;
     pid: string;
@@ -18,7 +18,7 @@ export default function Page({
     name: string;
   }>;
 }) {
-  const { slug } = use(params);
+  const { conversationId } = use(params);
   const { type, pid, uid, name } = use(searchParams);
 
   const participant = useConversationStore(
@@ -34,28 +34,28 @@ export default function Page({
         </div>
 
         <div className="flex-1 min-h-0">
-          <NewMessages id={Number(slug)} />
+          <NewMessages id={Number(conversationId)} />
         </div>
 
         <div className="flex-none">
           <MessageForm
-            conversationId={Number(slug)}
+            conversationId={Number(conversationId)}
             recipientId={Number(uid)}
             recipientName={name}
           />
         </div>
       </section>
-      <section>{/* <Members id={Number(slug)} /> */}</section>
+      <section>{/* <Members id={Number(conversationId)} /> */}</section>
     </div>
     // <div className="flex flex-col m-2  p-2 border border-gray-300 bg-gray-100 rounded-lg">
     //   {type === "conversation" && (
     //     <div>
     //       <div className="flex-1 min-h-0">
-    //         <NewMessages id={Number(slug)} />
+    //         <NewMessages id={Number(conversationId)} />
     //       </div>
-    //       {/* <Messages slug={slug} participant={participant} /> */}
+    //       {/* <Messages conversationId={conversationId} participant={participant} /> */}
     //       <MessageForm
-    //         conversationId={Number(slug)}
+    //         conversationId={Number(conversationId)}
     //         recipientId={Number(uid)}
     //         recipientName={name}
     //       />
