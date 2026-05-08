@@ -1,5 +1,5 @@
 import Loading from "@/src/components/Loading";
-import { useMessages } from "@/src/hooks/api/conversations";
+import { useMessages } from "@/src/hooks/api/useConversations";
 import { useUserStore } from "@/src/store/userStore";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
@@ -32,7 +32,7 @@ export default function Messages({ id }: { id: number }) {
     // 👇 This is the key for dynamic heights
     measureElement:
       typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
+        navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
   });
@@ -43,7 +43,7 @@ export default function Messages({ id }: { id: number }) {
   if (status === "error") return <div>{error.message}</div>; // ← same
 
   return (
-    <div ref={parentRef} className="h-full overflow-y-scroll">
+    <div ref={parentRef} className="h-full py-2 overflow-y-scroll">
       {isFetchingNextPage && (
         <div className="flex justify-center py-2 text-sm text-gray-400">
           Loading older messages...
@@ -90,8 +90,8 @@ export default function Messages({ id }: { id: number }) {
 
 function Message({ message, sender }: { message: any; sender: any }) {
   return (
-    <div className="px-2 py-2 border-b">
-      <div className="flex flex-col  items-start  gap-2 ">
+    <div className="p-2 border-b">
+      <div className="flex flex-col items-start  gap-2 ">
         <span className="font-bold text-xs ">{sender?.userName}: </span>
         <div className="flex flex-col gap-2">
           {message.attachments?.length > 0 && (

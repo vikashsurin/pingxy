@@ -1,7 +1,7 @@
 "use client";
 
 import Loading from "@/src/components/Loading";
-import { useFetchInvite } from "@/src/hooks/api/conversationInvites";
+import { useFetchInvite } from "@/src/hooks/api/useCnversationInvites";
 import { use } from "react";
 
 type Params = {

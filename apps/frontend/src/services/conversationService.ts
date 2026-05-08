@@ -2,12 +2,13 @@ import { DOMAIN_EVENTS, ServerEventMap } from "@pingxy/shared";
 import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
 import z from "zod";
 import { createClientReq } from ".";
-import { conversationsApi } from "../lib/api/conversation";
+import { conversationsApi } from "../lib/api/conversationApi";
 import queryClient from "../lib/queryClient";
 import { GroupCreateForm } from "../lib/schema/group";
 import { send } from "../socket/socket";
 import { useConversationStore } from "../store/conversationStore";
 import { useUserStore } from "../store/userStore";
+import { log } from "node:console";
 
 function createConversationService() {
   const findConversation = async ({ userId }: { userId: number }) => {

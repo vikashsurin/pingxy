@@ -51,27 +51,28 @@ export default function Users() {
 
   return (
     <div className="flex flex-col gap-2">
-      <ul className="flex flex-col gap-1 bg-gray-100 rounded-lg border border-gray-300 p-2 my-2">
-        <h2 className="px-2 flex items-center gap-2">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex size-2 rounded-full bg-sky-500" />
-          </span>
-          <span className="text-sm font-bold">Online</span>
+      <div className="flex flex-col  bg-gray-50 border-l h-screen border-gray-300">
+        <h2 className="px-3 py-2 bg-white flex font-bold border-b items-center gap-2">
+          Online
         </h2>
-        {userIds.map((id) => (
-          <li key={id}>
-            <button
-              type="button"
-              className={`block px-3 py-1 rounded hover:bg-blue-100
+        <ul className="border-b p-1 h-1/3">
+          {userIds.map((id) => (
+            <li key={id}>
+              <button
+                type="button"
+                className={`   px-3 w-full items-start flex py-1 rounded hover:bg-blue-100
                 ${selectedId === id ? "bg-blue-100 text-blue-600 border-blue-300" : ""}`}
-              onClick={() => handleClick(id)}
-            >
-              {users[id]?.userName}
-            </button>
-          </li>
-        ))}
-      </ul>
+                onClick={() => handleClick(id)}
+              >
+                {users[id]?.userName}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <h2 className="px-3 py-2 flex font-bold border-b items-center gap-2">
+          All
+        </h2>
+      </div>
     </div>
   );
 }

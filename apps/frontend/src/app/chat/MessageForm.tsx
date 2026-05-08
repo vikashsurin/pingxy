@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import Sending from "@/src/components/Sending";
-import { useSendMessage } from "@/src/hooks/api/conversations";
+import { useSendMessage } from "@/src/hooks/api/useConversations";
 import { attachmentService } from "@/src/services/attachementService";
 import { attachmentReqSchema } from "@pingxy/shared/domain/attachment/index";
 import { IconFileDescription, IconSend2, IconX } from "@tabler/icons-react";
@@ -37,8 +37,7 @@ export default function MessageForm({
     e.preventDefault();
     if ((!content.trim() && attachments.length === 0) || isPending) return;
 
-
-    console.log({ content, attachments })
+    console.log({ content, attachments });
     mutate(
       {
         conversationId,
@@ -61,7 +60,6 @@ export default function MessageForm({
     setAttachments([]);
   }
   // const [progress, setProgress] = useState(0);
-
 
   useEffect(() => {
     for (const [key, upload] of Object.entries(uploads)) {
@@ -87,7 +85,6 @@ export default function MessageForm({
     }
   }, [uploads]);
 
-
   const removeFile = (key: string) => {
     controllersRef.current[key]?.abort();
     delete controllersRef.current[key];
@@ -102,7 +99,7 @@ export default function MessageForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex gap-2  relative items-center  "
+      className="flex gap-2  p-2  bg-white border-t relative items-center  "
     >
       <SelectedPreview uploads={uploads} onRemove={removeFile} />
       <AttachmentsMenu setUploads={setUploads} />
@@ -145,10 +142,10 @@ export function SelectedPreview({
   if (files.length === 0) return null;
 
   return (
-    <div className="absolute bottom-full left-0 mb-2 w-full flex gap-2 flex-wrap p-3 bg-white/80 backdrop-blur-md border border-gray-200 rounded-lg  max-h-64 overflow-y-auto z-50">
+    <div className=" absolute bottom-full left-0  w-full flex gap-2 flex-wrap p-3 bg-white/20 backdrop-blur-md border-y border-gray-200  max-h-64 overflow-y-auto z-50">
       {/* Header */}
-      <div className="w-full flex items-center justify-between px-0.5 mb-1">
-        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+      <div className="w-full flex items-center justify-between px-0.5 py-2 ">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
           {files.length} file{files.length !== 1 ? "s" : ""} selected
         </span>
       </div>
@@ -197,7 +194,7 @@ function FileCard({
   }, [file, isImage, isVideo]);
 
   return (
-    <div className="relative group flex flex-col items-center bg-white  rounded-sm p-2 border w-28 hover:shadow-sm transition-shadow duration-200">
+    <div className="relative  group flex flex-col gap-2  items-center bg-white  rounded-md p-2 border w-28 hover:shadow-sm transition-shadow duration-200">
       <button
         type="button"
         onClick={onRemove}
@@ -207,9 +204,9 @@ function FileCard({
         <IconX size={11} />
       </button>
 
-      <div className="relative w-16 h-16 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center mb-2 shrink-0">
+      <div className="relative aspect-square rounded-xs  overflow-hidden bg-gray-100 flex items-center justify-center  shrink-0">
+
         {isImage && (
-          // Plain img — no Next.js optimizer overhead for blob URLs
           <img
             ref={imgRef}
             alt={file.name}
@@ -228,12 +225,14 @@ function FileCard({
           <IconFileDescription size={28} className="text-gray-400" />
         )}
 
+
         <span className="absolute bottom-0 right-0 bg-black/60 text-white text-[8px] font-bold px-1 py-0.5 rounded-tl-md leading-none">
           {getTypeBadge(file.type)}
         </span>
       </div>
 
-      <div className="w-full flex flex-col gap-2 text-center space-y-0.5 px-1">
+      {/*file details*/}
+      <div data-file-details className="w-full flex flex-col gap-2 ">
         <RenderProgress progress={progress} />
         <p
           className="text-[10px] font-medium truncate text-gray-700 leading-tight"

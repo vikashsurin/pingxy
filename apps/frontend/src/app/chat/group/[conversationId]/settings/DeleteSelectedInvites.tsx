@@ -1,4 +1,4 @@
-import { useDeleteInvites } from "@/src/hooks/api/conversationInvites";
+import { useDeleteInvites } from "@/src/hooks/api/useCnversationInvites";
 import { useState } from "react";
 
 export default function DeleteSelectedInvites({

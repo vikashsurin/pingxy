@@ -1,7 +1,14 @@
+import { IconMessagesFilled } from "@tabler/icons-react";
+
 export default function Page() {
   return (
-    <div className="m-2 border p-2 rounded-lg border-gray-300 bg-gray-100">
-      <p className="px-2 text-gray-400">Select from sidebar</p>
-    </div>
+    <div
+      className="h-screen p-2 flex flex-col items-center justify-center bg-gray-50 polka"
+    >
+      <IconMessagesFilled className="text-gray-500" size={44} />
+      <p className="px-2  text-gray-600">
+        Select a conversation
+      </p>
+    </div >
   );
 }

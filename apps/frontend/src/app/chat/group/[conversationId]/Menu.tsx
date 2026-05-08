@@ -19,7 +19,7 @@ export default function Menu({ id }: { id: number }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant={"secondary"} size={"icon"} />}
+          render={<Button variant={"ghost"} size={"icon"} className={'rounded-full'} />}
         >
           <IconDotsVertical size={16} />
         </DropdownMenuTrigger>

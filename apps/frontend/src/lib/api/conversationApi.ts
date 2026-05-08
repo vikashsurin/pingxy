@@ -27,7 +27,6 @@ function createConversationApi() {
   }: {
     type?: "direct" | "group";
   }) => {
-    console.log("api called", type);
     const url = `http://localhost/api/conversations?type=${type}`;
     const res = await fetch(url, {
       method: "GET",
@@ -65,7 +64,6 @@ function createConversationApi() {
     }
 
     const data = await res.json();
-    console.log({ fetchConversation: data });
     return data;
   };
 
@@ -154,7 +152,7 @@ function createConversationApi() {
 
   // Join conversation
   const joinGroup = async ({ conversationId }: { conversationId: number }) => {
-    const url = `${baseUrl}/group/${conversationId}/join`;
+    const url = `${baseUrl}/groups/${conversationId}/join`;
 
     const res = await fetch(url, {
       method: "POST",
@@ -168,7 +166,6 @@ function createConversationApi() {
       throw new Error("joinGroup failed");
     }
     const data = await res.json();
-    console.log({ dataJoin: data });
     return data;
   };
 
@@ -183,7 +180,8 @@ function createConversationApi() {
     expiresAt: string;
     maxUses: number;
   }) => {
-    const url = `${baseUrl}/group/${conversationId}/invites`;
+
+    const url = `${baseUrl}/groups/${conversationId}/invites`;
     const res = await fetch(url, {
       method: "POST",
       headers: {
@@ -206,7 +204,7 @@ function createConversationApi() {
   }: {
     conversationId: number;
   }) => {
-    const url = `${baseUrl}/group/${conversationId}/invites`;
+    const url = `${baseUrl}/groups/${conversationId}/invites`;
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -230,7 +228,7 @@ function createConversationApi() {
   }: {
     conversationId: number;
   }) => {
-    const url = `${baseUrl}/group/${conversationId}/participants`;
+    const url = `${baseUrl}/groups/${conversationId}/participants`;
     const res = await fetch(url, {
       method: "GET",
       headers: {

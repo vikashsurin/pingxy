@@ -3,8 +3,7 @@
 import { useConversationStore } from "@/src/store/conversationStore";
 import { use } from "react";
 import MessageForm from "../../MessageForm";
-import NewMessages from "./NewMessages";
-// import Members from "../../group/[conversationId]/Members";
+import Messages from "../../Messages";
 
 export default function Page({
   params,
@@ -26,15 +25,15 @@ export default function Page({
   );
 
   return (
-    <div className="grid grid-cols-[1fr_200px] h-screen">
-      <section className="m-2 p-2 flex flex-col border rounded-lg border-gray-300 bg-gray-100 gap-2 h-[calc(100dvh-1rem)]">
-        <div className="flex items-center justify-between flex-none border-b pb-2">
-          <h1 className="px-2 font-bold text-lg">{name}</h1>
+    <div className="grid  h-screen">
+      <section className=" flex w-full flex-col   border-gray-300  h-[calc(100dvh-1rem)]">
+        <div className="flex items-center justify-between bg-white border-b">
+          <h2 className="px-3 py-2 font-bold">{name}</h2>
           {/* Menu here */}
         </div>
 
         <div className="flex-1 min-h-0">
-          <NewMessages id={Number(conversationId)} />
+          <Messages id={Number(conversationId)} />
         </div>
 
         <div className="flex-none">

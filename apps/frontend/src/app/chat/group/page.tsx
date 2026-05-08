@@ -1,6 +1,6 @@
 "use client";
 
-import { useConversations } from "@/src/hooks/api/conversations";
+import { useConversations } from "@/src/hooks/api/useConversations";
 import { useState } from "react";
 import GroupItemCard from "./GroupItemCard";
 import GroupPageHeader from "./GroupPageHeader";
@@ -19,7 +19,6 @@ export default function Page() {
 }
 
 function Groups() {
-
   const { data, isLoading, error } = useConversations("group");
   if (isLoading) {
     return (
@@ -39,11 +38,7 @@ function Groups() {
   return (
     <div className="flex flex-wrap gap-3">
       {data.conversations?.map((conv: any) => (
-        <GroupItemCard
-          key={conv.id}
-          id={conv.id}
-          creator={conv.createdBy}
-        />
+        <GroupItemCard key={conv.id} id={conv.id} creator={conv.createdBy} />
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useJoinViaInvite } from "@/src/hooks/api/conversationInvites";
+import { useJoinViaInvite } from "@/src/hooks/api/useCnversationInvites";
 import { useForm } from "@tanstack/react-form";
 import z from "zod";
 
@@ -10,15 +10,15 @@ export default function JoinViaInvite() {
 
   const form = useForm({
     defaultValues: {
-      invitecode: ''
+      invitecode: "",
     },
     validators: {
       onSubmit: z.object({
-        invitecode: z.uuid({ message: "Invalid invite code" })
-      })
+        invitecode: z.uuid({ message: "Invalid invite code" }),
+      }),
     },
     onSubmit: ({ value }) => {
-      console.log({ value })
+      console.log({ value });
       mutate(value.invitecode, {
         onSuccess: () => {
           // value.invitecode = ''
@@ -30,19 +30,21 @@ export default function JoinViaInvite() {
     },
   });
 
-
   return (
     <div>
       <p className="font-bold mb-1">Join via invite code</p>
 
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        form.handleSubmit()
-      }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
         <form.Field name="invitecode">
           {(field) => {
-            const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-              && !field.state.meta.isValid;
+            const isInvalid =
+              (field.state.meta.isTouched || form.state.isSubmitted) &&
+              !field.state.meta.isValid;
             return (
               <>
                 <Field>
@@ -68,10 +70,9 @@ export default function JoinViaInvite() {
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
               </>
-            )
+            );
           }}
         </form.Field>
-
       </form>
 
       {/*<form action={handleSubmit} className="flex gap-2">
@@ -93,6 +94,6 @@ export default function JoinViaInvite() {
       {/*<div>
         {isError && <p className="flex gap-1 items-center text-xs bg-red-100 text-red-700 rounded-sm px-1.5 py-1 w-max mt-1"><IconAlertCircle size={14} /> {error?.message}</p>}
       </div>*/}
-    </div >
+    </div>
   );
 }

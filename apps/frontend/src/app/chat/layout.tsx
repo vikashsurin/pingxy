@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { authApi } from "@/src/lib/api/auth";
+import { authApi } from "@/src/lib/api/authApi";
 import { initializeWebSocket } from "@/src/socket/socket";
 import { useChatStore } from "@/src/store/chatStore";
 import { Group, MessagesSquare, Users as UsersIcon } from "lucide-react";
@@ -38,11 +38,10 @@ export default function ChatLayout({
 
   return (
     <section className="grid grid-cols-[200px_1fr] h-screen ">
-      <div className="flex flex-col  bg-gray-100 gap-1  p-2 m-2 rounded-lg border border-slate-300 ">
+      <div className="flex flex-col  bg-gray-100 gap-1  p-2  border border-slate-300 ">
         {/* <CustomLink href="/chat/users" type="users" /> */}
         <CustomLink href="/chat/direct" type="direct" />
         <CustomLink href="/chat/group" type="group" />
-        <div aria-label="separator" className="border-t border-gray-400"></div>
         <div className="flex flex-col gap-1 mt-auto">
           <SettingsPage />
           <Button

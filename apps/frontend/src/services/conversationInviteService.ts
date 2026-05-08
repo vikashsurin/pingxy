@@ -1,4 +1,4 @@
-import { conversationInviteApi } from "../lib/api/conversationInvite";
+import { conversationInviteApi } from "../lib/api/conversationInviteApi";
 
 function createConversationInviteService() {
   const fetchInvite = async ({ inviteId }: { inviteId: number }) => {

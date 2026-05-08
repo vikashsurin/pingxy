@@ -1,23 +1,34 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import countries from '@/src/constants/countries.json';
-import { useRegister } from "@/src/hooks/api/auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import countries from "@/src/constants/countries.json";
+import { useRegister } from "@/src/hooks/api/useAuth";
 import { registerFormSchema } from "@/src/lib/schema/auth";
 import { useForm } from "@tanstack/react-form";
 
 export default function Register() {
-
-  const { mutate } = useRegister()
+  const { mutate } = useRegister();
   const genders = [
     { id: "male", label: "Male", value: "male" },
     { id: "female", label: "Female", value: "female" },
     { id: "other", label: "Other", value: "other" },
-  ]
+  ];
 
   // const { mutate, isPending, isError } = useMutation({
   //   mutationFn: async (formdata: FormData) => {
@@ -37,7 +48,6 @@ export default function Register() {
   //   mutate(formData);
   // };
 
-
   const form = useForm({
     defaultValues: {
       userName: "",
@@ -45,40 +55,39 @@ export default function Register() {
       confirmPassword: "",
       gender: "",
       age: 18,
-      country: null as { value: string; label: string; } | null,
+      country: null as { value: string; label: string } | null,
     },
     validators: {
-      onSubmit: registerFormSchema
+      onSubmit: registerFormSchema,
     },
     onSubmit: async ({ value }) => {
       mutate({
         ...value,
         country: value.country!,
       });
-    }
-  })
+    },
+  });
 
   return (
-    <Card className="rounded-md" >
+    <Card className="rounded-md">
       <CardContent>
-
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}>
-
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+        >
           <FieldGroup>
             <form.Field name="userName">
               {(field) => {
-                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-                  && !field.state.meta.isValid;
+                const isInvalid =
+                  (field.state.meta.isTouched || form.state.isSubmitted) &&
+                  !field.state.meta.isValid;
 
                 return (
                   <>
                     <Field>
-                      <FieldLabel htmlFor={field.name}>
-                        Username
-                      </FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Username</FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
@@ -88,21 +97,22 @@ export default function Register() {
                         placeholder="userName"
                       />
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
-                )
+                );
               }}
             </form.Field>
             <form.Field name="password">
               {(field) => {
-                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-                  && !field.state.meta.isValid;
+                const isInvalid =
+                  (field.state.meta.isTouched || form.state.isSubmitted) &&
+                  !field.state.meta.isValid;
                 return (
                   <>
                     <Field>
-                      <FieldLabel htmlFor={field.name}>
-                        Password
-                      </FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
@@ -110,18 +120,20 @@ export default function Register() {
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         placeholder="*****"
-
                       />
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
-                )
+                );
               }}
             </form.Field>
             <form.Field name="confirmPassword">
               {(field) => {
-                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-                  && !field.state.meta.isValid;
+                const isInvalid =
+                  (field.state.meta.isTouched || form.state.isSubmitted) &&
+                  !field.state.meta.isValid;
                 return (
                   <>
                     <Field>
@@ -137,29 +149,29 @@ export default function Register() {
                         placeholder="*****"
                       />
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
-                )
+                );
               }}
             </form.Field>
             <form.Field name="gender">
               {(field) => {
-                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-                  && !field.state.meta.isValid;
+                const isInvalid =
+                  (field.state.meta.isTouched || form.state.isSubmitted) &&
+                  !field.state.meta.isValid;
                 return (
                   <>
-                    <Field >
-                      <FieldLabel htmlFor={field.name}>
-                        Gender
-                      </FieldLabel>
+                    <Field>
+                      <FieldLabel htmlFor={field.name}>Gender</FieldLabel>
                       <RadioGroup
                         name={field.name}
                         value={field.state.value}
                         onValueChange={(value) => field.setValue(value)}
                       >
-
                         {genders.map((gender) => (
-                          <Field key={gender.id} >
+                          <Field key={gender.id}>
                             <div className="flex items-center gap-2">
                               <RadioGroupItem
                                 id={gender.id}
@@ -172,68 +184,70 @@ export default function Register() {
                             </div>
                           </Field>
                         ))}
-
                       </RadioGroup>
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
-                )
+                );
               }}
             </form.Field>
             <form.Field name="age">
               {(field) => {
-                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-                  && !field.state.meta.isValid;
+                const isInvalid =
+                  (field.state.meta.isTouched || form.state.isSubmitted) &&
+                  !field.state.meta.isValid;
                 return (
                   <>
                     <Field>
-                      <FieldLabel htmlFor={field.name}>
-                        Age
-                      </FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Age</FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
                         type="number"
                         value={field.state.value}
-                        onChange={(e) => field.handleChange(Number(e.target.value))}
+                        onChange={(e) =>
+                          field.handleChange(Number(e.target.value))
+                        }
                         placeholder="age"
                       />
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
-                )
+                );
               }}
             </form.Field>
             <form.Field name="country">
               {(field) => {
-                const isInvalid = (field.state.meta.isTouched || form.state.isSubmitted)
-                  && !field.state.meta.isValid;
+                const isInvalid =
+                  (field.state.meta.isTouched || form.state.isSubmitted) &&
+                  !field.state.meta.isValid;
                 return (
                   <>
                     <Field>
                       <FieldContent>
-                        <FieldLabel htmlFor={field.name}>
-                          Country
-                        </FieldLabel>
+                        <FieldLabel htmlFor={field.name}>Country</FieldLabel>
                       </FieldContent>
 
                       <Select
                         name={field.name}
                         value={field.state.value?.label ?? ""}
                         onValueChange={(val) => {
-                          const selected = countries.find((c) => c.label === val) ?? null;
+                          const selected =
+                            countries.find((c) => c.label === val) ?? null;
                           field.handleChange(selected);
                         }}
                       >
-
                         <SelectTrigger
                           id="select-country"
                           aria-invalid={isInvalid}
-
                         >
-                          <SelectValue placeholder='Select' />
+                          <SelectValue placeholder="Select" />
                         </SelectTrigger>
-                        <SelectContent className={'px-2'}>
+                        <SelectContent className={"px-2"}>
                           {countries.map((country) => (
                             <SelectItem
                               key={country.value}
@@ -244,17 +258,18 @@ export default function Register() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </Field >
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />
-                    }
+                    </Field>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
-                )
+                );
               }}
             </form.Field>
             <Button type="submit">Register</Button>
           </FieldGroup>
         </form>
       </CardContent>
-    </Card >
+    </Card>
   );
 }

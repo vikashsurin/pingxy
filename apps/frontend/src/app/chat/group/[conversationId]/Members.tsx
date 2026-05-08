@@ -7,8 +7,8 @@ export default function Members({ id }: { id: string }) {
 
 
   return (
-    <div className="m-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
-      <h2 className="text-sm text-gray-400 px-2">
+    <div className=" bg-gray-100   border-gray-300">
+      <h2 className="px-3 bg-white py-2 font-bold">
         {" "}
         {isLoading ? <Loading /> : "Members"}
       </h2>
@@ -23,7 +23,7 @@ export default function Members({ id }: { id: string }) {
 
 function Member({ name }: { name: string }) {
   return (
-    <li className=" text-sm py-1  px-2">
+    <li className=" text-sm py-2  px-3">
       <span>{name}</span>
     </li>
   );

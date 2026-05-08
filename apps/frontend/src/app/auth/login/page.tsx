@@ -10,10 +10,9 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useLogin } from "@/src/hooks/api/auth";
+import { useLogin } from "@/src/hooks/api/useAuth";
 import { loginFormSchema } from "@/src/lib/schema/auth";
 import { useForm } from "@tanstack/react-form";
-
 
 export default function Login() {
   const { mutate, isPending, isSuccess } = useLogin();
@@ -31,7 +30,6 @@ export default function Login() {
     },
   });
 
-
   return (
     <Card className="rounded-md">
       <CardContent>
@@ -42,9 +40,7 @@ export default function Login() {
           }}
         >
           <FieldGroup>
-            <form.Field
-              name="userName"
-            >
+            <form.Field name="userName">
               {(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
@@ -62,17 +58,17 @@ export default function Login() {
                         placeholder="Enter userName"
                       />
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
                 );
               }}
             </form.Field>
-            <form.Field
-              name="password"
-            >
+            <form.Field name="password">
               {(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <>
                     <Field>
@@ -88,16 +84,24 @@ export default function Login() {
                         placeholder="*****"
                       />
                     </Field>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </>
                 );
               }}
             </form.Field>
-            <Button type="submit" className={"w-full rounded-sm"} disabled={isPending || isSuccess}>
-              {isPending ? "Logging in..." : isSuccess ? "Redirecting..." : "Login"}
+            <Button
+              type="submit"
+              className={"w-full rounded-sm"}
+              disabled={isPending || isSuccess}
+            >
+              {isPending
+                ? "Logging in..."
+                : isSuccess
+                  ? "Redirecting..."
+                  : "Login"}
             </Button>
-
           </FieldGroup>
         </form>
       </CardContent>

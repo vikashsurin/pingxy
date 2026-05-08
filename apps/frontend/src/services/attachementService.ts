@@ -1,4 +1,4 @@
-import { attachmentApi } from "../lib/api/attachments";
+import { attachmentApi } from "../lib/api/attachmentsApi";
 
 function createAttachmentService() {
   const uploadAttachment = async (

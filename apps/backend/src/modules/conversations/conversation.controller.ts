@@ -103,11 +103,14 @@ export const ConversationController = {
       expiresAt: z.string(),
       maxUses: z.coerce.number(),
     })),
+
     async (c) => {
       const user = c.get("user");
       const { groupId } = c.req.valid("param");
       const { expiresAt, maxUses } = c.req.valid("json");
 
+
+      console.log({ groupId, expiresAt, maxUses })
 
       const result = await ConversationService.createInvite({
         groupId,

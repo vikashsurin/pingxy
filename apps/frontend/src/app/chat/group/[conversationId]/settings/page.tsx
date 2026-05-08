@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,14 +16,14 @@ import { Input } from "@/components/ui/input";
 import Loading from "@/src/components/Loading";
 import {
   useDeleteConversation,
-  useFetchConversation
-} from "@/src/hooks/api/conversations";
+  useFetchConversation,
+} from "@/src/hooks/api/useConversations";
 import { formatDate } from "@/src/lib/utils/date";
 import {
   IconCalendar,
   IconChevronRight,
   IconLockSquareRounded,
-  IconUsers
+  IconUsers,
 } from "@tabler/icons-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -34,7 +33,7 @@ export default function AdminPage() {
   const conversationId = params.conversationId;
   const [moreActions, setMoreActions] = useState(false);
 
-  console.log({ conversationId: Number(conversationId) })
+  console.log({ conversationId: Number(conversationId) });
 
   const { data, isLoading, isPending, isError, isSuccess } =
     useFetchConversation(Number(conversationId));
@@ -53,7 +52,7 @@ export default function AdminPage() {
           <div>
             <p className="flex  items-center text-sm text-gray-500">
               {data?.description}
-              <Button size="xs" variant={'ghost'} className={"rounded-sm"}>
+              <Button size="xs" variant={"ghost"} className={"rounded-sm"}>
                 modify
               </Button>
             </p>
@@ -71,7 +70,11 @@ export default function AdminPage() {
                   {data?.isPrivate ? "Invite Only" : "Public"}
                 </p>
               </div>
-              <Button size="xs" variant={'secondary'} className={"rounded-sm text-blue-600"}>
+              <Button
+                size="xs"
+                variant={"secondary"}
+                className={"rounded-sm text-blue-600"}
+              >
                 Modify
               </Button>
             </div>
@@ -84,28 +87,38 @@ export default function AdminPage() {
                 <span className="text-xs text-gray-400 font-medium">
                   Max Participants
                 </span>
-                <p className=" font-bold">
-                  {data?.maxParticipants}
-                </p>
+                <p className=" font-bold">{data?.maxParticipants}</p>
               </div>
-              <Button size="xs" variant={'secondary'} className={"rounded-sm text-blue-600"}>
+              <Button
+                size="xs"
+                variant={"secondary"}
+                className={"rounded-sm text-blue-600"}
+              >
                 Modify
               </Button>
             </div>
-
-
           </div>
         </section>
 
         <section>
-          <Button size={'sm'} variant={'secondary'} className={"group rounded-sm text-blue-700"}>
-            <a href={`/chat/group/${conversationId}/settings/members`}
-            >
+          <Button
+            size={"sm"}
+            variant={"secondary"}
+            className={"group rounded-sm text-blue-700"}
+          >
+            <a href={`/chat/group/${conversationId}/settings/members`}>
               Manage Members
             </a>
-            <IconChevronRight size={20} className="transition-all inline-block group-hover:ml-2" />
+            <IconChevronRight
+              size={20}
+              className="transition-all inline-block group-hover:ml-2"
+            />
           </Button>
-          <Button size="sm" variant={'secondary'} className={"rounded-sm text-blue-700 ml-2"}>
+          <Button
+            size="sm"
+            variant={"secondary"}
+            className={"rounded-sm text-blue-700 ml-2"}
+          >
             + Add Member
           </Button>
         </section>
@@ -114,10 +127,11 @@ export default function AdminPage() {
 
         <section className="flex items-center gap-3 p-8 bg-red-50 border border-red-200 rounded-xl">
           <div className="flex flex-col gap-3 ">
-            <h2 className="font-bold text-lg mb-1 text-red-500">
-              Danger Zone
-            </h2>
-            <p className="text-gray-700 text-sm text-wrap ">Deleting a group is permanent and cannot be undone. All associated data, including members and logs, will be wiped from the system.</p>
+            <h2 className="font-bold text-lg mb-1 text-red-500">Danger Zone</h2>
+            <p className="text-gray-700 text-sm text-wrap ">
+              Deleting a group is permanent and cannot be undone. All associated
+              data, including members and logs, will be wiped from the system.
+            </p>
           </div>
           <DeleteGroupDialog id={parseInt(data?.id)} name={data?.name} />
         </section>
@@ -125,13 +139,8 @@ export default function AdminPage() {
     );
 }
 
-
 function ModifyDescription() {
-  return (
-    <div>
-      {/*dialog*/}
-    </div>
-  )
+  return <div>{/*dialog*/}</div>;
 }
 
 function DeleteGroupDialog({ id, name }: { id: number; name: string }) {
@@ -150,25 +159,37 @@ function DeleteGroupDialog({ id, name }: { id: number; name: string }) {
   }
   return (
     <div className="">
-      <AlertDialog >
+      <AlertDialog>
         <AlertDialogTrigger
-          render={<Button variant="destructive" size='lg' className="rounded-sm bg-red-500 text-white  font-bold" />}
+          render={
+            <Button
+              variant="destructive"
+              size="lg"
+              className="rounded-sm bg-red-500 text-white  font-bold"
+            />
+          }
         >
           Delete Group
         </AlertDialogTrigger>
-        <AlertDialogContent className={'rounded-lg'}>
+        <AlertDialogContent className={"rounded-lg"}>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the group.
+              This action cannot be undone. This will permanently delete the
+              group.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input
             placeholder={`Type ${name} to confirm`}
-            value={confirmName} onChange={(e) => setConfirmName(e.target.value)} />
+            value={confirmName}
+            onChange={(e) => setConfirmName(e.target.value)}
+          />
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClick} disabled={confirmName !== name}>
+            <AlertDialogAction
+              onClick={handleClick}
+              disabled={confirmName !== name}
+            >
               {isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>

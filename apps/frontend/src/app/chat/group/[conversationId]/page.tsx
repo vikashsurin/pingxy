@@ -3,9 +3,9 @@
 import { conversationService } from "@/src/services/conversationService";
 import { use, useEffect } from "react";
 import MessageForm from "../../MessageForm";
+import Messages from '../../Messages';
 import Members from "./Members";
 import Menu from "./Menu";
-import Messages from "./Messages";
 
 export default function Page({
   params,
@@ -27,10 +27,10 @@ export default function Page({
 
   return (
     <div className="grid grid-cols-[1fr_200px] h-screen">
-      <section className="m-2 p-2 flex flex-col border rounded-lg border-gray-300 bg-gray-100 gap-2 h-[calc(100dvh-1rem)]">
-        <div className="flex items-center justify-between flex-none border-b pb-2">
-          <h1 className="px-2 font-bold text-lg">{name}</h1>
+      <section className=" flex flex-col border-r  border-gray-300  gap-2 h-[calc(100dvh-1rem)]">
 
+        <div className="flex bg-white items-center justify-between flex-none border-b ">
+          <h1 className="px-3 py-2 font-bold ">{name}</h1>
           <Menu id={parseInt(conversationId)} />
         </div>
 

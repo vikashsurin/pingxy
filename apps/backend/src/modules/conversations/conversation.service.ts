@@ -111,6 +111,7 @@ export const ConversationService = {
     maxUses: number;
   }) => {
     try {
+
       // Check if the conversation/group exists
       const conversation = await ConversationRepository.selectById(groupId);
 

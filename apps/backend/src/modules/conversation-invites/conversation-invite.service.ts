@@ -2,6 +2,7 @@ import { ParticipantRepository } from "@modules/participants/participant.reposit
 import { ParticipantInsertType } from "@pingxy/shared/types";
 import { ConversationInviteRepository } from "./conversation-invite.repository";
 import type { User } from "@pingxy/shared/types";
+
 export const ConversationInviteService = {
   createInvite: async () => { },
   acceptInvite: async () => { },

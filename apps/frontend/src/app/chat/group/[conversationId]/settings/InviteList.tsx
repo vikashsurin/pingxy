@@ -5,7 +5,7 @@ import {
   IconCopy,
   IconDotsVertical,
   IconEdit,
-  IconUnlink
+  IconUnlink,
 } from "@tabler/icons-react";
 
 import {
@@ -15,17 +15,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRevokeInvite } from "@/src/hooks";
-import { useFetchInvites } from "@/src/hooks/api/conversations";
+import { useFetchInvites } from "@/src/hooks/api/useConversations";
 import { copyToClipboard } from "@/src/lib/utils/clipboard";
 import { formatDate } from "@/src/lib/utils/date";
+import { truncateUUID } from "@/src/lib/utils/truncateUUID";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DeleteSelectedInvites from "./DeleteSelectedInvites";
 import GenerateInviteLink from "./GenerateInviteLink";
-import { truncateUUID } from "@/src/lib/utils/truncateUUID";
 
 export default function InviteList({ cid }: { cid: number }) {
   const { data, isPending, error } = useFetchInvites(cid);
+
+  console.log({ invitelist: data });
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -153,18 +155,24 @@ export default function InviteList({ cid }: { cid: number }) {
                     </div>
                   </td>
                   <td className="p-3 whitespace-nowrap text-gray-600">
-                    {invite.revokedAt ? <RevokedTag />
-                      : invite.expiresAt && new Date(invite.expiresAt) >= new Date() ? <ActiveTag />
-                        : <ExpiredTag />}
+                    {invite.revokedAt ? (
+                      <RevokedTag />
+                    ) : invite.expiresAt &&
+                      new Date(invite.expiresAt) >= new Date() ? (
+                      <ActiveTag />
+                    ) : (
+                      <ExpiredTag />
+                    )}
                   </td>
                   <td className="p-3 whitespace-nowrap text-xs text-gray-600">
                     {formatDate(invite.createdAt)}
                   </td>
                   <td className="p-3 whitespace-nowrap text-gray-600">
-                    {invite.revokedAt ?
-                      'N/A'
-                      : <ExpiryCell expiry={invite.expiresAt} />
-                    }
+                    {invite.revokedAt ? (
+                      "N/A"
+                    ) : (
+                      <ExpiryCell expiry={invite.expiresAt} />
+                    )}
                   </td>
                   <td className="p-3 text-gray-900 font-medium">
                     {/*{invite.usesCount}/{invite.maxUses}*/}
@@ -184,55 +192,80 @@ export default function InviteList({ cid }: { cid: number }) {
 }
 
 function ActiveTag() {
-  return <span className="inline-block rounded-sm bg-green-100 px-1.5 py-0.5 text-xs text-green-800">Active</span>;
+  return (
+    <span className="inline-block rounded-sm bg-green-100 px-1.5 py-0.5 text-xs text-green-800">
+      Active
+    </span>
+  );
 }
 
 function ExpiredTag() {
-  return <span className="inline-block rounded-sm bg-red-100 px-1.5 py-0.5 text-xs text-red-800">Expired</span>;
+  return (
+    <span className="inline-block rounded-sm bg-red-100 px-1.5 py-0.5 text-xs text-red-800">
+      Expired
+    </span>
+  );
 }
 
 function RevokedTag() {
-  return <span className="inline-block rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-800">Revoked</span>;
+  return (
+    <span className="inline-block rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-800">
+      Revoked
+    </span>
+  );
 }
-
 
 function ExpiryCell({ expiry }: { expiry: string }) {
   const expiryDate = new Date(expiry);
   const now = new Date();
-  const diffInDays = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const diffInDays = Math.ceil(
+    (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
   const isExpired = diffInDays < 0;
   const isUrgent = diffInDays <= 3 && !isExpired;
 
-  const formattedDate = formatDate(expiryDate)
+  const formattedDate = formatDate(expiryDate);
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className={`text-sm font-medium ${isExpired ? 'text-destructive' : isUrgent ? 'text-orange-600' : 'text-foreground'
-        }`}>
-        {isExpired ? 'Expired' : diffInDays === 0 ? 'Expires today' : `${diffInDays} days left`}
+      <span
+        className={`text-sm font-medium ${
+          isExpired
+            ? "text-destructive"
+            : isUrgent
+              ? "text-orange-600"
+              : "text-foreground"
+        }`}
+      >
+        {isExpired
+          ? "Expired"
+          : diffInDays === 0
+            ? "Expires today"
+            : `${diffInDays} days left`}
       </span>
-      <span className="text-xs text-muted-foreground">
-        {formattedDate}
-      </span>
+      <span className="text-xs text-muted-foreground">{formattedDate}</span>
     </div>
   );
 }
 
-
-function UsageCell({ used, total }: { used: number, total: number }) {
+function UsageCell({ used, total }: { used: number; total: number }) {
   const percentage = (used / total) * 100;
   const isNearLimit = percentage > 80;
 
   return (
     <div className="flex flex-col gap-1">
-      <span className={isNearLimit ? "text-orange-600 font-medium" : "text-foreground"}>
+      <span
+        className={
+          isNearLimit ? "text-orange-600 font-medium" : "text-foreground"
+        }
+      >
         {used}/{total}
       </span>
       {/* Optional: Tiny progress bar */}
       <div className="h-1 w-16 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className={`h-full ${isNearLimit ? 'bg-orange-500' : 'bg-blue-500'}`}
+          className={`h-full ${isNearLimit ? "bg-orange-500" : "bg-blue-500"}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -244,7 +277,7 @@ function ActionMenu({ id }: { id?: number }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { mutate, isPending } = useRevokeInvite()
+  const { mutate, isPending } = useRevokeInvite();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="p-2  rounded-full hover:bg-gray-200 active:bg-gray-300 transition-colors">
@@ -264,14 +297,13 @@ function ActionMenu({ id }: { id?: number }) {
         <DropdownMenuItem
           className="rounded-sm text-sm"
           onClick={() => {
-            if (id)
-              mutate(id);
+            if (id) mutate(id);
           }}
         >
           <IconUnlink size={12} />
           {isPending ? "Revoke..." : "Revoke"}
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu >
+    </DropdownMenu>
   );
 }
