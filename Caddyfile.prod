@@ -22,7 +22,7 @@ pingxy.com {
 
     # 4. Frontend
     handle {
-        reverse_proxy frontend:5173
+        reverse_proxy frontend:3001
     }
 
     # Optional: Force HTTPS and add security headers

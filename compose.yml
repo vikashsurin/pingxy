@@ -1,4 +1,18 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: pingxy-redis
+    networks:
+      - pingxy-network
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   postgres:
     image: postgres:16-alpine
@@ -18,7 +32,7 @@ services:
         limits:
           memory: 1G
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,22 +50,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: [ "bun", "run", "db:migrate" ]
-
-  redis:
-    image: redis:7-alpine
-    container_name: pingxy-redis
-    networks:
-      - pingxy-network
-    restart: always
-    volumes:
-      - redis_data:/data
-    command: [ "redis-server", "--appendonly", "yes" ]
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+    command: ["bun", "run", "db:migrate"]
 
   backend:
     build:
@@ -80,7 +79,7 @@ services:
 
     networks:
       - pingxy-network
-    command: [ "bun", "run", "start" ]
+    command: ["bun", "run", "start"]
 
   frontend:
     build:
@@ -89,13 +88,13 @@ services:
     container_name: pingxy-frontend
     restart: always
     environment:
-      - PORT=5173
+      - PORT=3001
       - ORIGIN=https://pingxy.com
       - CHECK_ORIGIN=true
       - INTERNAL_BACKEND_URL=http://backend:3000
     networks:
       - pingxy-network
-    command: [ "bun", "run", "start" ]
+    command: ["bun", "run", "start"]
 
   storage:
     image: minio/minio
@@ -110,7 +109,7 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
