@@ -8,7 +8,6 @@ import { GroupCreateForm } from "../lib/schema/group";
 import { send } from "../socket/socket";
 import { useConversationStore } from "../store/conversationStore";
 import { useUserStore } from "../store/userStore";
-import { log } from "node:console";
 
 function createConversationService() {
   const findConversation = async ({ userId }: { userId: number }) => {
@@ -88,8 +87,7 @@ function createConversationService() {
       before: beforeId,
     });
 
-
-    console.log({ dataMessages: data })
+    console.log({ dataMessages: data });
     const messages = data.entities.messages;
     // const attachments = data.entities.attachments;
 
@@ -114,8 +112,7 @@ function createConversationService() {
     //   }
     // }
 
-
-    console.log({ from: message })
+    console.log({ from: message });
 
     queryClient.setQueryData(
       ["messages", message.conversationId],
@@ -179,9 +176,11 @@ function createConversationService() {
     expiresAt: string;
     maxUses: number;
   }) => {
-
-
-    const data = await conversationsApi.createInvite({ conversationId, expiresAt: expiresAt, maxUses });
+    const data = await conversationsApi.createInvite({
+      conversationId,
+      expiresAt: expiresAt,
+      maxUses,
+    });
 
     return data;
   };
@@ -226,29 +225,23 @@ function createConversationService() {
     return data;
   };
 
-
-  const subscribe = async ({
-    conversationId,
-  }: {
-    conversationId: number;
-  }) => {
+  const subscribe = async ({ conversationId }: { conversationId: number }) => {
     const message = createClientReq(DOMAIN_EVENTS.CONVERSATIONS.SUBSCRIBE, {
       conversationId,
     });
 
-    send(message)
-  }
-
+    send(message);
+  };
 
   const handleSubscription = async ({
     conversationId,
   }: {
     conversationId: number;
   }) => {
-    console.log("subscribed", conversationId)
+    console.log("subscribed", conversationId);
   };
 
-  const leaveGroup = async () => { };
+  const leaveGroup = async () => {};
   return {
     findConversation,
     fetchConversations,

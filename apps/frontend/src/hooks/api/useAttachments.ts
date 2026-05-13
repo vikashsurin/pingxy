@@ -6,8 +6,8 @@ export const useUploadAttachment = () => {
   const [progress, setProgress] = useState(0);
 
   const mutation = useMutation({
-    mutationFn: (file: File) =>
-      attachmentService.uploadAttachment(file, {}, (p) => setProgress(p)),
+    mutationFn: ({ file, signal }: { file: File; signal: AbortSignal }) =>
+      attachmentService.uploadAttachment(file, signal, (p) => setProgress(p)),
     onSuccess: (data) => {
       setProgress(0);
     },

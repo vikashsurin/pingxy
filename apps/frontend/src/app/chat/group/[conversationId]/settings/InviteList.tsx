@@ -50,7 +50,7 @@ export default function InviteList({ cid }: { cid: number }) {
     if (selectedIds.length === data.length) {
       setSelectedIds([]); // Deselect all
     } else {
-      setSelectedIds(data.map((invite) => invite.id)); // Select all
+      setSelectedIds(data.map((invite: any) => invite.id)); // Select all
     }
   };
 
@@ -126,7 +126,7 @@ export default function InviteList({ cid }: { cid: number }) {
               </tr>
             </thead>
             <tbody className="text-sm divide-y">
-              {data.map((invite) => (
+              {data.map((invite: any) => (
                 <tr
                   key={invite.id}
                   className="hover:bg-gray-50 transition-colors"

@@ -27,7 +27,7 @@ export default function Users() {
     if (data) {
       const meta = cps.get(data.id);
       const op = meta?.find((item) => item.uid !== authUser.id);
-      const otherUsername = users[op?.uid]?.userName;
+      const otherUsername = users[op?.uid ?? 0]?.userName;
 
       console.log("{ op, otherUsername , userId}", {
         op,

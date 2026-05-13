@@ -18,7 +18,7 @@ export function LabeledField({
     <Field>
       <FieldLabel htmlFor={name}>{label}</FieldLabel>
       {children}
-      {isInvalid && <FieldError errors={errors} />}
+      {isInvalid && <FieldError />}
     </Field>
   );
 }

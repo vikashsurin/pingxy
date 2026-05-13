@@ -16,17 +16,25 @@ export function TextFormField({
 }) {
   return (
     <form.Field name={name}>
-      {(field) => {
-        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+      {(field: any) => {
+        const isInvalid =
+          field.state.meta.isTouched && !field.state.meta.isValid;
         return (
-          <LabeledField label={label} name={field.name} isInvalid={isInvalid} errors={field.state.meta.errors}>
+          <LabeledField
+            label={label}
+            name={field.name}
+            isInvalid={isInvalid}
+            errors={field.state.meta.errors}
+          >
             <Input
               id={field.name}
               name={field.name}
               type={type}
               value={field.state.value}
               onChange={(e) =>
-                field.handleChange(type === "number" ? Number(e.target.value) : e.target.value)
+                field.handleChange(
+                  type === "number" ? Number(e.target.value) : e.target.value,
+                )
               }
               placeholder={placeholder}
             />

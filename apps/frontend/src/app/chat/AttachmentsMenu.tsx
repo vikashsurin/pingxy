@@ -19,10 +19,6 @@ export function AttachmentsMenu({
 }: {
   setUploads: React.Dispatch<React.SetStateAction<Record<string, Upload>>>;
 }) {
-  //   const { mutateAsync: upload, progress, isPending } = useUploadAttachment();
-
-  //   console.log({ progress });
-
   // 1. Setup refs for the hidden inputs
   const audioInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);

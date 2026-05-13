@@ -65,14 +65,15 @@ const ConversationItem = ({
   const authUser = useChatStore((state) => state.authUser);
   const op = meta?.find((item) => item.uid !== authUser.id);
 
+  console.log({ op });
+
   // TODO: Check this.
   const otherUsername = useUserStore((state) => {
     if (op) {
-      return state.users[op?.uid]?.userName;
+      return state.users[op?.uid ?? 0]?.userName;
     }
-    return undefined;
+    return "";
   });
-
 
   if (!op?.uid) return <div>No Participant</div>;
   return (
