@@ -27,7 +27,7 @@ export default function Page({
   return (
     <div className="grid  h-screen">
       <section className=" flex w-full flex-col   border-gray-300  h-[calc(100dvh-1rem)]">
-        <div className="flex items-center justify-between bg-white border-b">
+        <div className="flex items-center justify-between bg-whit.  border-b">
           <h2 className="px-3 py-2 font-bold">{name}</h2>
           {/* Menu here */}
         </div>
