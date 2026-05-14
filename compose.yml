@@ -96,6 +96,7 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      target: production
     container_name: pingxy-frontend
     restart: always
     environment:
@@ -103,10 +104,11 @@ services:
       - ORIGIN=https://pingxy.com
       - CHECK_ORIGIN=true
       - INTERNAL_BACKEND_URL=http://backend:3000
+      - NODE_ENV=production
+      - BUN_ENV=production
     networks:
       - pingxy-internal
       - pingxy-public
-    command: ["bun", "run", "start"]
 
   storage:
     image: minio/minio

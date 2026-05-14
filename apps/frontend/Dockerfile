@@ -8,7 +8,7 @@ RUN bun install
 
 # Stage 2: Development
 FROM base AS development
-ENV NODE_ENV=development 
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 # Polling required for hot reload inside Docker on Mac/Windows
 ENV CHOKIDAR_USEPOLLING=true
@@ -30,15 +30,18 @@ WORKDIR /app/apps/frontend
 RUN bun run build
 
 # Stage 4: Production Runtime
-# Note: requires output: 'standalone' in next.config.js
 FROM oven/bun:1-alpine AS production
 WORKDIR /app
-COPY --from=builder /app/apps/frontend/public ./public
+
+# The standalone output includes the necessary node_modules
 COPY --from=builder /app/apps/frontend/.next/standalone ./
-COPY --from=builder /app/apps/frontend/.next/static ./.next/static
+COPY --from=builder /app/apps/frontend/.next/static ./apps/frontend/.next/static
+COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
+
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
+
 USER bun
-CMD ["bun", "server.js"]
+# Note: In a monorepo, server.js might be inside apps/frontend/
+CMD ["bun", "apps/frontend/server.js"]
