@@ -1,6 +1,9 @@
+'use client';
+
 import { IconCalendarTime, IconFiles, IconMessages } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
+import FeatureCard from './FeatureCard'
 
 export default function Home() {
   return (
@@ -38,24 +41,30 @@ export default function Home() {
         </section>
 
         <section className="flex items-center justify-center gap-2">
-          <Card>
-            <IconMessages size={32} />
-            <span>
-              1-1 and Group Conversations
-            </span>
-          </Card>
-          <Card>
-            <IconFiles size={32} />
-            <span>
-              File Sharing
-            </span>
-          </Card>
-          <Card>
-            <IconCalendarTime size={32} />
-            <span>
-              Schedule Meetings
-            </span>
-          </Card>
+
+          <FeatureCard
+            icon={
+              <IconMessages size={52}
+                className="text-white" />
+            }
+            text="1-1 and Group Conversations" />
+
+          <FeatureCard
+            icon={
+              <IconFiles size={52}
+                className="text-white" />
+            }
+            text="File Sharing"
+          />
+
+          <FeatureCard
+            icon={
+              <IconCalendarTime size={52}
+                className="text-white" />
+            }
+            text="Schedule Meetings"
+          />
+
         </section>
       </div>
 
