@@ -73,17 +73,9 @@ export default function Home() {
 }
 
 
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="ios-modern-btn bg-slate-800 text-white flex flex-col items-start justify-between gap-2 border h-52 w-52 p-4 rounded-md">
-      {children}
-    </div>
-  )
-}
-
 function CtaButton() {
   return (
-    <button className="ios-modern-btn bg-radial-[at_0%_0%] from-[#00FFA1] to-[#00FF1E]  text-2xl font-medium  px-16   w-125  py-5 rounded-sm   hover:from-[#00FFD9]  transition-all duration-500 hover:scale-105 outline-2 outline-gray-800 ">
+    <button className="ios-modern-btn bg-radial-[at_0%_0%] from-[#00FFA1] to-[#00FF1E]  text-2xl font-medium  px-16   w-125  py-5 rounded-sm   hover:from-[#00FFD9]  transition-all duration-500  outline-2 outline-gray-800 ">
       <Link href="/auth/login">Get Started</Link>
     </button>
   )
