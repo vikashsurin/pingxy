@@ -3,7 +3,13 @@ services:
     image: redis:7-alpine
     container_name: pingxy-redis
     networks:
-      - pingxy-network
+      - pingxy-internal
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
     restart: always
     volumes:
       - redis_data:/data
@@ -26,7 +32,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - pingxy-network
+      - pingxy-internal
     deploy:
       resources:
         limits:
@@ -46,7 +52,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
     networks:
-      - pingxy-network
+      - pingxy-internal
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,7 +84,12 @@ services:
       - REDIS_URL=redis://redis:6379
 
     networks:
-      - pingxy-network
+      - pingxy-internal
+      - pingxy-public
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     command: ["bun", "run", "start"]
 
   frontend:
@@ -93,7 +104,8 @@ services:
       - CHECK_ORIGIN=true
       - INTERNAL_BACKEND_URL=http://backend:3000
     networks:
-      - pingxy-network
+      - pingxy-internal
+      - pingxy-public
     command: ["bun", "run", "start"]
 
   storage:
@@ -101,10 +113,12 @@ services:
     container_name: pingxy-storage
     restart: always
     networks:
-      - pingxy-network
+      - pingxy-internal
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_BROWSER_REDIRECT_URL=https://admin.pingxy.com
+      - MINIO_SERVER_URL=https://pingxy.com/storage
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -122,7 +136,7 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - pingxy-network
+      - pingxy-internal
     volumes:
       - ./Caddyfile.prod:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -132,7 +146,9 @@ services:
       - backend
 
 networks:
-  pingxy-network:
+  pingxy-internal:
+    driver: bridge
+  pingxy-public:
     driver: bridge
 
 volumes:

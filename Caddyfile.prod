@@ -1,34 +1,45 @@
 pingxy.com {
     request_body max_size 20MB
 
-    # 1. MinIO API
-    handle_path /storage/* {
+    # 1. MinIO API (S3)
+    # Using handle instead of handle_path so the bucket/path stays intact
+    handle /storage/* {
+        uri strip_prefix /storage
         reverse_proxy storage:9000
     }
 
-    # 2. MinIO Console (Admin)
-    handle_path /minio-admin/* {
-        reverse_proxy storage:9001
-    }
-
-    # 3. Backend API & WS
+    # 2. Backend API & WebSockets
+    # Combined for efficiency.
+    # Ensure your backend is listening for the "/api" prefix.
     handle /api* {
         reverse_proxy backend:3000
     }
 
     handle /ws* {
-        reverse_proxy backend:3000
+        reverse_proxy backend:3000 {
+            # Explicit hop-by-hop header handling for older Caddy versions
+            # though modern Caddy handles WS automatically.
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+        }
     }
 
-    # 4. Frontend
+    # 3. Frontend
     handle {
         reverse_proxy frontend:3001
     }
 
-    # Optional: Force HTTPS and add security headers
+    # Security Headers
     header {
         Strict-Transport-Security "max-age=31536000;"
         X-Content-Type-Options nosniff
         X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
     }
+}
+
+# 4. Recommendation: Move MinIO Admin to a Subdomain
+# MinIO Console struggles with sub-path proxying (JS/CSS path issues)
+admin.pingxy.com {
+    reverse_proxy storage:9001
 }
