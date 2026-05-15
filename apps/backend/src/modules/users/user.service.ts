@@ -1,13 +1,24 @@
-import { NewUser } from "@pingxy/shared/domain/user";
+import { Email, NewUser } from "@pingxy/shared/domain/user";
 import { HTTPException } from "hono/http-exception";
+import { z } from "zod";
 import { UserRepository } from "./user.repository";
+
+
 
 export const UserService = {
   createUser: async (newUser: NewUser) => {
     try {
-      const [existingUser] = await UserRepository.selectByUsername(
-        newUser.userName,
+      const email = newUser.email;
+      const parsedEmail = z.email().safeParse(email);
+
+      if (!parsedEmail.success) {
+        throw new Error("Invalid email");
+      }
+
+      const [existingUser] = await UserRepository.selectByEmail(
+        parsedEmail.data,
       );
+
       if (existingUser) {
         throw new Error("User already exists");
       }
@@ -26,9 +37,9 @@ export const UserService = {
     }
   },
 
-  getAuthUserByUsername: async (userName: string) => {
+  getAuthUserByEmail: async (email: Email) => {
     try {
-      const [result] = await UserRepository.selectForAuth(userName);
+      const [result] = await UserRepository.selectByEmail(email);
 
       if (!result) {
         throw new Error("User not found");
@@ -36,9 +47,26 @@ export const UserService = {
       return result;
     } catch (error) {
       console.error(error);
-      throw new Error("Error getting user by userName");
+      throw new Error("Error getting user by email");
     }
   },
+
+  // deprecated, remove this function and use getAuthUserByEmail instead. --- IGNORE ---
+
+  // getAuthUserByUsername: async (userName: string) => {
+  //   try {
+  //     const [result] = await UserRepository.selectForAuth(userName);
+
+  //     if (!result) {
+  //       throw new Error("User not found");
+  //     }
+  //     return result;
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw new Error("Error getting user by userName");
+  //   }
+  // },
+
   getUserById: async (id: number) => {
     try {
       const [user] = await UserRepository.selectById(id);
@@ -63,10 +91,8 @@ export const UserService = {
     }
   },
 
-
   updateLastSeen: async (userId: number) => {
-
-    console.log('from service')
+    console.log("from service");
     try {
       const lastSeenAt = new Date(Date.now());
       return await UserRepository.update(userId, { lastSeenAt });

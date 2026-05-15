@@ -1,6 +1,5 @@
 "use client";
 
-import buttonStyles from "@/src/_styles/button.module.css";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,7 +17,7 @@ export default function Login() {
   const { mutate, isPending, isSuccess } = useLogin();
   const form = useForm({
     defaultValues: {
-      userName: "",
+      email: "",
       password: "",
     },
     validators: {
@@ -40,14 +39,14 @@ export default function Login() {
           }}
         >
           <FieldGroup>
-            <form.Field name="userName">
+            <form.Field name="email">
               {(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <>
                     <Field>
-                      <FieldLabel htmlFor={field.name}>Username</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
@@ -55,7 +54,7 @@ export default function Login() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         className="rounded-sm"
-                        placeholder="Enter userName"
+                        placeholder="Enter email"
                       />
                     </Field>
                     {isInvalid && (

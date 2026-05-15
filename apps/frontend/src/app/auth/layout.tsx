@@ -8,7 +8,7 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter()
+  const router = useRouter();
   return (
     <section className="min-h-screen grid grid-cols-2  justify-center p-12 ">
       <Image
@@ -20,18 +20,16 @@ export default function AuthLayout({
         className="justify-self-center"
         onClick={(e) => {
           e.preventDefault();
-          router.push('/')
+          router.push("/");
         }}
       />
       <div className="mb-8 flex flex-col items-center">
         <nav className="flex gap-1 bg-radial from-gray-200 to-gray-50 p-2 rounded-md mb-8">
           <TabButton href="/auth/login" label="Login" />
           <TabButton href="/auth/register" label="Register" />
-          <TabButton href="/auth/guest" label="Guest" />
         </nav>
         <div className="w-full max-w-md px-4">{children}</div>
       </div>
-
     </section>
   );
 }

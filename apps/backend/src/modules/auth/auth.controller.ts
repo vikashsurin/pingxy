@@ -59,7 +59,7 @@ export const AuthController = {
     validate(
       "json",
       z.object({
-        userName: z.string().min(3).max(100),
+        email: z.email(),
         password: z.string().min(2).max(100),
       }),
     ),
@@ -69,11 +69,11 @@ export const AuthController = {
         const ipAddress = info.remote.address!;
         const userAgent = c.req.header("User-Agent")!;
 
-        const { userName, password } = c.req.valid("json");
+        const { email, password } = c.req.valid("json");
 
 
         const { user, token } = await AuthService.login({
-          userName,
+          email,
           password,
           info,
           ipAddress,

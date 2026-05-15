@@ -7,13 +7,11 @@ function createAuthApi() {
   const baseUrl = "http://localhost/api/auth";
 
   async function login(formData: z.infer<typeof loginFormSchema>) {
-    const userName = formData.userName;
+    const email = formData.email;
     const password = formData.password;
 
-    console.log("userName, password", userName, password)
-
-    if (!userName || !password) {
-      return new Response("Please enter a userName and password", {
+    if (!email || !password) {
+      return new Response("Please enter an email and password", {
         status: 400,
       });
     }
@@ -24,7 +22,7 @@ function createAuthApi() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userName, password }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (!res.ok) {
@@ -33,35 +31,15 @@ function createAuthApi() {
     }
 
     const data = await res.json();
-    // const cookieStore = await cookies();
-    // cookieStore.set("_Host-session", data.token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   sameSite: "lax",
-    //   maxAge: 60 * 60 * 24 * 30, // 30 days
-    // });
-
-    // redirect("/chat");
 
     return data.user;
   }
 
   const register = async (formData: z.infer<typeof registerFormSchema>) => {
     const userName = formData.userName;
+    const email = formData.email;
     const password = formData.password;
     const confirmPassword = formData.confirmPassword;
-    const age = formData.age;
-    const gender = formData.gender;
-    const country = formData.country;
-
-    console.log({
-      userName,
-      password,
-      confirmPassword,
-      age,
-      gender,
-      country,
-    });
 
     const url = `${baseUrl}/register`;
     const res = await fetch(url, {
@@ -71,11 +49,9 @@ function createAuthApi() {
       },
       body: JSON.stringify({
         userName,
+        email,
         password,
         confirmPassword,
-        age,
-        gender,
-        country: country.value,
       }),
     });
 
@@ -88,8 +64,6 @@ function createAuthApi() {
     console.log({ data });
     return data;
   };
-
-  const guest = async (formData: FormData) => { };
 
   const logout = async () => {
     const url = `${baseUrl}/logout`;
@@ -124,7 +98,6 @@ function createAuthApi() {
   return {
     login,
     register,
-    guest,
     logout,
     getAuthUser,
   };

@@ -1,27 +1,16 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
 
-export const userTypeEnum = pgEnum("userType", [
-  "admin",
-  "moderator",
-  "user",
-  "guest",
-]);
-
-export const genderEnum = pgEnum("gender", ["male", "female", "other"]);
+export const userTypeEnum = pgEnum("userType", ["admin", "user"]);
 
 export const users = table(
   "users",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    type: userTypeEnum().default("guest").notNull(),
-    email: t.text().unique(),
+    type: userTypeEnum().default("user").notNull(),
     userName: t.text().notNull().unique(),
-    hashedPassword: t.text(),
-    gender: genderEnum().notNull().default("other"),
-    age: t.integer().notNull().default(18),
-    country: t.text().notNull().default("AF"),
-    bio: t.text(),
+    email: t.text().notNull().unique(),
+    hashedPassword: t.text().notNull(),
     lastSeenAt: t.timestamp({ withTimezone: true }),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     updatedAt: t

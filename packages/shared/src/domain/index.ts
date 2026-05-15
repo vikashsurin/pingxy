@@ -1,4 +1,5 @@
 export * from "./user";
+export * from "./profile";
 export * from "./conversation";
 export * from "./conversation-invite";
 export * from "./membership-request";

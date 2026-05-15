@@ -1,8 +1,5 @@
-import {
-  guestFormSchema,
-  loginFormSchema,
-  registerFormSchema,
-} from "@/src/lib/schema/auth";
+import { loginFormSchema, registerFormSchema } from "@/src/lib/schema/auth";
+import { User } from "@pingxy/shared";
 import z from "zod";
 import { authApi } from "../lib/api/authApi";
 import { useChatStore } from "../store/chatStore";
@@ -12,7 +9,7 @@ function createAuthService() {
     localStorage.setItem("token", token);
   };
 
-  const setAuthUser = (user: any) => {
+  const setAuthUser = (user: User) => {
     useChatStore.getState().setAuthUser(user);
   };
 
@@ -22,14 +19,12 @@ function createAuthService() {
   const register = async (formData: z.infer<typeof registerFormSchema>) => {
     return await authApi.register(formData);
   };
-  const guestLogin = async (formData: z.infer<typeof guestFormSchema>) => {};
 
   return {
     setToken,
     setAuthUser,
     login,
     register,
-    guestLogin,
   };
 }
 

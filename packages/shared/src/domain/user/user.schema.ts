@@ -16,33 +16,42 @@ export const publicUserColumns = publicColumns;
 
 export const insertUserSchema = createInsertSchema(users);
 
-const BaseUserSchema = z.object({
-  userName: z
-    .string()
-    .min(MIN_NAME_LENGTH, "Username must be at least 3 characters")
-    .max(MAX_NAME_LENGTH, "Username must be at most 16 characters"),
-  gender: z.enum(["male", "female", "other"]),
-  age: z.coerce.number().min(18, "Age must be a positive number"),
-  country: z.string(),
-  bio: z.string().optional(),
-});
+export const EmailSchema = z.email()
 
-export const RegisterUserRequestSchema = BaseUserSchema.extend({
+const BaseUserSchema = z.object({
+  email: z.email("Invalid email address"),
   password: z
     .string()
-    .min(MIN_PASSWORD_LENGTH, "Password must be at least 8 characters")
-    .max(MAX_PASSWORD_LENGTH, "Password must be at most 32 characters"),
-  confirmPassword: z.string(),
-}).refine((values) => values.password === values.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
+    .min(
+      MIN_PASSWORD_LENGTH,
+      `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+    )
+    .max(
+      MAX_PASSWORD_LENGTH,
+      `Password must be at most ${MAX_PASSWORD_LENGTH} characters`,
+    ),
 });
 
+export const RegisterUserRequestSchema = BaseUserSchema
+  .extend({
+    userName: z
+      .string()
+      .min(MIN_NAME_LENGTH, `Name must be at least ${MIN_NAME_LENGTH} characters`)
+      .max(MAX_NAME_LENGTH, `Name must be at most ${MAX_NAME_LENGTH} characters`),
+    confirmPassword: z.string(),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+// Remove GuestUserRequestSchema permanently and use RegisterUserRequestSchema for both guest and regular users. --- IGNORE ---
 export const GuestUserRequestSchema = BaseUserSchema;
 
 export const selectUserSchema = createSelectSchema(users)
   .omit({
     hashedPassword: true,
+    email: true,
     createdAt: true,
     updatedAt: true,
   })

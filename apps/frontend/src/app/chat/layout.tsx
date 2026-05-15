@@ -68,13 +68,7 @@ function CustomLink({ href, type }: { href: string; type: string }) {
       href={href}
       className="flex items-center gap-2  px-3 py-1 rounded hover:bg-gray-700 hover:text-white transition-colors"
     >
-      {type === "users" ? (
-        <UsersIcon size={14} />
-      ) : type === "direct" ? (
-        <MessagesSquare size={14} />
-      ) : (
-        <Group size={14} />
-      )}
+      {type === "direct" ? <MessagesSquare size={14} /> : <Group size={14} />}
       {type}
     </Link>
   );

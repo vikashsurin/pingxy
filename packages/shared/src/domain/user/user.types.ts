@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  EmailSchema,
   GuestUserRequestSchema,
   insertUserSchema,
   RegisterUserRequestSchema,
@@ -17,3 +18,4 @@ export type User = z.infer<typeof selectUserSchema> & {
 export type InsertUserType = z.infer<typeof insertUserSchema>;
 export type SelectUserType = z.infer<typeof selectUserSchema>;
 
+export type Email = z.infer<typeof EmailSchema>

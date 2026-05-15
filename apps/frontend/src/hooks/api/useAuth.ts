@@ -1,8 +1,7 @@
-import { loginFormSchema, registerFormSchema, guestFormSchema } from "@/src/lib/schema/auth";
+import { loginFormSchema, registerFormSchema } from "@/src/lib/schema/auth";
 import { authManager } from "@/src/services/authService";
 import { useMutation } from "@tanstack/react-query";
 import z from "zod";
-
 
 export const useLogin = () => {
   return useMutation({
@@ -20,7 +19,6 @@ export const useLogin = () => {
   });
 };
 
-
 export const useRegister = () => {
   return useMutation({
     mutationFn: async (formData: z.infer<typeof registerFormSchema>) => {
@@ -30,21 +28,6 @@ export const useRegister = () => {
       authManager.setToken(data.token);
       authManager.setAuthUser(data.user);
       window.location.href = "/chat";
-    },
-    onError: (error) => {
-      console.log(error);
-    },
-  });
-};
-
-
-export const useGuestLogin = () => {
-  return useMutation({
-    mutationFn: async (formData: z.infer<typeof guestFormSchema>) => {
-      return await authManager.guestLogin(formData);
-    },
-    onSuccess: (data) => {
-
     },
     onError: (error) => {
       console.log(error);

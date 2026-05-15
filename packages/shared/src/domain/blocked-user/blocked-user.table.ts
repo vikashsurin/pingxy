@@ -6,31 +6,20 @@ export const blockedUsers = table(
   "blocked_users",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    blockerId: t.integer().notNull(),
-    blockedId: t.integer().notNull(),
+    blockerId: t
+      .integer()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    blockedId: t
+      .integer()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     blockedAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     t
-      .foreignKey({
-        name: "blocked_users_blocker_fk",
-        columns: [table.blockerId],
-        foreignColumns: [users.id],
-      })
-      .onDelete("cascade"),
-
-    t
-      .foreignKey({
-        name: "blocked_users_blocked_fk",
-        columns: [table.blockedId],
-        foreignColumns: [users.id],
-      })
-      .onDelete("cascade"),
-
-    t
       .uniqueIndex("blocked_users_blockerId_blockedIdIdx")
       .on(table.blockerId, table.blockedId),
-
     t.index("blocked_users_blockerIdIdx").on(table.blockerId),
     t.index("blocked_users_blockedIdIdx").on(table.blockedId),
   ],
