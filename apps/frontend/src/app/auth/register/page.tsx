@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Field,
   FieldError,
@@ -11,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useRegister } from "@/src/hooks/api/useAuth";
 import { registerFormSchema } from "@/src/lib/schema/auth";
 import { useForm } from "@tanstack/react-form";
+import Image from "next/image";
 
 export default function Register() {
   const { mutate } = useRegister();
@@ -33,8 +33,19 @@ export default function Register() {
   });
 
   return (
-    <Card className="rounded-md">
-      <CardContent>
+    <section className=" h-dvh flex flex-col justify-center items-center overflow-auto px-24">
+      <div className="p-4 flex flex-1 min-h-0 flex-col min-w-md ">
+        <div className="py-8">
+          <Image
+            src="/logo.svg"
+            alt="Logo"
+            width={256}
+            height={56}
+            priority
+            className="pb-8"
+          />
+          <h1 className="text-3xl font-bold">Create an Account</h1>
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -146,10 +157,24 @@ export default function Register() {
                 );
               }}
             </form.Field>
-            <Button type="submit">Register</Button>
+            <Button type="submit">Create an account</Button>
           </FieldGroup>
         </form>
-      </CardContent>
-    </Card>
+        <div className="text-sm flex gap-1 justify-center mt-8">
+          Already have an account?{" "}
+          <a href="/auth/login" className="text-blue-800 hover:underline">
+            Login
+          </a>
+        </div>
+        <footer className="text-sm flex gap-2 justify-center mt-auto text-gray-600 pt-8 ">
+          <a href="/terms" className="hover:underline">
+            Terms of Service
+          </a>
+          <a href="/privacy" className="hover:underline">
+            Privacy Policy
+          </a>
+        </footer>
+      </div>
+    </section>
   );
 }

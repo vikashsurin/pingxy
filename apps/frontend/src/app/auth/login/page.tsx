@@ -1,7 +1,5 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Field,
   FieldError,
@@ -12,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { useLogin } from "@/src/hooks/api/useAuth";
 import { loginFormSchema } from "@/src/lib/schema/auth";
 import { useForm } from "@tanstack/react-form";
+import Image from "next/image";
 
 export default function Login() {
-  const { mutate, isPending, isSuccess } = useLogin();
+  const { mutate, isPending, isSuccess, isError, reset } = useLogin();
   const form = useForm({
     defaultValues: {
       email: "",
@@ -30,8 +29,19 @@ export default function Login() {
   });
 
   return (
-    <Card className="rounded-md">
-      <CardContent>
+    <section className=" h-dvh flex flex-col justify-center items-center overflow-auto px-24">
+      <div className="p-4 flex flex-1 min-h-0 flex-col min-w-md ">
+        <div className="py-8">
+          <Image
+            src="/logo.svg"
+            alt="Logo"
+            width={256}
+            height={56}
+            priority
+            className="pb-8"
+          />
+          <h1 className="text-3xl font-bold">Login</h1>
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -52,7 +62,10 @@ export default function Login() {
                         name={field.name}
                         value={field.state.value}
                         onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={(e) => {
+                          if (isError) reset();
+                          field.handleChange(e.target.value);
+                        }}
                         className="rounded-sm"
                         placeholder="Enter email"
                       />
@@ -78,10 +91,21 @@ export default function Login() {
                         type="password"
                         value={field.state.value}
                         onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={(e) => {
+                          if (isError) reset();
+                          field.handleChange(e.target.value);
+                        }}
                         className="rounded-sm"
                         placeholder="*****"
                       />
+                      <div className="flex">
+                        <a
+                          href="/auth/forgot-password"
+                          className="text-sm w-max  ml-auto text-blue-800 hover:underline"
+                        >
+                          forgot password?
+                        </a>
+                      </div>
                     </Field>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
@@ -90,6 +114,12 @@ export default function Login() {
                 );
               }}
             </form.Field>
+
+            {isError && (
+              <div className="text-red-500 text-sm">
+                Login failed. Please check your credentials and try again.
+              </div>
+            )}
             <Button
               type="submit"
               className={"w-full rounded-sm"}
@@ -103,7 +133,23 @@ export default function Login() {
             </Button>
           </FieldGroup>
         </form>
-      </CardContent>
-    </Card>
+
+        <div className="text-sm flex gap-1 justify-center mt-8">
+          Don&apos;t have an account?{" "}
+          <a href="/auth/register" className="text-blue-800 hover:underline">
+            Register
+          </a>
+        </div>
+      </div>
+
+      <footer className="text-sm flex gap-2 justify-center mb-8 text-gray-600">
+        <a href="/terms" className="hover:underline">
+          Terms of Service
+        </a>
+        <a href="/privacy" className="hover:underline">
+          Privacy Policy
+        </a>
+      </footer>
+    </section>
   );
 }
