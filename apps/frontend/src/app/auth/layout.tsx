@@ -11,7 +11,14 @@ export default function AuthLayout({
   const router = useRouter();
   return (
     <section className="min-h-screen grid grid-cols-[12fr_10fr]  justify-center  ">
-      <div className="h-full w-full bg-gray-300"></div>
+      <div className="h-full w-full bg-gray-300 overflow-hidden relative">
+        <Image
+          src="/auth-page-bg-2.svg"
+          alt="Background Image"
+          fill
+          className="object-cover object-center opacity-90"
+        />
+      </div>
       {/* <Image
         src="/logo.svg"
         alt="Logo"
