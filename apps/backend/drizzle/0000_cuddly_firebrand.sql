@@ -1,10 +1,12 @@
 CREATE TYPE "public"."conversationType" AS ENUM('direct', 'group');--> statement-breakpoint
-CREATE TYPE "public"."status" AS ENUM('sent', 'delivered', 'read');--> statement-breakpoint
+CREATE TYPE "public"."membershipStatus" AS ENUM('pending', 'approved', 'declined');--> statement-breakpoint
 CREATE TYPE "public"."delivery_status" AS ENUM('sent', 'delivered', 'read', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."message_type" AS ENUM('text', 'image', 'video', 'audio', 'file', 'system');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('admin', 'moderator', 'member');--> statement-breakpoint
 CREATE TYPE "public"."gender" AS ENUM('male', 'female', 'other');--> statement-breakpoint
-CREATE TYPE "public"."userType" AS ENUM('admin', 'moderator', 'user', 'guest');--> statement-breakpoint
+CREATE TYPE "public"."userStatus" AS ENUM('active', 'unverified', 'suspended', 'banned');--> statement-breakpoint
+CREATE TYPE "public"."userType" AS ENUM('admin', 'user');--> statement-breakpoint
+CREATE TYPE "public"."verificationType" AS ENUM('emailVerification', 'phoneVerification', 'passwordReset');--> statement-breakpoint
 CREATE TABLE "attachments" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "attachments_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"message_id" integer NOT NULL,
@@ -24,16 +26,46 @@ CREATE TABLE "blocked_users" (
 	"blocked_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "conversation_invites" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "conversation_invites_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"conversation_id" integer NOT NULL,
+	"requires_approval" boolean DEFAULT false NOT NULL,
+	"invite_code" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"expires_at" timestamp with time zone,
+	"revoked_at" timestamp with time zone,
+	"max_uses" integer,
+	"uses_count" integer DEFAULT 0 NOT NULL,
+	"created_by" integer NOT NULL,
+	CONSTRAINT "conversation_invites_invite_code_unique" UNIQUE("invite_code")
+);
+--> statement-breakpoint
 CREATE TABLE "conversations" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "conversations_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"type" "conversationType" DEFAULT 'direct',
+	"type" "conversationType" DEFAULT 'direct' NOT NULL,
 	"name" varchar(100),
+	"user1_id" integer,
+	"user2_id" integer,
+	"max_participants" integer,
+	"description" text,
+	"is_private" boolean DEFAULT true NOT NULL,
 	"last_message_id" integer,
 	"last_message_at" timestamp with time zone,
 	"is_deleted" boolean DEFAULT false NOT NULL,
 	"created_by" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "unique_user_pair" UNIQUE("user1_id","user2_id"),
+	CONSTRAINT "user_order_check" CHECK ("conversations"."user1_id" < "conversations"."user2_id")
+);
+--> statement-breakpoint
+CREATE TABLE "membership_requests" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "membership_requests_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"conversation_id" integer NOT NULL,
+	"user_id" integer NOT NULL,
+	"invite_code_used" text NOT NULL,
+	"status" "membershipStatus" DEFAULT 'pending' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "message_reactions" (
@@ -42,18 +74,6 @@ CREATE TABLE "message_reactions" (
 	"user_id" integer NOT NULL,
 	"emoji" varchar(10) NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "message_receipts" (
-	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "message_receipts_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"conversation_id" integer NOT NULL,
-	"message_id" integer NOT NULL,
-	"reader_id" integer NOT NULL,
-	"status" "status" NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"delivered_at" timestamp with time zone,
-	"read_at" timestamp with time zone,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -85,6 +105,7 @@ CREATE TABLE "participants" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "participants_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"conversation_id" integer NOT NULL,
 	"user_id" integer NOT NULL,
+	"user_name" text NOT NULL,
 	"role" "role" DEFAULT 'member' NOT NULL,
 	"joined_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"left_at" timestamp with time zone,
@@ -95,11 +116,22 @@ CREATE TABLE "participants" (
 	"is_archived" boolean DEFAULT false NOT NULL,
 	"last_read_message_id" integer,
 	"last_read_at" timestamp with time zone,
+	"last_delivered_message_id" integer,
+	"last_delivered_at" timestamp with time zone,
 	"unread_count" integer DEFAULT 0 NOT NULL,
 	"notification_settings" jsonb,
 	"is_deleted" boolean DEFAULT false NOT NULL,
 	"deleted_at" timestamp with time zone,
 	CONSTRAINT "participants_conversation_user_full_unique" UNIQUE("conversation_id","user_id")
+);
+--> statement-breakpoint
+CREATE TABLE "profiles" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "profiles_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"user_id" integer NOT NULL,
+	"gender" "gender" NOT NULL,
+	"age" integer NOT NULL,
+	"country" text NOT NULL,
+	"bio" text
 );
 --> statement-breakpoint
 CREATE TABLE "refresh_tokens" (
@@ -129,32 +161,39 @@ CREATE TABLE "sessions" (
 --> statement-breakpoint
 CREATE TABLE "users" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "users_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"type" "userType" DEFAULT 'guest',
-	"email" text,
-	"userName" text NOT NULL,
-	"hashed_password" text,
-	"gender" "gender" DEFAULT 'other' NOT NULL,
-	"age" integer DEFAULT 18 NOT NULL,
-	"country" text DEFAULT 'AF' NOT NULL,
-	"bio" text,
-	"data" jsonb,
+	"type" "userType" DEFAULT 'user' NOT NULL,
+	"user_name" text NOT NULL,
+	"email" text NOT NULL,
+	"hashed_password" text NOT NULL,
+	"status" "userStatus" DEFAULT 'unverified' NOT NULL,
 	"last_seen_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "users_email_unique" UNIQUE("email"),
-	CONSTRAINT "users_username_unique" UNIQUE("userName")
+	CONSTRAINT "users_userName_unique" UNIQUE("user_name"),
+	CONSTRAINT "users_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
+CREATE TABLE "verification_tokens" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "verification_tokens_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"user_id" integer NOT NULL,
+	"token" text NOT NULL,
+	"type" "verificationType" NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "attachments" ADD CONSTRAINT "attachments_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "attachments" ADD CONSTRAINT "attachments_uploaded_by_users_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "blocked_users" ADD CONSTRAINT "blocked_users_blocker_fk" FOREIGN KEY ("blocker_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "blocked_users" ADD CONSTRAINT "blocked_users_blocked_fk" FOREIGN KEY ("blocked_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "blocked_users" ADD CONSTRAINT "blocked_users_blocker_id_users_id_fk" FOREIGN KEY ("blocker_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "blocked_users" ADD CONSTRAINT "blocked_users_blocked_id_users_id_fk" FOREIGN KEY ("blocked_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversation_invites" ADD CONSTRAINT "conversation_invites_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversation_invites" ADD CONSTRAINT "conversation_invites_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversations" ADD CONSTRAINT "conversations_users_fk" FOREIGN KEY ("user1_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_created_by_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "membership_requests" ADD CONSTRAINT "membership_requests_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "membership_requests" ADD CONSTRAINT "membership_requests_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "message_reactions" ADD CONSTRAINT "message_reactions_message_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "message_reactions" ADD CONSTRAINT "message_reactions_user_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "message_receipts" ADD CONSTRAINT "message_receipts_message_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "message_receipts" ADD CONSTRAINT "message_receipts_user_fk" FOREIGN KEY ("reader_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "message_receipts" ADD CONSTRAINT "message_receipts_conversation_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_sender_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_parent_fk" FOREIGN KEY ("parent_message_id") REFERENCES "public"."messages"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -162,24 +201,23 @@ ALTER TABLE "messages" ADD CONSTRAINT "messages_deleted_by_fk" FOREIGN KEY ("del
 ALTER TABLE "participants" ADD CONSTRAINT "participants_conversation_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "participants" ADD CONSTRAINT "participants_user_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "participants" ADD CONSTRAINT "participants_last_read_message_fk" FOREIGN KEY ("last_read_message_id") REFERENCES "public"."messages"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_session_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "verification_tokens" ADD CONSTRAINT "verification_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "attachments_message_idx" ON "attachments" USING btree ("message_id");--> statement-breakpoint
 CREATE INDEX "attachments_uploaded_by_idx" ON "attachments" USING btree ("uploaded_by");--> statement-breakpoint
 CREATE UNIQUE INDEX "blocked_users_blockerId_blockedIdIdx" ON "blocked_users" USING btree ("blocker_id","blocked_id");--> statement-breakpoint
 CREATE INDEX "blocked_users_blockerIdIdx" ON "blocked_users" USING btree ("blocker_id");--> statement-breakpoint
 CREATE INDEX "blocked_users_blockedIdIdx" ON "blocked_users" USING btree ("blocked_id");--> statement-breakpoint
+CREATE INDEX "invite_code_idx" ON "conversation_invites" USING btree ("invite_code");--> statement-breakpoint
+CREATE INDEX "conv_invite_id_idx" ON "conversation_invites" USING btree ("conversation_id");--> statement-breakpoint
 CREATE INDEX "conversations_created_byIdx" ON "conversations" USING btree ("created_by");--> statement-breakpoint
 CREATE INDEX "conversations_last_message_atIdx" ON "conversations" USING btree ("last_message_at");--> statement-breakpoint
+CREATE INDEX "conv_id_idx" ON "membership_requests" USING btree ("conversation_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "message_reactions_messageId_userId_emojiIdx" ON "message_reactions" USING btree ("message_id","user_id","emoji");--> statement-breakpoint
 CREATE INDEX "message_reactions_messageIdIdx" ON "message_reactions" USING btree ("message_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "message_receipts_messageId_readerIdIdx" ON "message_receipts" USING btree ("message_id","reader_id");--> statement-breakpoint
-CREATE INDEX "message_receipts_messageIdIdx" ON "message_receipts" USING btree ("message_id");--> statement-breakpoint
-CREATE INDEX "message_receipts_readerId_statusIdx" ON "message_receipts" USING btree ("reader_id","status");--> statement-breakpoint
-CREATE INDEX "message_receipts_read_atIdx" ON "message_receipts" USING btree ("read_at");--> statement-breakpoint
-CREATE INDEX "message_receipts_conversationIdIdx" ON "message_receipts" USING btree ("conversation_id");--> statement-breakpoint
-CREATE INDEX "message_receipts_conversationId_readerId_read_atIdx" ON "message_receipts" USING btree ("conversation_id","reader_id","read_at");--> statement-breakpoint
 CREATE INDEX "messages_conversationIdIdx" ON "messages" USING btree ("conversation_id");--> statement-breakpoint
 CREATE INDEX "messages_senderIdIdx" ON "messages" USING btree ("sender_id");--> statement-breakpoint
 CREATE INDEX "messages_created_atIdx" ON "messages" USING btree ("created_at");--> statement-breakpoint
@@ -199,4 +237,5 @@ CREATE INDEX "sessions_userIdIdx" ON "sessions" USING btree ("user_id");--> stat
 CREATE INDEX "session_expires_atIdx" ON "sessions" USING btree ("expires_at");--> statement-breakpoint
 CREATE INDEX "sessions_ipAddressIdx" ON "sessions" USING btree ("ip_address");--> statement-breakpoint
 CREATE INDEX "session_is_active_lastActivityIdx" ON "sessions" USING btree ("is_active","last_activity");--> statement-breakpoint
-CREATE UNIQUE INDEX "users_usernameIdx" ON "users" USING btree ("userName");
+CREATE UNIQUE INDEX "users_usernameIdx" ON "users" USING btree ("user_name");--> statement-breakpoint
+CREATE INDEX "verification_token_user_id_idx" ON "verification_tokens" USING btree ("user_id");

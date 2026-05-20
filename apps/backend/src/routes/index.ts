@@ -5,6 +5,7 @@ import { authRouter } from "../modules/auth/auth.routes";
 import { blockedRouter } from "../modules/block/block.routes";
 import { conversationRouter } from "../modules/conversations/conversation.routes";
 import { messageRouter } from "../modules/messages/message.routes";
+import { profileRouter } from "../modules/profiles/profile.routes";
 import { userRouter } from "../modules/users/user.routes";
 
 
@@ -17,6 +18,8 @@ export function registerRoutes(app: any) {
   app.route("/api/blocks", blockedRouter);
   app.route("/api/attachments", attachmentRouter);
   app.route("/api/participants", participantRouter);
+  app.route("/api/profiles", profileRouter);
+
 }
 
 export type AppRouter = typeof registerRoutes;

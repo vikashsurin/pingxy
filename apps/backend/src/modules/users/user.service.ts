@@ -3,8 +3,6 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { UserRepository } from "./user.repository";
 
-
-
 export const UserService = {
   createUser: async (newUser: NewUser) => {
     try {

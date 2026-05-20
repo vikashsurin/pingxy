@@ -16,7 +16,7 @@ export const publicUserColumns = publicColumns;
 
 export const insertUserSchema = createInsertSchema(users);
 
-export const EmailSchema = z.email()
+export const EmailSchema = z.email();
 
 const BaseUserSchema = z.object({
   email: z.email("Invalid email address"),
@@ -32,18 +32,16 @@ const BaseUserSchema = z.object({
     ),
 });
 
-export const RegisterUserRequestSchema = BaseUserSchema
-  .extend({
-    userName: z
-      .string()
-      .min(MIN_NAME_LENGTH, `Name must be at least ${MIN_NAME_LENGTH} characters`)
-      .max(MAX_NAME_LENGTH, `Name must be at most ${MAX_NAME_LENGTH} characters`),
-    confirmPassword: z.string(),
-  })
-  .refine((values) => values.password === values.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+export const RegisterUserRequestSchema = BaseUserSchema.extend({
+  userName: z
+    .string()
+    .min(MIN_NAME_LENGTH, `Name must be at least ${MIN_NAME_LENGTH} characters`)
+    .max(MAX_NAME_LENGTH, `Name must be at most ${MAX_NAME_LENGTH} characters`),
+  confirmPassword: z.string(),
+}).refine((values) => values.password === values.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 // Remove GuestUserRequestSchema permanently and use RegisterUserRequestSchema for both guest and regular users. --- IGNORE ---
 export const GuestUserRequestSchema = BaseUserSchema;

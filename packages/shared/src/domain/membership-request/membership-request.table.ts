@@ -3,7 +3,7 @@ import { pgTable as table } from "drizzle-orm/pg-core";
 import { conversations } from "../conversation/conversation.table";
 import { users } from "../user";
 
-export const memberShipStatusEnum = t.pgEnum("status", [
+export const memberShipStatusEnum = t.pgEnum("membershipStatus", [
   "pending",
   "approved",
   "declined",

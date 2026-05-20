@@ -3,11 +3,13 @@ import { broadcast } from "@lib/socket/pubsub";
 import { createServerEvent } from "@lib/socket/socket.factory";
 import { SessionService } from "@modules/sessions";
 import { UserService } from "@modules/users";
+import { VerificationTokenService } from "@modules/verification-tokens/verification-token.service";
 import { SERVER_EVENTS } from "@pingxy/shared/constants";
-import { Email, RegisterGuest, RegisterUser } from "@pingxy/shared/domain/user";
+import type { selectUserSchema } from "@pingxy/shared/domain/user";
+import { Email, RegisterUser } from "@pingxy/shared/domain/user";
 import { ConnInfo } from "hono/conninfo";
 import { HTTPException } from "hono/http-exception";
-import { ZodEmail } from "zod";
+import z from "zod";
 
 export const AuthService = {
   register: async ({
@@ -27,7 +29,7 @@ export const AuthService = {
       userName: body.userName,
       email: body.email,
       type: "user" as const,
-
+      status: 'unverified' as const,
       hashedPassword: hashedPassword,
     };
 
@@ -36,13 +38,18 @@ export const AuthService = {
     const token = crypto.randomUUID();
 
     await SessionService.createSession(token, user.id, ipAddress, userAgent);
-    await redis.hset(`user:${user.id}`, {
-      id: user.id,
-      type: user.type,
-      userName: user.userName,
-      email: user.email ?? "",
-      lastSeentAt: user.lastSeenAt?.toISOString() ?? "",
+
+    await saveToRedis(user)
+
+    const verification = await VerificationTokenService.verify({
+      userId: user.id,
+      type: 'emailVerification',
     });
+
+    if (!verification) {
+      throw new HTTPException(400, { message: 'Verification token not found' });
+    }
+
     return {
       user: user,
       token: token,
@@ -82,19 +89,7 @@ export const AuthService = {
 
     await SessionService.createSession(token, user.id, ipAddress, userAgent);
 
-    // Emit USER LOGIN EVENT
-    // const validatedData = UserMetaDataSchema.parse(user.data);
-    //
-    //  Save to redis
-    await redis.hset(`user:${user.id}`, {
-      id: user.id,
-      type: user.type,
-      userName: user.userName,
-      email: user.email ?? "",
-      lastSeentAt: user.lastSeenAt?.toISOString() ?? "",
-    });
-    // TODO set expiry
-    // await redis.expire(`user:${user.id}`, 3600)
+    await saveToRedis(user)
 
     const event = createServerEvent(SERVER_EVENTS.USERS.LOGIN, {
       user: { ...user },
@@ -107,33 +102,6 @@ export const AuthService = {
     };
   },
 
-  guest: async ({
-    body,
-    info,
-    ipAddress,
-    userAgent,
-  }: {
-    body: RegisterGuest;
-    info: ConnInfo;
-    ipAddress: string;
-    userAgent: string;
-  }) => {
-    // const newUser: NewUser = {
-    //   userName: body.userName,
-    //   type: "guest" as const,
-    //   age: body.age,
-    //   gender: body.gender,
-    //   country: body.country,
-    //   bio: body.bio,
-    // };
-    // const [user] = await UserService.createUser(newUser);
-    // const token = crypto.randomUUID();
-    // await SessionService.createSession(token, user.id, ipAddress, userAgent);
-    // return {
-    //   user: null,
-    //   token: token,
-    // };
-  },
 
   logout: async (cookie: string) => {
     const user = await SessionService.getSessionUser(cookie);
@@ -141,6 +109,8 @@ export const AuthService = {
     if (!success) {
       throw new Error("Failed to Logout user");
     }
+
+    redis.del(`user:${user.id}`)
 
     // Close the socket
 
@@ -157,3 +127,15 @@ export const AuthService = {
     return success;
   },
 };
+
+
+
+async function saveToRedis(user: z.infer<typeof selectUserSchema>) {
+  await redis.hset(`user:${user.id}`, {
+    id: user.id,
+    type: user.type,
+    userName: user.userName,
+    status: user.status,
+    lastSeenAt: user.lastSeenAt?.toISOString() ?? "",
+  });
+}

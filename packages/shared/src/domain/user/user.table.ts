@@ -2,6 +2,7 @@ import * as t from "drizzle-orm/pg-core";
 import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
 
 export const userTypeEnum = pgEnum("userType", ["admin", "user"]);
+export const statusEnum = pgEnum("userStatus", ["active", "unverified", "suspended", "banned"]);
 
 export const users = table(
   "users",
@@ -11,6 +12,7 @@ export const users = table(
     userName: t.text().notNull().unique(),
     email: t.text().notNull().unique(),
     hashedPassword: t.text().notNull(),
+    status: statusEnum().default("unverified").notNull(),
     lastSeenAt: t.timestamp({ withTimezone: true }),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     updatedAt: t

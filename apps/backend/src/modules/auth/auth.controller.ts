@@ -9,10 +9,17 @@ import { getConnInfo } from "hono/bun";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { AuthService } from "./auth.service";
+import { UserService } from "@modules/users";
 
 export const AuthController = {
   me: async (c: Context) => {
     const user = c.get("user");
+    return c.json({ user });
+  },
+
+  profile: async (c: Context) => {
+    const user = c.get("user");
+    // const profile = ProfileSer
     return c.json({ user });
   },
 
@@ -100,37 +107,37 @@ export const AuthController = {
     },
   ),
 
-  guest: factory.createHandlers(
-    validate("json", GuestUserRequestSchema),
-    async (c) => {
-      const info = getConnInfo(c);
-      const ipAddress = info.remote.address!;
-      const userAgent = c.req.header("User-Agent")!;
+  // guest: factory.createHandlers(
+  //   validate("json", GuestUserRequestSchema),
+  //   async (c) => {
+  //     const info = getConnInfo(c);
+  //     const ipAddress = info.remote.address!;
+  //     const userAgent = c.req.header("User-Agent")!;
 
-      const body = c.req.valid("json");
+  //     const body = c.req.valid("json");
 
-      const { user, token } = await AuthService.guest({
-        body,
-        info,
-        ipAddress,
-        userAgent,
-      });
+  //     const { user, token } = await AuthService.guest({
+  //       body,
+  //       info,
+  //       ipAddress,
+  //       userAgent,
+  //     });
 
-      // Set cookie
-      setCookie(c, "_Host-session", token, {
-        maxAge: 60 * 60 * 24 * 7,
-        httpOnly: true,
-        secure: false,
-        path: "/",
-        sameSite: "lax",
-      });
+  //     // Set cookie
+  //     setCookie(c, "_Host-session", token, {
+  //       maxAge: 60 * 60 * 24 * 7,
+  //       httpOnly: true,
+  //       secure: false,
+  //       path: "/",
+  //       sameSite: "lax",
+  //     });
 
-      return c.json({
-        user: user,
-        token: token,
-      });
-    },
-  ),
+  //     return c.json({
+  //       user: user,
+  //       token: token,
+  //     });
+  //   },
+  // ),
 
   logout: async (c: Context) => {
     const cookie = getCookie(c, "_Host-session");

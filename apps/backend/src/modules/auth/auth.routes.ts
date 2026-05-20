@@ -3,11 +3,14 @@ import { authMiddleware } from "@lib/middlewares/auth.js";
 
 import { AuthController } from "./auth.controller";
 
-export const authRouter = factory.createApp();
+export const router = factory.createApp();
 
-authRouter.get("/verify", authMiddleware, AuthController.verify);
-authRouter.get("/me", authMiddleware, AuthController.me);
-authRouter.post("/register", ...AuthController.register);
-authRouter.post("/login", ...AuthController.login);
-authRouter.post("/guest", ...AuthController.guest);
-authRouter.post("/logout", AuthController.logout);
+router.get("/verify", authMiddleware, AuthController.verify);
+router.get("/me", authMiddleware, AuthController.me);
+router.get("/profile", authMiddleware, AuthController.profile);
+router.post("/register", ...AuthController.register);
+router.post("/login", ...AuthController.login);
+router.post("/logout", AuthController.logout);
+
+
+export const authRouter = router;

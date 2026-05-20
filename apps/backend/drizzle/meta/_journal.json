@@ -5,57 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1773314503954,
-      "tag": "0000_ambiguous_komodo",
+      "when": 1778928871516,
+      "tag": "0000_cuddly_firebrand",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1773996205791,
-      "tag": "0001_certain_the_santerians",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1774333561844,
-      "tag": "0002_long_maria_hill",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1774688565515,
-      "tag": "0003_flat_tenebrous",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1775722593571,
-      "tag": "0004_perpetual_bucky",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1777991727429,
-      "tag": "0005_minor_the_captain",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1778075851245,
-      "tag": "0006_amused_iron_patriot",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1778821855143,
-      "tag": "0007_massive_silver_fox",
+      "when": 1779272600546,
+      "tag": "0001_big_zuras",
       "breakpoints": true
     }
   ]

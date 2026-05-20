@@ -19,21 +19,21 @@ export const emitUserList = async () => {
   const results = await Promise.all(
     users.map(async (u) => {
       const raw = await redis.hgetall(`user:${u}`);
+      console.log({ raw })
       return {
         ...raw,
         id: Number(raw.id),
-        age: Number(raw.age),
-        email: raw.email || null,
+        type: raw.type as "admin" | "user",
         userName: raw.userName,
-        country: raw.country,
-        bio: raw.bio || null,
+        status: raw.status as 'unverified' | 'active' | 'suspended'
+          | 'banned',
         lastSeenAt: raw.lastSeenAt ? new Date(raw.lastSeenAt) : null,
-        type: raw.type as "admin" | "moderator" | "user" | "guest",
-        gender: raw.gender as "male" | "female" | "other",
         isOnline: true,
       };
     }),
   );
+
+
 
   const message = createServerEvent(SERVER_EVENTS.USERS.LIST, {
     users: results,

@@ -10,3 +10,4 @@ export * from "./session";
 export * from "./participant";
 export * from "./refresh-token";
 export * from "./attachment";
+export * from "./verification-token";

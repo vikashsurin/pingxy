@@ -9,7 +9,8 @@ export const profiles = table("profiles", {
   userId: t
     .integer()
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
   gender: genderEnum().notNull(),
   age: t.integer().notNull(),
   country: t.text().notNull(),

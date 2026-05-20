@@ -6,6 +6,8 @@ import { factory } from "../db/drizzle-factory";
 export const authMiddleware = factory.createMiddleware(async (c, next) => {
   const sessionToken = getCookie(c, "_Host-session");
 
+
+
   if (!sessionToken) {
     return c.json({ message: "Unauthorized - please log in" }, 401);
   }

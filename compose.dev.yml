@@ -40,26 +40,26 @@ services:
       timeout: 5s
       retries: 5
 
-  migration:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-      target: development
-    container_name: pingxy-migration-dev
-    restart: no
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
-    volumes:
-      - ./apps/backend:/app/apps/backend
-      - ./packages/shared:/app/packages/shared
-      - ./apps/backend/drizzle:/app/drizzle
-      - ./apps/backend/drizzle.config.ts:/app/drizzle.config.ts
-    networks:
-      - pingxy-network-dev
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: ["bun", "run", "db:migrate"]
+  # migration:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/backend/Dockerfile
+  #     target: development
+  #   container_name: pingxy-migration-dev
+  #   restart: no
+  #   environment:
+  #     - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-pingxy}
+  #   volumes:
+  #     - ./apps/backend:/app/apps/backend
+  #     - ./packages/shared:/app/packages/shared
+  #     - ./apps/backend/drizzle:/app/drizzle
+  #     - ./apps/backend/drizzle.config.ts:/app/drizzle.config.ts
+  #   networks:
+  #     - pingxy-network-dev
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   command: ["bun", "run", "db:migrate"]
 
   backend:
     build:
@@ -88,8 +88,8 @@ services:
     networks:
       - pingxy-network-dev
     depends_on:
-      migration:
-        condition: service_completed_successfully
+      # migration:
+      #   condition: service_completed_successfully
       storage:
         condition: service_healthy
       redis:

@@ -200,9 +200,6 @@ export const ConversationRepository = {
         unreadCount: participants.unreadCount,
         lastReadAt: participants.lastReadAt,
         userName: users.userName,
-        age: users.age,
-        gender: users.gender,
-        country: users.country,
         lastSeenAt: users.lastSeenAt,
       })
       .from(conversations)
@@ -227,9 +224,6 @@ export const ConversationRepository = {
         unreadCount: participants.unreadCount,
         lastReadAt: participants.lastReadAt,
         userName: users.userName,
-        age: users.age,
-        gender: users.gender,
-        country: users.country,
         lastSeenAt: users.lastSeenAt,
       })
       .from(conversations)
