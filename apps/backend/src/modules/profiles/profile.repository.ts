@@ -20,14 +20,15 @@ export const ProfileRepository = {
       });
     return row[0];
   },
-  update: async (id: number, profile: any, tx: DB_TX = db) => {
+  update: async (userId: number, profile: any, tx: DB_TX = db) => {
     const row = await tx
       .update(profiles)
       .set(profile)
-      .where(eq(profiles.id, id))
+      .where(eq(profiles.userId, userId))
       .returning();
     return row;
   },
+
   selectById: async (id: number, tx: DB_TX = db) => {
     const row = await tx
       .select()
@@ -35,17 +36,27 @@ export const ProfileRepository = {
       .where(eq(profiles.id, id));
     return row;
   },
+
   selectByUserId: async (userId: number, tx: DB_TX = db) => {
     const row = await tx
-      .select()
+      .select({
+        id: profiles.id,
+        userId: profiles.userId,
+        gender: profiles.gender,
+        age: profiles.age,
+        country: profiles.country,
+        bio: profiles.bio,
+        userName: sql`(SELECT ${users.userName} FROM ${users} WHERE ${users.id} = ${profiles.userId})`.as("userName"),
+      })
       .from(profiles)
       .where(eq(profiles.userId, userId));
-    return row;
+    return row[0];
   },
-  delete: async (id: number, tx: DB_TX = db) => {
+
+  delete: async (userId: number, tx: DB_TX = db) => {
     const row = await tx
       .delete(profiles)
-      .where(eq(profiles.id, (id)))
+      .where(eq(profiles.userId, userId))
       .returning();
     return row;
   },

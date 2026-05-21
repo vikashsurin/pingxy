@@ -5,9 +5,10 @@ import { ProfileController } from "./profile.controller";
 const router = factory.createApp()
 router.use(authMiddleware)
 
+router.get("/", ...ProfileController.getProfile)
 router.post("/", ...ProfileController.createProfile)
-router.put("/:id", ...ProfileController.updateProfile)
-router.delete("/:id", ...ProfileController.deleteProfile)
+router.put("/", ...ProfileController.updateProfile)
+router.delete("/", ...ProfileController.deleteProfile)
 
 
 export const profileRouter = router
