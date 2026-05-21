@@ -13,7 +13,7 @@ export const validate = <
 ) => {
   return zValidator(target, schema, (result, ctx) => {
 
-    // console.info(`#ZodValidation_${cycle++}`, result);
+    console.info(`#ZodValidation_${cycle++}`, result);
 
     if (!result.success) {
       return ctx.json(

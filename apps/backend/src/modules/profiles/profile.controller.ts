@@ -1,6 +1,6 @@
 import { factory } from "@lib/db/drizzle-factory";
 import { validate } from "@lib/utils/validator";
-import { profileCreateSchema } from "@pingxy/shared/domain";
+import { profileCreateSchema, profileUpdateSchema } from "@pingxy/shared/domain";
 import { ProfileService } from "./profile.service";
 
 export const ProfileController = {
@@ -20,6 +20,7 @@ export const ProfileController = {
   getProfile: factory.createHandlers(
     async (c) => {
       const user = c.get("user");
+
       const profile = await ProfileService.getProfile(user.id);
 
       return c.json(profile, 200);
@@ -27,10 +28,11 @@ export const ProfileController = {
   ),
 
   updateProfile: factory.createHandlers(
-    validate('json', profileCreateSchema),
+    validate('json', profileUpdateSchema),
     async (c) => {
       const user = c.get("user");
       const { gender, age, country, bio } = c.req.valid("json");
+
 
       const profile = await ProfileService.updateProfile(user.id, { gender, age, country, bio });
 

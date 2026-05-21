@@ -8,10 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import { authApi } from "@/src/lib/api/authApi";
 import { useChatStore } from "@/src/store/chatStore";
-import { IconLogout, IconSettings, IconUserScreen } from "@tabler/icons-react";
+import { IconLogout, IconUserCog, IconSettings, IconUserScreen } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import Profile from "./Profile";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   const [selectedNavItem, setSelectedNavItem] = useState<string>("profile");
@@ -24,19 +25,26 @@ export default function SettingsPage() {
         <IconSettings size={20} /> Settings
       </DialogTrigger>
 
-      <DialogContent className="rounded-xl min-h-[80vh] min-w-[80vw] max-w-[80vw] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="rounded-xl min-h-[80vh] min-w-[80vw] max-w-[80vw] flex gap-0 flex-col p-0 overflow-hidden">
         <div className="grid grid-cols-[200px_1fr] flex-1 overflow-hidden">
-          <nav className="flex flex-col p-2  rounded-md">
+          {/* TODO : make custom nav items */}
+          <nav className="flex flex-col p-2 rounded-none bg-gray-200">
             <Button
-              variant="ghost"
-              className={"flex justify-start"}
+              variant={'ghost'}
+              className={`flex justify-start rounded-sm ${selectedNavItem === "account" ? "bg-gray-800 text-gray-100 " : ""}`}
+              name="account"
+              onClick={() => setSelectedNavItem("account")}
+            >
+              <IconUserCog size={28} /> Account
+            </Button>
+
+            <Button
+              variant={'ghost'}
+              className={`flex justify-start rounded-sm ${selectedNavItem === "profile" ? "bg-gray-800 text-gray-100 " : ""}`}
               name="profile"
               onClick={() => setSelectedNavItem("profile")}
             >
-              <IconUserScreen size={20} /> Profile
+              <IconUserScreen size={44} /> Profile
             </Button>
             <LogoutButton />
           </nav>
@@ -70,7 +78,7 @@ function LogoutButton() {
       variant="destructive"
       onClick={handleLogout}
       disabled={isPending}
-      className="flex justify-start"
+      className="flex justify-start mt-auto"
     >
       <IconLogout size={20} /> {isPending ? "Logging out..." : "Logout"}
     </Button>
