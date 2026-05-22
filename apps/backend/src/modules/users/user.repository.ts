@@ -19,6 +19,13 @@ export const UserRepository = {
       .returning(safeUserColumns);
   },
 
+  selectForAuth: async (id: number) => {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
+  },
+
   // PS: Dont return hashedPassword
   selectById: async (id: number) => {
     return await db
@@ -75,6 +82,19 @@ export const UserRepository = {
       .update(users)
       .set({
         ...data,
+        updatedAt: new Date(Date.now()),
+      })
+      .where(eq(users.id, id))
+      .returning({
+        ...safeUserColumns,
+      });
+  },
+
+  updatePassword: async (id: number, hashedPassword: string) => {
+    return await db
+      .update(users)
+      .set({
+        hashedPassword,
         updatedAt: new Date(Date.now()),
       })
       .where(eq(users.id, id))

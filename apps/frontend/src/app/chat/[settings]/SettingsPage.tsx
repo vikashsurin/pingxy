@@ -2,17 +2,15 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { authApi } from "@/src/lib/api/authApi";
 import { useChatStore } from "@/src/store/chatStore";
-import { IconLogout, IconUserCog, IconSettings, IconUserScreen } from "@tabler/icons-react";
+import { IconLogout, IconSettings, IconUserCog, IconUserScreen } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import Profile from "./Profile";
-import { Separator } from "@/components/ui/separator";
+import { Account } from "./Account";
 
 export default function SettingsPage() {
   const [selectedNavItem, setSelectedNavItem] = useState<string>("profile");
@@ -27,34 +25,32 @@ export default function SettingsPage() {
 
       <DialogContent className="rounded-xl min-h-[80vh] min-w-[80vw] max-w-[80vw] flex gap-0 flex-col p-0 overflow-hidden">
         <div className="grid grid-cols-[200px_1fr] flex-1 overflow-hidden">
-          {/* TODO : make custom nav items */}
           <nav className="flex flex-col p-2 rounded-none bg-gray-200">
-            <Button
-              variant={'ghost'}
-              className={`flex justify-start rounded-sm ${selectedNavItem === "account" ? "bg-gray-800 text-gray-100 " : ""}`}
-              name="account"
-              onClick={() => setSelectedNavItem("account")}
-            >
-              <IconUserCog size={28} /> Account
-            </Button>
-
-            <Button
-              variant={'ghost'}
-              className={`flex justify-start rounded-sm ${selectedNavItem === "profile" ? "bg-gray-800 text-gray-100 " : ""}`}
-              name="profile"
-              onClick={() => setSelectedNavItem("profile")}
-            >
-              <IconUserScreen size={44} /> Profile
-            </Button>
+            <NavItem icon={<IconUserCog size={20} strokeWidth={3} />} label="Account" isActive={selectedNavItem === "account"} onClick={() => setSelectedNavItem("account")} />
+            <NavItem icon={<IconUserScreen size={20} strokeWidth={3} />} label="Profile" isActive={selectedNavItem === "profile"} onClick={() => setSelectedNavItem("profile")} />
             <LogoutButton />
           </nav>
           <main className="overflow-y-auto">
             {selectedNavItem === "profile" && <Profile />}
+            {selectedNavItem === "account" && <Account />}
           </main>
         </div>
       </DialogContent>
     </Dialog>
   );
+}
+
+
+function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) {
+  return (
+    <>
+      <Button
+        className={`flex items-center justify-start ${isActive ? "bg-gray-800 text-gray-100 hover:bg-gray-600 " : "bg-gray-200 text-black hover:text-black hover:bg-gray-300"}`}
+        onClick={onClick}>
+        {icon} {label}
+      </Button>
+    </>
+  )
 }
 
 function LogoutButton() {

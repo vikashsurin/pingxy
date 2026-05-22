@@ -27,6 +27,24 @@ export const AuthController = {
     return c.json({ message: "test" }, 200);
   },
 
+  updatePassword: factory.createHandlers(
+    validate("json",
+      z.object({
+        currentPassword: z.string().min(4).max(100),
+        newPassword: z.string().min(4).max(100)
+      })),
+    async (c) => {
+
+      const user = c.get("user");
+      const { currentPassword, newPassword } = c.req.valid("json");
+      console.log({ currentPassword, newPassword })
+
+      await AuthService.updatePassword(user.id, currentPassword, newPassword);
+      return c.json({ message: "Password updated successfully" }, 200);
+    },
+  ),
+
+
   register: factory.createHandlers(
     validate("json", RegisterUserRequestSchema),
     async (c) => {

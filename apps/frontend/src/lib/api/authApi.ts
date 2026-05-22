@@ -95,11 +95,32 @@ function createAuthApi() {
 
     return data.user;
   };
+
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+    console.log({ currentPassword, newPassword })
+    const url = `${baseUrl}/update-password`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (!res.ok) {
+      console.error("Update password failed", await res.json());
+      throw new Error("Update password failed");
+    }
+    const data = await res.json();
+    return data;
+  };
   return {
     login,
     register,
     logout,
     getAuthUser,
+    updatePassword
   };
 }
 

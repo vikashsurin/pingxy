@@ -31,6 +31,7 @@ function ProfileForm({ initialData }: { initialData: any }) {
   const { mutate, isPending, isError } = useUpdateProfile()
   const [isEditing, setIsEditing] = useState(false)
 
+  // TODO:: add validation schema
   const form = useForm({
     // 1. Form initializes directly with your real data! No useEffect needed.
     defaultValues: {
@@ -59,7 +60,6 @@ function ProfileForm({ initialData }: { initialData: any }) {
       <form
         className="flex flex-col gap-2 w-xs"
         onSubmit={(e) => {
-          ``
           e.preventDefault();
           form.handleSubmit();
         }}

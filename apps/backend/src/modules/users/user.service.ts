@@ -49,6 +49,40 @@ export const UserService = {
     }
   },
 
+  updatePassword: async (
+    id: number,
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    try {
+      const [user] = await UserRepository.selectForAuth(id)
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const { hashedPassword } = user
+
+      const isMatch = await Bun.password.verify(currentPassword,
+        hashedPassword)
+
+      if (!isMatch) {
+        throw new Error("Invalid password");
+      }
+
+      const hashedNewPassword = await Bun.password.hash(newPassword)
+
+      const [updatedUser] = await UserRepository.updatePassword(id, hashedNewPassword)
+
+      return updatedUser;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error updating password");
+    }
+  },
+
+
+
   // deprecated, remove this function and use getAuthUserByEmail instead. --- IGNORE ---
 
   // getAuthUserByUsername: async (userName: string) => {

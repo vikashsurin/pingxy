@@ -20,12 +20,17 @@ function createAuthService() {
     return await authApi.register(formData);
   };
 
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+   
+    return await authApi.updatePassword(currentPassword, newPassword);
+  };
   return {
     setToken,
     setAuthUser,
     login,
     register,
+    updatePassword
   };
 }
 
-export const authManager = createAuthService();
+export const authService = createAuthService();

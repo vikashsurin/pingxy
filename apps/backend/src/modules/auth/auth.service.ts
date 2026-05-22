@@ -103,6 +103,12 @@ export const AuthService = {
   },
 
 
+  updatePassword: async (id: number, currentPassword: string, newPassword: string) => {
+    const updatedUser = await UserService.updatePassword(id, currentPassword, newPassword)
+    return updatedUser;
+  },
+
+
   logout: async (cookie: string) => {
     const user = await SessionService.getSessionUser(cookie);
     const success = await SessionService.revokeSession(cookie);

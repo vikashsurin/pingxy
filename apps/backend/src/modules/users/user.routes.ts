@@ -1,7 +1,9 @@
 import { factory } from "@lib/db/drizzle-factory";
 import { UserController } from "./user.controller";
 
-export const userRouter = factory.createApp();
+export const router = factory.createApp();
 
-userRouter.get("/check", ...UserController.checkUser);
-userRouter.get("/:id", ...UserController.getUserById);
+router.get("/check", ...UserController.checkUser);
+router.get("/:id", ...UserController.getUserById);
+
+export const userRouter = router

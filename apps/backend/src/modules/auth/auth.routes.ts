@@ -11,6 +11,6 @@ router.get("/profile", authMiddleware, AuthController.profile);
 router.post("/register", ...AuthController.register);
 router.post("/login", ...AuthController.login);
 router.post("/logout", AuthController.logout);
-
+router.put('/update-password', authMiddleware, ...AuthController.updatePassword)
 
 export const authRouter = router;
