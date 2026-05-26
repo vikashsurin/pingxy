@@ -44,6 +44,30 @@ export const AuthController = {
     },
   ),
 
+  forgotPassword: factory.createHandlers(
+    validate("json", z.object({ email: z.email() })),
+    async (c) => {
+      const { email } = c.req.valid("json");
+
+      const token = await AuthService.forgotPassword(email);
+
+      return c.json({
+        message: "Password reset link sent to your email",
+        token
+      }, 200)
+
+    },
+  ),
+
+
+  resetPassword: factory.createHandlers(
+    validate("json", z.object({ token: z.string(), newPassword: z.string().min(4).max(100) })),
+    async (c) => {
+      const { token, newPassword } = c.req.valid("json");
+      await AuthService.resetPassword(token, newPassword);
+      return c.json({ message: "Password reset successfully" }, 200)
+    },
+  ),
 
   register: factory.createHandlers(
     validate("json", RegisterUserRequestSchema),

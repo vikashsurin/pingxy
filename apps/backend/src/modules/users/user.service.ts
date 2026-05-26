@@ -13,7 +13,7 @@ export const UserService = {
         throw new Error("Invalid email");
       }
 
-      const [existingUser] = await UserRepository.selectByEmail(
+      const existingUser = await UserRepository.selectByEmail(
         parsedEmail.data,
       );
 
@@ -35,9 +35,20 @@ export const UserService = {
     }
   },
 
+
+  getUserByEmail: async (email: Email) => {
+    try {
+      const user = await UserRepository.selectByEmail(email);
+      const { hashedPassword, ...safeUser } = user;
+      return safeUser;
+    } catch (error) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+  },
+
   getAuthUserByEmail: async (email: Email) => {
     try {
-      const [result] = await UserRepository.selectByEmail(email);
+      const result = await UserRepository.selectByEmail(email);
 
       if (!result) {
         throw new Error("User not found");
@@ -50,12 +61,12 @@ export const UserService = {
   },
 
   updatePassword: async (
-    id: number,
+    userId: number,
     currentPassword: string,
     newPassword: string,
   ) => {
     try {
-      const [user] = await UserRepository.selectForAuth(id)
+      const [user] = await UserRepository.selectForAuth(userId)
 
       if (!user) {
         throw new Error("User not found");
@@ -72,7 +83,7 @@ export const UserService = {
 
       const hashedNewPassword = await Bun.password.hash(newPassword)
 
-      const [updatedUser] = await UserRepository.updatePassword(id, hashedNewPassword)
+      const [updatedUser] = await UserRepository.updatePassword(userId, hashedNewPassword)
 
       return updatedUser;
     } catch (error) {

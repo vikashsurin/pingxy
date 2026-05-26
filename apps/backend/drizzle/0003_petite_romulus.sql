@@ -1,0 +1,1 @@
+CREATE INDEX "verification_token_token_hash_idx" ON "verification_tokens" USING btree ("token_hash");

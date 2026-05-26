@@ -1,8 +1,10 @@
 import redis from "@lib/redis";
 import { broadcast } from "@lib/socket/pubsub";
 import { createServerEvent } from "@lib/socket/socket.factory";
+import { cryptoHash } from "@lib/utils/cryptoHash";
 import { SessionService } from "@modules/sessions";
 import { UserService } from "@modules/users";
+import { UserRepository } from "@modules/users/user.repository";
 import { VerificationTokenService } from "@modules/verification-tokens/verification-token.service";
 import { SERVER_EVENTS } from "@pingxy/shared/constants";
 import type { selectUserSchema } from "@pingxy/shared/domain/user";
@@ -41,7 +43,7 @@ export const AuthService = {
 
     await saveToRedis(user)
 
-    const verification = await VerificationTokenService.verify({
+    const verification = await VerificationTokenService.createVerificationToken({
       userId: user.id,
       type: 'emailVerification',
     });
@@ -108,6 +110,49 @@ export const AuthService = {
     return updatedUser;
   },
 
+  forgotPassword: async (email: string) => {
+    const user = await UserService.getUserByEmail(email);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const savedToken = await VerificationTokenService.createVerificationToken({
+      userId: user.id,
+      type: "passwordReset" as const
+    });
+
+    if (!savedToken) {
+      throw new Error("Failed to create verification token");
+    }
+
+
+    // send a mail with verification link
+    // create url with token and send it to user
+
+    return {
+      token: savedToken.token,
+      // savedToken: savedToken,
+    };
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+
+    const tokenHash = await cryptoHash(token)
+
+    const verifiedToken = await VerificationTokenService.findByTokenHash(tokenHash);
+
+    if (!verifiedToken) {
+      throw new Error("Invalid token");
+    }
+    const hashedPassword = await Bun.password.hash(newPassword);
+
+    const updatedUser = await UserRepository.updatePassword(verifiedToken.userId, hashedPassword);
+
+    if (!updatedUser) {
+      throw new Error("Failed to update password");
+    }
+    return updatedUser
+  },
 
   logout: async (cookie: string) => {
     const user = await SessionService.getSessionUser(cookie);

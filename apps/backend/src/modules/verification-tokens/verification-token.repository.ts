@@ -27,14 +27,14 @@ export const VerificationTokenRepository = {
     return row[0]
   },
 
-  selectByToken: async ({ token, tx = db }: { token: string, tx: DB_TX }) => {
+  selectByTokenHash: async ({ tokenHash, tx = db }: { tokenHash: string, tx?: DB_TX }) => {
     const row = await
       tx
         .select()
         .from(verificationTokens)
         .where(
           eq(
-            verificationTokens.token, token
+            verificationTokens.tokenHash, tokenHash
           )
         )
     return row[0]

@@ -16,7 +16,7 @@ export const verificationTokens = table(
       .integer()
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    token: t.text().notNull(),
+    tokenHash: t.text().notNull(),
     type: verificationTokenEnum().notNull(),
     expiresAt: t.timestamp({ withTimezone: true }).notNull(),
     createdAt: t
@@ -26,5 +26,6 @@ export const verificationTokens = table(
   },
   (table) => [
     t.index('verification_token_user_id_idx').on(table.userId),
+    t.index('verification_token_token_hash_idx').on(table.tokenHash),
   ]
 );

@@ -137,7 +137,7 @@ export default function Login() {
         <div className="text-sm flex gap-1 justify-center mt-8">
           Don&apos;t have an account?{" "}
           <a href="/auth/register" className="text-blue-800 hover:underline">
-            Register
+            Create an account
           </a>
         </div>
       </div>

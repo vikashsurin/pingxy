@@ -46,3 +46,26 @@ export const useUpdatePassword = () => {
     },
   });
 };
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      return await authService.forgotPassword(email);
+    },
+    onSuccess: (data) => {
+      console.log({ data })
+
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: async (formData: { token: string; newPassword: string }) => {
+      return await authService.resetPassword(formData.token, formData.newPassword);
+    },
+    onSuccess: (data) => {
+
+    },
+  });
+}

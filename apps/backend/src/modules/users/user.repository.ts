@@ -37,10 +37,11 @@ export const UserRepository = {
   },
 
   selectByEmail: async (email: string) => {
-    return await db
+    const row = await db
       .select()
       .from(users)
       .where(eq(users.email, email as unknown as string));
+    return row[0]
   },
 
   selectByUsername: async (userName: string) => {
@@ -90,14 +91,14 @@ export const UserRepository = {
       });
   },
 
-  updatePassword: async (id: number, hashedPassword: string) => {
+  updatePassword: async (userId: number, hashedPassword: string) => {
     return await db
       .update(users)
       .set({
         hashedPassword,
         updatedAt: new Date(Date.now()),
       })
-      .where(eq(users.id, id))
+      .where(eq(users.id, userId))
       .returning({
         ...safeUserColumns,
       });

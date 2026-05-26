@@ -115,12 +115,54 @@ function createAuthApi() {
     const data = await res.json();
     return data;
   };
+
+  const forgotPassword = async (email: string) => {
+
+
+    console.log("email::", email)
+    const url = `${baseUrl}/forgot-password`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!res.ok) {
+      console.error("Forgot password failed", await res.json());
+      throw new Error("Forgot password failed");
+    }
+    const data = await res.json();
+    return data;
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    const url = `${baseUrl}/reset-password`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token, newPassword }),
+    });
+
+    if (!res.ok) {
+      console.error("Reset password failed", await res.json());
+      throw new Error("Reset password failed");
+    }
+    const data = await res.json();
+    return data;
+  };
+
   return {
     login,
     register,
     logout,
     getAuthUser,
-    updatePassword
+    updatePassword,
+    forgotPassword,
+    resetPassword,
   };
 }
 

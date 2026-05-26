@@ -15,6 +15,20 @@
       "when": 1779272600546,
       "tag": "0001_big_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779785159380,
+      "tag": "0002_cuddly_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779786092324,
+      "tag": "0003_petite_romulus",
+      "breakpoints": true
     }
   ]
 }

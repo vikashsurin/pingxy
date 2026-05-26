@@ -21,15 +21,26 @@ function createAuthService() {
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string) => {
-   
+
     return await authApi.updatePassword(currentPassword, newPassword);
   };
+
+  const forgotPassword = async (email: string) => {
+    return await authApi.forgotPassword(email);
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    return await authApi.resetPassword(token, newPassword);
+  };
+
   return {
     setToken,
     setAuthUser,
     login,
     register,
-    updatePassword
+    updatePassword,
+    forgotPassword,
+    resetPassword,
   };
 }
 
